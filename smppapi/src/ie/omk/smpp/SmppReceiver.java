@@ -58,15 +58,19 @@ public class SmppReceiver
 	super(link, async);
     }
 
-    /** Bind to the SMSC as a receiver.
+    /** Bind to the SMSC as a receiver. This method will send a bind_receiver
+      * packet to the SMSC. If the network connection to the SMSC is not already
+      * open, it will be opened in this method.
+      * See the description of bind in ie.omk.smpp.SmppConnection.bind.
       * @return The bind receiver response or null if asynchronous
       * communication is used.
       * @exception ie.omk.smpp.AlreadyBoundException If the connection is
       * already bound to the SMSC.
       * @exception java.io.IOException If a network error occurs.
-      * @see SmppTransmitter#bind
+      * @see ie.omk.smpp.SmppConnection#bind
       */
-    public SMPPResponse bind()
+    public SMPPResponse bind(String systemID, String password,
+	    String systemType, SmeAddress sourceRange)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	// Make sure we're not already bound
@@ -78,13 +82,13 @@ public class SmppReceiver
 	    link.open();
 
 	BindReceiver t = new BindReceiver(1);
-	t.setSystemId(this.sysId);
-	t.setPassword(this.password);
-	t.setSystemType(this.sysType);
-	t.setInterfaceVersion(SmppConnection.INTERFACE_VERSION);
-	t.setAddressTon(this.addrTon);
-	t.setAddressNpi(this.addrNpi);
-	t.setAddressRange(this.addrRange);
+	t.setSystemId(systemID);
+	t.setPassword(password);
+	t.setSystemType(systemType);
+	t.setInterfaceVersion(super.INTERFACE_VERSION);
+	t.setAddressTon(sourceRange.getTON());
+	t.setAddressNpi(sourceRange.getNPI());
+	t.setAddressRange(sourceRange.getAddress());
 
 	// Make sure the listener thread is running
 	setState(BINDING);
