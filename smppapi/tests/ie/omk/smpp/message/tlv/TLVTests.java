@@ -202,6 +202,11 @@ public class TLVTests extends TestCase {
 	}
 	byte[] serialized = out.toByteArray();
 
+	// The table must report the same length as it actually serializes to..
+	if (tab.getLength() != serialized.length) {
+	    fail("Table getLength is different to actual encoded length");
+	}
+
 	for (int i = 0; i < 2; i++) {
 	    String msg;
 	    TLVTable tab1 = new TLVTable();
