@@ -29,107 +29,123 @@ import java.util.Arrays;
 
 import junit.framework.TestCase;
 
+import ie.omk.TestUtils;
+
 public class TestSMPPIO extends TestCase {
 
-    int i1 = 0x11;
-    byte[] b1 = { 0x11 };
+    long[] longs1 = {
+	0x11L,
+	0x2211L,
+	0x332211L,
+	0x44332211L,
+	0x5544332211L,
+	0x665544332211L,
+	0x77665544332211L,
+	0x8877665544332211L
+    };
 
-    int i2 = 0x1122;
-    byte[] b2 = { 0x11, 0x22 };
+    long[] longs2 = {
+	0xe1L,
+	0xe2e1L,
+	0xe3e2e1L,
+	0xe4e3e2e1L,
+	0xe5e4e3e2e1L,
+	0xe6e5e4e3e2e1L,
+	0xe7e6e5e4e3e2e1L,
+	0xe8e7e6e5e4e3e2e1L,
+    };
 
-    int i3 = 0x112233;
-    byte[] b3 = { 0x11, 0x22, 0x33 };
+    // Initialised in setUp.
+    int[] ints1, ints2;
 
-    int i4 = 0x11223344;
-    byte[] b4 = { 0x11, 0x22, 0x33, 0x44 };
+    byte[][] bytes1 = {
+	{ 0x11 },
+	{ 0x22, 0x11 },
+	{ 0x33, 0x22, 0x11 },
+	{ 0x44, 0x33, 0x22, 0x11 },
+	{ 0x55, 0x44, 0x33, 0x22, 0x11 },
+	{ 0x66, 0x55, 0x44, 0x33, 0x22, 0x11 },
+	{ 0x77, 0x66, 0x55, 0x44, 0x33, 0x22, 0x11 },
+	{ (byte)0x88, 0x77, 0x66, 0x55, 0x44, 0x33, 0x22, 0x11 }
+    };
 
-    long l5 = 0x1122334455L;
-    byte[] b5 = { 0x11, 0x22, 0x33, 0x44, 0x55 };
+    byte[][] bytes2 = {
+	{ (byte)0xe1 },
+	{ (byte)0xe2, (byte)0xe1 },
+	{ (byte)0xe3, (byte)0xe2, (byte)0xe1 },
+	{ (byte)0xe4, (byte)0xe3, (byte)0xe2, (byte)0xe1 },
+	{ (byte)0xe5, (byte)0xe4, (byte)0xe3, (byte)0xe2, (byte)0xe1 },
+	{ (byte)0xe6, (byte)0xe5, (byte)0xe4, (byte)0xe3, (byte)0xe2,
+	    (byte)0xe1 },
+	{ (byte)0xe7, (byte)0xe6, (byte)0xe5, (byte)0xe4, (byte)0xe3,
+	    (byte)0xe2, (byte)0xe1 },
+	{ (byte)0xe8, (byte)0xe7, (byte)0xe6, (byte)0xe5, (byte)0xe4,
+	    (byte)0xe3, (byte)0xe2, (byte)0xe1 }
+    };
 
-    long l6 = 0x112233445566L;
-    byte[] b6 = { 0x11, 0x22, 0x33, 0x44, 0x55, 0x66 };
-
-    long l7 = 0x11223344556677L;
-    byte[] b7 = { 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77 };
-
-    long l8 = 0x1122334455667788L;
-    byte[] b8 = { 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, (byte)0x88 };
 
     public TestSMPPIO(String n) {
 	super (n);
     }
 
+    protected void setUp() {
+	ints1 = new int[4];
+	ints2 = new int[4];
+
+	for (int i = 0; i < 4; i++) {
+	    ints1[i] = (int)longs1[i];
+	    ints2[i] = (int)longs2[i];
+	}
+    }
+
+    protected void tearDown() {
+	// Nothing to tear down.
+    }
+
     public void testIntToBytes() {
 	byte[] b;
 
-	b = new byte[1];
-	SMPPIO.intToBytes(i1, 1, b, 0);
-	assertTrue(Arrays.equals(b1, b));
+	for (int i = 1; i <= 4; i++) {
+	    String msg = "" + i + ":";
 
-	b = new byte[2];
-	SMPPIO.intToBytes(i2, 2, b, 0);
-	assertTrue(Arrays.equals(b2, b));
+	    b = new byte[i];
+	    SMPPIO.intToBytes(ints1[i - 1], i, b, 0);
+	    assertTrue(msg + "1", Arrays.equals(bytes1[i - 1], b));
 
-	b = new byte[3];
-	SMPPIO.intToBytes(i3, 3, b, 0);
-	assertTrue(Arrays.equals(b3, b));
-
-	b = new byte[4];
-	SMPPIO.intToBytes(i4, 4, b, 0);
-	assertTrue(Arrays.equals(b4, b));
+	    SMPPIO.intToBytes(ints2[i - 1], i, b, 0);
+	    TestUtils.displayArray(bytes2[0]);
+	    TestUtils.displayArray(b);
+	    assertTrue(msg + "2", Arrays.equals(bytes2[i - 1], b));
+	}
     }
 
     public void testBytesToInt() {
-	assertEquals(i1, SMPPIO.bytesToInt(b1, 0, 1));
-	assertEquals(i2, SMPPIO.bytesToInt(b2, 0, 2));
-	assertEquals(i3, SMPPIO.bytesToInt(b3, 0, 3));
-	assertEquals(i4, SMPPIO.bytesToInt(b4, 0, 4));
+	for (int i = 1; i < 4; i++) {
+	    assertEquals(ints1[i - 1], SMPPIO.bytesToInt(bytes1[i - 1], 0, i));
+	    assertEquals(ints2[i - 1], SMPPIO.bytesToInt(bytes2[i - 1], 0, i));
+	}
     }
 
     public void testLongToBytes() {
 	byte[] b;
 
-	b = new byte[1];
-	SMPPIO.longToBytes((long)i1, 1, b, 0);
-	assertTrue(Arrays.equals(b1, b));
+	for (int i = 1; i <= 8; i++) {
+	    b = new byte[i];
+	    SMPPIO.longToBytes(longs1[i - 1], i, b, 0);
+	    assertTrue(Arrays.equals(bytes1[i - 1], b));
 
-	b = new byte[2];
-	SMPPIO.longToBytes((long)i2, 2, b, 0);
-	assertTrue(Arrays.equals(b2, b));
-	
-	b = new byte[3];
-	SMPPIO.longToBytes((long)i3, 3, b, 0);
-	assertTrue(Arrays.equals(b3, b));
-	
-	b = new byte[4];
-	SMPPIO.longToBytes((long)i4, 4, b, 0);
-	assertTrue(Arrays.equals(b4, b));
-	
-	b = new byte[5];
-	SMPPIO.longToBytes(l5, 5, b, 0);
-	assertTrue(Arrays.equals(b5, b));
-	
-	b = new byte[6];
-	SMPPIO.longToBytes(l6, 6, b, 0);
-	assertTrue(Arrays.equals(b6, b));
-	
-	b = new byte[7];
-	SMPPIO.longToBytes(l7, 7, b, 0);
-	assertTrue(Arrays.equals(b7, b));
-	
-	b = new byte[8];
-	SMPPIO.longToBytes(l8, 8, b, 0);
-	assertTrue(Arrays.equals(b8, b));
+	    SMPPIO.longToBytes(longs2[i - 1], i, b, 0);
+	    assertTrue(Arrays.equals(bytes2[i - 1], b));
+	}
     }
 
     public void testBytesToLong() {
-	assertEquals((long)i1, SMPPIO.bytesToLong(b1, 0, 1));
-	assertEquals((long)i2, SMPPIO.bytesToLong(b2, 0, 2));
-	assertEquals((long)i3, SMPPIO.bytesToLong(b3, 0, 3));
-	assertEquals((long)i4, SMPPIO.bytesToLong(b4, 0, 4));
-	assertEquals(l5, SMPPIO.bytesToLong(b5, 0, 5));
-	assertEquals(l6, SMPPIO.bytesToLong(b6, 0, 6));
-	assertEquals(l7, SMPPIO.bytesToLong(b7, 0, 7));
-	assertEquals(l8, SMPPIO.bytesToLong(b8, 0, 8));
+	for (int i = 1; i < 8; i++) {
+	    String msg = "" + i + ":";
+	    assertEquals(msg + "1", longs1[i - 1],
+		    SMPPIO.bytesToLong(bytes1[i - 1], 0, i));
+	    assertEquals(msg + "2", longs2[i - 1],
+		    SMPPIO.bytesToLong(bytes2[i - 1], 0, i));
+	}
     }
 }
