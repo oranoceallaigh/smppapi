@@ -174,7 +174,8 @@ public class TLVTable implements java.io.Serializable {
 		parseAllOpts();
 	    }
 
-	    if (tag.getType() == null && value != null) {
+	    if (tag.getType() == null) {
+		if (value != null)
 		    throw new BadValueTypeException("Tag "
 			    + Integer.toHexString(tag.intValue())
 			    + " does not accept a value.");
@@ -286,14 +287,16 @@ public class TLVTable implements java.io.Serializable {
 	if (opts != null)
 	    parseAllOpts();
 
-	int length = 0;
+	// Length is going to be (number of options) * (2 bytes for tag) * (2
+	// bytes for length) + (size of all encoded values)
+	int length = map.size() * 4;
 	Tag tag;
 	Encoder enc;
 	Iterator i = map.keySet().iterator();
 	while (i.hasNext()) {
 	    tag = (Tag)i.next();
 	    enc = tag.getEncoder();
-	    length += enc.getValueLength(tag, enc);
+	    length += enc.getValueLength(tag, map.get(tag));
 	}
 
 	return (length);
