@@ -34,9 +34,16 @@ import ie.omk.smpp.util.DefaultAlphabetEncoding;
 import ie.omk.smpp.util.GSMConstants;
 import ie.omk.smpp.util.UCS2Encoding;
 
+import ie.omk.smpp.version.SMPPVersion;
+
 import org.apache.log4j.Logger;
 
-public class SyncTransmitter {
+/** A synchronous transceiver example. Using sync mode for either a transceiver
+ * or receiver connection is less useful than using async mode as your
+ * application must now poll the connection continuously for incoming delivery
+ * messages from the SMSC.
+ */
+public class SyncTransceiver {
 
     private HashMap myArgs = new HashMap();
 
@@ -44,7 +51,7 @@ public class SyncTransmitter {
 
     private Logger logger = Logger.getLogger("ie.omk.smpp.examples");
 
-    public SyncTransmitter() {
+    public SyncTransceiver() {
     }
 
     private void init(String[] args) {
@@ -54,6 +61,10 @@ public class SyncTransmitter {
 	    int port = Integer.parseInt((String)myArgs.get(ParseArgs.PORT));
 
 	    myConnection = new Connection((String)myArgs.get(ParseArgs.HOSTNAME), port);
+	    myConnection.setVersion(SMPPVersion.V34);
+	    myConnection.autoAckLink(true);
+	    myConnection.autoAckMessages(true);
+
 	} catch (Exception x) {
 	    logger.info("Bad command line arguments.");
 	}
@@ -64,24 +75,13 @@ public class SyncTransmitter {
 	    logger.info("Binding to the SMSC");
 
 	    // Bind the short way:
-	    BindResp resp = myConnection.bind(myConnection.TRANSMITTER,
+	    BindResp resp = myConnection.bind(myConnection.TRANSCEIVER,
 		    (String)myArgs.get(ParseArgs.SYSTEM_ID),
 		    (String)myArgs.get(ParseArgs.PASSWORD),
 		    (String)myArgs.get(ParseArgs.SYSTEM_TYPE),
 		    Integer.parseInt((String)myArgs.get(ParseArgs.ADDRESS_TON)),
 		    Integer.parseInt((String)myArgs.get(ParseArgs.ADDRESS_NPI)),
 		    (String)myArgs.get(ParseArgs.ADDRESS_RANGE));
-
-
-	    // The following achieves exactly the same thing:
-	    // Bind req = (Bind)myConnection.newInstance(SMPPPacket.BIND_TRANSMITTER);
-	    // req.setSystemType((String)myArgs.get(ParseArgs.SYSTEM_TYPE));
-	    // req.setSystemId((String)myArgs.get(ParseArgs.SYSTEM_ID));
-	    // req.setPassword((String)myArgs.get(ParseArgs.PASSWORD));
-	    // req.setAddressTON(Integer.parseInt((String)myArgs.get(ParseArgs.ADDRESS_TON)));
-	    // req.setAddressNPI(Integer.parseInt((String)myArgs.get(ParseArgs.ADDRESS_NPI)));
-	    // req.setAddressRange((String)myArgs.get(ParseArgs.ADDRESS_RANGE));
-	    // BindResp resp = myConnection.sendRequest(req);
 
 
 	    if (resp.getCommandStatus() != 0) {
@@ -99,6 +99,18 @@ public class SyncTransmitter {
 
 	    logger.info("Submitted message ID: " + smr.getMessageId());
 
+	    try {
+		// Wait a while, see if the SMSC delivers anything to us...
+		SMPPPacket p = myConnection.readNextPacket();
+		logger.info("Received a packet!");
+		logger.info(p.toString());
+
+		// API should be automatically acking deliver_sm and
+		// enquire_link packets...
+	    } catch (java.net.SocketTimeoutException x) {
+		// ah well...
+	    }
+
 	    // Unbind.
 	    UnbindResp ubr = myConnection.unbind();
 	    
@@ -114,7 +126,7 @@ public class SyncTransmitter {
     }
 
     public static final void main(String[] args) {
-	SyncTransmitter t = new SyncTransmitter();
+	SyncTransceiver t = new SyncTransceiver();
 	t.init(args);
 	t.run();
     }

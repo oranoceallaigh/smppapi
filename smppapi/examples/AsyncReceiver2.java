@@ -31,9 +31,7 @@ import ie.omk.smpp.message.BindResp;
 import ie.omk.smpp.message.DeliverSM;
 import ie.omk.smpp.message.Unbind;
 import ie.omk.smpp.message.UnbindResp;
-import ie.omk.smpp.message.SmeAddress;
-
-import ie.omk.smpp.net.TcpLink;
+import ie.omk.smpp.Address;
 
 import ie.omk.smpp.Connection;
 import ie.omk.smpp.SMPPException;
@@ -43,19 +41,22 @@ import ie.omk.smpp.event.SMPPEventAdapter;
 import ie.omk.smpp.event.SMPPEventAdapter;
 import ie.omk.smpp.event.ReceiverExitEvent;
 
+import org.apache.log4j.Logger;
+
 
 /** Example asynchronous receiver using the SMPPEventAdapter class.
  */
-public class AsyncReceiver2 extends SMPPExample
-{
+public class AsyncReceiver2 {
+
+    private Logger logger = Logger.getLogger("ie.omk.smpp.examples");
+
     // Object to block the main thread on.
     private Object blocker = new Object();
 
     // Our receiver connection
-    private Connection recv = null;
+    private Connection myConnection = null;
 
-    // Network link to the SMSC.
-    private TcpLink link = null;
+    private java.util.HashMap myArgs = null;
 
     // time example started at
     private long start = 0;
@@ -65,9 +66,6 @@ public class AsyncReceiver2 extends SMPPExample
 
     // Number of deliver_sm packets received
     private int msgCount = 0;
-
-    // Set to true to show the message text for each deliver_sm received
-    private boolean showMsgs = false;
 
 
     public AsyncReceiver2()
@@ -83,50 +81,53 @@ public class AsyncReceiver2 extends SMPPExample
 	logger.info("Elapsed: " + (end - start) + " milliseconds.");
     }
 
-    private void doit(String[] clargs)
-    {
+    private void init(String[] args) {
 	try {
-	    parseArgs(clargs);
+	    myArgs = ParseArgs.parse(args);
 
+	    int port = Integer.parseInt((String)myArgs.get(ParseArgs.PORT));
+
+	    myConnection = new Connection((String)myArgs.get(ParseArgs.HOSTNAME), port, true);
+	} catch (Exception x) {
+	    logger.info("Bad command line arguments.");
+	}
+    }
+
+    private void run() {
+	try {
 	    // Create the observer
 	    AsyncExampleObserver observer = new AsyncExampleObserver();
 
-	    // create the TcpLink (no network connection is established yet)
-	    link = new TcpLink(hostName, port);
-
-	    // create the receiver
-	    recv = new Connection(link, true);
-
 	    // set the receiver to automatically acknowledge deliver_sm and
 	    // enquire_link requests from the SMSC.
-	    recv.autoAckLink(true);
-	    recv.autoAckMessages(true);
+	    myConnection.autoAckLink(true);
+	    myConnection.autoAckMessages(true);
 
 	    // add this example to the list of observers on the receiver
 	    // connection
-	    recv.addObserver(observer);
-
-	    // create an SmeAddress representing the source address for the bind
-	    // operation
-	    SmeAddress range = null;
-	    if (sourceRange != null)
-		range = new SmeAddress(ton, npi, sourceRange);
+	    myConnection.addObserver(observer);
 
 	    // bind to the SMSC as a receiver
 	    logger.info("Binding to the SMSC..");
-	    recv.bind(Connection.RECEIVER,
-		    sysID,
-		    password,
-		    sysType);
+	    BindResp resp = myConnection.bind(myConnection.RECEIVER,
+		    (String)myArgs.get(ParseArgs.SYSTEM_ID),
+		    (String)myArgs.get(ParseArgs.PASSWORD),
+		    (String)myArgs.get(ParseArgs.SYSTEM_TYPE),
+		    Integer.parseInt((String)myArgs.get(ParseArgs.ADDRESS_TON)),
+		    Integer.parseInt((String)myArgs.get(ParseArgs.ADDRESS_NPI)),
+		    (String)myArgs.get(ParseArgs.ADDRESS_RANGE));
 
 	    // block until we're unbound from the SMSC..
 	    synchronized (blocker) {
 		blocker.wait();
 	    }
 
-	    endReport();
+	    // Close down the network connection.
+	    myConnection.closeLink();
 	} catch (Exception x) {
 	    logger.warn("Exception", x);
+	} finally {
+	    endReport();
 	}
     }
 
@@ -146,12 +147,8 @@ public class AsyncReceiver2 extends SMPPExample
 		logger.info("DeliverSM: !Error! status = " + st);
 	    } else {
 		++msgCount;
-		if (showMsgs) {
-		    logger.info("DeliverSM: \"" + dm.getMessageText()
-			    + "\"");
-		} else if ((msgCount % 500) == 0) {
-		    System.out.print(".");
-		}
+		logger.info("DeliverSM: \"" + dm.getMessageText()
+			+ "\"");
 	    }
 	}
 
@@ -163,7 +160,7 @@ public class AsyncReceiver2 extends SMPPExample
 	    else {
 		logger.info("Bind did not succeed!");
 		try {
-		    link.close();
+		    myConnection.closeLink();
 		} catch (IOException x) {
 		    logger.info("IOException closing link:\n"
 			    + x.toString());
@@ -183,7 +180,7 @@ public class AsyncReceiver2 extends SMPPExample
 	    try {
 		// SMSC requests unbind..
 		UnbindResp ubr = new UnbindResp(ubd);
-		recv.sendResponse(ubr);
+		myConnection.sendResponse(ubr);
 	    } catch (IOException x) {
 		logger.info("IOException while acking unbind.\n"
 			+ x.toString());
@@ -230,7 +227,8 @@ public class AsyncReceiver2 extends SMPPExample
     public static void main(String[] clargs)
     {
 	AsyncReceiver2 a2 = new AsyncReceiver2();
-	a2.doit(clargs);
+	a2.init(clargs);
+	a2.run();
 
 	System.exit(0);
     }
