@@ -80,8 +80,10 @@ public class DefaultAlphabetEncoding
       */
     public String decodeString(byte[] b)
     {
-	char[] table = charTable;
+	if (b == null)
+	    return (null);
 
+	char[] table = charTable;
 	StringBuffer buf = new StringBuffer();
 
 	for (int i = 0; i < b.length; i++) {
@@ -103,6 +105,9 @@ public class DefaultAlphabetEncoding
       */
     public byte[] encodeString(String s)
     {
+	if (s == null)
+	    return (null);
+
 	char[] c = s.toCharArray();
 	ByteArrayOutputStream enc = new ByteArrayOutputStream();
 

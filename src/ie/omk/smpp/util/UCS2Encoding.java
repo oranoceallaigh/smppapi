@@ -44,10 +44,13 @@ public class UCS2Encoding
     }
 
     /** Decode SMS message text to a Java String. The SMS message is expected to
-     * be in UCS2 (UTF-16BE) format.
+     * be in UCS2 format.
      */
     public String decodeString(byte[] b)
     {
+	if (b == null)
+	    return (null);
+
 	try {
 	    return (new String(b, encType));
 	} catch (java.io.UnsupportedEncodingException x) {
@@ -55,10 +58,13 @@ public class UCS2Encoding
 	}
     }
 
-    /** Encode a Java String to bytes using UCS2 (aka UTF-16BE).
+    /** Encode a Java String to bytes using UCS2 (UTF-16).
      */
     public byte[] encodeString(String s)
     {
+	if (s == null)
+	    return (null);
+
 	try {
 	    return (s.getBytes(encType));
 	} catch (java.io.UnsupportedEncodingException x) {
