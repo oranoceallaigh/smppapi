@@ -187,9 +187,21 @@ public abstract class SMPPPacket
     protected int		errorCode = 0;
 
 
+    /** Create a new SMPPPacket with specified Id.
+      * @param id Command Id value
+      */
+    public SMPPPacket(int id)
+    {
+	this.commandId = id;
+
+	// Flags should always be created (rest of code assumes it is.)
+	flags = new MsgFlags();
+    }
+
     /** Create a new SMPPPacket with specified Id and sequence number.
       * @param id Command Id value
       * @param seqNum Command Sequence number
+      * @deprecated
       */
     public SMPPPacket(int id, int seqNum)
     {

@@ -43,8 +43,16 @@ public class SubmitMultiResp
     /** Table of unsuccessful destinations */
     private Vector unsuccessfulTable = new Vector();
 
+    /** Construct a new Unbind.
+      */
+    public SubmitMultiResp()
+    {
+	super(ESME_SUB_MULTI_RESP);
+    }
+
     /** Construct a new Unbind with specified sequence number.
       * @param seqNum The sequence number to use
+      * @deprecated
       */
     public SubmitMultiResp(int seqNum)
     {

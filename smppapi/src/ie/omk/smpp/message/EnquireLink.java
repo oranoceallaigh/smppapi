@@ -38,8 +38,16 @@ import ie.omk.debug.Debug;
 public class EnquireLink
     extends ie.omk.smpp.message.SMPPRequest
 {
+    /** Construct a new EnquireLink.
+      */
+    public EnquireLink()
+    {
+	super(ESME_QRYLINK);
+    }
+
     /** Construct a new EnquireLink with specified sequence number.
       * @param seqNum The sequence number to use
+      * @deprecated
       */
     public EnquireLink(int seqNum)
     {

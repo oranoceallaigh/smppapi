@@ -36,8 +36,16 @@ import ie.omk.debug.Debug;
 public class EnquireLinkResp
     extends ie.omk.smpp.message.SMPPResponse
 {
+    /** Construct a new EnquireLinkResp.
+      */
+    public EnquireLinkResp()
+    {
+	super(ESME_QRYLINK_RESP);
+    }
+
     /** Construct a new EnquireLinkResp with specified sequence number.
       * @param seqNum The sequence number to use
+      * @deprecated
       */
     public EnquireLinkResp(int seqNum)
     {

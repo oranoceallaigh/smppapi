@@ -45,8 +45,17 @@ public class QueryMsgDetails
     /** Length of the message text required */
     private int smLength;
 
+    /** Construct a new QueryMsgDetails.
+      */
+    public QueryMsgDetails()
+    {
+	super(ESME_QUERY_MSG_DETAILS);
+	smLength = 0;
+    }
+
     /** Construct a new QueryMsgDetails with specified sequence number.
       * @param seqNum The sequence number to use
+      * @deprecated
       */
     public QueryMsgDetails(int seqNum)
     {

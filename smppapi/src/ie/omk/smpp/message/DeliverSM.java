@@ -56,8 +56,16 @@ import ie.omk.debug.Debug;
 public class DeliverSM
     extends ie.omk.smpp.message.SMPPRequest
 {
+    /** Construct a new DeliverSM.
+      */
+    public DeliverSM()
+    {
+	super(SMSC_DELIVER_SM);
+    }
+
     /** Construct a new DeliverSM with specified sequence number.
       * @param seqNum The sequence number to use
+      * @deprecated
       */
     public DeliverSM(int seqNum)
     {

@@ -33,8 +33,16 @@ import ie.omk.debug.Debug;
 public class UnbindResp
     extends ie.omk.smpp.message.SMPPResponse
 {
+    /** Construct a new UnbindResp.
+      */
+    public UnbindResp()
+    {
+	super(ESME_UBD_RESP);
+    }
+
     /** Construct a new UnbindResp with specified sequence number.
       * @param seqNum The sequence number to use
+      * @deprecated
       */
     public UnbindResp(int seqNum)
     {

@@ -40,8 +40,16 @@ public class QueryLastMsgsResp
     /** The table of messages returned */
     private Vector messageTable = new Vector();
 
+    /** Construct a new QueryLastMsgsResp.
+      */
+    public QueryLastMsgsResp()
+    {
+	super(ESME_QUERY_LAST_MSGS_RESP);
+    }
+
     /** Construct a new QueryLastMsgsResp with specified sequence number.
       * @param seqNum The sequence number to use
+      * @deprecated
       */
     public QueryLastMsgsResp(int seqNum)
     {

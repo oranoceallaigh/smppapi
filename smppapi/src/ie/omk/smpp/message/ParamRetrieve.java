@@ -40,8 +40,17 @@ public class ParamRetrieve
     /** Name of the parameter to retrieve */
     private String paramName;
 
+    /** Construct a new ParamRetrieve.
+      */
+    public ParamRetrieve()
+    {
+	super(ESME_PARAM_RETRIEVE);
+	paramName = null;
+    }
+
     /** Construct a new ParamRetrieve with specified sequence number.
       * @param seqNum The sequence number to use
+      * @deprecated
       */
     public ParamRetrieve(int seqNum)
     {

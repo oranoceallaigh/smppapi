@@ -39,8 +39,17 @@ public class BindReceiverResp
     /** System Id of the SMSC. */
     private String sysId;
 
+    /** Construct a new BindReceiverResp.
+      */
+    public BindReceiverResp()
+    {
+	super(ESME_BNDRCV_RESP);
+	sysId = null;
+    }
+
     /** Construct a new BindReceiverResp with specified sequence number.
       * @param seqNum The sequence number to use
+      * @deprecated
       */
     public BindReceiverResp(int seqNum)
     {

@@ -59,8 +59,21 @@ public class BindTransmitter
     private int addrNpi;
 
 
+    /** Construct a new BindTransmitter.
+      * @param seqNum The sequence number to use
+      */
+    public BindTransmitter()
+    {
+	super(ESME_BNDTRN);
+
+	// Initialise the packet's fields to null values
+	sysId = password = sysType = addressRange = null;
+	interfaceVer = addrTon = addrNpi = 0;
+    }
+
     /** Construct a new BindTransmitter with specified sequence number.
       * @param seqNum The sequence number to use
+      * @deprecated
       */
     public BindTransmitter(int seqNum)
     {

@@ -56,8 +56,16 @@ public class SubmitMulti
     /** Table of destinations */
     private Vector destinationTable = new Vector();
 
+    /** Construct a new SubmitMulti.
+      */
+    public SubmitMulti()
+    {
+	super(ESME_SUB_MULTI);
+    }
+
     /** Construct a new SubmitMulti with specified sequence number.
       * @param seqNum The sequence number to use
+      * @deprecated
       */
     public SubmitMulti(int seqNum)
     {

@@ -45,8 +45,16 @@ import ie.omk.debug.Debug;
 public class CancelSM
     extends ie.omk.smpp.message.SMPPRequest
 {
+    /** Construct a new CancelSM.
+      */
+    public CancelSM()
+    {
+	super(ESME_CANCEL_SM);
+    }
+
     /** Construct a new CancelSM with specified sequence number.
       * @param seqNum The sequence number to use
+      * @deprecated
       */
     public CancelSM(int seqNum)
     {
