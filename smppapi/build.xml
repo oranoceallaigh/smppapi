@@ -20,6 +20,18 @@
     <jar jarfile="${dist}/smppapi.jar" basedir="${build}"/>
   </target>
 
+  <target name="docs">
+    <mkdir dir="docs/apiDocs"/>
+    <javadoc sourcepath="src"
+             destdir="docs/apiDocs"
+             packagenames="ie.omk.smpp,ie.omk.smpp.message,ie.omk.smpp.net,ie.omk.debug"
+             Protected="true"
+             Author="true"
+             Windowtitle="SMPP API"
+             Header="&lt;b&gt;&lt;font size=-1&gt;SMPPAPI&lt;/font&gt;&lt;br&gt;documentation&lt;/b&gt;"
+             bottom="&amp;copy;Copyright 2001 by Oran Kelly" />
+
+  </target>
   <!-- Clean up -->
   <target name="clean">
     <delete dir="${dist}"/>
