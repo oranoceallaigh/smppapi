@@ -1,4 +1,3 @@
-
 <!--  Java SMPP API                                                         -->
 <!--  Copyright (C) 1998 - 2001 by Oran Kelly                               -->
 
@@ -19,14 +18,14 @@
 
 <!--  A copy of the LGPL can be viewed at                                   -->
 <!--  http://www.gnu.org/copyleft/lesser.html                               -->
-<!--  Java SMPP API author: oran.kelly@ireland.com                          -->
+<!--  Java SMPP API author: orank@users.sf.net                              -->
 <!--  Java SMPP API Homepage: http://smppapi.sourceforge.net/               -->
 
 <project name="smppapi" basedir="." default="api">
-  <!-- Set this to modern to use Sun's JDK -->
+  <!-- Set this to 'modern' to use Sun's JDK -->
   <property name="build.compiler" value="jikes"/>
   <!-- Set this to true for using Emacs or Vim quickfix mode -->
-  <property name="build.compiler.emacs" value="false"/>
+  <property name="build.compiler.emacs" value="true"/>
 
   <property name="src" value="src"/>
   <property name="build" value="classes"/>
@@ -45,7 +44,7 @@
 
   <!-- Build the API -->
   <target name="api" depends="init">
-    <javac srcdir="${src}" destdir="${build}"/>
+    <javac srcdir="${src}" destdir="${build}" deprecation="true"/>
     <jar jarfile="smppapi.jar" basedir="${build}"/>
   </target>
 

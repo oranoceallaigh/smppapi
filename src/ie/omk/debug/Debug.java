@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  * 
  * A copy of the LGPL can be viewed at http://www.gnu.org/copyleft/lesser.html
- * Java SMPP API author: oran.kelly@ireland.com
+ * Java SMPP API author: orank@users.sf.net
  * Java SMPP API Homepage: http://smppapi.sourceforge.net/
  */
 package ie.omk.debug;
