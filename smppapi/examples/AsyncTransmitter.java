@@ -88,8 +88,10 @@ public class AsyncTransmitter
 	    try {
 		trans.unbind();
 	    } catch (IOException x) {
-		trans.force_unbind();
 		System.err.println("Unbind error. Closing network connection.");
+		x.printStackTrace(System.err);
+	    } catch (SMPPException x) {
+		x.printStackTrace(System.err);
 	    }
 	    break;
 
@@ -116,6 +118,8 @@ public class AsyncTransmitter
 	    MsgFlags flags = new MsgFlags();
 	    trans.submitMessage(message, flags, destination);
 	} catch (IOException x) {
+	    x.printStackTrace(System.err);
+	} catch (SMPPException x) {
 	    x.printStackTrace(System.err);
 	}
     }
