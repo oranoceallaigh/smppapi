@@ -89,7 +89,7 @@ public abstract class SmscLink
 	} catch (PropertyNotFoundException x) {
 	} finally {
 	    if (logger.isDebugEnabled())
-		logger.debug("autoFlush set to" + autoFlush);
+		logger.debug("autoFlush set to " + autoFlush);
 	}
     }
 
@@ -105,17 +105,16 @@ public abstract class SmscLink
     {
 	implOpen();
 
+	String s = null;
 	int inSize = -1, outSize = -1;
-	try {
-	    APIConfig cfg = APIConfig.getInstance();
-	    inSize = cfg.getInt(cfg.LINK_BUFFERSIZE_IN);
-	    outSize = cfg.getInt(cfg.LINK_BUFFERSIZE_OUT);
-	} catch (PropertyNotFoundException x) {
-	} finally {
-	    if (logger.isDebugEnabled()) {
-		logger.debug("IN buffer size: " + inSize);
-		logger.debug("OUT buffer size: " + outSize);
-	    }
+	APIConfig cfg = APIConfig.getInstance();
+
+	inSize = getBufferSize(cfg, cfg.LINK_BUFFERSIZE_IN);
+	outSize = getBufferSize(cfg, cfg.LINK_BUFFERSIZE_OUT);
+
+	if (logger.isDebugEnabled()) {
+	    logger.debug("IN buffer size: " + inSize);
+	    logger.debug("OUT buffer size: " + outSize);
 	}
 
 	if (inSize < 1)
@@ -127,6 +126,25 @@ public abstract class SmscLink
 	    this.out = new BufferedOutputStream(getOutputStream());
 	else
 	    this.out = new BufferedOutputStream(getOutputStream(), outSize);
+    }
+
+    private final int getBufferSize(APIConfig cfg, String propName) {
+	int size = -1;
+
+	try {
+	    String s = cfg.getProperty(propName);
+	    if (s.toLowerCase().endsWith("k"))
+		size = Integer.parseInt(s.substring(0, s.length() - 1)) * 1024;
+	    else if (s.toLowerCase().endsWith("m"))
+		size = Integer.parseInt(s.substring(0, s.length() - 1)) * 1048576;
+	    else
+		size = Integer.parseInt(s, 10);
+	} catch (PropertyNotFoundException x) {
+	} catch (NumberFormatException x) {
+	    logger.warn("Bad value for config property " + propName, x);
+	}
+
+	return (size);
     }
 
     /** Implementation-specific link open. This method will be called by the
