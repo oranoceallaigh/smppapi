@@ -25,6 +25,7 @@ package ie.omk.smpp.message;
 
 import ie.omk.smpp.Address;
 
+import ie.omk.smpp.message.tlv.Tag;
 import ie.omk.smpp.message.tlv.TLVTable;
 
 import ie.omk.smpp.util.AlphabetEncoding;
@@ -34,6 +35,8 @@ import ie.omk.smpp.util.MessageEncoding;
 import ie.omk.smpp.util.SMPPDate;
 
 import ie.omk.smpp.version.SMPPVersion;
+
+import java.io.ByteArrayOutputStream;
 
 import java.util.Arrays;
 
@@ -161,6 +164,42 @@ public class SMPPPacketTest extends TestCase {
 	    fail("InvalidParameterValueException");
 	}
     }
+
+
+    /** Test the decoding of a packet. Test the decoding of a packet that
+     * consists of a header, mandatory body parameters and optional parameters.
+     */
+    public void testFullDecode() {
+	try {
+	    SubmitSM sm = new SubmitSM();
+	    sm.setSequenceNum(70);
+	    sm.setSource(new Address(0, 0, "12345678"));
+	    sm.setDestination(new Address(0, 0, "87654321"));
+	    sm.setProtocolID(7);
+	    sm.setMessageText("Test message text");
+	    sm.setOptionalParameter(Tag.PAYLOAD_TYPE, new Integer(0));
+	    //sm.setOptionalParameter(Tag.PRIVACY_INDICATOR, new Integer(2));
+	    //sm.setOptionalParameter(Tag.ALERT_ON_MESSAGE_DELIVERY, null);
+
+	    ByteArrayOutputStream out = new ByteArrayOutputStream();
+	    sm.writeTo(out);
+
+	    SubmitSM sm1 = new SubmitSM();
+	    byte[] b1 = out.toByteArray();
+	    sm1.readFrom(b1, 0);
+
+	    out.reset();
+	    sm1.writeTo(out);
+
+	    byte[] b2 = out.toByteArray();
+
+	    assertTrue(Arrays.equals(b1, b2));
+	} catch (Exception x) {
+	    x.printStackTrace(System.err);
+	    fail("Failing due to exception.");
+	}
+    }
+    
 
     private class PrivateEncoding extends AlphabetEncoding {
 	public PrivateEncoding() {
