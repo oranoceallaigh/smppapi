@@ -76,7 +76,6 @@ public class SMPPDate
       * <li> ss = second (00 - 59)
       * </ul>
       * @param An SMSC time string of the above format.
-      * @return A java.util.Date object representing the time and date given
       * @exception java.lang.NullPointerException If s is null.
       */
     public SMPPDate(String s)

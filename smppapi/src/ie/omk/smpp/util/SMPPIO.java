@@ -40,7 +40,8 @@ public class SMPPIO
       * @param len The number of bytes to form the integer from (usually
       * either 1 or 4, limited to 1 &lt;= len &lt;= 8)
       * @return An integer representation of the len bytes read from in.
-      * @exception java.io.IOException If EOS is reached before <i>len</i> bytes
+      * @exception java.io.IOException If EOS is reached before <code>len</code>
+      * bytes
       * are read.
       * @see java.io.InputStream
       */
@@ -92,8 +93,8 @@ public class SMPPIO
       * The String may contain NUL bytes.
       * @param in The InputStream to read from
       * @param len The number of bytes to read in from the InputStream
-      * @return A String of length <i>len</i>. null if <i>len</i> is less than
-      * 1.
+      * @return A String of length <code>len</code>. null if <code>len</code> is
+      * less than 1.
       * @exception java.io.IOException If EOS is reached before a NUL byte
       * @see java.io.InputStream
       */
