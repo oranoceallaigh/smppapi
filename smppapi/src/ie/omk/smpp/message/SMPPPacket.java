@@ -1001,7 +1001,9 @@ public abstract class SMPPPacket
 	return (tlvTable.isSet(tag));
     }
 
-    /** Set the alphabet encoding for this message.
+    /** Set the alphabet encoding and dcs value for this message. The
+     * data_coding (dcs) value of this message will be set to the return value
+     * of {@link MessageEncoding#getDataCoding}.
      * @param enc The alphabet to use. If null, use DefaultAlphabetEncoding.
      * @see ie.omk.smpp.util.AlphabetEncoding
      * @see ie.omk.smpp.util.DefaultAlphabetEncoding
@@ -1014,6 +1016,21 @@ public abstract class SMPPPacket
 	    this.encoding = enc;
 
 	this.dataCoding = enc.getDataCoding();
+    }
+
+    /** Set the alphabet encoding for this message with an alternate dcs.
+     * <code>enc</code> will be used to encode the message but <code>dcs</code>
+     * will be used as the data coding value. This method is useful when the
+     * SMSC uses an alternate value to those build-in to the smppapi.
+     */
+    public void setAlphabet(AlphabetEncoding enc, int dcs) {
+	if (enc == null) {
+	    this.encoding = AlphabetFactory.getDefaultAlphabet();
+	    this.dataCoding = enc.getDataCoding();
+	} else {
+	    this.encoding = enc;
+	    this.dataCoding = dcs;
+	}
     }
 
     /** Set the message encoding handler class for this packet.
