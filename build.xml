@@ -177,6 +177,15 @@
     <property name="releaseDir" value="${dist}/smppapi-${releaseNumber}"/>
 
     <mkdir dir="${releaseDir}"/>
+
+    <!-- Output Java build version info -->
+    <echo level="info" file="${releaseDir}/BUILDINFO">
+      This SMPPAPI distribution was built on the following:
+      JRE version: ${java.version}
+      JRE vendor: ${java.vendor} (${java.vendor.url})
+      Built on: ${os.name} ${os.version} architecture: ${os.arch}
+    </echo>
+
     <copy todir="${releaseDir}" includeemptydirs="no">
       <fileset dir="." defaultexcludes="true">
         <exclude name="${build}/**/*.class"/>
