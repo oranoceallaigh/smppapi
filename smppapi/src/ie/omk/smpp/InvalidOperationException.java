@@ -33,6 +33,8 @@ public class InvalidOperationException
     {
     }
 
+    /** Construct a new InvalidOperationException with specified message.
+      */
     public InvalidOperationException(String s)
     {
 	super(s);

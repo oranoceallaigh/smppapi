@@ -33,6 +33,8 @@ public class InvalidDestinationCountException
     {
     }
 
+    /** Construct a new InvalidDestinationCountException with specified message.
+      */
     public InvalidDestinationCountException(String s)
     {
 	super(s);

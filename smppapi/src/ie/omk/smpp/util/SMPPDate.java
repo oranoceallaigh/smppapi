@@ -85,6 +85,8 @@ public class SMPPDate
 	date = this.inFormat.parse(s, pos);
     }
 
+    /** Get the java.util.Date object this SMPPDate object wraps.
+      */
     public Date getDate()
     {
 	return (this.date);

@@ -33,6 +33,8 @@ public class InvalidNPIException
     {
     }
 
+    /** Construct a new InvalidNPIException with specified message.
+      */
     public InvalidNPIException(String s)
     {
 	super(s);

@@ -87,9 +87,9 @@ public class QueryLastMsgsResp
 	super(r);
     }
 
-    /** Add a message Id to the message table.
-      * @param id The message Id to add to the table (0h - ffffffffh)
-      * @return The current number of message Ids in the message table
+    /** Add a message Id to the response packet.
+      * @param id The message Id to add to the packet.
+      * @return The current number of message Ids (including the new one).
       * @exception ie.omk.smpp.InvalidMessageIDException if the id is invalid.
       */
     public int addMessageId(String id)
@@ -104,14 +104,14 @@ public class QueryLastMsgsResp
 	}
     }
 
-    /** Get the number of messages in the message table */
+    /** Get the number of message Ids. */
     public int getMsgCount()
     {
 	return (messageTable.size());
     }
 
-    /** Get an array of the message Ids.
-      * @return An int array of all the message Ids
+    /** Get a String array of the message Ids.
+      * @return A String array of all the message Ids.
       */
     public String[] getMessageIds()
     {
@@ -133,6 +133,7 @@ public class QueryLastMsgsResp
 
     /** Return the number of bytes this packet would be encoded as to an
       * OutputStream.
+      * @return the number of bytes this packet would encode as.
       */
     public int getCommandLen()
     {

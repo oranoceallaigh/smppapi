@@ -93,6 +93,16 @@ public class TcpLink
 	this.port = port;
     }
 
+    /** Create a new TcpLink using an already connected Socket.
+      * The network connection is assumed to be established already.
+      * @param sock The socket connection to use.
+      */
+    public TcpLink(Socket sock)
+    {
+	this.connected = true;
+	this.sock = sock;
+    }
+
     /** Connect the input and output sockets to the SMSC to create the
       * virtual circuit.
       * @exception java.io.IOException If an error occurs connecting to the SMSC

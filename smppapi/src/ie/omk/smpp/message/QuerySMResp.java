@@ -87,6 +87,7 @@ public class QuerySMResp
 
     /** Return the number of bytes this packet would be encoded as to an
       * OutputStream.
+      * @return the number of bytes this packet would encode as.
       */
     public int getCommandLen()
     {

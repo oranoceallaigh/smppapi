@@ -35,17 +35,25 @@ public class InvalidAddressException
     {
     }
 
+    /** Construct a new InvalidAddressException with specified message.
+      */
     public InvalidAddressException(String s)
     {
 	super(s);
     }
 
+    /** Construct a new InvalidAddressException with specified message.
+      * @param s A detail message.
+      * @param address The invalid address that caused this exception.
+      */
     public InvalidAddressException(String s, String address)
     {
 	super(s);
 	this.address = address;
     }
 
+    /** Get the invalid address that caused this exception.
+      */
     public String getAddress()
     {
 	return (this.address);

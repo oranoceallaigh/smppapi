@@ -246,7 +246,7 @@ public abstract class SMPPPacket
       */
     public int getCommandStatus()
     {
-	return (commandStatus);
+	return (this.commandStatus);
     }
 
     /** Get the sequence number of this packet.
@@ -254,9 +254,15 @@ public abstract class SMPPPacket
       */
     public int getSequenceNum()
     {
-	return (sequenceNum);
+	return (this.sequenceNum);
     }
 
+    /** Set the sequence number of this packet.
+      */
+    public void setSequenceNum(int sequenceNum)
+    {
+	this.sequenceNum = sequenceNum;
+    }
 
     /* ************************************************************** */
     /*          Methods to set and read message attributes            */
@@ -281,7 +287,7 @@ public abstract class SMPPPacket
 
     /** Get the source address.
       * Not used by all SMPP Packet types.
-      * @see ie.omk.smpp.message.SubmitSM
+      * @return The source address or null if it is not set.
       */
     public SmeAddress getSource()
     {
@@ -293,7 +299,6 @@ public abstract class SMPPPacket
 
     /** Set the destination address.
       * Not used by all SMPP Packet types.
-      * @see ie.omk.smpp.message.SubmitSM
       */
     public void setDestination(SmeAddress s)
     {
@@ -309,7 +314,7 @@ public abstract class SMPPPacket
 
     /** Get the destination address.
       * Not used by all SMPP Packet types.
-      * @see ie.omk.smpp.message.SubmitSM
+      * @return The destination address or null if it is not set.
       */
     public SmeAddress getDestination()
     {
@@ -322,7 +327,7 @@ public abstract class SMPPPacket
 
     /** Set the message flags.
       * Not used by all SMPP Packet types.
-      * @see ie.omk.smpp.message.SubmitSM
+      * @see ie.omk.smpp.message.MsgFlags
       */
     public void setMessageFlags(MsgFlags f)
     {
@@ -336,7 +341,9 @@ public abstract class SMPPPacket
 	}
     }
 
-    /** Set the 'priority' message flag. */
+    /** Set the 'priority' message flag.
+      * @see ie.omk.smpp.message.MsgFlags
+      */
     public void setPriority(boolean b)
     {
 	if(flags == null)
@@ -347,7 +354,9 @@ public abstract class SMPPPacket
 	    Debug.d(this, "setPriority", b, Debug.DBG_4);
     }
 
-    /** Set the 'registered' message flag. */
+    /** Set the 'registered' message flag.
+      * @see ie.omk.smpp.message.MsgFlags
+      */
     public void setRegistered(boolean b)
     {
 	if(flags == null)
@@ -358,7 +367,9 @@ public abstract class SMPPPacket
 	    Debug.d(this, "setRegistered", b, Debug.DBG_4);
     }
 
-    /** Set the 'replace if present' message flag. */
+    /** Set the 'replace if present' message flag.
+      * @see ie.omk.smpp.message.MsgFlags
+      */
     public void setReplaceIfPresent(boolean b)
     {
 	if(flags == null)
@@ -369,7 +380,10 @@ public abstract class SMPPPacket
 	    Debug.d(this, "setReplaceIfPresent", b, Debug.DBG_4);
     }
     
-    /** Set the esm class in the message flags. */
+    /** Set the esm class in the message flags.
+      * @see ie.omk.smpp.message.MsgFlags
+      * @see ie.omk.smpp.util.GSMConstants
+      */
     public void setEsmClass(int c)
     {
 	if(flags == null)
@@ -380,7 +394,10 @@ public abstract class SMPPPacket
 	    Debug.d(this, "setEsmClass", c, Debug.DBG_4);
     }
 
-    /** Set the protocol Id in the message flags. */
+    /** Set the protocol Id in the message flags.
+      * @see ie.omk.smpp.message.MsgFlags
+      * @see ie.omk.smpp.util.GSMConstants
+      */
     public void setProtocolId(int id)
     {
 	if(flags == null)
@@ -392,6 +409,7 @@ public abstract class SMPPPacket
     }
 
     /** Set the GSM data coding type in the message flags.
+      * @see ie.omk.smpp.message.MsgFlags
       * @see ie.omk.smpp.util.GSMConstants
       */
     public void setDataCoding(int dc)
@@ -404,7 +422,9 @@ public abstract class SMPPPacket
 	    Debug.d(this, "setDataCoding", dc, Debug.DBG_4);
     }
 
-    /** Set the default message id in the message flags. */
+    /** Set the default message id in the message flags.
+      * @see ie.omk.smpp.message.MsgFlags
+      */
     public void setDefaultMsg(int id)
     {
 	if(flags == null)
@@ -415,38 +435,61 @@ public abstract class SMPPPacket
 	    Debug.d(this, "setDefaultMsg", id, Debug.DBG_4);
     }
 
-    /** Get the message flags. */
+    /** Get the message flags.
+      * @return The ie.omk.smpp.message.MsgFlags object. Never null.
+      */
     public MsgFlags getMessageFlags()
     {
 	return (flags);
     }
 
+    /** Check is the message registered.
+      * @see ie.omk.smpp.message.MsgFlags
+      */
     public boolean isRegistered()
     {
 	return (flags.registered);
     }
 
+    /** Check is the message submitted as priority.
+      * @see ie.omk.smpp.message.MsgFlags
+      */
     public boolean isPriority()
     {
 	return (flags.priority);
     }
 
+    /** Check if the message should be replaced if it is already present.
+      * @see ie.omk.smpp.message.MsgFlags
+      */
     public boolean isReplaceIfPresent()
     {
 	return (flags.replace_if_present);
     }
+    /** Get the ESM class of the message.
+      * @see ie.omk.smpp.message.MsgFlags
+      */
     public int getEsmClass()
     {
 	return (flags.esm_class);
     }
+    /** Get the GSM protocol Id of the message.
+      * @see ie.omk.smpp.message.MsgFlags
+      */
     public int getProtocolId()
     {
 	return (flags.protocol);
     }
+    /** Get the data coding.
+      * @see ie.omk.smpp.message.MsgFlags
+      */
     public int getDataCoding()
     {
 	return (flags.data_coding);
     }
+    /** Get the default message to use.
+      * @see ie.omk.smpp.message.MsgFlags
+      */
     public int getDefaultMsgId()
     {
 	return (flags.default_msg);
@@ -555,7 +598,7 @@ public abstract class SMPPPacket
 		    Debug.DBG_4);
     }
 
-    /** Get the current value for the expiry time of the message.
+    /** Get the current expiry time of the message.
       */
     public SMPPDate getExpiryTime()
     {
@@ -598,21 +641,27 @@ public abstract class SMPPPacket
 	if (id == null) {
 	    this.messageId = null;
 	} else {
-	    if (id.length() > 9)
-		throw new InvalidMessageIDException(id);
-	    else
-		this.messageId = id;
-	}
+	    try {
+		// Using longs is probably only valid for SMPP v3.3!
+		long l = Long.parseLong(id, 16);
+		if (l < 0L || l > 0x0ffffffffL)
+		    throw new InvalidMessageIDException(id);
 
-	if(Debug.dbg)
-	    Debug.d(this, "setMessageId", id, Debug.DBG_4);
+		this.messageId = id;
+
+		if(Debug.dbg)
+		    Debug.d(this, "setMessageId", id, Debug.DBG_4);
+	    } catch (NumberFormatException x) {
+		throw new InvalidMessageIDException(id);
+	    }
+	}
     }
     
     /** Get the message id.
       */
     public String getMessageId()
     {
-	return (messageId);
+	return (this.messageId);
     }
 
     /** Set the message status. This is different to the command status field.
@@ -623,7 +672,7 @@ public abstract class SMPPPacket
     public void setMessageStatus(int st)
 	throws ie.omk.smpp.SMPPException
     {
-	messageStatus = st;
+	this.messageStatus = st;
 	if(Debug.dbg)
 	    Debug.d(this, "setMessageStatus", st, Debug.DBG_4);
     }
@@ -632,7 +681,7 @@ public abstract class SMPPPacket
       */
     public int getMessageStatus()
     {
-	return (messageStatus);
+	return (this.messageStatus);
     }
 
     /** Set the error code.
@@ -675,7 +724,9 @@ public abstract class SMPPPacket
     protected void encodeBody(OutputStream out)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
-	// packet has no body!
+	// This method is not abstract so that packets that are really just an
+	// SMPP header need not override it to just return the value from
+	// getHeaderLen.
     }
 
     /** Write the byte representation of this SMPP packet to an OutputStream

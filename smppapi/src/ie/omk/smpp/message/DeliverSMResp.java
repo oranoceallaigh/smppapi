@@ -29,6 +29,10 @@ import ie.omk.smpp.util.SMPPIO;
 import ie.omk.debug.Debug;
 
 /** ESME response to a Deliver message request.
+  * Relevant inherited fields from SMPPPacket:<br>
+  * <ul>
+  *   messageId<br>
+  * </ul>
   * @author Oran Kelly
   * @version 1.0
   */
@@ -76,6 +80,7 @@ public class DeliverSMResp
 
     /** Return the number of bytes this packet would be encoded as to an
       * OutputStream.
+      * @return the number of bytes this packet would encode as.
       */
     public int getCommandLen()
     {

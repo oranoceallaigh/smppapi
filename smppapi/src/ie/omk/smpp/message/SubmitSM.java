@@ -31,6 +31,23 @@ import ie.omk.smpp.util.SMPPDate;
 import ie.omk.debug.Debug;
 
 /** Submit a message to the SMSC for delivery to a single destination.
+  * Relevant inherited fields from SMPPPacket:<br>
+  * <ul>
+  *   serviceType<br>
+  *   source<br>
+  *   destination<br>
+  *   flags.esm_class<br>
+  *   flags.protocol<br>
+  *   flags.priority<br>
+  *   deliveryTime<br>
+  *   expiryTime<br>
+  *   flags.registered<br>
+  *   flags.replace_if_present<br>
+  *   flags.data_coding<br>
+  *   flags.default_msg<br>
+  *   smLength<br>
+  *   message
+  * </ul>
   * @author Oran Kelly
   * @version 1.0
   */
@@ -95,6 +112,7 @@ public class SubmitSM
 
     /** Return the number of bytes this packet would be encoded as to an
       * OutputStream.
+      * @return the number of bytes this packet would encode as.
       */
     public int getCommandLen()
     {

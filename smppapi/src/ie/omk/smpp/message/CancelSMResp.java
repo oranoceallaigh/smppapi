@@ -28,7 +28,7 @@ import ie.omk.smpp.util.SMPPIO;
 import ie.omk.debug.Debug;
 
 
-/** SMSC response to a cancel message request
+/** SMSC response to a cancel message request.
   * @author Oran Kelly
   * @version 1.0
   */
@@ -71,6 +71,7 @@ public class CancelSMResp
 
     /** Return the number of bytes this packet would be encoded as to an
       * OutputStream.
+      * @return the number of bytes this packet would encode as.
       */
     public int getCommandLen()
     {
