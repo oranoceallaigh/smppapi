@@ -36,7 +36,8 @@ import ie.omk.smpp.message.UnbindResp;
 import java.io.IOException;
 import java.util.Date;
 
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /** Example SMPP receiver using asynchronous communications.
  * This example demonstrates asynchronous communications by
@@ -48,7 +49,7 @@ import org.apache.log4j.Logger;
  */
 public class AsyncReceiver implements ConnectionObserver {
 
-    private Logger logger = Logger.getLogger("ie.omk.smpp.examples");
+    private Log logger = LogFactory.getLog(AsyncReceiver.class);
 
     private static int msgCount = 0;
 

@@ -29,7 +29,8 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Properties;
 
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 
 /** Internal API configuration. This singleton class holds the configuration for
@@ -162,7 +163,7 @@ public class APIConfig extends Properties {
     public static final String BIND_TIMEOUT = "smppapi.connection.bind_timeout";
 
 
-    private static final Logger logger = Logger.getLogger("ie.omk.smpp.util");
+    private static final Log logger = LogFactory.getLog(APIConfig.class);
 
     /** Paths to search for the API properties file. These should always end in
      * the '/' character except for the last entry which should be a blank

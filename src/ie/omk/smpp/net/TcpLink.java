@@ -29,6 +29,9 @@ import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 /** Implementation of an Smsc link over the tcp/ip protocol
   * @author Oran Kelly
   * @version 1.0
@@ -36,6 +39,8 @@ import java.net.Socket;
 public class TcpLink
     extends ie.omk.smpp.net.SmscLink
 {
+    private static final Log logger = LogFactory.getLog(TcpLink.class);
+    
     /** Default IP port to use if none are specified */
     public static final int DEFAULT_PORT = 5016;
 

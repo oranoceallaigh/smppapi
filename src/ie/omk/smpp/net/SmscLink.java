@@ -35,7 +35,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /** Abstract super class of all classes that implement a network link
   * to the SMSC. This class uses buffered input and output internally for
@@ -49,6 +50,8 @@ import org.apache.log4j.Logger;
   */
 public abstract class SmscLink
 {
+    private static final Log logger = LogFactory.getLog(SmscLink.class);
+    
     /** The buffered input of the link. */
     private BufferedInputStream in = null;
 
@@ -68,9 +71,6 @@ public abstract class SmscLink
     /** Outgoing bytes snoop stream. */
     private OutputStream snoopOut = null;
 
-    /** Log4J Logger object. Subclasses may use this logger too. */
-    protected Logger logger = null;
-
     /** Set to automatically flush the output stream after every packet.
      * Default is true.
      */
@@ -81,7 +81,6 @@ public abstract class SmscLink
      */
     public SmscLink()
     {
-	logger = Logger.getLogger("ie.omk.smpp.net.SmscLink");
 	try {
 	    autoFlush = APIConfig.getInstance().getBoolean(APIConfig.LINK_AUTO_FLUSH);
 	} catch (PropertyNotFoundException x) {

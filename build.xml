@@ -31,7 +31,7 @@
 
   <!-- Any libraries needed to build the base API go in here. -->
   <path id="build.classpath">
-    <pathelement location="${lib}/log4j-1.2.5.jar"/>
+    <pathelement location="${lib}/commons-logging.jar"/>
   </path>
 
 

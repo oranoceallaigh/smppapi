@@ -37,7 +37,8 @@ import ie.omk.smpp.version.SMPPVersion;
 import java.io.OutputStream;
 import java.util.Date;
 
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 
 /** This is the abstract class that all SMPP messages are inherited from.
@@ -46,7 +47,7 @@ import org.apache.log4j.Logger;
  */
 public abstract class SMPPPacket
 {
-    protected static final Logger logger = Logger.getLogger("ie.omk.smpp.message");
+    protected static final Log logger = LogFactory.getLog(SMPPPacket.class);
 
     /** Command Id: Negative Acknowledgement */
     public static final int GENERIC_NACK                = 0x80000000;

@@ -23,9 +23,9 @@
  */
 package ie.omk.smpp.message;
 
-import java.io.OutputStream;
-
 import ie.omk.smpp.util.SMPPIO;
+
+import java.io.OutputStream;
 
 /** SMSC response to a Bind request.
   * @author Oran Kelly

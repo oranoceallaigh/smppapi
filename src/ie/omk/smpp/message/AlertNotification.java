@@ -23,9 +23,9 @@
  */
 package ie.omk.smpp.message;
 
-import java.io.OutputStream;
-
 import ie.omk.smpp.Address;
+
+import java.io.OutputStream;
 
 /** Alert notification. This packet type is sent from the SMSC to an ESME to
  * signal that a particular mobile subscriber has become available and a

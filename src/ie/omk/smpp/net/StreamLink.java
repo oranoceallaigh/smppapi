@@ -26,6 +26,9 @@ package ie.omk.smpp.net;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 /** Implementation of an Smsc link using user supplied input and output streams.
   * @author Oran Kelly
   * @version 1.0
@@ -33,6 +36,8 @@ import java.io.OutputStream;
 public class StreamLink
     extends ie.omk.smpp.net.SmscLink
 {
+    private static final Log logger = LogFactory.getLog(StreamLink.class);
+    
     /** The input side of the link. */
     private InputStream inStream = null;
 

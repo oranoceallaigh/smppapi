@@ -23,9 +23,7 @@
  */
 package ie.omk.smpp.event;
 
-import ie.omk.smpp.event.ReceiverExitEvent;
-import ie.omk.smpp.event.SMPPEvent;
-
+import ie.omk.smpp.Connection;
 import ie.omk.smpp.message.BindResp;
 import ie.omk.smpp.message.CancelSMResp;
 import ie.omk.smpp.message.DeliverSM;
@@ -41,9 +39,7 @@ import ie.omk.smpp.message.SubmitSMResp;
 import ie.omk.smpp.message.Unbind;
 import ie.omk.smpp.message.UnbindResp;
 
-import ie.omk.smpp.Connection;
-
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.LogFactory;
 
 /** Base class for applications to extend for SMPP event handling.
  * This class handles incoming events and provides a set of blank handler
@@ -85,7 +81,7 @@ public abstract class SMPPEventAdapter implements ConnectionObserver
 		    userEvent(source, event);
 	    }
 	} catch (ClassCastException x) {
-	    Logger.getLogger("ie.omk.smpp.SMPPEvent").error("Class cast exception", x);
+	    LogFactory.getLog(SMPPEventAdapter.class).error("Class cast exception", x);
 	}
     }
 

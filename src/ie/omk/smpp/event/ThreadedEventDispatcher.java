@@ -2,16 +2,15 @@
 package ie.omk.smpp.event;
 
 import ie.omk.smpp.Connection;
-
 import ie.omk.smpp.message.SMPPPacket;
-
 import ie.omk.smpp.util.APIConfig;
 import ie.omk.smpp.util.PropertyNotFoundException;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /** An event dispatcher that does not block the receiver daemon thread.
  * <p>
@@ -27,7 +26,7 @@ import org.apache.log4j.Logger;
  */
 public class ThreadedEventDispatcher implements EventDispatcher, Runnable {
 
-    private Logger logger = Logger.getLogger(DEFAULT_LOGGER_NAME);
+    private Log logger = LogFactory.getLog(ThreadedEventDispatcher.class);
 
     /** Runner flag. If set to false, all dispatcher threads will exit on next
      * iteration (some may be blocked on the queue).
