@@ -34,6 +34,9 @@ import ie.omk.smpp.SMPPException;
 import ie.omk.smpp.InvalidMessageIDException;
 import ie.omk.smpp.StringTooLongException;
 
+import ie.omk.smpp.message.tlv.Tag;
+import ie.omk.smpp.message.tlv.TLVTable;
+
 import ie.omk.smpp.util.AlphabetEncoding;
 import ie.omk.smpp.util.AlphabetFactory;
 import ie.omk.smpp.util.BinaryEncoding;
@@ -236,6 +239,9 @@ public abstract class SMPPPacket
     /** Default message number. */
     protected int		defaultMsg = 0;
 
+    /** Optional parameter table. */
+    protected TLVTable		tlvTable = new TLVTable();
+
     /** Alphabet to use to encode this message's text. */
     private AlphabetEncoding	alphabet = AlphabetFactory.getDefaultAlphabet();
 
@@ -289,7 +295,7 @@ public abstract class SMPPPacket
      */
     public final int getLength()
     {
-	return (16 + getBodyLength());
+	return (16 + getBodyLength() + tlvTable.getLength());
     }
 
     /** Get the number of bytes the body of this packet would encode as. This
@@ -299,15 +305,6 @@ public abstract class SMPPPacket
      * optionalParameter: getLength()).
      */
     public abstract int getBodyLength();
-
-    /** Get the length of the SMPP header.
-      */
-    /* XXX REMOVE protected int getHeaderLen()
-    {
-	// 1 4-byte integer each for command length, id, status and sequence
-	// number.
-	return (16);
-    }*/
 
     /** Get the Command Id of this SMPP packet.
       * @return The Command Id of this packet
@@ -891,6 +888,62 @@ public abstract class SMPPPacket
 	return (errorCode);
     }
 
+    /** Get the optional parameter (TLV) table.
+     * @see ie.omk.smpp.message.tlv.TLVTable
+     */
+    public TLVTable getTLVTable() {
+	return (tlvTable);
+    }
+
+    /** Set the optional parameter (TLV) table. This method discards the entire
+     * optional paramter table and replaces it with <code>table</code>. The
+     * discarded table is returned. If <code>null</code> is passed in, a new,
+     * empty TLVTable object will be created.
+     * @see ie.omk.smpp.message.tlv.TLVTable
+     * @return the old tlvTable.
+     */
+    public TLVTable setTLVTable(TLVTable table) {
+	TLVTable t = this.tlvTable;
+	if (table == null)
+	    this.tlvTable = new TLVTable();
+	else
+	    this.tlvTable = table;
+
+	return (t);
+    }
+
+    /** Set an optional parameter. This is a convenience method and merely calls
+     * {@link ie.omk.smpp.message.tlv.TLVTable#set} on this message's optional
+     * parameter table.
+     * @param tag the tag of the parameter to set.
+     * @param value the value object to set.
+     * @exception ie.omk.smpp.message.tlv.BadValueTypeException if the type of
+     * <code>value</code> is incorrect for the <code>tag</code>.
+     * @return the previous value of the parameter, or null if it was unset.
+     */
+    public Object setOptionalParameter(Tag tag, Object value) {
+	return (tlvTable.set(tag, value));
+    }
+
+    /** Get an optional parameter. This is a convenience method and merely calls
+     * {@link ie.omk.smpp.message.tlv.TLVTable#set} on this message's optional
+     * parameter table.
+     * @param tag the tag of the parameter value to get.
+     */
+    public Object getOptionalParameter(Tag tag) {
+	return (tlvTable.get(tag));
+    }
+
+    /** Check if a particular optional parameter is set. This is a convenience
+     * method and merely calls {@link ie.omk.smpp.message.tlv.TLVTable#isSet} on
+     * this message's optional parameter table.
+     * @param tag the tag of the parameter to check.
+     * @return true if the parameter is set, false if it is not.
+     */
+    public boolean isSet(Tag tag) {
+	return (tlvTable.isSet(tag));
+    }
+
     /** Set the alphabet encoding for this message.
      * @param enc The alphabet to use. If null, use DefaultAlphabetEncoding.
      * @see ie.omk.smpp.util.AlphabetEncoding
@@ -942,7 +995,7 @@ public abstract class SMPPPacket
     public final void writeTo(OutputStream out)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
-	int commandLen = 16 + getBodyLength();
+	int commandLen = getLength();
 
 	SMPPIO.writeInt(commandLen, 4, out);
 	SMPPIO.writeInt(commandId, 4, out);
@@ -950,6 +1003,7 @@ public abstract class SMPPPacket
 	SMPPIO.writeInt(sequenceNum, 4, out);
 
 	encodeBody(out);
+	tlvTable.writeTo(out);
 
 	Debug.d(this, "writeTo", "written!", 5);
     }
@@ -957,6 +1011,9 @@ public abstract class SMPPPacket
     // XXX javadoc
     public void readFrom(byte[] b, int offset)
     {
+	// Clear out the TLVTable..
+	tlvTable.clear();
+
 	if (b.length < (offset + 16)) {
 	    // XXX exception??
 	    throw new RuntimeException("no header present in bytes (not enuf)");
@@ -979,8 +1036,15 @@ public abstract class SMPPPacket
 	commandStatus = SMPPIO.bytesToInt(b, offset + 8, 4);
 	sequenceNum = SMPPIO.bytesToInt(b, offset + 12, 4);
 
-	if (commandStatus == 0)
-	    readBodyFrom(b, offset + 16);
+	if (commandStatus == 0) {
+	    // Read the mandatory body parameters..
+	    int ptr = 16 + offset;
+	    readBodyFrom(b, ptr);
+
+	    // Read the optional parameters..
+	    ptr += getBodyLength();
+	    tlvTable.readFrom(b, offset, (offset + len) - ptr);
+	}
     }
 
     // XXX javadoc
