@@ -32,6 +32,8 @@ import java.io.ByteArrayOutputStream;
 public class DefaultAlphabetEncoding
     extends ie.omk.smpp.util.AlphabetEncoding
 {
+    private static final int DCS = 0;
+
     public static final int EXTENDED_ESCAPE = 0x1b;
 
     /** Page break (extended table). */
@@ -73,6 +75,9 @@ public class DefaultAlphabetEncoding
 	extCharTable[0x3d] = '~';
 	extCharTable[0x3e] = ']';
 	extCharTable[0x65] = '\u20ac'; // The Euro symbol
+
+	// Register encoding type
+	registerEncoding(DCS, new DefaultAlphabetEncoding());
     }
 
 
@@ -140,7 +145,7 @@ public class DefaultAlphabetEncoding
       */
     public int getDataCoding()
     {
-	return (0);
+	return (DCS);
     }
 
     /** Get the maximum number of octets allowed for this encoding type.

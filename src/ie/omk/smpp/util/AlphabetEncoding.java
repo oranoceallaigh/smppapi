@@ -23,6 +23,8 @@
 
 package ie.omk.smpp.util;
 
+import java.util.Hashtable;
+
 /** SMS Alphabet to Java String mapping interface.
   * Implementations of this interface convert Java Unicode strings into a series
   * of bytes representing the String in a particular SMS alphabet.
@@ -30,9 +32,37 @@ package ie.omk.smpp.util;
 public abstract class AlphabetEncoding
     extends ie.omk.smpp.util.MessageEncoding
 {
+    private static Hashtable dcMapping = new Hashtable();
+
+
     /** Convert SMS message text into a Java String. */
     public abstract String decodeString(byte[] b);
 
     /** Convert a Java String into SMS message text. */
     public abstract byte[] encodeString(String s);
+
+
+    /** Register an AlphabetEncoding handler for a particular data coding value.
+      * @param dcs The data coding value this <i>enc</i> will be used to decode.
+      * @param enc An instance of the alphabet encoding class.
+      */
+    protected static final void registerEncoding(int dcs, AlphabetEncoding enc)
+    {
+	if (enc == null)
+	    throw new NullPointerException("Encoding type cannot be null.");
+
+	if (dcs < 0 || dcs > 255)
+	    throw new IllegalArgumentException("DCS outside valid range.");
+
+	dcMapping.put(new Integer(dcs), enc);
+    }
+
+    /** Get the registered MessageEncoding handler for data coding <i>dcs</i>.
+      * @param dcs The data coding value to match.
+      * @return The message encoding type registered, or null if none.
+      */
+    public static final AlphabetEncoding getEncoding(int dcs)
+    {
+	return ((AlphabetEncoding)dcMapping.get(new Integer(dcs)));
+    }
 }
