@@ -43,7 +43,8 @@ public abstract class AlphabetEncoding
 
 
     /** Register an AlphabetEncoding handler for a particular data coding value.
-      * @param dcs The data coding value this <i>enc</i> will be used to decode.
+      * @param dcs The data coding value this <code>enc</code> will be used to
+      * decode.
       * @param enc An instance of the alphabet encoding class.
       */
     protected static final void registerEncoding(int dcs, AlphabetEncoding enc)

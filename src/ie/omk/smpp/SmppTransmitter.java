@@ -84,7 +84,7 @@ public class SmppTransmitter
 	t.setSystemId(systemID);
 	t.setPassword(password);
 	t.setSystemType(systemType);
-	t.setInterfaceVersion(super.INTERFACE_VERSION);
+	t.setInterfaceVersion(super.interfaceVersion);
 	if (sourceRange != null) {
 	    t.setAddressTon(sourceRange.getTON());
 	    t.setAddressNpi(sourceRange.getNPI());
@@ -107,6 +107,8 @@ public class SmppTransmitter
       * @exception java.io.IOException If a network error occurs
       * @see SmeAddress
       * @see SmppTransmitter#submitMulti
+      * @deprecated This method will disappear from this class within the next 2
+      * releases.
       */
     public SubmitSMResp submitMessage(String msg, MsgFlags flags,
 	    SmeAddress dst)
@@ -126,6 +128,8 @@ public class SmppTransmitter
       * @exception java.io.IOException If a network error occurs
       * @see SmeAddress
       * @see SmppTransmitter#submitMulti
+      * @deprecated This method will disappear from this class within the next 2
+      * releases.
       */
     public SubmitSMResp submitMessage(String msg, MsgFlags flags,
 	    SmeAddress src, SmeAddress dst)
@@ -146,13 +150,20 @@ public class SmppTransmitter
       * @exception java.io.IOException If a network error occurs
       * @see SmeAddress
       * @see SmppTransmitter#submitMulti
+      * @deprecated This method will disappear from this class within the next 2
+      * releases.
       */
     public SubmitSMResp submitMessage(String msg, MsgFlags flags,
 	    SmeAddress src, SmeAddress dst, SMPPDate del, SMPPDate valid)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	SubmitSM s = new SubmitSM();
-	s.setMessageFlags(flags);
+	s.setPriority(flags.priority);
+	s.setRegistered(flags.registered);
+	s.setEsmClass(flags.esm_class);
+	s.setProtocolID(flags.protocol);
+	s.setDataCoding(flags.data_coding);
+	s.setDefaultMsg(flags.default_msg);
 	s.setMessageText(msg);
 	s.setDestination(dst);
 
@@ -176,6 +187,8 @@ public class SmppTransmitter
       * communication is used.
       * @exception java.io.IOException If a network error occurs
       * @see SmeAddress
+      * @deprecated This method will disappear from this class within the next 2
+      * releases.
       */
     public SubmitMultiResp submitMulti(String msg, MsgFlags flags,
 	    SmeAddress src, SmeAddress dst[])
@@ -202,6 +215,8 @@ public class SmppTransmitter
       * @exception java.io.IOException If a network error occurs
       * @see SmeAddress
       * @see SmppTransmitter#submitMulti
+      * @deprecated This method will disappear from this class within the next 2
+      * releases.
       */
     public SubmitMultiResp submitMulti(String msg, MsgFlags flags,
 	    SmeAddress src, SmeAddress dst[], SMPPDate del, SMPPDate valid)
@@ -209,7 +224,12 @@ public class SmppTransmitter
     {
 	int loop = 0;
 	SubmitMulti s = new SubmitMulti();
-	s.setMessageFlags(flags);
+	s.setPriority(flags.priority);
+	s.setRegistered(flags.registered);
+	s.setEsmClass(flags.esm_class);
+	s.setProtocolID(flags.protocol);
+	s.setDataCoding(flags.data_coding);
+	s.setDefaultMsg(flags.default_msg);
 	s.setMessageText(msg);
 
 	if(src != null)
@@ -280,6 +300,8 @@ public class SmppTransmitter
       * @return The replace message response, or null if asynchronous
       * communication is used.
       * @exception java.io.IOException If a network error occurs
+      * @deprecated This method will disappear from this class within the next 2
+      * releases.
       */
     public ReplaceSMResp replaceMessage(String msgId, String msg,
 	    MsgFlags flags)
@@ -297,6 +319,8 @@ public class SmppTransmitter
       * @return The replace message response, or null if asynchronous
       * communication is used.
       * @exception java.io.IOException If a network error occurs
+      * @deprecated This method will disappear from this class within the next 2
+      * releases.
       */
     public ReplaceSMResp replaceMessage(String msgId, String msg,
 	    MsgFlags flags, SmeAddress src)
@@ -316,6 +340,8 @@ public class SmppTransmitter
       * expire (may be null)
       * @return true if the replacement is successful, false otherwise
       * @exception java.io.IOException If a network error occurs
+      * @deprecated This method will disappear from this class within the next 2
+      * releases.
       */
     public ReplaceSMResp replaceMessage(String msgId, String msg,
 	    MsgFlags flags, SmeAddress src, SMPPDate del, SMPPDate valid)
@@ -323,7 +349,12 @@ public class SmppTransmitter
     {
 	ReplaceSM s = new ReplaceSM();
 	s.setMessageId(msgId);
-	s.setMessageFlags(flags);
+	s.setPriority(flags.priority);
+	s.setRegistered(flags.registered);
+	s.setEsmClass(flags.esm_class);
+	s.setProtocolID(flags.protocol);
+	s.setDataCoding(flags.data_coding);
+	s.setDefaultMsg(flags.default_msg);
 	if(src != null)
 	    s.setSource(src);
 	if(msg != null)

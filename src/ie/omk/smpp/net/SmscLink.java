@@ -24,6 +24,7 @@ package ie.omk.smpp.net;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.EOFException;
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -49,10 +50,10 @@ public abstract class SmscLink
     private BufferedOutputStream out = null;
 
     /** Object to use to lock reading. */
-    private Object readLock = new Object();
+    private final Object readLock = new Object();
 
     /** Object to use to lock writing. */
-    private Object writeLock = new Object();
+    private final Object writeLock = new Object();
 
 
     /** Open the connection to the SMSC.
@@ -79,6 +80,7 @@ public abstract class SmscLink
 	    if (out == null)
 		out = new BufferedOutputStream(getOutputStream());
 
+	    Debug.send(pak);
 	    pak.writeTo(out);
 	    out.flush(); // XXX does it make sense to flush every packet?
 	}
@@ -94,70 +96,58 @@ public abstract class SmscLink
     }
 
     /** Read the next SMPP packet from the SMSC. This method will block until a
-      * full packet can be read from the SMSC.
-      * @return the next SMPP packet.
+      * full packet can be read from the SMSC. The caller should pass in a byte
+      * array to read the packet into and use the
+      * {@link ie.omk.smpp.util.PacketFactory} class to create an instance of
+      * the appropriate SMPP packet class. If the passed in byte array is too
+      * small, a new one will be allocated and returned to the caller.
+      * @param buf a byte array buffer to read the packet into.
+      * @return the handle to the passed in buffer or the reallocated one.
       * @exception java.io.IOException if an I/O error occurs.
       * @exception ie.omk.smpp.SMPPException if an SMPP packet cannot be
       * extracted from the incoming data.
       */
-    public final SMPPPacket read()
-	throws java.io.IOException, ie.omk.smpp.SMPPException
+    public final byte[] read(byte[] buf)
+	throws java.io.IOException
     {
-	synchronized (readLock) {
-	    if (in == null)
-		in = new BufferedInputStream(getInputStream());
-
-	    return (SMPPPacket.readPacket(in));
-	}
-    }
-
-    /** Read the next SMPP packet from the SMSC. If a full packet cannot be read
-      * in <i>timout</i> milliseconds, the method will return.
-      * @param timeout milliseconds to wait for a packet to be available.
-      * @return the next packet, or null if the timeout expires.
-      * @exception java.io.IOException if an I/O error occurs.
-      * @exception ie.omk.smpp.SMPPException if an SMPP packet cannot be
-      * extracted from the incoming data.
-      */
-    public final SMPPPacket read(long timeout)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
-    {
-	SMPPPacket pak = null;
-	int cmdLen = 0, c = 0;
-	byte[] readAhead = new byte[4];
+	int ptr = 0,
+	    c = 0,
+	    cmdLen = 0;
 
 	synchronized (readLock) {
 	    if (in == null)
 		in = new BufferedInputStream(getInputStream());
 
-	    long start = System.currentTimeMillis();
-
-	    // Get the length of the next packet..
-	    while ((System.currentTimeMillis() - start) < timeout
-		    && in.available() < 4);
-
-	    if (in.available() < 4) {
-		return (null);
-	    }
-
-	    in.mark(8);
-	    c = in.read(readAhead, 0, 4);
-	    in.reset();
-
-	    if (c == 4) {
-		cmdLen = SMPPIO.bytesToInt(readAhead, 0, 4);
-		while ((System.currentTimeMillis() - start) < timeout
-			&& in.available() < cmdLen);
-
-		if (in.available() >= cmdLen) {
-		    pak = SMPPPacket.readPacket(in);
+	    if ((ptr = in.read(buf, 0, 16)) < 4) {
+		while (ptr < 4) {
+		    if ((c = in.read(buf, ptr, 16 - ptr)) < 0)
+			throw new EOFException("EOS reached. No data "
+				+ "available");
+		    ptr += c;
 		}
 	    }
+
+	    cmdLen = SMPPIO.bytesToInt(buf, 0, 4);
+	    if (cmdLen > buf.length) {
+		byte[] newbuf = new byte[cmdLen];
+		System.arraycopy(buf, 0, newbuf, 0, ptr);
+		buf = newbuf;
+	    }
+
+	    c = in.read(buf, ptr, cmdLen - ptr);
+	    if (c == -1)
+		throw new EOFException("EOS reached. No data available.");
+
+	    ptr += c;
+	    while (ptr < cmdLen) {
+		if ((c = in.read(buf, ptr, cmdLen - ptr)) < 0)
+		    throw new EOFException("EOS reached. No data available");
+
+		ptr += c;
+	    }
 	}
-
-	return (pak);
+	return (buf);
     }
-
 
     /** Get the output stream of the virtual circuit.
       * @exception java.io.IOException If a communication error occurs
