@@ -31,25 +31,19 @@ import ie.omk.smpp.util.*;
 
 public class SyncTransmitter
 {
-    public static void main(String[] args)
+    public static void main(String[] clargs)
     {
 	try {
-	    TcpLink link = new TcpLink("localhost", 5432);
+	    Args args = new Args(clargs);
+	    TcpLink link = new TcpLink(args.hostName, args.port);
 	    SmppTransmitter trans = new SmppTransmitter(link);
 
-	    Properties props = new Properties();
-	    props.load(new FileInputStream("smpp.properties"));
+	    SmeAddress range = null;
+	    if (args.sourceRange != null)
+		range = new SmeAddress(args.ton, args.npi, args.sourceRange);
 
-	    String sysType = props.getProperty("esme.system_type");
-	    String sysID = props.getProperty("esme.system_id");
-	    String password = props.getProperty("esme.password");
-
-	    SmeAddress source = new SmeAddress(
-		    GSMConstants.GSM_TON_UNKNOWN,
-		    GSMConstants.GSM_NPI_UNKNOWN,
-		    props.getProperty("esme.destination"));
-	    BindTransmitterResp btr = (BindTransmitterResp)trans.bind(sysID,
-		    password, sysType, source);
+	    BindTransmitterResp btr = (BindTransmitterResp)trans.bind(
+		    args.sysID, args.password, args.sysType, range);
 
 	    if (btr.getCommandStatus() != 0) {
 		System.err.println("Failed to bind to SMSC.");
