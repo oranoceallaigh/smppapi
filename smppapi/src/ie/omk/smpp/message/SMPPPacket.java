@@ -396,11 +396,11 @@ public abstract class SMPPPacket
     {
 	if (s != null) {
 	    if (version.validateAddress(s))
-		this.source = s;
+		this.destination = s;
 	    else
 		throw new InvalidParameterValueException("Bad destination address.", s);
 	} else {
-	    this.source = null;
+	    this.destination = null;
 	}
     }
 
@@ -505,7 +505,11 @@ public abstract class SMPPPacket
 	    throw new InvalidParameterValueException("Bad Protocol ID", id);
     }
 
-    /** Set the GSM data coding of the message.
+    /** Set the GSM data coding of the message. This will also set the internal
+     * encoding type of the message to match the DCS value. It will <b>not</b>
+     * set the encoding type if the DCS is <code>0</code> as this code is
+     * reserved to represent the default SMSC encoding type, which is dependent
+     * on the SMSC implementation.
      * @see ie.omk.smpp.util.GSMConstants
      * @throws ie.omk.smpp.message.InvalidParameterValueException If the data
      * coding supplied is invalid.
@@ -514,7 +518,8 @@ public abstract class SMPPPacket
     {
 	if (version.validateDataCoding(dc)) {
 	    this.dataCoding = dc;
-	    this.encoding = MessageEncoding.getEncoding(dc);
+	    if (dc > 0)
+		this.encoding = MessageEncoding.getEncoding(dc);
 	} else
 	    throw new InvalidParameterValueException("Bad data coding", dc);
     }
@@ -601,9 +606,16 @@ public abstract class SMPPPacket
     }
 
     /** Get the default message to use.
-      */
+     * @deprecated
+     */
     public int getDefaultMsgId()
     {
+	return (this.defaultMsg);
+    }
+    
+    /** Get the default message to use.
+     */
+    public int getDefaultMsg() {
 	return (this.defaultMsg);
     }
 
@@ -1004,6 +1016,22 @@ public abstract class SMPPPacket
 	this.dataCoding = enc.getDataCoding();
     }
 
+    /** Set the message encoding handler class for this packet.
+     */
+    public void setMessageEncoding(MessageEncoding enc) {
+	if (enc == null)
+	    this.encoding = AlphabetFactory.getDefaultAlphabet();
+	else
+	    this.encoding = enc;
+    }
+
+    /** Get the current message encoding object.
+     */
+    public MessageEncoding getMessageEncoding() {
+	return (this.encoding);
+    }
+
+
     /** Return a String representation of this packet. This method does not
      * return any value which is useful programatically...it returns a
      * description of the packet's header as follows:<br>
@@ -1101,6 +1129,11 @@ public abstract class SMPPPacket
 	} catch (ArrayIndexOutOfBoundsException x) {
 	    throw new SMPPProtocolException("Ran out of bytes to read for packet body", x);
 	}
+
+	// Set the message encoding type (if relevant)
+	encoding = MessageEncoding.getEncoding(dataCoding);
+	if (encoding == null)
+	    encoding = AlphabetFactory.getDefaultAlphabet();
     }
 
     /** Read this packet's mandatory parameters from a byte array.
