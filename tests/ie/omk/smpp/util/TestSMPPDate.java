@@ -28,7 +28,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
 
-import junit.framework.*;
+import junit.framework.TestCase;
 
 public class TestSMPPDate extends TestCase {
 

@@ -23,29 +23,19 @@
  */
 package tests;
 
-import java.io.IOException;
-
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Vector;
-
-import ie.omk.smpp.Address;
 import ie.omk.smpp.Connection;
-import ie.omk.smpp.SMPPException;
-
 import ie.omk.smpp.event.ConnectionObserver;
 import ie.omk.smpp.event.ReceiverExitEvent;
 import ie.omk.smpp.event.SMPPEvent;
-
 import ie.omk.smpp.message.BindResp;
 import ie.omk.smpp.message.DeliverSM;
 import ie.omk.smpp.message.SMPPPacket;
 import ie.omk.smpp.message.Unbind;
 import ie.omk.smpp.message.UnbindResp;
 
-import ie.omk.smpp.net.TcpLink;
-
-import ie.omk.smpp.util.GSMConstants;
+import java.io.IOException;
+import java.util.Date;
+import java.util.HashMap;
 
 /** Example class to submit a message to a SMSC.
   * This class simply binds to the server, submits a message and then unbinds.
@@ -177,7 +167,7 @@ public class StressClient
 	    myConnection.autoAckMessages(true);
 
 	    // Bind to the SMSC as a receiver
-	    BindResp resp = myConnection.bind(myConnection.RECEIVER,
+	    BindResp resp = myConnection.bind(Connection.RECEIVER,
 		    (String)myArgs.get(ParseArgs.SYSTEM_ID),
 		    (String)myArgs.get(ParseArgs.PASSWORD),
 		    (String)myArgs.get(ParseArgs.SYSTEM_TYPE),
@@ -188,7 +178,7 @@ public class StressClient
 	    System.out.println("Hit a key to issue an unbind..");
 	    System.in.read();
 
-	    if (myConnection.getState() == myConnection.BOUND) {
+	    if (myConnection.getState() == Connection.BOUND) {
 		System.out.println("Sending unbind request..");
 		myConnection.unbind();
 	    }

@@ -25,21 +25,15 @@ package ie.omk.smpp;
 
 import ie.omk.smpp.message.BindReceiverResp;
 import ie.omk.smpp.message.DeliverSM;
-import ie.omk.smpp.message.DeliverSMResp;
 import ie.omk.smpp.message.SMPPPacket;
 import ie.omk.smpp.message.SubmitSM;
-import ie.omk.smpp.message.Unbind;
 import ie.omk.smpp.message.UnbindResp;
-
 import ie.omk.smpp.net.StreamLink;
-
 import ie.omk.smpp.util.Latin1Encoding;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-
 import java.util.Arrays;
 
 import junit.framework.TestCase;
@@ -94,14 +88,14 @@ public class TestConnection extends TestCase {
 	    }
 
 	    SMPPPacket p;
-	    p = conn.bind(conn.RECEIVER, "test", "test", "test", 0, 0, "6712345");
-	    if (p.getCommandId() != p.BIND_RECEIVER_RESP) {
+	    p = conn.bind(Connection.RECEIVER, "test", "test", "test", 0, 0, "6712345");
+	    if (p.getCommandId() != SMPPPacket.BIND_RECEIVER_RESP) {
 		// but that's what I just put there!
 		fail("Something wrong with the test class - unexpected packet");
 	    }
 
 	    p = conn.readNextPacket();
-	    if (p.getCommandId() != p.DELIVER_SM) {
+	    if (p.getCommandId() != SMPPPacket.DELIVER_SM) {
 		fail("Something wrong with the test class - unexpected packet");
 	    } else {
 		try {
@@ -114,7 +108,7 @@ public class TestConnection extends TestCase {
 	    }
 
 	    p = conn.unbind();
-	    if (p.getCommandId() != p.UNBIND_RESP) {
+	    if (p.getCommandId() != SMPPPacket.UNBIND_RESP) {
 		fail("Something wrong with the test class - unexpected packet");
 	    }
 	} catch (Exception x) {

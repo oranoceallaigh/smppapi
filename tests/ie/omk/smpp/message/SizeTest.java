@@ -23,19 +23,20 @@
  */
 package ie.omk.smpp.message;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-
-import java.util.Date;
-
-import junit.framework.TestCase;
-
-import ie.omk.smpp.*;
-
+import ie.omk.smpp.Address;
+import ie.omk.smpp.BadCommandIDException;
+import ie.omk.smpp.ErrorAddress;
+import ie.omk.smpp.SMPPException;
 import ie.omk.smpp.util.GSMConstants;
 import ie.omk.smpp.util.PacketFactory;
 import ie.omk.smpp.util.SMPPDate;
 import ie.omk.smpp.util.SMPPIO;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.Date;
+
+import junit.framework.TestCase;
 
 /** Test that the value reported by <code>getLength</code> matches the actual
  * length a packet serializes to and deserializes from.

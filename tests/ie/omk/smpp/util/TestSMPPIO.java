@@ -23,13 +23,11 @@
  */
 package ie.omk.smpp.util;
 
-import ie.omk.smpp.util.SMPPIO;
+import ie.omk.TestUtils;
 
 import java.util.Arrays;
 
 import junit.framework.TestCase;
-
-import ie.omk.TestUtils;
 
 public class TestSMPPIO extends TestCase {
 
