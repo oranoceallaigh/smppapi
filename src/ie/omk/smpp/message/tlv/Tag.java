@@ -139,7 +139,7 @@ public class Tag implements java.io.Serializable {
 	 = new Tag(0x423, byte[].class, 3);
 
     public static final Tag MESSAGE_PAYLOAD
-	 = new Tag(0x424, byte[].class, 0);
+	 = new Tag(0x424, byte[].class, -1);
 
     public static final Tag DELIVERY_FAILURE_REASON
 	 = new Tag(0x425, Number.class, 1);
@@ -289,13 +289,6 @@ public class Tag implements java.io.Serializable {
     /** Get the integer value of this tag.
      * @return the integer value of this tag.
      */
-    public int getTag() {
-	return (tag.intValue());
-    }
-
-    /** Get the integer value of this tag.
-     * @return the integer value of this tag.
-     */
     public int intValue() {
 	return (tag.intValue());
     }
@@ -378,11 +371,20 @@ public class Tag implements java.io.Serializable {
 	return (encoder);
     }
 
-    /** Get the static Tag object that represents tag <code>tagValue</code>.
-     * @return The static Tag object representing the tag <code>tagValue</code>.
+    /** Get the Tag object that represents tag <code>tagValue</code>. If the tag
+     * is known then the static Tag object representing the tag is returned. If
+     * the tag is not known, a fresh instance of Tag will be returned which uses
+     * an octet-string type.
+     * @return The Tag object representing the tag <code>tagValue</code>. Will
+     * never return <code>null</code>.
      */
     public static final Tag getTag(int tagValue) {
-	return ((Tag)tagTable.get(new Integer(tagValue)));
+	Tag t = (Tag)tagTable.get(new Integer(tagValue));
+	if (t == null) {
+	    return (Tag.defineTag(tagValue, byte[].class, null, -1, -1));
+	} else {
+	    return (t);
+	}
     }
 
     /** Define a new tag value type. This method adds a new tag type to the
@@ -390,7 +392,7 @@ public class Tag implements java.io.Serializable {
      * @param tagValue the integer value of the tag.
      * @param type the parameter type.
      * @param enc the encoder used to serialize and deserialize. This may be
-     * null to use one of the API's internally defined encoders.
+     * null to use the API's default internally defined encoders.
      * @param fixedSize the defined size of the parameter.
      * @throws ie.omk.smpp.message.tlv.TagDefinedException if an attempt is made
      * to define a tag with a integer value equivalent to an already defined
@@ -407,7 +409,7 @@ public class Tag implements java.io.Serializable {
      * @param tagValue the integer value of the tag.
      * @param type the parameter type.
      * @param enc the encoder used to serialize and deserialize. This may be
-     * null to use one of the API's internally defined encoders.
+     * null to use the API's default internally defined encoders.
      * @param minSize the minimum size of the parameter.
      * @param maxSize the maximum size of the parameter.
      * @throws ie.omk.smpp.message.tlv.TagDefinedException if an attempt is made
