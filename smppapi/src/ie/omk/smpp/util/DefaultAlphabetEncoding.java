@@ -26,27 +26,27 @@ package ie.omk.smpp.util;
 import java.io.ByteArrayOutputStream;
 
 /** This class encodes and decodes Java Strings to and from the SMS default
-  * alphabet.
-  * It supports the default extension table too.
-  */
-public class DefaultAlphabetExt
-    implements ie.omk.smpp.util.SMSAlphabet
+ * alphabet. It also supports the default extension table. The default alphabet
+ * and it's extension table is defined in GSM 03.38.
+ */
+public class DefaultAlphabetEncoding
+    extends ie.omk.smpp.util.AlphabetEncoding
 {
-    public static final int SPACE = 0x20;
-
-    public static final int CARRIAGE_RETURN = 0x0d;
-
-    public static final int LINE_FEED = 0x0a;
-
     public static final int EXTENDED_ESCAPE = 0x1b;
 
+    /** Page break (extended table). */
     public static final int PAGE_BREAK = 0x0a;
 
 
-    // XXX Missing all the Greek characters!
+    // XXX Didn't have a Unicode font with greek chars available to see the
+    // greek characters in the default alphabet...some of them may be wrong!
     private static final char[] charTable = {
 	'@', '£', '$', '¥', 'è', 'é', 'ù', 'ì', 'ò', 'Ç', '\n', 'Ø', 'ø', '\r',
-	'Å', 'å', 'x', '_', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x',
+	'Å', 'å',
+	// Greek characters..
+	'\u0394', '_', '\u03a6', '\u0393', '\u039b', '\u03a9', '\u03a0',
+	'\u03a8', '\u03a3', '\u0398', '\u039e',
+	' ', // Escape character..
 	'Æ', 'æ', 'ß', 'É', ' ', '!', '"', '#', '¤', '%', '&', '\'', '(', ')',
 	'*', '+', ',', '-', '.', '/', '0', '1', '2', '3', '4', '5', '6', '7',
 	'8', '9', ':', ';', '<', '=', '>', '?', '¡', 'A', 'B', 'C', 'D', 'E',
@@ -72,21 +72,20 @@ public class DefaultAlphabetExt
 	extCharTable[0x3c] = '[';
 	extCharTable[0x3d] = '~';
 	extCharTable[0x3e] = ']';
-	extCharTable[0x65] = 'x'; // XXX EURO
+	extCharTable[0x65] = '\u20ac'; // The Euro symbol
     }
 
 
-    /** Decode a byte array into a Java String.
+    /** Decode an SMS default alphabet-encoded octet string into a Java String.
       */
     public String decodeString(byte[] b)
     {
 	char[] table = charTable;
 
-	byte[] unpacked = unpack(b);
 	StringBuffer buf = new StringBuffer();
 
-	for (int i = 0; i < unpacked.length; i++) {
-	    int code = (int)unpacked[i] & 0x000000ff;
+	for (int i = 0; i < b.length; i++) {
+	    int code = (int)b[i] & 0x000000ff;
 	    if (code == EXTENDED_ESCAPE) {
 		table = extCharTable; // take next char from extension table
 	    } else {
@@ -99,7 +98,7 @@ public class DefaultAlphabetExt
     }
 
 
-    /** Encode and pack a Java String into a byte array using the SMS Default
+    /** Encode a Java String into a byte array using the SMS Default
       * alphabet.
       */
     public byte[] encodeString(String s)
@@ -110,6 +109,9 @@ public class DefaultAlphabetExt
 	for (int loop = 0; loop < c.length; loop++) {
 	    int search = 0;
 	    for (; search < charTable.length; search++) {
+		if (search == EXTENDED_ESCAPE)
+		    continue;
+
 		if (c[loop] == charTable[search]) {
 		    enc.write((byte)search);
 		    break;
@@ -122,10 +124,10 @@ public class DefaultAlphabetExt
 		}
 	    }
 	    if (search == charTable.length)
-		enc.write((byte)SPACE);
+		enc.write(0x3f); // A '?'
 	}
 
-	return (pack(enc.toByteArray()));
+	return (enc.toByteArray());
     }
 
     /** Get the data_coding value for the Default alphabet.
@@ -136,8 +138,16 @@ public class DefaultAlphabetExt
 	return (0);
     }
 
+    /** Get the maximum number of octets allowed for this encoding type.
+     * Messages encoded using the default alphabet are allowed up to 160
+     * characters.
+     */
+    public int getMaxLength()
+    {
+	return (160);
+    }
 
-    private static byte[] unpack(byte[] packed)
+    /*private static byte[] unpack(byte[] packed)
     {
 	int unpackedLen = ((packed.length * 8) / 7);
 	byte[] unpacked = new byte[unpackedLen];
@@ -195,13 +205,13 @@ public class DefaultAlphabetExt
 
 	return (packed);
     }
+*/
 
 
-
-    /*public static void main(String[] args)
+    public static void main(String[] args)
     {
 	try {
-	    DefaultAlphabetExt alpha = new DefaultAlphabetExt();
+	    DefaultAlphabetEncoding alpha = new DefaultAlphabetEncoding();
 
 	    if (args.length > 0 && args[0].equals("-dt")) {
 		dumpTable();
@@ -245,13 +255,35 @@ public class DefaultAlphabetExt
 
     private static void dumpTable()
     {
+	String fmt1 = "{0,number,###}: {1}  ";
+	String fmt2 = "{0,number,###}:{1}  ";
+
 	System.out.println("Table size: " + charTable.length);
-	for (int i = 0; i < 0xf; i++) {
+	for (int i = 0; i < 16; i++) {
 	    for (int j = 0; j < 8; j++) {
-		System.out.print(" " + (i + (16 * j))
-			+ ":" + charTable[i + (16 * j)]);
+		int pos = i + (16 * j);
+
+		if (charTable[pos] == '\r') {
+		    Object[] a = { new Integer(pos), "CR" };
+		    System.out.print(java.text.MessageFormat.format(fmt2, a));
+		    continue;
+		} else if (charTable[pos] == '\n') {
+		    Object[] a = { new Integer(pos), "LF" };
+		    System.out.print(java.text.MessageFormat.format(fmt2, a));
+		    continue;
+		} else if (charTable[pos] == ' ') {
+		    Object[] a = { new Integer(pos), "SP" };
+		    System.out.print(java.text.MessageFormat.format(fmt2, a));
+		    continue;
+		}
+
+		Object[] a = {
+		    new Integer(pos),
+		    new Character(charTable[pos])
+		};
+		System.out.print(java.text.MessageFormat.format(fmt1, a));
 	    }
 	    System.out.print("\n");
 	}
-    }*/
+    }
 }
