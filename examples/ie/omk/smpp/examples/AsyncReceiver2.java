@@ -205,7 +205,11 @@ public class AsyncReceiver2 {
 	// this method is called when the receiver thread is exiting normally.
 	public void receiverExit(Connection source, ReceiverExitEvent ev)
 	{
-	    logger.info("Receiver thread has exited normally.");
+        if (ev.getReason() == ReceiverExitEvent.BIND_TIMEOUT) {
+            logger.info("Bind timed out waiting for response.");
+        }
+        
+	    logger.info("Receiver thread has exited.");
 	    synchronized (blocker) {
 		blocker.notify();
 	    }

@@ -83,6 +83,13 @@ import org.apache.log4j.Logger;
  * closed.</td>
  * </tr>
  * 
+ * <tr><td><code>smppapi.connection.bind_timeout</code></td><td>Long</td>
+ * <td>The length of time, in milliseconds, to wait for a bind response packet
+ * after sending a bind request. If a packet is not received within this
+ * time period, the network connection is closed. A negative value or zero
+ * means wait indefinitely.</td>
+ * </tr>
+ * 
  * <tr><td><code>smppapi.connection.rcv_daemon.ioex_count</code></td><td>Integer</td>
  * <td>The number of I/O exceptions the receiver daemon will accept occurring
  * before exiting.</td>
@@ -110,6 +117,7 @@ import org.apache.log4j.Logger;
 public class APIConfig extends Properties {
 
     /** See class description for documentation on the properties.
+     * @deprecated
      */
     public static final String TCP_SOCKET_TIMEOUT = "smppapi.net.tcp.so_timeout";
 
@@ -131,6 +139,10 @@ public class APIConfig extends Properties {
 
     /** See class description for documentation on the properties.
      */
+    public static final String LINK_TIMEOUT = "smppapi.net.link_timeout";
+    
+    /** See class description for documentation on the properties.
+     */
     public static final String TOO_MANY_IO_EXCEPTIONS = "smppapi.connection.rcv_daemon.ioex_count";
 
     /** See class description for documentation on the properties.
@@ -144,6 +156,10 @@ public class APIConfig extends Properties {
     /** See class description for documentation on the properties.
      */
     public static final String EVENT_THREAD_FIFO_QUEUE_SIZE = "smppapi.event.threaded_dispatcher.queue_size";
+
+    /** See class description for documentation on the properties.
+     */
+    public static final String BIND_TIMEOUT = "smppapi.connection.bind_timeout";
 
 
     private static final Logger logger = Logger.getLogger("ie.omk.smpp.util");
@@ -288,6 +304,22 @@ public class APIConfig extends Properties {
     }
 
     /** Get the value for a property, parsed as a Java <code>int</code>.
+     * If the property is not found, the default value is returned.
+     * @param property the name of the property to retrive.
+     * @param defaultValue the value to return if the property does not exist.
+     * @throws ie.omk.smpp.util.InvalidConfigurationException if the value is
+     * not a valid integer.
+     */
+    public int getInt(String property, int defaultValue) throws InvalidConfigurationException {
+        try {
+            return (getInt(property));
+        } catch (PropertyNotFoundException x) {
+        }
+        
+        return (defaultValue);
+    }
+    
+    /** Get the value for a property, parsed as a Java <code>int</code>.
      * @param property the name of the property to retrive.
      * @throws ie.omk.smpp.util.PropertyNotFoundException if
      * <code>property</code> is not found in the configuration.
@@ -312,6 +344,22 @@ public class APIConfig extends Properties {
     }
 
     /** Get the value for a property, parsed as a Java <code>long</code>.
+     * If the property is not found, the default value is returned.
+     * @param property the name of the property to retrive.
+     * @param defaultValue the value to return if the property does not exist.
+     * @throws ie.omk.smpp.util.InvalidConfigurationException if the value is
+     * not a valid long.
+     */
+    public long getLong(String property, long defaultValue) throws InvalidConfigurationException {
+        try {
+            return (getLong(property));
+        } catch (InvalidConfigurationException x) {
+        }
+        
+        return (defaultValue);
+    }
+    
+    /** Get the value for a property, parsed as a Java <code>long</code>.
      * @param property the name of the property to retrive.
      * @throws ie.omk.smpp.util.PropertyNotFoundException if
      * <code>property</code> is not found in the configuration.
@@ -335,6 +383,27 @@ public class APIConfig extends Properties {
 	return (l);
     }
 
+    /** Get a property as a boolean value. Any of 'on', 'yes' or 'true'
+     * (irrelevant of case) will evaluate to <code>true</code>. Any of 'off',
+     * 'no' or 'false' will evaluate to <code>false</code>. Boolean parameters
+     * may also be specified as a number, where zero will equate to
+     * <code>false</code> while non-zero will equate to <code>true</code>.
+     * All other words will result in an InvalidConfigurationException being thrown.
+     * @param property the name of the property to look up.
+     * @param defaultValue the value to return if the property does not exist.
+     * @throws InvalidConfigurationException if the property has a value that
+     * cannot be parsed or interpreted as boolean.
+     */
+    public boolean getBoolean(String property, boolean defaultValue) throws InvalidConfigurationException {
+        try {
+            return (getBoolean(property));
+        } catch (PropertyNotFoundException x) {
+        }
+
+        return (defaultValue);
+    }
+    
+    
     /** Get a property as a boolean value. Any of 'on', 'yes' or 'true'
      * (irrelevant of case) will evaluate to <code>true</code>. Any of 'off',
      * 'no' or 'false' will evaluate to <code>false</code>. Boolean parameters

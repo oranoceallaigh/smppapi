@@ -171,7 +171,6 @@ public class Connection
      */
     protected AlphabetEncoding defaultAlphabet = null;
 
-
     /** Initialise a new SMPP connection object. This is a convenience
      * constructor that will create a new {@link ie.omk.smpp.net.TcpLink} object
      * using the host name and port provided. The connection created will use
@@ -473,7 +472,11 @@ public class Connection
       * numbering scheme class is <code>null</code> for this Connection, no
       * number will be assigned. By default, the
       * {@link ie.omk.smpp.util.DefaultSequenceScheme} class is used to assign
-      * sequence numbers to packets.
+      * sequence numbers to packets.<br />
+      * <b>IMPORTANT</b>: You <i>must</i> use the <code>bind</code> and
+      * <code>unbind</code> methods to carry out those operations. Attempting
+      * to send an bind or unbind packet using this method will result in an
+      * <code>UnsupportedOperationException</code> being thrown.
       * @param r The request packet to send to the SMSC
       * @return The response packet returned by the SMSC, or null if
       * asynchronous communication is being used.
@@ -500,11 +503,17 @@ public class Connection
 
 	if (this.state != BOUND)
 	    throw new NotBoundException("Must be bound to the SMSC before "
-		    + "sending packets");
+                    + "sending packets");
 
+	    // Force applications to use bind and unbind
+        if (id == SMPPPacket.BIND_RECEIVER || id == SMPPPacket.BIND_TRANSCEIVER
+                || id == SMPPPacket.BIND_TRANSMITTER || id == SMPPPacket.UNBIND) {
+            throw new UnsupportedOperationException("You must use the bind and unbind methods to send those requests");
+        }
+        
 	// Very few request types allowed by a receiver connection.
 	if (connectionType == RECEIVER) {
-	    if (id != SMPPPacket.ENQUIRE_LINK && id != SMPPPacket.UNBIND)
+	    if (id != SMPPPacket.ENQUIRE_LINK)
 		throw new UnsupportedOperationException(
 			"Operation not permitted over receiver connection");
 	}
@@ -546,6 +555,19 @@ public class Connection
 		if (rcvThread == null)
 		    createRecvThread();
 
+        // Set the socket timeout to the bind timeout
+        try {
+            long bindTimeout = APIConfig.getInstance().getLong(APIConfig.BIND_TIMEOUT, 0L);
+            if (bindTimeout > 0L) {
+                this.link.setTimeout(bindTimeout);
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Set bind timeout to " + bindTimeout);
+                }
+            }
+        } catch (UnsupportedOperationException x) {
+            logger.warn("Link does not support read timeouts - bind timeout will not work");
+        }
+        
 		if (!rcvThread.isAlive())
 		    rcvThread.start();
 	    }
@@ -831,7 +853,7 @@ public class Connection
 	try {
 	    logger.info("Unbinding from the SMSC");
 	    Unbind u = (Unbind)newInstance(SMPPPacket.UNBIND);
-	    return ((UnbindResp)sendRequest(u));
+	    return ((UnbindResp)sendRequestInternal(u));
 	} catch (VersionException x) {
 	    // impossible...every version supports unbind!
 	    throw new SMPPRuntimeException("Internal smppapi error");
@@ -1117,6 +1139,22 @@ public class Connection
 	    // Assume a version 3.3 link
 	    setInterfaceVersion(SMPPVersion.V33);
 	}
+
+        // Set the link timeout
+        try {
+            long linkTimeout = APIConfig.getInstance().getLong(APIConfig.LINK_TIMEOUT);
+            link.setTimeout(linkTimeout);
+            
+            if (logger.isDebugEnabled()) {
+                logger.debug("Set the link timeout to " + linkTimeout);
+            }
+        } catch (PropertyNotFoundException x) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("No link timeout specified in configuration");
+            }
+        } catch (java.lang.UnsupportedOperationException x) {
+            logger.warn("Configuration specified a link timeout but the link implementation does not support it");
+        }
     }
 
     /** Handle an incoming unbind packet.
@@ -1202,12 +1240,13 @@ public class Connection
 	int smppEx = 0, id = 0, st = 0;
 	SMPPEvent exitEvent = null;
 	int tooManyIOEx = 5;
-	
+
 	logger.info("Receiver thread started");
 
+	APIConfig cfg = APIConfig.getInstance();
 	try {
 	    tooManyIOEx =
-		APIConfig.getInstance().getInt(APIConfig.TOO_MANY_IO_EXCEPTIONS);
+		cfg.getInt(APIConfig.TOO_MANY_IO_EXCEPTIONS);
 	} catch (PropertyNotFoundException x) {
 	    // just stick with the default
 	    logger.debug("Didn't find I/O exception config. Using default of "
@@ -1224,10 +1263,18 @@ public class Connection
 			continue;
 		    }
 		} catch (SocketTimeoutException x) {
-		    // is it okay to ignore this ??
-		    logger.info("Ignoring SocketTimeoutException");
-
-		    continue;
+            if (state == BINDING) {
+                // bind timeout has expired
+                logger.error("Socket timeout in BINDING state.");
+                exitEvent = new ReceiverExitEvent(this, null, state);
+                ((ReceiverExitEvent)exitEvent).setReason(ReceiverExitEvent.BIND_TIMEOUT);
+                setState(UNBOUND);
+            } else {
+                // is it okay to ignore this ??
+                logger.info("Ignoring SocketTimeoutException");
+            }
+            
+            continue;
 		} catch (EOFException x) {
 		    // The network connection has disappeared! Wah!
 		    logger.error("EOFException received in daemon thread.", x);

@@ -78,7 +78,7 @@ public class DeliverSM
      * specification.
      */
     public void setDeliveryTime(SMPPDate d) {
-	logger.fatal("Setting the delivery time on a deliver_sm is in violation "
+	logger.warn("Setting the delivery time on a deliver_sm is in violation "
 		+ "of the SMPP specification");
 	super.setDeliveryTime(d);
     }
@@ -87,7 +87,7 @@ public class DeliverSM
      * specification.
      */
     public void setExpiryTime(SMPPDate d) {
-	logger.fatal("Setting the expiry time on a deliver_sm is in violation "
+	logger.warn("Setting the expiry time on a deliver_sm is in violation "
 		+ "of the SMPP specification");
 	super.setExpiryTime(d);
     }

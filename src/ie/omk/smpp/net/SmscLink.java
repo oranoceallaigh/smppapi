@@ -388,6 +388,29 @@ public abstract class SmscLink
       */
     public abstract boolean isConnected();
 
+    
+    /** Set the value for read timeout. A link implementation may support
+     * timing out on blocking read operations. This method may be used
+     * to set such a timeout. If the implementation does not support
+     * timeouts, it must throw an <code>UnsuppertedOperationException<code>.
+     * @param timeout the timeout value in milliseconds.
+     * @throws UnsupportedOperationException if the implementation does not support
+     * timeouts.
+     */
+    public void setTimeout(long timeout) throws UnsupportedOperationException {
+        throw new UnsupportedOperationException("Timeout not supported");
+    }
+    
+    /** Get the value for read timeout.
+     * @see #setTimeout
+     * @return the current value for read timeout.
+     * @throws UnsupportedOperationException if the implementation does not support
+     * timeouts.
+     */
+    public long getTimeout() throws UnsupportedOperationException {
+        throw new UnsupportedOperationException("Timeout not supported");
+    }
+    
 
     /** Set the snooper streams. The snooper streams will receive every byte
      * that is either received or sent using this class. This functionality is

@@ -132,8 +132,11 @@ public class AsyncReceiver implements ConnectionObserver {
 
     private void receiverExit(Connection myConnection, ReceiverExitEvent ev)
     {
-	if (!ev.isException()) {
-	    logger.info("Receiver thread has exited normally.");
+	if (ev.getReason() != ReceiverExitEvent.EXCEPTION) {
+        if (ev.getReason() == ReceiverExitEvent.BIND_TIMEOUT) {
+            logger.info("Bind timed out waiting for response.");
+        }
+	    logger.info("Receiver thread has exited.");
 	} else {
 	    Throwable t = ev.getException();
 	    logger.info("Receiver thread died due to exception:");
