@@ -20,44 +20,46 @@
  * Java SMPP API author: orank@users.sf.net
  * $Id$
  */
-
-import java.util.Properties;
-import java.io.FileInputStream;
+package ie.omk.smpp.examples;
 
 import ie.omk.smpp.Address;
 import ie.omk.smpp.Connection;
 import ie.omk.smpp.SMPPException;
 
 import ie.omk.smpp.message.*;
+import ie.omk.smpp.util.BinaryEncoding;
+import ie.omk.smpp.util.DefaultAlphabetEncoding;
+import ie.omk.smpp.util.GSMConstants;
+import ie.omk.smpp.util.UCS2Encoding;
 
 import ie.omk.smpp.net.TcpLink;
 
-import ie.omk.smpp.util.*;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
 
-
-public class SyncTransmitter
+public class SyncTransmitter extends SMPPExample
 {
     public static void main(String[] clargs)
     {
 	try {
-	    Args args = new Args(clargs);
-	    TcpLink link = new TcpLink(args.hostName, args.port);
+	    parseArgs(clargs);
+	    TcpLink link = new TcpLink(hostName, port);
 	    Connection trans = new Connection(link);
 
 	    Address range = null;
 
 	    BindTransmitterResp btr = (BindTransmitterResp)trans.bind(
 		    Connection.TRANSMITTER,
-		    args.sysID,
-		    args.password,
-		    args.sysType);
+		    sysID,
+		    password,
+		    sysType);
 
 	    if (btr.getCommandStatus() != 0) {
-		System.err.println("Failed to bind to SMSC.");
+		logger.info("Failed to bind to SMSC.");
 		return;
 	    }
 
-	    System.out.println("Successfully bound to SMSC \"" +
+	    logger.info("Successfully bound to SMSC \"" +
 		    btr.getSystemId() + "\"");
 
 	    Address destination = new Address(
@@ -71,9 +73,9 @@ public class SyncTransmitter
 	    SubmitSMResp smr = (SubmitSMResp)trans.sendRequest(sm);
 
 	    if (smr.getCommandStatus() != 0) {
-		System.err.println("Error submitting message.");
+		logger.info("Error submitting message.");
 	    } else {
-		System.out.println("Message submitted. ID is \""
+		logger.info("Message submitted. ID is \""
 			+ smr.getMessageId() + "\"");
 	    }
 
@@ -87,9 +89,9 @@ public class SyncTransmitter
 		    new UCS2Encoding());
 	    smr = (SubmitSMResp)trans.sendRequest(sm);
 	    if (smr.getCommandStatus() != 0) {
-		System.err.println("Error submitting UCS2 message");
+		logger.info("Error submitting UCS2 message");
 	    } else {
-		System.out.println("Message submitted. ID is \""
+		logger.info("Message submitted. ID is \""
 			+ smr.getMessageId() + "\"");
 	    }
 
@@ -109,20 +111,20 @@ public class SyncTransmitter
 	    sm.setMessage(msg, new BinaryEncoding());
 	    smr = (SubmitSMResp)trans.sendRequest(sm);
 	    if (smr.getCommandStatus() != 0) {
-		System.err.println("Error submitting Binary message");
+		logger.info("Error submitting Binary message");
 	    } else {
-		System.out.println("Message submitted. ID is \""
+		logger.info("Message submitted. ID is \""
 			+ smr.getMessageId() + "\"");
 	    }
 
-	    System.out.println("Unbinding from SMSC...");
+	    logger.info("Unbinding from SMSC...");
 
 	    UnbindResp ubr = trans.unbind();
 	    if (ubr.getCommandStatus() != 0) {
-		System.err.println("Error occurred while unbinding from SMSC."
+		logger.info("Error occurred while unbinding from SMSC."
 			+ " Code is " + ubr.getCommandStatus());
 	    } else {
-		System.out.println("Unbound. Closing network connection.");
+		logger.info("Unbound. Closing network connection.");
 	    }
 
 	    link.close();
