@@ -32,14 +32,17 @@ import java.text.ParsePosition;
   * representation will always end in '00+' indicating a zero offset from UTC.
   */
 public class SMPPDate
+    implements java.io.Serializable
 {
     private Date date = null;
 
-    private SimpleDateFormat inFormat = new SimpleDateFormat("yyMMddHHmmssS");
+    private static SimpleDateFormat inFormat =
+	new SimpleDateFormat("yyMMddHHmmssS");
 
-    private SimpleDateFormat outFormat = new SimpleDateFormat("yyMMddHHmmss");
+    private static SimpleDateFormat outFormat =
+	new SimpleDateFormat("yyMMddHHmmss");
 
-    private SimpleDateFormat tenths = new SimpleDateFormat("S");
+    private static SimpleDateFormat tenths = new SimpleDateFormat("S");
 
     /** Create a new SMPPDate. A new java.util.Date is created to represent the
       * current time.
