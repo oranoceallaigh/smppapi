@@ -151,8 +151,9 @@ public class Debug
     {
 	String cn;
 
+	String msg = (s == null) ? "null" : s.toString();
 	if (debugLevel >= level)
-	    print(classt, method, s.toString(), "Debug" + level);
+	    print(classt, method, msg, "Debug" + level);
     }
 
 
