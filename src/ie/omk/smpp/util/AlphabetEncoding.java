@@ -33,38 +33,19 @@ import java.util.Hashtable;
 public abstract class AlphabetEncoding
     extends ie.omk.smpp.util.MessageEncoding
 {
-    private static Hashtable dcMapping = new Hashtable();
+    protected AlphabetEncoding(int dcs) {
+	super (dcs);
+    }
 
-
-    /** Convert SMS message text into a Java String. */
+    /** Convert SMS message text into a Java String. Implementations of this
+     * method <b>must</b> support decoding <code>null</code>. In such cases, the
+     * String "" will be returned.
+     */
     public abstract String decodeString(byte[] b);
 
-    /** Convert a Java String into SMS message text. */
+    /** Convert a Java String into SMS message text. Implementations of this
+     * method <b>must</b> support encoding a <code>null</code> string. In such
+     * cases, a byte array of length 0 will be returned.
+     */
     public abstract byte[] encodeString(String s);
-
-
-    /** Register an AlphabetEncoding handler for a particular data coding value.
-      * @param dcs The data coding value this <code>enc</code> will be used to
-      * decode.
-      * @param enc An instance of the alphabet encoding class.
-      */
-    protected static final void registerEncoding(int dcs, AlphabetEncoding enc)
-    {
-	if (enc == null)
-	    throw new NullPointerException("Encoding type cannot be null.");
-
-	if (dcs < 0 || dcs > 255)
-	    throw new IllegalArgumentException("DCS outside valid range.");
-
-	dcMapping.put(new Integer(dcs), enc);
-    }
-
-    /** Get the registered MessageEncoding handler for data coding <i>dcs</i>.
-      * @param dcs The data coding value to match.
-      * @return The message encoding type registered, or null if none.
-      */
-    public static final AlphabetEncoding getEncoding(int dcs)
-    {
-	return ((AlphabetEncoding)dcMapping.get(new Integer(dcs)));
-    }
 }

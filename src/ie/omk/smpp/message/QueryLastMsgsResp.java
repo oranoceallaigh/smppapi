@@ -30,8 +30,6 @@ import java.util.Iterator;
 import java.util.Vector;
 
 import ie.omk.smpp.SMPPException;
-import ie.omk.smpp.BadCommandIDException;
-import ie.omk.smpp.InvalidMessageIDException;
 import ie.omk.smpp.util.SMPPIO;
 
 /** SMSC response to a QueryLastMsgs request.
@@ -60,34 +58,6 @@ public class QueryLastMsgsResp
 	super(QUERY_LAST_MSGS_RESP, seqNum);
     }
 
-    /** Read in a QueryLastMsgsResp from an InputStream.  A full packet,
-      * including the header fields must exist in the stream.
-      * @param in The InputStream to read from
-      * @throws java.io.IOException if there's an error reading from the
-      * input stream.
-      */
-    /*public QueryLastMsgsResp(InputStream in)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
-    {
-	super(in);
-
-	if (getCommandId() != SMPPPacket.QUERY_LAST_MSGS_RESP)
-	    throw new BadCommandIDException(
-		    SMPPPacket.QUERY_LAST_MSGS_RESP, getCommandId());
-
-	if (getCommandStatus() != 0)
-	    return;
-
-	int msgCount = 0;
-	long id = 0;
-	msgCount = SMPPIO.readInt(in, 1);
-
-	for(int loop = 0; loop < msgCount; loop++) {
-	    String s = SMPPIO.readCString(in);
-	    messageTable.addElement(s);
-	}
-    }*/
-
     /** Create a new QueryLastMsgsResp packet in response to a BindReceiver.
       * This constructor will set the sequence number to it's expected value.
       * @param r The Request packet the response is to
@@ -100,13 +70,13 @@ public class QueryLastMsgsResp
     /** Add a message Id to the response packet.
       * @param id The message Id to add to the packet.
       * @return The current number of message Ids (including the new one).
-      * @throws ie.omk.smpp.InvalidMessageIDException if the id is invalid.
+      * @throws ie.omk.smpp.message.InvalidParameterValueException if the id is
+      * invalid.
       */
     public int addMessageId(String id)
-	throws InvalidMessageIDException
     {
-	if(id.length() > 8)
-	    throw new InvalidMessageIDException(id);
+	if (!version.validateMessageId(id))
+	    throw new InvalidParameterValueException("Invalid message ID", id);
 
 	synchronized (messageTable) {
 	    messageTable.addElement(id);
@@ -174,8 +144,7 @@ public class QueryLastMsgsResp
 	}
     }
 
-    public void readBodyFrom(byte[] body, int offset)
-    {
+    public void readBodyFrom(byte[] body, int offset) throws SMPPProtocolException {
 	int msgCount = 0;
 	long id = 0;
 	msgCount = SMPPIO.bytesToInt(body, offset++, 1);

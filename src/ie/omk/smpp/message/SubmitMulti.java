@@ -30,6 +30,7 @@ import ie.omk.smpp.Address;
 import ie.omk.smpp.BadCommandIDException;
 import ie.omk.smpp.SMPPException;
 
+import ie.omk.smpp.util.InvalidDateFormatException;
 import ie.omk.smpp.util.GSMConstants;
 import ie.omk.smpp.util.SMPPIO;
 import ie.omk.smpp.util.SMPPDate;
@@ -77,68 +78,6 @@ public class SubmitMulti
 	super(SUBMIT_MULTI, seqNum);
     }
 
-    /** Read in a SubmitMulti from an InputStream.  A full packet,
-      * including the header fields must exist in the stream.
-      * @param in The InputStream to read from
-      * @throws java.io.IOException if there's an error reading from the
-      * input stream.
-      */
-    /*public SubmitMulti(InputStream in)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
-    {
-	super(in);
-
-	if (getCommandId() != SMPPPacket.SUBMIT_MULTI)
-	    throw new BadCommandIDException(SMPPPacket.SUBMIT_MULTI,
-		    getCommandId());
-
-	if (getCommandStatus() != 0)
-	    return;
-
-	int numDests = 0, smLength = 0;
-	String delivery, valid;
-
-	// First the service type
-	serviceType = SMPPIO.readCString(in);
-
-	source = new Address(in, false);
-
-	// Read in the number of destination structures to follow:
-	numDests = SMPPIO.readInt(in, 1);			
-
-	// Now read in numDests number of destination structs
-	for(int loop=0; loop<numDests; loop++) {
-	    Address d = new Address(in, true);
-	    destinationTable.addElement(d);
-	}
-
-	// ESM class, protocol Id, priorityFlag...
-	esmClass =  SMPPIO.readInt(in, 1);
-	protocolID =  SMPPIO.readInt(in, 1);
-	priority = SMPPIO.readInt(in, 1);
-
-	delivery = SMPPIO.readCString(in);
-	valid = SMPPIO.readCString(in);
-	if (delivery != null)
-	    deliveryTime = new SMPPDate(delivery);
-	if (valid != null)
-	    expiryTime = new SMPPDate(valid);
-
-	// Registered delivery, replace if present, data coding, default msg
-	// and message length
-	registered = (SMPPIO.readInt(in, 1) == 0) ? false : true;
-	replaceIfPresent = (SMPPIO.readInt(in, 1) == 0) ? false : true;
-	dataCoding = SMPPIO.readInt(in, 1);
-	defaultMsg = SMPPIO.readInt(in, 1);
-	smLength = SMPPIO.readInt(in, 1);
-
-	if (smLength > 0) {
-	    message = new byte[smLength];
-	    for (int i = 0; i < smLength; )
-		i += in.read(message, i, (smLength - i));
-	}
-    }*/
-
 
     /** Get a handle to the error destination table. Applications may add
      * destination addresses or distribution list names to the destination
@@ -166,42 +105,19 @@ public class SubmitMulti
     /** Add a distribution list to the destination table.
      * @param d the distribution list name.
      * @return The current number of destination addresses (including the new
-     * @throws ie.omk.smpp.StringTooLongException if the distribution list
-     * name is too long.
+     * @throws ie.omk.smpp.message.InvalidParameterValueException if the
+     * distribution list name is too long.
      */
-    public int addDestination(String d)
-	throws ie.omk.smpp.StringTooLongException
-    {
+    public int addDestination(String d) throws InvalidParameterValueException {
+
+	if (!version.validateDistListName(d))
+	    throw new InvalidParameterValueException("Distribution list name is invalid", d);
+
 	synchronized (destinationTable) {
 	    destinationTable.add(d);
 	    return (destinationTable.size());
 	}
     }
-
-    /** Set the destination address table.
-      * @param d The array of Addresses to submit the message to
-      * @throws java.lang.NullPointerException if the array is null
-      * or 0 length
-      */
-    /*public void setDestAddresses(Address d[])
-    {
-	int loop=0;
-
-	if(d == null || d.length < 1)
-	    throw new NullPointerException("SubmitMulti: Destination table "
-		    + "cannot be null or empty");
-
-	synchronized (destinationTable) {
-	    destinationTable.removeAllElements();
-	    destinationTable.ensureCapacity(d.length);
-
-	    for(loop=0; loop<d.length; loop++) {
-		// Gotta make sure the Address uses the dest_flag
-		d[loop].useFlag = true;
-		destinationTable.addElement(d[loop]);
-	    }
-	}
-    }*/
 
     /** Get the number of destinations in the destination table.
       * @deprecated Use getNumDests()
@@ -296,8 +212,8 @@ public class SubmitMulti
 	SMPPIO.writeInt(priority, 1, out);
 	SMPPIO.writeCString(dt, out);
 	SMPPIO.writeCString(et, out);
-	SMPPIO.writeInt(registered ? 1 : 0, 1, out);
-	SMPPIO.writeInt(replaceIfPresent ? 1 : 0, 1, out);
+	SMPPIO.writeInt(registered, 1, out);
+	SMPPIO.writeInt(replaceIfPresent, 1, out);
 	SMPPIO.writeInt(dataCoding, 1, out);
 	SMPPIO.writeInt(defaultMsg, 1, out);
 	SMPPIO.writeInt(smLength, 1, out);
@@ -305,57 +221,58 @@ public class SubmitMulti
 	    out.write(message);
     }
 
-    public void readBodyFrom(byte[] body, int offset)
-    {
-	int numDests = 0, smLength = 0;
-	String delivery, valid;
+    public void readBodyFrom(byte[] body, int offset) throws SMPPProtocolException {
+	try {
+	    int numDests = 0, smLength = 0;
+	    String delivery, valid;
 
-	// First the service type
-	serviceType = SMPPIO.readCString(body, offset);
-	offset += serviceType.length() + 1;
+	    // First the service type
+	    serviceType = SMPPIO.readCString(body, offset);
+	    offset += serviceType.length() + 1;
 
-	source = new Address();
-	source.readFrom(body, offset);
-	offset += source.getLength();
+	    source = new Address();
+	    source.readFrom(body, offset);
+	    offset += source.getLength();
 
-	// Read in the number of destination structures to follow:
-	numDests = SMPPIO.bytesToInt(body, offset++, 1);
+	    // Read in the number of destination structures to follow:
+	    numDests = SMPPIO.bytesToInt(body, offset++, 1);
 
-	// Now read in numDests number of destination structs
-	DestinationTable dt = new DestinationTable();
-	dt.readFrom(body, offset, numDests);
-	offset += dt.getLength();
-	this.destinationTable = dt;
+	    // Now read in numDests number of destination structs
+	    DestinationTable dt = new DestinationTable();
+	    dt.readFrom(body, offset, numDests);
+	    offset += dt.getLength();
+	    this.destinationTable = dt;
 
-	// ESM class, protocol Id, priorityFlag...
-	esmClass = SMPPIO.bytesToInt(body, offset++, 1);
-	protocolID = SMPPIO.bytesToInt(body, offset++, 1);
-	priority = SMPPIO.bytesToInt(body, offset++, 1);
+	    // ESM class, protocol Id, priorityFlag...
+	    esmClass = SMPPIO.bytesToInt(body, offset++, 1);
+	    protocolID = SMPPIO.bytesToInt(body, offset++, 1);
+	    priority = SMPPIO.bytesToInt(body, offset++, 1);
 
-	delivery = SMPPIO.readCString(body, offset);
-	offset += delivery.length() + 1;
-	if (delivery.length() > 0)
-	    deliveryTime = new SMPPDate(delivery);
+	    delivery = SMPPIO.readCString(body, offset);
+	    offset += delivery.length() + 1;
+	    if (delivery.length() > 0)
+		deliveryTime = SMPPDate.parseSMPPDate(delivery);
 
-	valid = SMPPIO.readCString(body, offset);
-	offset += valid.length() + 1;
-	if (valid.length() > 0)
-	    expiryTime = new SMPPDate(valid);
+	    valid = SMPPIO.readCString(body, offset);
+	    offset += valid.length() + 1;
+	    if (valid.length() > 0)
+		expiryTime = SMPPDate.parseSMPPDate(valid);
 
 
-	// Registered delivery, replace if present, data coding, default msg
-	// and message length
-	registered =
-		(SMPPIO.bytesToInt(body, offset++, 1) == 0) ? false : true;
-	replaceIfPresent =
-		(SMPPIO.bytesToInt(body, offset++, 1) == 0) ? false : true;
-	dataCoding = SMPPIO.bytesToInt(body, offset++, 1);
-	defaultMsg = SMPPIO.bytesToInt(body, offset++, 1);
-	smLength = SMPPIO.bytesToInt(body, offset++, 1);
+	    // Registered delivery, replace if present, data coding, default msg
+	    // and message length
+	    registered = SMPPIO.bytesToInt(body, offset++, 1);
+	    replaceIfPresent = SMPPIO.bytesToInt(body, offset++, 1);
+	    dataCoding = SMPPIO.bytesToInt(body, offset++, 1);
+	    defaultMsg = SMPPIO.bytesToInt(body, offset++, 1);
+	    smLength = SMPPIO.bytesToInt(body, offset++, 1);
 
-	if (smLength > 0) {
-	    message = new byte[smLength];
-	    System.arraycopy(body, offset, message, 0, smLength);
+	    if (smLength > 0) {
+		message = new byte[smLength];
+		System.arraycopy(body, offset, message, 0, smLength);
+	    }
+	} catch (InvalidDateFormatException x) {
+	    throw new SMPPProtocolException("Unrecognized date format", x);
 	}
     }
 

@@ -28,7 +28,6 @@ import java.io.OutputStream;
 
 import ie.omk.smpp.SMPPException;
 import ie.omk.smpp.BadCommandIDException;
-import ie.omk.smpp.StringTooLongException;
 import ie.omk.smpp.util.SMPPIO;
 import org.apache.log4j.Logger;
 
@@ -61,35 +60,12 @@ public class ParamRetrieve
 	paramName = null;
     }
 
-    /** Read in a ParamRetrieve from an InputStream.  A full packet,
-      * including the header fields must exist in the stream.
-      * @param in The InputStream to read from
-      * @throws java.io.IOException if there's an error reading from the
-      * input stream.
-      */
-    /*public ParamRetrieve(InputStream in)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
-    {
-	super(in);
-
-	if (getCommandId() != SMPPPacket.PARAM_RETRIEVE)
-	    throw new BadCommandIDException(SMPPPacket.PARAM_RETRIEVE,
-		    getCommandId());
-
-	if (getCommandStatus() != 0)
-	    return;
-
-	paramName = SMPPIO.readCString(in);
-    }*/
-
     /** Set the name of the parameter to retrieve
       * @param paramName Parameter name, up to 31 characters
-      * @throws ie.omk.smpp.StringTooLongException if the parameter name is
-      * too long.
+      * @throws ie.omk.smpp.message.InvalidParameterValueException if the
+      * parameter name is too long.
       */
-    public void setParamName(String paramName)
-	throws StringTooLongException
-    {
+    public void setParamName(String paramName) throws InvalidParameterValueException {
 	if(paramName == null) {
 	    this.paramName = null;
 	    return;
@@ -98,7 +74,7 @@ public class ParamRetrieve
 	if(paramName.length() < 32) {
 	    this.paramName = paramName;
 	} else {
-	    throw new StringTooLongException(31);
+	    throw new InvalidParameterValueException("Parameter name is invalid", paramName);
 	}
     }
 
@@ -128,8 +104,7 @@ public class ParamRetrieve
 	SMPPIO.writeCString(paramName, out);
     }
 
-    public void readBodyFrom(byte[] body, int offset)
-    {
+    public void readBodyFrom(byte[] body, int offset) throws SMPPProtocolException {
 	paramName = SMPPIO.readCString(body, offset);
     }
 

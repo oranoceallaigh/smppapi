@@ -54,27 +54,6 @@ public class SubmitSMResp
 	super(SUBMIT_SM_RESP, seqNum);
     }
 
-    /** Read in a SubmitSMResp from an InputStream.  A full packet,
-      * including the header fields must exist in the stream.
-      * @param in The InputStream to read from
-      * @throws java.io.IOException If an error occurs writing to the input
-      * stream.
-      */
-    /*public SubmitSMResp(InputStream in)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
-    {
-	super(in);
-
-	if (getCommandId() != SMPPPacket.SUBMIT_SM_RESP)
-	    throw new BadCommandIDException(SMPPPacket.SUBMIT_SM_RESP,
-		    getCommandId());
-
-	if (getCommandStatus() != 0)
-	    return;
-
-	messageId = SMPPIO.readCString(in);
-    }*/
-
     /** Create a new SubmitSMResp packet in response to a SubmitSM.
       * This constructor will set the sequence number to it's expected value.
       * @param r The Request packet the response is to
@@ -100,8 +79,7 @@ public class SubmitSMResp
 	SMPPIO.writeCString(getMessageId(), out);
     }
 
-    public void readBodyFrom(byte[] b, int offset)
-    {
+    public void readBodyFrom(byte[] b, int offset) throws SMPPProtocolException {
 	messageId = SMPPIO.readCString(b, offset);
     }
 

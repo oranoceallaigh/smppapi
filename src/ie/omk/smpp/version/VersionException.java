@@ -21,23 +21,22 @@
  * Java SMPP API Homepage: http://smppapi.sourceforge.net/
  * $Id$
  */
-package ie.omk.smpp;
+package ie.omk.smpp.version;
 
-/** BadCommandStatusException
-  * @author Oran Kelly
-  * @version 1.0
-  */
-public class BadCommandStatusException
-    extends ie.omk.smpp.SMPPException
-{
-    public BadCommandStatusException()
-    {
+/** Exception thrown when there is a problem with SMPP versions.
+ * @since 1.0
+ * @author Oran Kelly
+ */
+public class VersionException extends ie.omk.smpp.SMPPRuntimeException {
+
+    public VersionException() {
     }
 
-    /** Construct a new BadCommandStatusException with specified message.
-      */
-    public BadCommandStatusException(String s)
-    {
-	super(s);
+    public VersionException(String msg) {
+	super (msg);
+    }
+
+    public VersionException(String msg, Throwable cause) {
+	super (msg, cause);
     }
 }

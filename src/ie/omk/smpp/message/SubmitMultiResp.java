@@ -81,36 +81,6 @@ public class SubmitMultiResp
 	super(r);
     }
 
-    /** Read in a SubmitMultiResp from an InputStream.  A full packet,
-      * including the header fields must exist in the stream.
-      * @param in The InputStream to read from
-      * @throws java.io.IOException If an error occurs writing to the input
-      * stream.
-      */
-    /*public SubmitMultiResp(InputStream in)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
-    {
-	super(in);
-
-	if (getCommandId() != SMPPPacket.SUBMIT_MULTI_RESP)
-	    throw new BadCommandIDException(SMPPPacket.SUBMIT_MULTI_RESP,
-		    getCommandId());
-
-	if (getCommandStatus() != 0)
-	    return;
-
-	messageId = SMPPIO.readCString(in);
-	int unsuccessfulCount =  SMPPIO.readInt(in, 1);
-
-	if(unsuccessfulCount < 1)
-	    return;
-
-	for(int loop=0; loop<unsuccessfulCount; loop++) {
-	    SmeAddress_e a = new SmeAddress_e(in);
-	    unsuccessfulTable.addElement(a);
-	}
-    }*/
-
     /** Get the number of destinations the message was not delivered to. */
     public int getUnsuccessfulCount()
     {
@@ -193,8 +163,7 @@ public class SubmitMultiResp
 	}
     }
 
-    public void readBodyFrom(byte[] body, int offset)
-    {
+    public void readBodyFrom(byte[] body, int offset) throws SMPPProtocolException {
 	messageId = SMPPIO.readCString(body, offset);
 	offset += messageId.length() + 1;
 

@@ -54,6 +54,14 @@ public class DefaultSequenceScheme implements SequenceNumberScheme {
 	}
     }
 
+    public synchronized int peek() {
+	return (num);
+    }
+
+    public synchronized int peek(int nth) {
+	return (num + nth);
+    }
+
     public synchronized void reset() {
 	num = 1;
     }

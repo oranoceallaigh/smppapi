@@ -21,23 +21,21 @@
  * Java SMPP API Homepage: http://smppapi.sourceforge.net/
  * $Id$
  */
-package ie.omk.smpp;
+package ie.omk.smpp.util;
 
-/** InvalidMessageIDException
-  * @author Oran Kelly
-  * @version 1.0
-  */
-public class InvalidMessageIDException
-    extends ie.omk.smpp.SMPPException
-{
-    public InvalidMessageIDException()
-    {
+public class PropertyNotFoundException extends ie.omk.smpp.SMPPRuntimeException {
+
+    private String property = "";
+
+    public PropertyNotFoundException() {
     }
 
-    /** Construct a new InvalidMessageIDException with specified message.
-      */
-    public InvalidMessageIDException(String s)
-    {
-	super(s);
+    public PropertyNotFoundException(String property) {
+	super ();
+	this.property = property;
+    }
+
+    public String getProperty() {
+	return (property);
     }
 }

@@ -21,40 +21,15 @@
  * Java SMPP API Homepage: http://smppapi.sourceforge.net/
  * $Id$
  */
-package ie.omk.smpp;
+package ie.omk.smpp.message;
 
-/** UnexpectedInputException
-  * @author Oran Kelly
-  * @version 1.0
-  */
-public class UnexpectedInputException
-    extends ie.omk.smpp.SMPPRuntimeException
-{
-    private int c;
+public class SMPPProtocolException extends ie.omk.smpp.SMPPRuntimeException {
 
-    public UnexpectedInputException()
-    {
+    public SMPPProtocolException(String msg) {
+	super (msg);
     }
 
-    /** Construct a new UnexpectedInputException with specified message.
-      */
-    public UnexpectedInputException(String s)
-    {
-	super(s);
-    }
-
-    /** Construct a new UnexpectedInputException.
-      * @param c The unexpected byte.
-      */
-    public UnexpectedInputException(int c)
-    {
-	this.c = c;
-    }
-
-    /** Get the byte that caused this exception.
-      */
-    public int getByte()
-    {
-	return (this.c);
+    public SMPPProtocolException(String msg, Throwable rootCause) {
+	super (msg, rootCause);
     }
 }

@@ -44,6 +44,11 @@ public class BadCommandIDException
 	super(s);
     }
 
+    public BadCommandIDException(String msg, int id) {
+	super (msg);
+	this.actual = id;
+    }
+
     /** Construct a new BadCommandIdException.
       * @param expected The expected Command Id value.
       * @param actual The actual Command Id value received.

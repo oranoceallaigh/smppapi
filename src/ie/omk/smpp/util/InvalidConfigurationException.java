@@ -21,23 +21,27 @@
  * Java SMPP API Homepage: http://smppapi.sourceforge.net/
  * $Id$
  */
-package ie.omk.smpp;
+package ie.omk.smpp.util;
 
-/** InvalidDestinationCountException
-  * @author Oran Kelly
-  * @version 1.0
-  */
-public class InvalidDestinationCountException
-    extends ie.omk.smpp.SMPPException
-{
-    public InvalidDestinationCountException()
-    {
+public class InvalidConfigurationException extends ie.omk.smpp.SMPPRuntimeException {
+
+    private String property = "";
+
+    public InvalidConfigurationException() {
     }
 
-    /** Construct a new InvalidDestinationCountException with specified message.
-      */
-    public InvalidDestinationCountException(String s)
-    {
-	super(s);
+    public InvalidConfigurationException(String msg) {
+	super (msg);
+    }
+
+    public InvalidConfigurationException(String msg, String property) {
+	super (msg);
+	this.property = property;
+    }
+
+    /** Get the name of the offending property.
+     */
+    public String getProperty() {
+	return (property);
     }
 }

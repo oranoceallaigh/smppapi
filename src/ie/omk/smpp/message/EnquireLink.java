@@ -55,29 +55,12 @@ public class EnquireLink
 	super(ENQUIRE_LINK, seqNum);
     }
 
-    /** Read in a EnquireLink from an InputStream.  A full packet,
-      * including the header fields must exist in the stream.
-      * @param in The InputStream to read from
-      * @throws java.io.IOException if there's an error reading from the
-      * input stream.
-      */
-    /*public EnquireLink(InputStream in)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
-    {
-	super(in);
-
-	if (getCommandId() != SMPPPacket.ENQUIRE_LINK)
-	    throw new BadCommandIDException(SMPPPacket.ENQUIRE_LINK,
-		    getCommandId());
-    }*/
-
     public int getBodyLength()
     {
 	return (0);
     }
 
-    public void readBodyFrom(byte[] body, int offset)
-    {
+    public void readBodyFrom(byte[] body, int offset) throws SMPPProtocolException {
     }
 
     /** Convert this packet to a String. Not to be interpreted programmatically,

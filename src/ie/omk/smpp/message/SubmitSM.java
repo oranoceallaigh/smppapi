@@ -30,6 +30,7 @@ import ie.omk.smpp.Address;
 import ie.omk.smpp.BadCommandIDException;
 import ie.omk.smpp.SMPPException;
 
+import ie.omk.smpp.util.InvalidDateFormatException;
 import ie.omk.smpp.util.GSMConstants;
 import ie.omk.smpp.util.SMPPIO;
 import ie.omk.smpp.util.SMPPDate;
@@ -75,58 +76,6 @@ public class SubmitSM
     {
 	super(SUBMIT_SM, seqNum);
     }
-
-    /** Read in a SubmitSM from an InputStream.  A full packet,
-      * including the header fields must exist in the stream.
-      * @param in The InputStream to read from
-      * @throws java.io.IOException If an error occurs writing to the input
-      * stream.
-      */
-    /*public SubmitSM(InputStream in)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
-    {
-	super(in);
-
-	if (getCommandId() != SMPPPacket.SUBMIT_SM)
-	    throw new BadCommandIDException(SMPPPacket.SUBMIT_SM,
-		    getCommandId());
-
-	if (getCommandStatus() != 0)
-	    return;
-
-	int smLength = 0;
-	String delivery, valid;
-	// First the service type
-	serviceType = SMPPIO.readCString(in);
-	source = new Address(in);
-	destination = new Address(in);
-
-	// ESM class, protocol Id, priorityFlag...
-	esmClass = SMPPIO.readInt(in, 1);
-	protocolID = SMPPIO.readInt(in, 1);
-	priority = SMPPIO.readInt(in, 1);
-
-	delivery = SMPPIO.readCString(in);
-	valid = SMPPIO.readCString(in);
-	if (delivery != null)
-	    deliveryTime = new SMPPDate(delivery);
-	if (valid != null)
-	    expiryTime = new SMPPDate(valid);
-
-	// Registered delivery, replace if present, data coding, default msg
-	// and message length
-	registered = (SMPPIO.readInt(in, 1) == 0) ? false : true;
-	replaceIfPresent = (SMPPIO.readInt(in, 1) == 0) ? false : true;
-	dataCoding = SMPPIO.readInt(in, 1);
-	defaultMsg = SMPPIO.readInt(in, 1);
-	smLength = SMPPIO.readInt(in, 1);
-
-	if (smLength > 0) {
-	    message = new byte[smLength];
-	    for (int i = 0; i < smLength; )
-		i += in.read(message, i, (smLength - i));
-	}
-    }*/
 
     /** Return the number of bytes this packet would be encoded as to an
       * OutputStream.
@@ -184,8 +133,8 @@ public class SubmitSM
 	SMPPIO.writeInt(priority, 1, out);
 	SMPPIO.writeCString(dt, out);
 	SMPPIO.writeCString(et, out);
-	SMPPIO.writeInt(registered ? 1 : 0, 1, out);
-	SMPPIO.writeInt(replaceIfPresent ? 1 : 0, 1, out);
+	SMPPIO.writeInt(registered, 1, out);
+	SMPPIO.writeInt(replaceIfPresent, 1, out);
 	SMPPIO.writeInt(dataCoding, 1, out);
 	SMPPIO.writeInt(defaultMsg, 1, out);
 	SMPPIO.writeInt(smLength, 1, out);
@@ -193,52 +142,53 @@ public class SubmitSM
 	    out.write(message);
     }
 
-    public void readBodyFrom(byte[] body, int offset)
-    {
-	int smLength = 0;
-	String delivery, valid;
+    public void readBodyFrom(byte[] body, int offset) throws SMPPProtocolException {
+	try {
+	    int smLength = 0;
+	    String delivery, valid;
 
-	// First the service type
-	serviceType = SMPPIO.readCString(body, offset);
-	offset += serviceType.length() + 1;
+	    // First the service type
+	    serviceType = SMPPIO.readCString(body, offset);
+	    offset += serviceType.length() + 1;
 
-	source = new Address();
-	source.readFrom(body, offset);
-	offset += source.getLength();
+	    source = new Address();
+	    source.readFrom(body, offset);
+	    offset += source.getLength();
 
-	destination = new Address();
-	destination.readFrom(body, offset);
-	offset += destination.getLength();
+	    destination = new Address();
+	    destination.readFrom(body, offset);
+	    offset += destination.getLength();
 
-	// ESM class, protocol Id, priorityFlag...
-	esmClass = SMPPIO.bytesToInt(body, offset++, 1);
-	protocolID = SMPPIO.bytesToInt(body, offset++, 1);
-	priority = SMPPIO.bytesToInt(body, offset++, 1);
+	    // ESM class, protocol Id, priorityFlag...
+	    esmClass = SMPPIO.bytesToInt(body, offset++, 1);
+	    protocolID = SMPPIO.bytesToInt(body, offset++, 1);
+	    priority = SMPPIO.bytesToInt(body, offset++, 1);
 
-	delivery = SMPPIO.readCString(body, offset);
-	offset += delivery.length() + 1;
-	if (delivery.length() > 0)
-	    deliveryTime = new SMPPDate(delivery);
+	    delivery = SMPPIO.readCString(body, offset);
+	    offset += delivery.length() + 1;
+	    if (delivery.length() > 0)
+		deliveryTime = SMPPDate.parseSMPPDate(delivery);
 
-	valid = SMPPIO.readCString(body, offset);
-	offset += valid.length() + 1;
-	if (valid.length() > 0)
-	    expiryTime = new SMPPDate(valid);
+	    valid = SMPPIO.readCString(body, offset);
+	    offset += valid.length() + 1;
+	    if (valid.length() > 0)
+		expiryTime = SMPPDate.parseSMPPDate(valid);
 
 
-	// Registered delivery, replace if present, data coding, default msg
-	// and message length
-	registered =
-		(SMPPIO.bytesToInt(body, offset++, 1) == 0) ? false : true;
-	replaceIfPresent =
-		(SMPPIO.bytesToInt(body, offset++, 1) == 0) ? false : true;
-	dataCoding = SMPPIO.bytesToInt(body, offset++, 1);
-	defaultMsg = SMPPIO.bytesToInt(body, offset++, 1);
-	smLength = SMPPIO.bytesToInt(body, offset++, 1);
+	    // Registered delivery, replace if present, data coding, default msg
+	    // and message length
+	    registered = SMPPIO.bytesToInt(body, offset++, 1);
+	    replaceIfPresent = SMPPIO.bytesToInt(body, offset++, 1);
+	    dataCoding = SMPPIO.bytesToInt(body, offset++, 1);
+	    defaultMsg = SMPPIO.bytesToInt(body, offset++, 1);
+	    smLength = SMPPIO.bytesToInt(body, offset++, 1);
 
-	if (smLength > 0) {
-	    message = new byte[smLength];
-	    System.arraycopy(body, offset, message, 0, smLength);
+	    if (smLength > 0) {
+		message = new byte[smLength];
+		System.arraycopy(body, offset, message, 0, smLength);
+	    }
+	} catch (InvalidDateFormatException x) {
+	    throw new SMPPProtocolException("Unrecognized date format", x);
 	}
     }
 

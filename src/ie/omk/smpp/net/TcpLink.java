@@ -30,6 +30,9 @@ import java.io.InputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import ie.omk.smpp.util.APIConfig;
+import ie.omk.smpp.util.PropertyNotFoundException;
+
 import org.apache.log4j.Logger;
 
 /** Implementation of an Smsc link over the tcp/ip protocol
@@ -118,6 +121,17 @@ public class TcpLink
 	logger.info("Opening TCP socket to " + addr + ":" + port);
 	sock = new Socket(addr, port);
 	connected = true;
+
+	try {
+	    int sockTimeout = APIConfig.getInstance().getInt(APIConfig.TCP_SOCKET_TIMEOUT);
+	    sock.setSoTimeout(sockTimeout);
+
+	    if (logger.isDebugEnabled())
+		logger.debug("Socket timeout set to " + sockTimeout + " milliseconds");
+	} catch (PropertyNotFoundException x) {
+	} catch (java.net.SocketException x) {
+	    logger.warn("Invalid socket timeout in properties", x);
+	}
     }
 
     /** Close the Socket connection to the SMSC.

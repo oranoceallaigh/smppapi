@@ -67,30 +67,6 @@ public class CancelSM
 	super(CANCEL_SM, seqNum);
     }
 
-    /** Read in a CancelSM from an InputStream.  A full packet,
-      * including the header fields must exist in the stream.
-      * @param in The InputStream to read from
-      * @throws java.io.IOException if there's an error reading from the
-      * input stream.
-      */
-    /*public CancelSM(InputStream in)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
-    {
-	super(in);
-
-	if (getCommandId() != SMPPPacket.CANCEL_SM)
-	    throw new BadCommandIDException(SMPPPacket.CANCEL_SM,
-		    getCommandId());
-
-	if (getCommandStatus() != 0)
-	    return;
-
-	serviceType = SMPPIO.readCString(in);
-	messageId = SMPPIO.readCString(in);
-	source = new Address(in);
-	destination = new Address(in);
-    }*/
-
     public int getBodyLength()
     {
 	int len = (((serviceType != null) ? serviceType.length() : 0)
@@ -128,8 +104,7 @@ public class CancelSM
 		    GSMConstants.GSM_NPI_UNKNOWN, "").writeTo(out);
 	}
     }
-    public void readBodyFrom(byte[] body, int offset)
-    {
+    public void readBodyFrom(byte[] body, int offset) throws SMPPProtocolException {
 	serviceType = SMPPIO.readCString(body, offset);
 	offset += serviceType.length() + 1;
 

@@ -23,7 +23,6 @@
  */
 package ie.omk.smpp.message;
 
-import java.io.InputStream;
 import ie.omk.smpp.util.SMPPIO;
 import ie.omk.smpp.BadCommandIDException;
 import org.apache.log4j.Logger;
@@ -52,21 +51,6 @@ public class ReplaceSMResp
 	super(REPLACE_SM_RESP, seqNum);
     }
 
-    /** Read in a ReplaceSMResp from an InputStream.  A full packet,
-      * including the header fields must exist in the stream.
-      * @throws java.io.IOException if there's an error reading from the
-      * input stream.
-      */
-    /*public ReplaceSMResp(InputStream in)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
-    {
-	super(in);
-
-	if (getCommandId() != SMPPPacket.REPLACE_SM_RESP)
-	    throw new BadCommandIDException(SMPPPacket.REPLACE_SM_RESP,
-		    getCommandId());
-    }*/
-
     /** Create a new ReplaceSMResp packet in response to a BindReceiver.
       * This constructor will set the sequence number to it's expected value.
       * @param r The Request packet the response is to
@@ -81,8 +65,7 @@ public class ReplaceSMResp
 	return (0);
     }
 
-    public void readBodyFrom(byte[] body, int offset)
-    {
+    public void readBodyFrom(byte[] body, int offset) throws SMPPProtocolException {
     }
 
     /** Convert this packet to a String. Not to be interpreted programmatically,

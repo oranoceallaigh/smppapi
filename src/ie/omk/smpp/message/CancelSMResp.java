@@ -52,23 +52,6 @@ public class CancelSMResp
 	super(CANCEL_SM_RESP, seqNum);
     }
 
-    /** Read in a CancelSMResp from an InputStream.  A full packet,
-      * including the header fields must exist in the stream.
-      * @param in The InputStream to read from
-      * @throws java.io.IOException if there's an error reading from the
-      * input stream.
-      */
-    /*public CancelSMResp(InputStream in)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
-    {
-	super(in);
-
-	if (getCommandId() != SMPPPacket.CANCEL_SM_RESP)
-	    throw new BadCommandIDException(SMPPPacket.CANCEL_SM_RESP,
-		    getCommandId());
-
-    }*/
-
     /** Create a new CancelSMResp packet in response to a CancelSM.
       * This constructor will set the sequence number to it's expected value.
       * @param r The Request packet the response is to
@@ -83,8 +66,7 @@ public class CancelSMResp
 	return (0);
     }
 
-    public void readBodyFrom(byte[] body, int offset)
-    {
+    public void readBodyFrom(byte[] body, int offset) throws SMPPProtocolException {
     }
 
     /** Convert this packet to a String. Not to be interpreted programmatically,

@@ -44,50 +44,51 @@ public class DefaultAlphabetEncoding
     // XXX Didn't have a Unicode font with greek chars available to see the
     // greek characters in the default alphabet...some of them may be wrong!
     private static final char[] charTable = {
-	'@', '£', '$', '¥', 'è', 'é', 'ù', 'ì', 'ò', 'Ç', '\n', 'Ø', 'ø', '\r',
-	'Å', 'å',
+	'@', '£', '$', '¥', 'è', 'é', 'ù', 'ì', 'ò', 'Ç', '\n', 'Ø', 'ø', '\r', 'Å', 'å',
 	// Greek characters..
 	'\u0394', '_', '\u03a6', '\u0393', '\u039b', '\u03a9', '\u03a0',
 	'\u03a8', '\u03a3', '\u0398', '\u039e',
 	' ', // Escape character..
-	'Æ', 'æ', 'ß', 'É', ' ', '!', '"', '#', '¤', '%', '&', '\'', '(', ')',
-	'*', '+', ',', '-', '.', '/', '0', '1', '2', '3', '4', '5', '6', '7',
-	'8', '9', ':', ';', '<', '=', '>', '?', '¡', 'A', 'B', 'C', 'D', 'E',
-	'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S',
-	'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'Ä', 'Ö', 'Ñ', 'Ü', '§', '¿', 'a',
-	'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o',
-	'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'ä', 'ö', 'ñ',
-	'ü', 'à'
+	'Æ', 'æ', 'ß', 'É',
+	' ', '!', '"', '#', '¤', '%', '&', '\'', '(', ')', '*', '+', ',', '-', '.', '/',
+	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ':', ';', '<', '=', '>', '?',
+	'¡', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O',
+	'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'Ä', 'Ö', 'Ñ', 'Ü', '§',
+	'¿', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o',
+	'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'ä', 'ö', 'ñ', 'ü', 'à'
+    };
+
+    public static char[] extCharTable = {
+	' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
+	' ', ' ', ' ', ' ', '^', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
+	' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '{', '}', ' ', ' ', ' ', ' ', ' ', '\\',
+	' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '[', '~', ']', ' ',
+	' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
+	' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
+	' ', ' ', ' ', ' ', ' ', '\u20ac', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
+	' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
     };
 
 
-    private static char[] extCharTable = new char[charTable.length];
+    private static final DefaultAlphabetEncoding instance = new DefaultAlphabetEncoding();
 
-    static {
-	// Initialise the extended table:
-	for (int i = 0; i < extCharTable.length; i++)
-	    extCharTable[i] = (char)0;
 
-	extCharTable[0x14] = '^';
-	extCharTable[0x28] = '{';
-	extCharTable[0x29] = '}';
-	extCharTable[0x2f] = '\\';
-	extCharTable[0x3c] = '[';
-	extCharTable[0x3d] = '~';
-	extCharTable[0x3e] = ']';
-	extCharTable[0x65] = '\u20ac'; // The Euro symbol
-
-	// Register encoding type
-	registerEncoding(DCS, new DefaultAlphabetEncoding());
+    private DefaultAlphabetEncoding() {
+	super (DCS);
     }
 
+    /** Get the singleton instance of DefaultAlphabetEncoding.
+     */
+    public static DefaultAlphabetEncoding getInstance() {
+	return (instance);
+    }
 
     /** Decode an SMS default alphabet-encoded octet string into a Java String.
       */
     public String decodeString(byte[] b)
     {
 	if (b == null)
-	    return (null);
+	    return ("");
 
 	char[] table = charTable;
 	StringBuffer buf = new StringBuffer();
@@ -112,7 +113,7 @@ public class DefaultAlphabetEncoding
     public byte[] encodeString(String s)
     {
 	if (s == null)
-	    return (null);
+	    return (new byte[0]);
 
 	char[] c = s.toCharArray();
 	ByteArrayOutputStream enc = new ByteArrayOutputStream();
@@ -141,21 +142,8 @@ public class DefaultAlphabetEncoding
 	return (enc.toByteArray());
     }
 
-    /** Get the data_coding value for the Default alphabet.
-      * The code value is '0' for the default alphabet.
-      */
-    public int getDataCoding()
-    {
-	return (DCS);
-    }
-
-    /** Get the maximum number of octets allowed for this encoding type.
-     * Messages encoded using the default alphabet are allowed up to 160
-     * characters.
-     */
-    public int getMaxLength()
-    {
-	return (160);
+    public int getEncodingLength() {
+	return (7);
     }
 
     /*private static byte[] unpack(byte[] packed)
@@ -254,7 +242,7 @@ public class DefaultAlphabetEncoding
 	}
     }
 
-    private String showByteArray(byte[] b)
+    public String showByteArray(byte[] b)
     {
 	java.io.StringWriter sw = new java.io.StringWriter();
 

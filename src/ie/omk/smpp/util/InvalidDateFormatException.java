@@ -21,23 +21,28 @@
  * Java SMPP API Homepage: http://smppapi.sourceforge.net/
  * $Id$
  */
-package ie.omk.smpp;
+package ie.omk.smpp.util;
 
-/** InvalidReplaceIfPresentException
-  * @author Oran Kelly
-  * @version 1.0
-  */
-public class InvalidReplaceIfPresentException
-    extends ie.omk.smpp.SMPPException
-{
-    public InvalidReplaceIfPresentException()
-    {
+/** Exception thrown when an attempt to parse a String as an SMPPDate fails due
+ * to a bad format.
+ * @author Oran Kelly
+ * @since 1.0
+ */
+public class InvalidDateFormatException extends ie.omk.smpp.SMPPException {
+
+    private String dateString = "";
+
+    public InvalidDateFormatException() {
     }
 
-    /** Construct a new InvalidReplaceIfPresentException with specified message.
-      */
-    public InvalidReplaceIfPresentException(String s)
-    {
-	super(s);
+    public InvalidDateFormatException(String msg, String dateString) {
+	super (msg);
+	this.dateString = dateString;
+    }
+
+    /** Get the date string that caused this exception.
+     */
+    public String getDateString() {
+	return (dateString);
     }
 }

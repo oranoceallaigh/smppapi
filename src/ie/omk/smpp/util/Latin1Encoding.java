@@ -31,15 +31,20 @@ public class Latin1Encoding
 {
     private static final int DCS = 3;
 
-    static {
-	// Register encoding type
-	registerEncoding(DCS, new Latin1Encoding());
-    }
+    private static final Latin1Encoding instance = new Latin1Encoding();
+
 
     /** Construct a new Latin1Encoding.
      */
-    public Latin1Encoding()
+    private Latin1Encoding()
     {
+	super (DCS);
+    }
+
+    /** Get the singleton instance of Latin1Encoding.
+     */
+    public static Latin1Encoding getInstance() {
+	return (instance);
     }
 
     /** Decode SMS message text to a Java String. The SMS message is expected to
@@ -48,7 +53,7 @@ public class Latin1Encoding
     public String decodeString(byte[] b)
     {
 	if (b == null)
-	    return (null);
+	    return ("");
 
 	try {
 	    return (new String(b, "ISO-8859-1"));
@@ -62,7 +67,7 @@ public class Latin1Encoding
     public byte[] encodeString(String s)
     {
 	if (s == null)
-	    return (null);
+	    return (new byte[0]);
 
 	try {
 	    return (s.getBytes("ISO-8859-1"));
@@ -71,17 +76,7 @@ public class Latin1Encoding
 	}
     }
 
-    /** Get the correct data_coding value for this message encoding type.
-     */
-    public int getDataCoding()
-    {
-	return (DCS);
-    }
-
-    /** Get the maximum number of octets allowed for this encoding type.
-     */
-    public int getMaxLength()
-    {
-	return (140);
+    public int getEncodingLength() {
+	return (8);
     }
 }

@@ -30,6 +30,7 @@ import ie.omk.smpp.Address;
 import ie.omk.smpp.BadCommandIDException;
 import ie.omk.smpp.SMPPException;
 
+import ie.omk.smpp.util.InvalidDateFormatException;
 import ie.omk.smpp.util.GSMConstants;
 import ie.omk.smpp.util.SMPPDate;
 import ie.omk.smpp.util.SMPPIO;
@@ -79,65 +80,6 @@ public class QueryMsgDetailsResp
 	super(QUERY_MSG_DETAILS_RESP, seqNum);
     }
 
-    /** Read in a QueryMsgDetailsResp from an InputStream.  A full packet,
-      * including the header fields must exist in the stream.
-      * @param in The InputStream to read from
-      * @throws java.io.IOException if there's an error reading from the
-      * input stream.
-      */
-    /*public QueryMsgDetailsResp(InputStream in)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
-    {
-	super(in);
-
-	if (getCommandId() != SMPPPacket.QUERY_MSG_DETAILS_RESP)
-	    throw new BadCommandIDException(
-		    SMPPPacket.QUERY_MSG_DETAILS_RESP, getCommandId());
-
-	if (getCommandStatus() != 0)
-	    return;
-
-	int noOfDests = 0, smLength = 0;
-	String delivery, valid, finalD;
-
-	serviceType = SMPPIO.readCString(in);
-	source = new Address(in);
-	noOfDests = SMPPIO.readInt(in, 1);
-
-	for(int loop=0; loop<noOfDests; loop++) {
-	    Address d = new Address(in, true);
-	    destinationTable.addElement(d);
-	}
-
-	protocolID =  SMPPIO.readInt(in, 1);
-	priority =  SMPPIO.readInt(in, 1);
-
-	delivery = SMPPIO.readCString(in);
-	valid = SMPPIO.readCString(in);
-	if (delivery != null)
-	    deliveryTime = new SMPPDate(delivery);
-	if (valid != null)
-	    expiryTime = new SMPPDate(valid);
-
-	registered = (SMPPIO.readInt(in, 1) == 0) ? false : true;
-	dataCoding = SMPPIO.readInt(in, 1);
-	smLength = SMPPIO.readInt(in, 1);
-
-	if (smLength > 0) {
-	    message = new byte[smLength];
-	    for (int i = 0; i < smLength; )
-		i += in.read(message, i, (smLength - i));
-	}
-	messageId = SMPPIO.readCString(in);
-
-	finalD = SMPPIO.readCString(in);
-	if (finalD != null)
-	    finalDate = new SMPPDate(finalD);
-
-	messageStatus = SMPPIO.readInt(in, 1);
-	errorCode = SMPPIO.readInt(in, 1);
-    }*/
-
     /** Create a new QueryMsgDetailsResp packet in response to a BindReceiver.
       * This constructor will set the sequence number to it's expected value.
       * @param r The Request packet the response is to
@@ -168,40 +110,18 @@ public class QueryMsgDetailsResp
     /** Add a distribution list to the destination table.
      * @param d the distribution list name.
      * @return The current number of destination addresses (including the new
-     * @throws ie.omk.smpp.StringTooLongException if the distribution list
-     * name is too long.
+     * @throws ie.omk.smpp.message.InvalidParameterValueException if the
+     * distribution list name is too long.
      */
-    public int addDestination(String d)
-	throws ie.omk.smpp.StringTooLongException
-    {
+    public int addDestination(String d) throws InvalidParameterValueException {
+	if (!version.validateDistListName(d))
+	    throw new InvalidParameterValueException("Distribution list is invalid", d);
+
 	synchronized (destinationTable) {
 	    destinationTable.add(d);
 	    return (destinationTable.size());
 	}
     }
-
-    /** Set the destination address table.
-      * @param d The array of Addresses to submit the message to
-      * @throws java.lang.NullPointerException if the array is null
-      */
-    /*public void setDestAddresses(Address d[])
-    {
-	int loop=0;
-
-	if(d == null)
-	    throw new NullPointerException("QueryMsgDetailsResp: Destination "
-		    + "table cannot be null or empty");
-
-	synchronized (destinationTable) {
-	    destinationTable.removeAllElements();
-	    destinationTable.ensureCapacity(d.length);
-
-	    for(loop = 0; loop < d.length; loop++) {
-		d[loop].useFlag = true;
-		destinationTable.addElement(d[loop]);
-	    }
-	}
-    }*/
 
     /** Get the current number of destination addresses.
       * @deprecated Use getNumDests.
@@ -217,28 +137,6 @@ public class QueryMsgDetailsResp
     {
 	return (destinationTable.size());
     }
-
-    /** Get an array of Addresse representing the destination list.
-      * @return An array of the destination addresses the message was
-      * submitted to.
-      */
-    /*public Address[] getDestAddresses()
-    {
-	Address sd[];
-	int loop = 0;
-
-	synchronized (destinationTable) {
-	    if(destinationTable.size() == 0)
-		return null;
-
-	    sd = new Address[destinationTable.size()];
-	    Iterator i = destinationTable.iterator();
-	    while (i.hasNext())
-		sd[loop++] = (Address)i.next();
-	}
-
-	return (sd);
-    }*/
 
     /** Get a handle to the destination table.
       */
@@ -301,7 +199,7 @@ public class QueryMsgDetailsResp
 	SMPPIO.writeInt(priority, 1, out);
 	SMPPIO.writeCString(dt, out);
 	SMPPIO.writeCString(et, out);
-	SMPPIO.writeInt(registered ? 1 : 0, 1, out);
+	SMPPIO.writeInt(registered, 1, out);
 	SMPPIO.writeInt(dataCoding, 1, out);
 	SMPPIO.writeInt(smLength, 1, out);
 	if (message != null)
@@ -312,58 +210,60 @@ public class QueryMsgDetailsResp
 	SMPPIO.writeInt(errorCode, 1, out);
     }
 
-    public void readBodyFrom(byte[] body, int offset)
-    {
-	int numDests = 0, smLength = 0;
-	String delivery, valid, finalD;
+    public void readBodyFrom(byte[] body, int offset) throws SMPPProtocolException {
+	try {
+	    int numDests = 0, smLength = 0;
+	    String delivery, valid, finalD;
 
-	serviceType = SMPPIO.readCString(body, offset);
-	offset += serviceType.length() + 1;
+	    serviceType = SMPPIO.readCString(body, offset);
+	    offset += serviceType.length() + 1;
 
-	source = new Address();
-	source.readFrom(body, offset);
-	offset += source.getLength();
+	    source = new Address();
+	    source.readFrom(body, offset);
+	    offset += source.getLength();
 
-	numDests = SMPPIO.bytesToInt(body, offset++, 1);
-	DestinationTable dt = new DestinationTable();
-	dt.readFrom(body, offset, numDests);
-	offset += dt.getLength();
-	this.destinationTable = dt;
+	    numDests = SMPPIO.bytesToInt(body, offset++, 1);
+	    DestinationTable dt = new DestinationTable();
+	    dt.readFrom(body, offset, numDests);
+	    offset += dt.getLength();
+	    this.destinationTable = dt;
 
-	protocolID =  SMPPIO.bytesToInt(body, offset++, 1);
-	priority =  SMPPIO.bytesToInt(body, offset++, 1);
+	    protocolID =  SMPPIO.bytesToInt(body, offset++, 1);
+	    priority =  SMPPIO.bytesToInt(body, offset++, 1);
 
-	delivery = SMPPIO.readCString(body, offset);
-	offset += delivery.length() + 1;
-	if (delivery.length() > 0)
-	    deliveryTime = new SMPPDate(delivery);
+	    delivery = SMPPIO.readCString(body, offset);
+	    offset += delivery.length() + 1;
+	    if (delivery.length() > 0)
+		deliveryTime = SMPPDate.parseSMPPDate(delivery);
 
-	valid = SMPPIO.readCString(body, offset);
-	offset += valid.length() + 1;
-	if (valid.length() > 0)
-	    expiryTime = new SMPPDate(valid);
+	    valid = SMPPIO.readCString(body, offset);
+	    offset += valid.length() + 1;
+	    if (valid.length() > 0)
+		expiryTime = SMPPDate.parseSMPPDate(valid);
 
-	registered =
-		(SMPPIO.bytesToInt(body, offset++, 1) == 0) ? false : true;
-	dataCoding = SMPPIO.bytesToInt(body, offset++, 1);
-	smLength = SMPPIO.bytesToInt(body, offset++, 1);
+	    registered = SMPPIO.bytesToInt(body, offset++, 1);
+	    dataCoding = SMPPIO.bytesToInt(body, offset++, 1);
+	    smLength = SMPPIO.bytesToInt(body, offset++, 1);
 
-	if (smLength > 0) {
-	    message = new byte[smLength];
-	    System.arraycopy(body, offset, message, 0, smLength);
-	    offset += smLength;
+	    if (smLength > 0) {
+		message = new byte[smLength];
+		System.arraycopy(body, offset, message, 0, smLength);
+		offset += smLength;
+	    }
+
+	    messageId = SMPPIO.readCString(body, offset);
+	    offset += messageId.length() + 1;
+
+	    finalD = SMPPIO.readCString(body, offset);
+	    offset += finalD.length() + 1;
+	    if (finalD.length() > 0)
+		finalDate = SMPPDate.parseSMPPDate(finalD);
+
+	    messageStatus = SMPPIO.bytesToInt(body, offset++, 1);
+	    errorCode = SMPPIO.bytesToInt(body, offset++, 1);
+	} catch (InvalidDateFormatException x) {
+	    throw new SMPPProtocolException("Unrecognized date format", x);
 	}
-
-	messageId = SMPPIO.readCString(body, offset);
-	offset += messageId.length() + 1;
-
-	finalD = SMPPIO.readCString(body, offset);
-	offset += finalD.length() + 1;
-	if (finalD.length() > 0)
-	    finalDate = new SMPPDate(finalD);
-
-	messageStatus = SMPPIO.bytesToInt(body, offset++, 1);
-	errorCode = SMPPIO.bytesToInt(body, offset++, 1);
     }
 
     /** Convert this packet to a String. Not to be interpreted programmatically,

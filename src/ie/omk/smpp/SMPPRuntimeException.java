@@ -27,16 +27,21 @@ package ie.omk.smpp;
  * @author Oran Kelly &lt;orank@users.sf.net&gt;
  * @version 1.0
  */
-public class SMPPRuntimeException
-    extends java.lang.RuntimeException
-{
-    public SMPPRuntimeException()
-    {
-	super();
+public class SMPPRuntimeException extends java.lang.RuntimeException {
+
+    public SMPPRuntimeException() {
+	super ();
     }
 
-    public SMPPRuntimeException(String s)
-    {
-	super(s);
+    public SMPPRuntimeException(String msg) {
+	super (msg);
+    }
+
+    public SMPPRuntimeException(Throwable cause) {
+	super (cause);
+    }
+
+    public SMPPRuntimeException(String msg, Throwable cause) {
+	super (msg, cause);
     }
 }

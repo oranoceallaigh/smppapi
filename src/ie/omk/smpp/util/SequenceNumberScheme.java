@@ -36,11 +36,29 @@ package ie.omk.smpp.util;
  */
 public interface SequenceNumberScheme {
 
+    public static final int PEEK_UNSUPPORTED = -1;
+
     /** Get the next number in this sequence's scheme. An implementation of this
      * interface <b>must</b> guard against multi-threaded access to this method
      * to prevent more than one thread getting the same sequence number.
      */
     public int nextNumber();
+
+    /** Get the next number in this sequence's scheme without causing it to move
+     * to the next-in-sequence. This method returns the number that will be
+     * returned by the next call to <code>nextNumber</code> without actually
+     * increasing the sequence. Multiple calls to <code>peek</code> will return
+     * the same number until a call to <code>nextNumber</code> is made.
+     */
+    public int peek();
+
+    /** Get the nth next number in this sequence's scheme without causing it to
+     * move to the next-in-sequence. This method returns the <code>nth</code>
+     * next number in the sequence. This is an optional operation. If a sequence
+     * numbering scheme does not support this operation, it should always return
+     * {@link #PEEK_UNSUPPORTED} to the caller.
+     */
+    public int peek(int nth);
 
     /** Reset the sequence scheme to the beginning of the sequence.
      */

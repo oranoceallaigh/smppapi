@@ -23,9 +23,7 @@
  */
 package ie.omk.smpp.util;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-
+import ie.omk.smpp.BadCommandIDException;
 import ie.omk.smpp.SMPPException;
 
 import ie.omk.smpp.message.AlertNotification;
@@ -62,20 +60,31 @@ import ie.omk.smpp.message.SubmitSMResp;
 import ie.omk.smpp.message.Unbind;
 import ie.omk.smpp.message.UnbindResp;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-
-// XXX javadoc
+/** Helper class to create new SMPP packet objects.
+ * @since 1.0
+ * @author Oran Kelly
+ */
 public class PacketFactory
 {
-    private PacketFactory()
-    {
+    private PacketFactory() {
     }
 
     /** Create a new instance of the appropriate sub class of SMPPPacket.
+     * @deprecated
      */
-    public static SMPPPacket newPacket(int id)
-    {
+    public static SMPPPacket newPacket(int id) throws BadCommandIDException {
+	return (newInstance(id));
+    }
+
+    /** Create a new instance of the appropriate sub class of SMPPPacket. Packet
+     * fields are all left at their default initial state.
+     * @param id The SMPP command ID of the packet type to return.
+     * @return A sub-class instance of {@link ie.omk.smpp.message.SMPPPacket}
+     * representing SMPP command <code>id</code>.
+     * @throws ie.omk.smpp.BadCommandIDException if the command ID is not
+     * recognized.
+     */
+    public static SMPPPacket newInstance(int id) throws BadCommandIDException {
 	SMPPPacket response = null;
 
 	switch(id) {
@@ -208,16 +217,8 @@ public class PacketFactory
 		break;
 
 	    default:
-		response = null;
+		throw new BadCommandIDException();
 	}
-
-	Logger l = Logger.getLogger("ie.omk.smpp.util");
-	if (response != null) {
-	    if (l.isDebugEnabled())
-		l.debug("New Packet: " + response.getClass().getName());
-	} else
-	    l.warn("Unknown packet ID " + id);
-
 	return (response);
     }
 }

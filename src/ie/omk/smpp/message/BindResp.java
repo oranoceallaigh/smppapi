@@ -26,10 +26,11 @@ package ie.omk.smpp.message;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import ie.omk.smpp.SMPPException;
 import ie.omk.smpp.BadCommandIDException;
-import ie.omk.smpp.StringTooLongException;
+import ie.omk.smpp.SMPPException;
+
 import ie.omk.smpp.util.SMPPIO;
+
 import org.apache.log4j.Logger;
 
 /** SMSC response to a Bind request.
@@ -49,24 +50,6 @@ public abstract class BindResp
 	super(id);
     }
 
-    /** Read in a BindResp from an InputStream.  A full packet,
-      * including the header fields must exist in the stream.
-      * @param in The InputStream to read from
-      * @throws java.io.IOException if there's an error reading from the
-      * input stream.
-      */
-    /*public BindResp(InputStream in)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
-    {
-	super(in);
-
-	if (getCommandStatus() != 0)
-	    return;
-
-	sysId = SMPPIO.readCString(in);
-    }*/
-
-
     /** Create a new BindResp packet in response to a
       * Bind request. This constructor will set the sequence number to that
       * if the packet it is in response to.
@@ -79,21 +62,19 @@ public abstract class BindResp
 
     /** Set the system Id
       * @param sysId The new System Id string (Up to 15 characters)
-      * @throws ie.omk.smpp.StringTooLongException if the system id is too
-      * long.
+      * @throws ie.omk.smpp.message.InvalidParameterValueException if the system
+      * id is too long.
       */
-    public void setSystemId(String sysId)
-	throws StringTooLongException
-    {
-	if(sysId == null) {
+    public void setSystemId(String sysId) throws InvalidParameterValueException {
+	if(sysId != null) {
+	    if (version.validateSystemId(sysId))
+		this.sysId = sysId;
+	    else
+		throw new InvalidParameterValueException("Invalid system Id", sysId);
+	} else {
 	    this.sysId = null;
 	    return;
 	}
-
-	if(sysId.length() < 16)
-	    this.sysId = sysId;
-	else
-	    throw new StringTooLongException(15);
     }
 
     /** Get the system Id */
@@ -124,8 +105,7 @@ public abstract class BindResp
 	SMPPIO.writeCString(sysId, out);
     }
 
-    public void readBodyFrom(byte[] body, int offset)
-    {
+    public void readBodyFrom(byte[] body, int offset) throws SMPPProtocolException {
 	sysId = SMPPIO.readCString(body, offset);
     }
 

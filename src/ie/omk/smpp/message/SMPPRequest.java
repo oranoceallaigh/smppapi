@@ -23,8 +23,6 @@
  */
 package ie.omk.smpp.message;
 
-import java.io.InputStream;
-
 /** Abstract parent class of all SMPP request packets.
   * @author Oran Kelly
   * @version 1.0
@@ -49,18 +47,6 @@ public abstract class SMPPRequest
     {
 	super(id, seqNum);
     }
-
-    /** Read in a SMPPRequest from an InputStream.  A full packet,
-      * including the header fields must exist in the stream.
-      * @param in The InputStream to read from
-      * @throws java.io.IOException if there's an error reading from the
-      * input stream.
-      */
-    /*protected SMPPRequest(InputStream in)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
-    {
-	super(in);
-    }*/
 
     /** Check has this request been acknowledged or not.
       */
