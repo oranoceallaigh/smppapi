@@ -57,26 +57,20 @@ public class SmppTransmitter
 	super(link, async);
     }
 
-    /** Get the last request sent to the Smsc by this transmitter
-      * @return null If there is no last packet.
-      */
-    public SMPPRequest getLastRequest()
-    {
-	return (SMPPRequest)outTable.get(new Integer(getSeqNum() - 1));
-    }
-
     /** Bind to the SMSC as a transmitter. This method will
       * send a bind_transmitter packet to the SMSC.  If the network
       * connection to the SMSC is not already open, it will be opened in
       * this method.
+      * See the description of bind in ie.omk.smpp.SmppConnection.bind.
       * @return The bind response, or null if asynchronous communication is
       * used.
       * @exception ie.omk.smpp.AlreadyBoundException if the connection is
       * already bound to the SMSC.
       * @exception java.io.IOException If there is a network error
-      * @see SmppReceiver#bind
+      * @see ie.omk.smpp.SmppConnection#bind
       */
-    public SMPPResponse bind()
+    public SMPPResponse bind(String systemID, String password,
+	    String systemType, SmeAddress sourceRange)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	// Make sure we're not already bound
@@ -100,13 +94,13 @@ public class SmppTransmitter
 	}
 
 	BindTransmitter t = new BindTransmitter(1);
-	t.setSystemId(this.sysId);
-	t.setPassword(this.password);
-	t.setSystemType(this.sysType);
-	t.setInterfaceVersion(INTERFACE_VERSION);
-	t.setAddressTon(this.addrTon);
-	t.setAddressNpi(this.addrNpi);
-	t.setAddressRange(this.addrRange);
+	t.setSystemId(systemID);
+	t.setPassword(password);
+	t.setSystemType(systemType);
+	t.setInterfaceVersion(super.INTERFACE_VERSION);
+	t.setAddressTon(sourceRange.getTON());
+	t.setAddressNpi(sourceRange.getNPI());
+	t.setAddressRange(sourceRange.getAddress());
 
 	Debug.d(this ,"bind", "Bind request sent", Debug.DBG_3);
 
