@@ -25,10 +25,13 @@ package ie.omk.smpp.message.tlv;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+
 import java.util.Arrays;
 import java.util.BitSet;
 
 import junit.framework.TestCase;
+
+import ie.omk.smpp.util.SMPPIO;
 
 import ie.omk.TestUtils;
 
@@ -63,7 +66,7 @@ public class TLVTests extends TestCase {
 	Tag testTag = Tag.SMS_SIGNAL;
 	int testTagVal = 0x1203;
 
-	assertEquals(testTagVal, testTag.getTag());
+	assertEquals(testTagVal, testTag.intValue());
 	assertEquals(testTagVal, testTag.intValue());
 	
 	assertSame(testTag, Tag.getTag(testTagVal));
@@ -238,6 +241,82 @@ public class TLVTests extends TestCase {
 			(byte[])tab1.get(Tag.CALLBACK_NUM_ATAG)));
 	    assertEquals(msg,
 		    bitSet, (BitSet)tab.get(Tag.MS_MSG_WAIT_FACILITIES));
+	}
+    }
+
+    /** This test creates a byte array representing a TLVTable which contains a
+     * tag that the API does not know about. The API should be able to decode
+     * any optional parameter that is well-formed - the fact that it doesn't
+     * know about it beforehand should not cause an error in the API.
+     */
+    public void testTLVTableDeSerializeUnknown() {
+	// Set up a byte array which contains 2 known optional parameters
+	// followed by 2 unknowns.
+	byte[] b = new byte[256];
+
+	StringEncoder se = StringEncoder.getInstance();
+	NumberEncoder ne = NumberEncoder.getInstance();
+	
+	int p = 0, length = 0;
+
+	Integer i = new Integer(0xbcad);
+	length = ne.getValueLength(Tag.DEST_TELEMATICS_ID, i);
+	SMPPIO.intToBytes(Tag.DEST_TELEMATICS_ID.intValue(), 2, b, 0);
+	SMPPIO.intToBytes(length, 2, b, 2);
+	ne.writeTo(Tag.DEST_TELEMATICS_ID, i, b, 4);
+	p  += (4 + length);
+
+	String v = "smppapi tlv tests";
+	length = se.getValueLength(Tag.ADDITIONAL_STATUS_INFO_TEXT, v);
+	SMPPIO.intToBytes(Tag.ADDITIONAL_STATUS_INFO_TEXT.intValue(), 2, b, p);
+	SMPPIO.intToBytes(length, 2, b, p + 2);
+	se.writeTo(Tag.ADDITIONAL_STATUS_INFO_TEXT, v, b, p + 4);
+	p += (4 + length);
+
+	// Tag '0xcafe', length 2.
+	b[p++] = (byte)0xca;
+	b[p++] = (byte)0xfe;
+	b[p++] = (byte)0x00;
+	b[p++] = (byte)0x02;
+	b[p++] = (byte)0xfe;
+	b[p++] = (byte)0xed;
+
+	// Tag '0xbeef', length 5
+	b[p++] = (byte)0xbe;
+	b[p++] = (byte)0xef;
+	b[p++] = (byte)0x00;
+	b[p++] = (byte)0x05;
+	b[p++] = (byte)0xba;
+	b[p++] = (byte)0xbe;
+	b[p++] = (byte)0xde;
+	b[p++] = (byte)0xad;
+	b[p++] = (byte)0x99;
+
+	try {
+	    // Run the test - attempt to deserialize the table.
+	    TLVTable tab = new TLVTable();
+	    tab.readFrom(b, 0, p);
+
+	    tab.parseAllOpts();
+
+	    assertEquals(tab.get(Tag.DEST_TELEMATICS_ID), i);
+	    assertEquals(tab.get(Tag.ADDITIONAL_STATUS_INFO_TEXT), v);
+
+	    b = (byte[])tab.get(0xcafe);
+	    byte[] expectedValue = { (byte)0xfe, (byte)0xed };
+
+	    assertTrue(Arrays.equals(b, expectedValue));
+
+	    b = (byte[])tab.get(0xbeef);
+	    expectedValue = new byte[] {
+		(byte)0xba, (byte)0xbe, (byte)0xde, (byte)0xad, (byte)0x99
+	    };
+
+	    assertTrue(Arrays.equals(b, expectedValue));
+
+	} catch (Exception x) {
+	    x.printStackTrace(System.err);
+	    fail("Deserialize failed. " + x.getMessage());
 	}
     }
 }
