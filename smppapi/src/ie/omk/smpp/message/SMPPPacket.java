@@ -169,8 +169,8 @@ public abstract class SMPPPacket
     protected SmeAddress	destination = null;
     /** Set of message type flags */
     protected MsgFlags		flags = null;
-    /** The text of a short message */
-    protected String		message = null;
+    /** The short message data */
+    protected byte[]		message = null;
     /** Service type for this msg */
     protected String		serviceType = null;
     /** Scheduled delivery time */
@@ -489,6 +489,13 @@ public abstract class SMPPPacket
     }
 
     /** Set the text of the message (max 160 characters).
+      * This method will encode the message text using the US-ASCII encoding.
+      * If you wish to use an alternate message encoding, use setMessage.
+      * This method allows 160 characters to be sent because the SMSC will pack
+      * the 7-bit characters using the default SMS alphabet into the 140 octet
+      * message. For every 8 US-ASCII characters, you can fit 9 SMS alphabet
+      * characters. That works out as 160 - (160 / 8) = 140
+      * // XXX what about using 'extended' characters??
       * @param text The short message text.
       * @exception ie.omk.smpp.StringTooLongException if the message is too
       * long.
@@ -497,23 +504,86 @@ public abstract class SMPPPacket
 	throws ie.omk.smpp.SMPPException
     {
 	if(text == null) {
-	    message = null;
+	    this.message = null;
 	    return;
 	}
 
-	if(text.length() < 161) {
-	    this.message = text;
-	    Debug.d(this, "setMessageText", text, 4);
-	} else {
+	if(text.length() > 160) {
 	    Debug.warn(this, "setMessageText", "Message too long");
 	    throw new StringTooLongException(160);
+	} else {
+	    this.message = text.getBytes("US-ASCII");
+	    Debug.d(this, "setMessageText", text, 4);
 	}
     }
 
-    /** Get the text of the message. */
+    /** Set the message data (max 140 octets).
+      * The MsgFlags.data_coding value <b>must</b> be set to an appropriate
+      * value indicating the type of data available. Appropriate data_coding
+      * values are defined in GSM 03.38.
+      * Maximum data length is 140 octets. The data will be copied from the
+      * supplied byte array into a newly created internal one.
+      * @param message The byte array to take message data from.
+      * @exception ie.omk.smpp.StringTooLongException if the message is too long
+      * (XXX this will probably change to a better exception).
+      */
+    public void setMessage(byte[] message)
+	throws ie.omk.smpp.SMPPException
+    {
+	if (message != null)
+	    this.setMessage(message, 0, message.length);
+	else
+	    this.message = null;
+    }
+
+    /** Set the message data (max 140 octets).
+      * The MsgFlags.data_coding value <b>must</b> be set to an appropriate
+      * value indicating the type of data available. Appropriate data_coding
+      * values are defined in GSM 03.38.
+      * Maximum data length is 140 octets. The data will be copied from the
+      * supplied byte array into a newly created internal one.
+      * @param message The byte array to take message data from.
+      * @param start The index the message data begins at.
+      * @param len The length of the message data.
+      * @exception ie.omk.smpp.StringTooLongException if the message is too long
+      * (XXX this will probably change to a better exception).
+      */
+    public void setMessage(byte[] message, int start, int len)
+	throws ie.omk.smpp.SMPPException
+    {
+	if (message != null) {
+	    if (len < 0 || len > 140) {
+		Debug.warn(this, "setMessage", "Message data too long");
+		throw new StringTooLongException(140);
+	    }
+
+	    this.message = new byte[len];
+	    System.arraycopy(message, start, this.message, 0, len);
+	} else {
+	    this.message = null;
+	}
+    }
+
+    /** Get the message data.
+      * This method returns a copy of the binary message data.
+      * @return A byte array copy of the message data. May be null.
+      */
+    public byte[] getMessage()
+    {
+	byte[] b = null;
+	if (this.message != null) {
+	    b = new byte[this.message.length];
+	    System.arraycopy(this.message, 0, b, 0, b.length);
+	}
+	return (b);
+    }
+
+    /** Get the text of the message.
+      * This method decodes the message bytes as US-ASCII encoded bytes.
+      */
     public String getMessageText()
     {
-	return (message);
+	return (new String(this.message, "US-ASCII"));
     }
 
     /** Get the length of the message text.
@@ -521,7 +591,7 @@ public abstract class SMPPPacket
       */
     public int getMessageLen()
     {
-	return (message == null) ? 0 : message.length();
+	return (message == null) ? 0 : message.length;
     }
 
     /** Set the service type.
