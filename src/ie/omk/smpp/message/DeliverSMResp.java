@@ -39,8 +39,16 @@ import ie.omk.debug.Debug;
 public class DeliverSMResp
     extends ie.omk.smpp.message.SMPPResponse
 {
+    /** Construct a new DeliverSMResp.
+      */
+    public DeliverSMResp()
+    {
+	super(SMSC_DELIVER_SM_RESP);
+    }
+
     /** Construct a new DeliverSMResp with specified sequence number.
       * @param seqNum The sequence number to use
+      * @deprecated
       */
     public DeliverSMResp(int seqNum)
     {

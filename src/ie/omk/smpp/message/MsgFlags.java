@@ -28,6 +28,7 @@ package ie.omk.smpp.message;
   * @see ie.omk.smpp.SmppTransmitter#replaceMessage
   */
 public class MsgFlags
+    implements java.io.Serializable
 {
     /** Priority message. */
     public boolean priority = false;

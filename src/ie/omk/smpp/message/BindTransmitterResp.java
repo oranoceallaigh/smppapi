@@ -39,8 +39,17 @@ public class BindTransmitterResp
     /** System Id */
     private String sysId;
 
+    /** Construct a new BindTransmitterResp.
+      */
+    public BindTransmitterResp()
+    {
+	super(ESME_BNDTRN_RESP);
+	sysId = null;
+    }
+
     /** Construct a new BindTransmitterResp with specified sequence number.
       * @param seqNum The sequence number to use
+      * @deprecated
       */
     public BindTransmitterResp(int seqNum)
     {

@@ -34,8 +34,16 @@ import ie.omk.smpp.BadCommandStatusException;
 public abstract class SMPPResponse
     extends SMPPPacket
 {
+    /** Construct a new SMPPResponse with specified command id.
+      */
+    public SMPPResponse(int id)
+    {
+	super(id);
+    }
+
     /** Construct a new SMPPResponse with specified sequence number.
       * @param seqNum The sequence number to use
+      * @deprecated
       */
     public SMPPResponse(int id, int seqNum)
     {

@@ -58,8 +58,16 @@ public class QueryMsgDetailsResp
     /** Table of destinations the message was routed to */
     private Vector destinationTable = new Vector();
 
+    /** Construct a new QueryMsgDetailsResp.
+      */
+    public QueryMsgDetailsResp()
+    {
+	super(ESME_QUERY_MSG_DETAILS_RESP);
+    }
+
     /** Construct a new QueryMsgDetailsResp with specified sequence number.
       * @param seqNum The sequence number to use
+      * @deprecated
       */
     public QueryMsgDetailsResp(int seqNum)
     {

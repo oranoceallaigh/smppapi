@@ -37,8 +37,16 @@ import ie.omk.debug.Debug;
 public class QuerySMResp
     extends ie.omk.smpp.message.SMPPResponse
 {
+    /** Construct a new QuerySMResp.
+      */
+    public QuerySMResp()
+    {
+	super(ESME_QUERY_SM_RESP);
+    }
+
     /** Construct a new QuerySMResp with specified sequence number.
       * @param seqNum The sequence number to use
+      * @deprecated
       */
     public QuerySMResp(int seqNum)
     {

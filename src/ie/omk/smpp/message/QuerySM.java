@@ -41,8 +41,16 @@ import ie.omk.debug.Debug;
 public class QuerySM
     extends ie.omk.smpp.message.SMPPRequest
 {
+    /** Construct a new QuerySM.
+      */
+    public QuerySM()
+    {
+	super(ESME_QUERY_SM);
+    }
+
     /** Construct a new QuerySM with specified sequence number.
       * @param seqNum The sequence number to use
+      * @deprecated
       */
     public QuerySM(int seqNum)
     {

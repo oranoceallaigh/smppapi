@@ -35,8 +35,16 @@ import ie.omk.smpp.BadCommandIDException;
 public class GenericNack
     extends ie.omk.smpp.message.SMPPResponse
 {
+    /** Construct a new GenericNack.
+      */
+    public GenericNack()
+    {
+	super(ESME_NACK);
+    }
+
     /** Construct a new GenericNack with specified sequence number.
       * @param seqNum The sequence number to use
+      * @deprecated
       */
     public GenericNack(int seqNum)
     {

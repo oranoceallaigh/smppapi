@@ -34,8 +34,16 @@ public abstract class SMPPRequest
     /** false if this packet has been ack'd, true if it has */
     protected boolean			isAckd = false;
 
+    /** Construct a new SMPPRequest with specified id.
+      */
+    public SMPPRequest(int id)
+    {
+	super(id);
+    }
+
     /** Construct a new SMPPRequest with specified sequence number.
       * @param seqNum The sequence number to use
+      * @deprecated
       */
     public SMPPRequest(int id, int seqNum)
     {

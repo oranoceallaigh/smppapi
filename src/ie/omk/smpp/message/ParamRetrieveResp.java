@@ -40,8 +40,17 @@ public class ParamRetrieveResp
     /** String value of the requested parameter */
     private String paramValue;
 
+    /** Construct a new BindReceiverResp.
+      */
+    public ParamRetrieveResp()
+    {
+	super(ESME_PARAM_RETRIEVE_RESP);
+	paramValue = null;
+    }
+
     /** Construct a new BindReceiverResp with specified sequence number.
       * @param seqNum The sequence number to use
+      * @deprecated
       */
     public ParamRetrieveResp(int seqNum)
     {

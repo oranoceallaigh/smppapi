@@ -35,8 +35,16 @@ import ie.omk.debug.Debug;
 public class CancelSMResp
     extends ie.omk.smpp.message.SMPPResponse
 {
+    /** Construct a new CancelSMResp.
+      */
+    public CancelSMResp()
+    {
+	super(ESME_CANCEL_SM_RESP);
+    }
+
     /** Construct a new CancelSMResp with specified sequence number.
       * @param seqNum The sequence number to use
+      * @deprecated
       */
     public CancelSMResp(int seqNum)
     {

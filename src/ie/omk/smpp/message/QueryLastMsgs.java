@@ -44,8 +44,17 @@ public class QueryLastMsgs
     /** Number of messages to look up */
     private int msgCount;
 
+    /** Construct a new QueryLastMsgs.
+      */
+    public QueryLastMsgs()
+    {
+	super(ESME_QUERY_LAST_MSGS);
+	msgCount = 0;
+    }
+
     /** Construct a new QueryLastMsgs with specified sequence number.
       * @param seqNum The sequence number to use
+      * @deprecated
       */
     public QueryLastMsgs(int seqNum)
     {

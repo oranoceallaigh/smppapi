@@ -60,8 +60,20 @@ public class BindReceiver
     private int addrNpi;
 
 
+    /** Constructs a new BindReceiver.
+      */
+    public BindReceiver()
+    {
+	super(ESME_BNDRCV);
+
+	// Initialise the packets fields to null values
+	sysId = password = sysType = addressRange = null;
+	interfaceVer = addrTon = addrNpi = 0;
+    }
+
     /** Constructs a new BindReceiver with specified sequence number.
       * @param seqNum The sequence number to be used by this packet
+      * @deprecated
       */
     public BindReceiver(int seqNum)
     {

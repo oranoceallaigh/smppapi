@@ -36,8 +36,16 @@ import ie.omk.debug.Debug;
 public class Unbind
     extends ie.omk.smpp.message.SMPPRequest
 {
+    /** Construct a new Unbind.
+      */
+    public Unbind()
+    {
+	super(ESME_UBD);
+    }
+
     /** Construct a new Unbind with specified sequence number.
       * @param seqNum The sequence number to use
+      * @deprecated
       */
     public Unbind(int seqNum)
     {

@@ -39,9 +39,10 @@ import ie.omk.debug.Debug;
   * @version 1.0
   */
 public class SmeAddress
+    implements java.io.Serializable
 {
     /** Does this represent an Sme address or distribution list */
-    public boolean			isSme = true;
+    private boolean		isSme = true;
 
     /** This flag specifies whether or not the isSme flag is used.
       * If this is true, then the flag will be looked for on InputStreams
@@ -52,11 +53,11 @@ public class SmeAddress
     protected boolean		useFlag = false;
 
     /** Destination address Ton */
-    public int			ton = GSMConstants.GSM_TON_UNKNOWN;
+    private int			ton = GSMConstants.GSM_TON_UNKNOWN;
     /** Destination address Npi */
-    public int			npi = GSMConstants.GSM_NPI_UNKNOWN;;
+    private int			npi = GSMConstants.GSM_NPI_UNKNOWN;;
     /** Destination address */
-    public String		addr = null;
+    private String		addr = null;
 
     /** Construct a new Sme address.
       * The default address is TON_UNKNOWN, NPI_UNKNOWN and the address string
@@ -211,6 +212,15 @@ public class SmeAddress
     public String getAddress()
     {
 	return ((this.addr == null) ? "" : this.addr);
+    }
+
+    /** Determine whether this SmeAddress is for a distribution list or not.
+      * @return true if this object represents a distribution list, false if it
+      * is an address.
+      */
+    public boolean isDistList()
+    {
+	return (!this.isSme);
     }
 
     /** Get the number of bytes this address would be encoded as to an

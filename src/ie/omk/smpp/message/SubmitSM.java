@@ -54,8 +54,16 @@ import ie.omk.debug.Debug;
 public class SubmitSM
     extends ie.omk.smpp.message.SMPPRequest
 {
+    /** Construct a new SubmitSM.
+      */
+    public SubmitSM()
+    {
+	super(ESME_SUB_SM);
+    }
+
     /** Construct a new SubmitSM with specified sequence number.
       * @param seqNum The sequence number to use
+      * @deprecated
       */
     public SubmitSM(int seqNum)
     {

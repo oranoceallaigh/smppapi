@@ -35,8 +35,16 @@ import ie.omk.debug.Debug;
 public class ReplaceSMResp
     extends ie.omk.smpp.message.SMPPResponse
 {
+    /** Construct a new ReplaceSMResp.
+      */
+    public ReplaceSMResp()
+    {
+	super(ESME_REPLACE_SM_RESP);
+    }
+
     /** Construct a new ReplaceSMResp with specified sequence number.
       * @param seqNum The sequence number to use
+      * @deprecated
       */
     public ReplaceSMResp(int seqNum)
     {
