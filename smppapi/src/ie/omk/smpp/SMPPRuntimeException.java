@@ -23,21 +23,19 @@
  */
 package ie.omk.smpp;
 
-import org.apache.log4j.Logger;
-
-/** SMPPException.
-  * @author Oran Kelly
-  * @version 1.0
-  */
-public class SMPPException
-    extends java.lang.Exception
+/** SMPPRuntimeException.
+ * @author Oran Kelly &lt;orank@users.sf.net&gt;
+ * @version 1.0
+ */
+public class SMPPRuntimeException
+    extends java.lang.RuntimeException
 {
-    public SMPPException()
+    public SMPPRuntimeException()
     {
 	super();
     }
 
-    public SMPPException(String s)
+    public SMPPRuntimeException(String s)
     {
 	super(s);
     }

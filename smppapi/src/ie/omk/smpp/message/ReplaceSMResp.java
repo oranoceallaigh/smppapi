@@ -26,7 +26,7 @@ package ie.omk.smpp.message;
 import java.io.InputStream;
 import ie.omk.smpp.util.SMPPIO;
 import ie.omk.smpp.BadCommandIDException;
-import ie.omk.debug.Debug;
+import org.apache.log4j.Logger;
 
 
 /** SMSC response to a ReplaceSM request.

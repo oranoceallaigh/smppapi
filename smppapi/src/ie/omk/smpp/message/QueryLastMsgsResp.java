@@ -33,7 +33,6 @@ import ie.omk.smpp.SMPPException;
 import ie.omk.smpp.BadCommandIDException;
 import ie.omk.smpp.InvalidMessageIDException;
 import ie.omk.smpp.util.SMPPIO;
-import ie.omk.debug.Debug;
 
 /** SMSC response to a QueryLastMsgs request.
   * @author Oran Kelly
@@ -86,7 +85,6 @@ public class QueryLastMsgsResp
 	for(int loop = 0; loop < msgCount; loop++) {
 	    String s = SMPPIO.readCString(in);
 	    messageTable.addElement(s);
-	    Debug.d(this, "<init>", "Adding " + s + " to destinations", 3);
 	}
     }*/
 
@@ -186,7 +184,6 @@ public class QueryLastMsgsResp
 	    String s = SMPPIO.readCString(body, offset);
 	    offset += s.length() + 1;
 	    messageTable.addElement(s);
-	    Debug.d(this, "<init>", "Adding " + s + " to destinations", 3);
 	}
     }
 

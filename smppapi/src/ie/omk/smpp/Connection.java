@@ -83,7 +83,8 @@ import ie.omk.smpp.util.SequenceNumberScheme;
 import ie.omk.smpp.util.SMPPDate;
 import ie.omk.smpp.util.SMPPIO;
 
-import ie.omk.debug.Debug;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 
 /** SMPP client connection (ESME).
   * @author Oran Kelly
@@ -92,6 +93,9 @@ import ie.omk.debug.Debug;
 public class Connection
     implements java.lang.Runnable
 {
+    /** Get the logger for this Connection. */
+    protected Logger logger = Logger.getLogger("ie.omk.smpp.Connection");
+
     /** SMPP Transmitter connection type. */
     public static final int	TRANSMITTER = 1;
 
@@ -174,34 +178,25 @@ public class Connection
     public Connection(String host, int port)
 	throws java.net.UnknownHostException
     {
-	if (port == 0) {
-	    port = 5000; // XXX need default SMPP port.
-	}
-
-	this.link = new TcpLink(host, port);
+	this (new TcpLink(host, port), false);
     }
 
     /** Initialise a new SMPP connection object.
       * @param link The network link object to the Smsc (cannot be null)
-      * @throws java.lang.NullPointerException If the link is null
       */
     public Connection(SmscLink link)
     {
-	if(link == null)
-	    throw new NullPointerException("Smsc Link cannot be null.");
-
-	this.link = link;
+	this (link, false);
     }
 
     /** Initialise a new SMPP connection object, specifying the type of
      * communication desired.
      * @param link The network link object to the Smsc (cannot be null)
      * @param async true for asyncronous communication, false for synchronous.
-     * @throws java.lang.NullPointerException If the link is null
      */
     public Connection(SmscLink link, boolean async)
     {
-	this(link);
+	this.link = link;
 	this.asyncComms = async;
 
 	if (asyncComms) {
@@ -215,7 +210,8 @@ public class Connection
      */
     private void createRecvThread()
     {
-	rcvThread = new Thread(this);
+	logger.info("Creating receiver thread");
+	rcvThread = new Thread(this, "ReceiverDaemon");
 	rcvThread.setDaemon(true);
     }
 
@@ -224,6 +220,7 @@ public class Connection
       */
     private synchronized void setState(int state)
     {
+	logger.info("Setting state " + state);
 	this.state = state;
     }
 
@@ -245,10 +242,12 @@ public class Connection
 	throws java.io.IOException
     {
 	if (!this.link.isConnected()) {
-	    Debug.d(this, "openLink", "Opening network link.", 1);
+	    logger.info("Opening network link.");
 	    this.link.open();
 	    if (this.seqNumScheme != null)
 		this.seqNumScheme.reset();
+	} else {
+	    logger.debug("openLink called, link already open");
 	}
     }
 
@@ -277,6 +276,7 @@ public class Connection
      */
     public void setInterfaceVersion(SMPPVersion interfaceVersion)
     {
+	logger.info("setInterfaceVersion " + interfaceVersion);
 	this.interfaceVersion = interfaceVersion;
     }
 
@@ -325,7 +325,7 @@ public class Connection
     {
 	DeliverSMResp rsp = new DeliverSMResp(rq);
 	sendResponse(rsp);
-	Debug.d(this, "ackDeliverSM", "deliver_sm_resp sent", 3);
+	logger.info("deliver_sm_resp sent.");
     }
 
     /** Send an smpp request to the SMSC.
@@ -404,12 +404,12 @@ public class Connection
 		resp = readNextPacketInternal();
 		id = resp.getCommandId();
 		if(!(resp instanceof SMPPResponse)) {
-		    Debug.d(this, "sendRequest", "packet received from "
-			+ "SMSC is not an SMPPResponse!", 1);
+		    logger.warn("Packet received from the SMSC is not a response");
 		}
 	    }
 	} catch (java.net.SocketTimeoutException x) {
 	    // Must set our state and re-throw the exception..
+	    logger.error("Received a socket timeout exception", x);
 	    setState(UNBOUND);
 	    throw x;
 	}
@@ -418,8 +418,7 @@ public class Connection
 	if (id == SMPPPacket.BIND_TRANSMITTER_RESP
 		|| id == SMPPPacket.BIND_RECEIVER_RESP
 		|| id == SMPPPacket.BIND_TRANSCEIVER_RESP) {
-	    if (resp.getCommandStatus() == 0)
-		setState(BOUND);
+	    handleBindResp((BindResp)resp);
 	}
 
 	return ((SMPPResponse)resp);
@@ -443,6 +442,7 @@ public class Connection
 	try {
 	    link.write(resp);
 	} catch (java.net.SocketTimeoutException x) {
+	    logger.warn("Got a socket timeout exception", x);
 	    setState(UNBOUND);
 	    throw x;
 	}
@@ -493,8 +493,10 @@ public class Connection
 	    return (this.bind(type, systemID, password, systemType, 
 			0, 0, null));
 	} catch (InvalidTONException x) {
+	    logger.warn("Invalid TON in bind", x);
 	    return (null);
 	} catch (InvalidNPIException x) {
+	    logger.warn("Invalid NPI in bind", x);
 	    return (null);
 	}
     }
@@ -566,6 +568,8 @@ public class Connection
 	    throw new IllegalArgumentException("No such connection type.");
 	}
 
+	logger.info("Binding to the SMSC as type " + type);
+
 	bindReq.setSystemId(systemID);
 	bindReq.setPassword(password);
 	bindReq.setSystemType(systemType);
@@ -608,14 +612,9 @@ public class Connection
 	 */
 	setState(UNBINDING);
 
+	logger.info("Unbinding from the SMSC");
 	Unbind u = new Unbind();
-	SMPPResponse resp = sendRequest(u);
-	if (!asyncComms) {
-	    if (resp.getCommandId() == SMPPPacket.UNBIND_RESP
-		    && resp.getCommandStatus() == 0)
-		setState(UNBOUND);
-	}
-	return ((UnbindResp)resp);
+	return ((UnbindResp)sendRequest(u));
     }
 
     /** Unbind from the SMSC. This method is used to acknowledge an unbind
@@ -651,8 +650,7 @@ public class Connection
      */
     public void force_unbind()
     {
-	Debug.d(this, "force_unbind",
-		"Attempting to force the connection shut.", 4);
+	logger.warn("Attempting to force SMPP connection down.");
 	try {
 	    setState(UNBOUND);
 
@@ -663,16 +661,17 @@ public class Connection
 		    // becoming UNBOUND.
 		    Thread.sleep(1000);
 		} catch (InterruptedException x) {
+		    logger.debug("Interrupted exception waiting on receiver to die", x);
 		}
 		if (rcvThread.isAlive())
-		    Debug.warn(this, "force_unbind",
-			    "ERROR! Listener thread has not died.");
+		    logger.error("Listener thread has not died.");
 
 		rcvThread = null;
 	    }
 
 	    link.close();
 	} catch(IOException ix) {
+	    logger.warn("Forced unbind caused IO exception", ix);
 	}
 	return;
     }
@@ -686,7 +685,7 @@ public class Connection
     {
 	EnquireLinkResp resp = new EnquireLinkResp(rq);
 	sendResponse(resp);
-	Debug.d(this, "ackEnquireLink", "responding..", 3);
+	logger.info("enquire_link_resp sent.");
     }
 
     /** Do a confidence check on the SMPP link to the SMSC.
@@ -700,9 +699,9 @@ public class Connection
     {
 	EnquireLink s = new EnquireLink();
 	SMPPResponse resp = sendRequest(s);
-	Debug.d(this, "enquireLink", "sent enquire_link", 3);
+	logger.debug("enquire_link request sent.");
 	if (resp != null)
-	    Debug.d(this, "enquireLink", "response received", 3);
+	    logger.debug("enquire_link_response received.");
 	return ((EnquireLinkResp)resp);
     }
 
@@ -732,15 +731,14 @@ public class Connection
 	throws AlreadyBoundException
     {
 	if(state == BOUND) {
-	    Debug.warn(this, "reset", "Attempt to reset a bound connection.");
-	    throw new AlreadyBoundException("Cannot reset connection "
-		    + "while bound");
+	    logger.warn("Attempt to reset sequence numbering on a bound connection");
+	    throw new AlreadyBoundException("Cannot reset connection while bound");
 	}
 
 	if (this.seqNumScheme != null)
 	    this.seqNumScheme.reset();
 
-	Debug.d(this, "reset", "Connection reset", 1);
+	logger.info("Sequence numbering reset.");
     }
 
     /** Set the sequence numbering scheme for this connection. A sequence
@@ -800,35 +798,30 @@ public class Connection
 
 	this.buf = link.read(this.buf);
 	id = SMPPIO.bytesToInt(this.buf, 4, 4);
+	if (logger.isDebugEnabled())
+	    logger.debug("Packet received: "
+		    + Integer.toHexString(id));
+
 	pak = PacketFactory.newPacket(id);
 
 	if (pak != null) {
 	    pak.readFrom(this.buf, 0);
-
-	    Debug.d(this, "readNextPacketInternal",
-		    "Packet received: " + pak.getCommandId(), 6);
 
 	    // Special case handling for certain packet types..
 	    st = pak.getCommandStatus();
 	    switch (pak.getCommandId()) {
 	    case SMPPPacket.BIND_TRANSMITTER_RESP:
 	    case SMPPPacket.BIND_RECEIVER_RESP:
-		if (state == BINDING && st == 0)
-		    setState(BOUND);
+	    case SMPPPacket.BIND_TRANSCEIVER_RESP:
+		handleBindResp((BindResp)pak);
 		break;
 
 	    case SMPPPacket.UNBIND_RESP:
-		if (state == UNBINDING && st == 0) {
-		    Debug.d(this, "readNextPacketInternal",
-			    "Successfully unbound.", 3);
-		    setState(UNBOUND);
-		}
+		handleUnbindResp((UnbindResp)pak);
 		break;
 
 	    case SMPPPacket.UNBIND:
-		Debug.d(this, "readNextPacketInternal",
-			"SMSC requested unbind.", 2);
-		setState(UNBINDING);
+		handleUnbind((Unbind)pak);
 		break;
 	    }
 	}
@@ -836,6 +829,29 @@ public class Connection
 	return (pak);
     }
 
+    /** Handle an incoming bind response packet. Method is called by a few
+     * methods in this class that read from the incoming connection.
+     */
+    private void handleBindResp(BindResp resp) {
+	if (state == BINDING && resp.getCommandStatus() == 0)
+	    setState(BOUND);
+    }
+
+    /** Handle an incoming unbind packet.
+     */
+    private void handleUnbind(Unbind req) {
+	logger.info("SMSC requested unbind");
+	setState(UNBINDING);
+    }
+
+    /** Handle an incoming unbind response packet.
+     */
+    private void handleUnbindResp(UnbindResp resp) {
+	if (state == UNBINDING && resp.getCommandStatus() == 0) {
+	    logger.info("Successfully unbound");
+	    setState(UNBOUND);
+	}
+    }
 
     /** Add a connection observer to receive SMPP events from this connection.
      * If this connection is not using asynchronous communication, this method
@@ -887,6 +903,7 @@ public class Connection
 	    if (singleObserver != null)
 		singleObserver.packetReceived(this, pak);
 	} catch (NullPointerException x) {
+	    logger.debug("singleObserver was removed before packet notification");
 	}
 
 	if (!observers.isEmpty()) {
@@ -909,6 +926,7 @@ public class Connection
 	    if (singleObserver != null)
 		singleObserver.update(this, event);
 	} catch (NullPointerException x) {
+	    logger.debug("singleObserver was removed before packet notification");
 	}
 
 	if (!observers.isEmpty()) {
@@ -926,7 +944,7 @@ public class Connection
 	int smppEx = 0, id = 0, st = 0;
 	SMPPEvent exitEvent = null;
 
-	Debug.d(this, "run", "Listener thread started", 4);
+	logger.info("Receiver thread started");
 	notifyObservers(new ReceiverStartEvent(this));
 	try {
 	    while (state != UNBOUND) {
@@ -938,14 +956,15 @@ public class Connection
 		    }
 		} catch (SocketTimeoutException x) {
 		    // is it okay to ignore this ??
+		    logger.info("Ignoring SocketTimeoutException");
 		} catch (IOException x) {
 		    // catch EOFException before this
+		    logger.info("I/O Exception caught", x);
 		    ReceiverExceptionEvent ev =
 			new ReceiverExceptionEvent(this, x, state);
 		    smppEx++;
 		    if (smppEx > 5) {
-			Debug.d(this, "run", "Too many IO exceptions in "
-				+ "receiver thread. Terminating.", 2);
+			logger.warn("Too many IO exceptions in receiver thread", x);
 			throw x;
 		    }
 		}
@@ -967,14 +986,14 @@ public class Connection
 		}
 
 		// Tell all the observers about the new packet
-		Debug.d(this, "run", "Notifying observers..", 4);
+		logger.info("Notifying observers of packet received");
 		notifyObservers(pak);
 	    } // end while
 
 	    // Notify observers that the thread is exiting with no error..
 	    exitEvent = new ReceiverExitEvent(this, null, state);
 	} catch (Exception x) {
-	    Debug.d(this, "run", "Exception: " + x.getMessage(), 2);
+	    logger.error("Fatal exception in receiver thread", x);
 	    exitEvent = new ReceiverExitEvent(this, x, state);
 	    setState(UNBOUND);
 	} finally {

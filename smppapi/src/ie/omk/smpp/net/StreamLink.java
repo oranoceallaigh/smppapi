@@ -40,6 +40,10 @@ public class StreamLink
     private OutputStream outStream = null;
 
 
+    /** Create a new StreamLink object.
+     * @param inStream the stream to read SMPP packets from.
+     * @param outStream the stream to write SMPP packets to.
+     */
     public StreamLink(InputStream inStream, OutputStream outStream)
     {
 	if (inStream == null || outStream == null)
@@ -53,6 +57,7 @@ public class StreamLink
       */
     public void implOpen()
     {
+	logger.debug("Opening stream connection");
     }
 
     /** Does nothing. This object is not responsible for opening or closing the
@@ -60,6 +65,7 @@ public class StreamLink
       */
     public void implClose()
     {
+	logger.debug("Closing stream connection");
     }
 
     /** Get the output stream of the output socket of the virtual connection.

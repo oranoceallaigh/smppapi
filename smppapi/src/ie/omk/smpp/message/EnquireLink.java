@@ -25,7 +25,7 @@ package ie.omk.smpp.message;
 
 import java.io.IOException;
 import ie.omk.smpp.BadCommandIDException;
-import ie.omk.debug.Debug;
+import org.apache.log4j.Logger;
 
 
 /** Check the link status.

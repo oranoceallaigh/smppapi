@@ -34,7 +34,7 @@ import ie.omk.smpp.util.GSMConstants;
 import ie.omk.smpp.util.SMPPIO;
 import ie.omk.smpp.util.SMPPDate;
 
-import ie.omk.debug.Debug;
+import org.apache.log4j.Logger;
 
 /** Transfer data between the SC and an ESME. This message type is used to
  * transfer data both by the SMSC and the ESME. The command can be used as a

@@ -34,7 +34,7 @@ import ie.omk.smpp.util.GSMConstants;
 import ie.omk.smpp.util.SMPPIO;
 import ie.omk.smpp.util.SMPPDate;
 
-import ie.omk.debug.Debug;
+import org.apache.log4j.Logger;
 
 /** Submit a message to the SMSC for delivery to a single destination.
   * Relevant inherited fields from SMPPPacket:<br>

@@ -71,7 +71,7 @@ import ie.omk.smpp.net.SmscLink;
 
 import ie.omk.smpp.util.SMPPDate;
 
-import ie.omk.debug.Debug;
+import org.apache.log4j.Logger;
 
 /** Transmitter implementation of the SMPP Connection.
   * @author Oran Kelly
@@ -86,7 +86,7 @@ public class SmppTransmitter
       */
     public SmppTransmitter(SmscLink link)
     {
-	super(link);
+	super(link, false);
     }
 
     /** Create a new Smpp transmitter specifying the type of communications
@@ -215,7 +215,7 @@ public class SmppTransmitter
 	    s.setSource(src);
 
 	SMPPResponse resp = sendRequest(s);
-	Debug.d(this, "submitMessage", "submit_sm send", 3);
+	logger.info("Sending submit_sm request");
 	return ((SubmitSMResp)resp);
     }
 
@@ -300,7 +300,7 @@ public class SmppTransmitter
 	    throw new InvalidReplaceIfPresentException();
 
 	SMPPResponse resp = sendRequest(s);
-	Debug.d(this, "submitMulti", "submit_multi sent", 3);
+	logger.info("Sending submit_multi request");
 	return ((SubmitMultiResp)resp);
     }
 
@@ -340,7 +340,7 @@ public class SmppTransmitter
 	    s.setSource(src);
 
 	SMPPResponse resp = sendRequest(s);
-	Debug.d(this, "cancelMessage", "cancel_sm sent", 3);
+	logger.info("Sending cancel_sm request");
 	return ((CancelSMResp)resp);
     }
 
@@ -417,7 +417,7 @@ public class SmppTransmitter
 	    s.setExpiryTime(valid);
 
 	SMPPResponse resp = sendRequest(s);
-	Debug.d(this, "replaceMessage", "replace_sm sent", 3);
+	logger.info("Sending replace_sm request");
 	return ((ReplaceSMResp)resp);
     }
 
@@ -435,7 +435,7 @@ public class SmppTransmitter
 	s.setParamName(name);
 
 	SMPPResponse resp = sendRequest(s);
-	Debug.d(this, "paramRetrieve", "param_retrieve sent", 3);
+	logger.info("Sending param_retrieve request");
 	return ((ParamRetrieveResp)resp);
     }
 
@@ -469,7 +469,7 @@ public class SmppTransmitter
 	    s.setSource(src);
 
 	SMPPResponse resp = sendRequest(s);
-	Debug.d(this, "queryMessage", "query_sm sent", 3);
+	logger.info("Sending query_sm request");
 	return ((QuerySMResp)resp);
     }
 
@@ -496,7 +496,7 @@ public class SmppTransmitter
 	s.setMsgCount(num);
 
 	SMPPResponse resp = sendRequest(s);
-	Debug.d(this, "queryLastMsgs", "query_last_msgs sent", 3);
+	logger.info("Sending query_last_msgs request");
 	return ((QueryLastMsgsResp)resp);
     }
 
@@ -539,7 +539,7 @@ public class SmppTransmitter
 	s.setSmLength(len);
 
 	SMPPResponse resp = sendRequest(s);
-	Debug.d(this, "queryMsgDetails", "query_msg_details sent", 3);
+	logger.info("Sending query_msg_details request");
 	return ((QueryMsgDetailsResp)resp);
     }
 }

@@ -29,7 +29,7 @@ import ie.omk.smpp.BadCommandIDException;
 import ie.omk.smpp.StringTooLongException;
 import ie.omk.smpp.BadInterfaceVersionException;
 import ie.omk.smpp.util.SMPPIO;
-import ie.omk.debug.Debug;
+import org.apache.log4j.Logger;
 
 /** Bind to the SMSC as receiver.
   * This message is used to bind to the SMSC as a Receiver ESME.
