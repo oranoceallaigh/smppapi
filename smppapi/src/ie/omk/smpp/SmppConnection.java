@@ -25,8 +25,10 @@ package ie.omk.smpp;
 import java.io.*;
 import java.net.*;
 import java.util.*;
+
 import ie.omk.smpp.message.*;
 import ie.omk.smpp.net.*;
+import ie.omk.smpp.util.*;
 import ie.omk.debug.Debug;
 
 /** SMPP client connection (ESME).
@@ -41,9 +43,6 @@ public abstract class SmppConnection
     extends java.util.Observable
     implements java.lang.Runnable
 {
-    /** Version number of the SMPP Protocol implemented. */
-    public static final int	INTERFACE_VERSION = 0x33;
-
     /** Connection state: not bound to the SMSC. */
     public static final int	UNBOUND = 0;
 
@@ -60,11 +59,16 @@ public abstract class SmppConnection
       */
     public static final int	UNBINDING = 3;
 
+    /** SMPP protocol version number. This may be negotiated by the bind
+     * operation.
+     */
+    protected int		interfaceVersion = 0x33;
+
     /** Packet listener thread for Asyncronous comms. */
     private Thread		rcvThread = null;
 
-    /** Milliseconds to timeout while waiting on I/O in listener thread. */
-    protected long		timeout = 100;
+    /** Byte buffer used in readNextPacketInternal. */
+    private byte[]		buf = new byte[300];
 
     /** Sequence number */
     private int			seqNum = 1;
@@ -85,7 +89,7 @@ public abstract class SmppConnection
       */
     protected boolean		ackQryLinks = true;
 
-    /** Should the listener thread automatically ack incoming messages?
+    /** Automatically acknowledge incoming deliver_sm messages.
       * Only valid for the Receiver
       */
     protected boolean		ackDeliverSm = false;
@@ -115,9 +119,18 @@ public abstract class SmppConnection
     {
 	this(link);
 	this.asyncComms = async;
+	createRecvThread();
+    }
 
-	if (asyncComms)
+    /** Create the receiver thread if asynchronous communications is on, does
+     * nothing otherwise.
+     */
+    private void createRecvThread()
+    {
+	if (asyncComms) {
 	    rcvThread = new Thread(this);
+	    rcvThread.setDaemon(true);
+	}
     }
 
     /** Set the state of this ESME.
@@ -147,6 +160,43 @@ public abstract class SmppConnection
 	    this.link.open();
 	}
     }
+
+
+    /** Get the interface version value as an integer. The version is encoded
+     * as a hexadecimal integer. {@link #setInterfaceVersion(int)} describes
+     * the current accepted values.
+     * @see #setInterfaceVersion(int)
+     */
+    public int getInterfaceVersion()
+    {
+	return (this.interfaceVersion);
+    }
+
+    /** Set the desired interface version for this connection. The default
+     * version is 3.3 (XXX soon to be 3.4). The bind operation may negotiate
+     * an eariler version of the protocol if the SC does not understand the
+     * version sent by the ESME. This API will not support any version eariler
+     * than SMPP v3.3. The interface version is encoded as follows:
+     * <table border="1" cellspacing="1" cellpadding="1">
+     *   <tr><th>SMPP version</th><th>Version value</th></tr>
+     *   <tr><td>v3.4</td><td>0x34</td></tr>
+     *   <tr><td>v3.3</td><td>0x33</td></tr>
+     *   <tr>
+     *     <td colspan="2" align="center"><i>All other values reserved.</i></td>
+     *   </tr>
+     * </table>
+     * @exception UnsupportedSMPPVersionException if <code>version</code> is
+     * unsupported by this implementation.
+     */
+    public void setInterfaceVersion(int version)
+	throws ie.omk.smpp.UnsupportedSMPPVersionException
+    {
+	if (version != 0x33 || version != 0x34)
+	    throw new UnsupportedSMPPVersionException(version);
+	else
+	    this.interfaceVersion = version;
+    }
+
 
     /** Set the behaviour of automatically acking QRYLINK's from the SMSC.
       * By default, the listener thread will automatically ack an enquire_link
@@ -214,7 +264,8 @@ public abstract class SmppConnection
 	    setState(BINDING);
 	    if (asyncComms) {
 		if (rcvThread == null)
-		    rcvThread = new Thread(this);
+		    createRecvThread();
+
 		if (!rcvThread.isAlive())
 		    rcvThread.start();
 	    }
@@ -225,7 +276,7 @@ public abstract class SmppConnection
 	Debug.send(r);
 
 	if (!asyncComms) {
-	    resp = link.read();
+	    resp = readNextPacketInternal();
 	    id = resp.getCommandId();
 	    Debug.recv(resp);
 	    if(!(resp instanceof SMPPResponse)) {
@@ -361,7 +412,7 @@ public abstract class SmppConnection
 	    if(rcvThread != null && rcvThread.isAlive()) {
 		setState(UNBOUND);
 		try {
-		    Thread.sleep(timeout * 2);
+		    Thread.sleep(1000);
 		} catch (InterruptedException x) {
 		}
 		if (rcvThread.isAlive())
@@ -462,40 +513,35 @@ public abstract class SmppConnection
       * If asynchronous communications is in use, calling this method results in
       * an SMPPException as the listener thread will be hogging the input stream
       * of the socket connection.
-      * @param timeout Milliseconds to wait for a packet before returning.
-      * @return The next SMPP packet from the SMSC. null if no packet arrives
-      * within timeout milliseconds.
+      * @return The next SMPP packet from the SMSC.
       * @exception java.io.IOException If an I/O error occurs.
       * @exception ie.omk.smpp.SMPPException If asynchronous comms is in use.
       */
-    public SMPPPacket readNextPacket(long timeout)
+    public SMPPPacket readNextPacket()
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	if (asyncComms)
 	    throw new InvalidOperationException("Asynchronous comms in use.");
 	else
-	    return (readNextPacketInternal(timeout));
+	    return (readNextPacketInternal());
     }
 
 
     /** Read the next packet from the SMSC link. Internal version...handles
       * special case packets like bind responses and unbind request and
       * responses.
-      * @param timeout Timeout (in milliseconds) to wait for the next packet.
       * @return The read SMPP packet, or null if the connection timed out.
       */
-    private SMPPPacket readNextPacketInternal(long timeout)
+    private SMPPPacket readNextPacketInternal()
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
-	Date start = new Date();
 	SMPPPacket pak = null;
 	int st = -1;
 
-	pak = link.read(timeout);
+	this.buf = link.read(this.buf);
+	pak = PacketFactory.newPacket(this.buf);
 
 	if (pak != null) {
-	    Debug.recv(pak);
-
 	    Debug.d(this, "readNextPacketInternal",
 		    "Packet received: " + pak.getCommandId(), 6);
 
@@ -565,32 +611,25 @@ public abstract class SmppConnection
 	int smppEx = 0, id = 0, st = 0;
 
 	Debug.d(this, "run", "Listener thread started", 4);
-	while (state != UNBOUND) {
-	    try {
-		pak = readNextPacketInternal(timeout);
-		if (pak == null) {
-		    // XXX Send an event to the application??
-		    continue;
-		}
-	    } catch (SMPPException x) {
-		smppEx++;
-		if (smppEx > 3) {
-		    Debug.d(this, "run", "3 SMPP exceptions in receiver"
-			    + " thread. Terminating.", 2);
+	try {
+	    while (state != UNBOUND) {
+		try {
+		    pak = readNextPacketInternal();
+		    if (pak == null) {
+			// XXX Send an event to the application??
+			continue;
+		    }
+		} catch (SMPPException x) {
+		    smppEx++;
+		    if (smppEx > 3) {
+			Debug.d(this, "run", "3 SMPP exceptions in receiver"
+				+ " thread. Terminating.", 2);
 
-		    // XXX send an event to the application and stop the thread.
-		    return;
+			// XXX send an event to the application and stop the
+			// thread.
+			throw x;
+		    }
 		}
-	    } catch (IOException x) {
-		// This is fatal to the receiver thread.
-		Debug.d(this, "run", "IOException: " + x.getMessage(), 2);
-		setState(UNBOUND);
-		SmppConnectionDropPacket p =
-		    new SmppConnectionDropPacket(0xffffffff);
-		p.setErrorMessage(x.getMessage());
-		notifyObservers(p);
-		return;
-	    }
 
 	    id = pak.getCommandId();
 	    st = pak.getCommandStatus();
@@ -611,6 +650,21 @@ public abstract class SmppConnection
 	    // Tell all the observers about the new packet
 	    Debug.d(this, "run", "Notifying observers..", 4);
 	    notifyObservers(pak);
+	    }
+	} catch (IOException x) {
+	    // This is fatal to the receiver thread.
+	    Debug.d(this, "run", "IOException: " + x.getMessage(), 2);
+	    setState(UNBOUND);
+	    SmppConnectionDropPacket p =
+		new SmppConnectionDropPacket(0xffffffff);
+	    p.setErrorMessage(x.getMessage());
+	    notifyObservers(p);
+	} catch (Exception x) {
+	    x.printStackTrace(System.err);
+	    // XXX handle?
+	} finally {
+	    // make sure other code doesn't try to restart the rcvThread..
+	    rcvThread = null;
 	}
     }
 
