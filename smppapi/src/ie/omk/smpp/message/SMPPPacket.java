@@ -190,7 +190,7 @@ public abstract class SMPPPacket
     /** Create a new SMPPPacket with specified Id.
       * @param id Command Id value
       */
-    public SMPPPacket(int id)
+    protected SMPPPacket(int id)
     {
 	this.commandId = id;
 
@@ -201,9 +201,8 @@ public abstract class SMPPPacket
     /** Create a new SMPPPacket with specified Id and sequence number.
       * @param id Command Id value
       * @param seqNum Command Sequence number
-      * @deprecated
       */
-    public SMPPPacket(int id, int seqNum)
+    protected SMPPPacket(int id, int seqNum)
     {
 	this.commandId = id;
 	this.sequenceNum = seqNum;
@@ -217,7 +216,7 @@ public abstract class SMPPPacket
       * @exception IOException if there's an error reading from the input
       * stream.
       */
-    public SMPPPacket(InputStream in)
+    protected SMPPPacket(InputStream in)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	// Flags should always be created (rest of code assumes it is.)
@@ -753,6 +752,9 @@ public abstract class SMPPPacket
 
 	for (int loop = 0; loop < 4; loop++)
 	    b[loop] = (byte)in.read();
+
+	if (b[3] == -1)
+	    throw new EOFException("EOS reached. No data available");
 
 	int cmdLen = SMPPIO.bytesToInt(b, 0, 4);
 	byte[] buf = new byte[cmdLen];

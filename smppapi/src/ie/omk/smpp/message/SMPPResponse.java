@@ -36,16 +36,15 @@ public abstract class SMPPResponse
 {
     /** Construct a new SMPPResponse with specified command id.
       */
-    public SMPPResponse(int id)
+    protected SMPPResponse(int id)
     {
 	super(id);
     }
 
     /** Construct a new SMPPResponse with specified sequence number.
       * @param seqNum The sequence number to use
-      * @deprecated
       */
-    public SMPPResponse(int id, int seqNum)
+    protected SMPPResponse(int id, int seqNum)
     {
 	super(id, seqNum);
     }
@@ -56,7 +55,7 @@ public abstract class SMPPResponse
       * @exception java.io.IOException if there's an error reading from the
       * input stream.
       */
-    public SMPPResponse(InputStream in)
+    protected SMPPResponse(InputStream in)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super(in);

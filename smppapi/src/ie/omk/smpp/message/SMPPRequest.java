@@ -36,16 +36,15 @@ public abstract class SMPPRequest
 
     /** Construct a new SMPPRequest with specified id.
       */
-    public SMPPRequest(int id)
+    protected SMPPRequest(int id)
     {
 	super(id);
     }
 
     /** Construct a new SMPPRequest with specified sequence number.
       * @param seqNum The sequence number to use
-      * @deprecated
       */
-    public SMPPRequest(int id, int seqNum)
+    protected SMPPRequest(int id, int seqNum)
     {
 	super(id, seqNum);
     }
@@ -56,7 +55,7 @@ public abstract class SMPPRequest
       * @exception java.io.IOException if there's an error reading from the
       * input stream.
       */
-    public SMPPRequest(InputStream in)
+    protected SMPPRequest(InputStream in)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super(in);
