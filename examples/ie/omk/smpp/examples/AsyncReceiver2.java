@@ -44,7 +44,7 @@ import org.apache.log4j.Logger;
  * and delivers received events to appropriate methods in
  * the adapter implementation.
  * 
- * @see ie.omk.smpp.examples.ParseArgs ParseArgs class for details on running
+ * @see ie.omk.smpp.examples.ParseArgs ParseArgs for details on running
  * this class.
  */
 public class AsyncReceiver2 {

@@ -43,7 +43,7 @@ import org.apache.log4j.Logger;
  * implementing the ConnectionObserver interface and directly
  * handling all receiver events.
  * 
- * @see ie.omk.smpp.examples.ParseArgs for details on running
+ * @see ie.omk.smpp.examples.ParseArgs ParseArgs for details on running
  * this class.
  */
 public class AsyncReceiver implements ConnectionObserver {

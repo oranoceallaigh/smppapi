@@ -39,7 +39,7 @@ import org.apache.log4j.Logger;
  * This class simply binds to the server, submits a message,
  * and then unbinds.
  * 
- * @see ie.omk.smpp.examples.ParseArgs ParseArgs class for details on running
+ * @see ie.omk.smpp.examples.ParseArgs ParseArgs for details on running
  * this class.
  */
 public class SyncTransmitter {
