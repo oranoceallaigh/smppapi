@@ -64,10 +64,10 @@ public class SyncTransmitter
 		    GSMConstants.GSM_NPI_UNKNOWN,
 		    "353861234567");
 
-	    SubmitSMResp smr = trans.submitMessage(
-		    "This is a short message",
-		    new MsgFlags(),
-		    destination);
+	    SubmitSM sm = new SubmitSM();
+	    sm.setDestination(destination);
+	    sm.setMessageText("This is a short message");
+	    SubmitSMResp smr = (SubmitSMResp)trans.sendRequest(sm);
 
 	    if (smr.getCommandStatus() != 0) {
 		System.err.println("Error submitting message.");
@@ -77,7 +77,7 @@ public class SyncTransmitter
 	    }
 
 	    // Send a UCS2 encoded message...
-	    SubmitSM sm = new SubmitSM();
+	    sm = new SubmitSM();
 	    sm.setDestination(new SmeAddress(
 			GSMConstants.GSM_TON_UNKNOWN,
 			GSMConstants.GSM_NPI_UNKNOWN,

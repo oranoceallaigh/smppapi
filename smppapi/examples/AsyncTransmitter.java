@@ -36,6 +36,7 @@ import ie.omk.smpp.net.TcpLink;
 import ie.omk.smpp.message.SMPPPacket;
 import ie.omk.smpp.message.MsgFlags;
 import ie.omk.smpp.message.SmeAddress;
+import ie.omk.smpp.message.SubmitSM;
 import ie.omk.smpp.message.SubmitSMResp;
 import ie.omk.smpp.message.BindTransmitterResp;
 import ie.omk.smpp.util.GSMConstants;
@@ -117,8 +118,10 @@ public class AsyncTransmitter
 		    GSMConstants.GSM_TON_UNKNOWN,
 		    GSMConstants.GSM_NPI_UNKNOWN,
 		    props.getProperty("esme.destination"));
-	    MsgFlags flags = new MsgFlags();
-	    trans.submitMessage(message, flags, destination);
+	    SubmitSM sm = new SubmitSM();
+	    sm.setDestination(destination);
+	    sm.setMessageText(message);
+	    trans.sendRequest(sm);
 	} catch (IOException x) {
 	    x.printStackTrace(System.err);
 	} catch (SMPPException x) {
