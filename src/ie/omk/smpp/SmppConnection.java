@@ -56,7 +56,7 @@ public abstract class SmppConnection
     public static final int	BOUND = 2;
 
     /** Connection state: waiting for successful acknowledgement to unbind
-      * request.
+      * request or waiting for application to respond to unbind request.
       */
     public static final int	UNBINDING = 3;
 
@@ -281,6 +281,10 @@ public abstract class SmppConnection
 	    resp.writeTo(this.outLink);
 	    this.outLink.flush();
 	    Debug.send(resp);
+
+	    if (resp.getCommandId() == SMPPPacket.ESME_UBD_RESP
+		    && resp.getCommandStatus() == 0)
+		setState(UNBOUND);
 	}
     }
 
@@ -294,7 +298,7 @@ public abstract class SmppConnection
       * @return The bind transmitter or bind receiver response or null if
       * asynchronous communications is in use.
       * @exception java.io.IOException If a communications error occurs
-      * @exception ie.omk.smpp.SMPPExceptione XXX when?
+      * @exception ie.omk.smpp.SMPPException XXX when?
       * @see ie.omk.smpp.SmppTransmitter#bind
       * @see ie.omk.smpp.SmppReceiver#bind
       */
@@ -583,6 +587,11 @@ public abstract class SmppConnection
 		    case SMPPPacket.ESME_BNDRCV_RESP:
 			if (state == BINDING && st == 0)
 			    setState(BOUND);
+			break;
+
+		    case SMPPPacket.ESME_UBD:
+			Debug.d(this, "run", "SMSC requested unbind.", 2);
+			setState(UNBINDING);
 			break;
 
 		    case SMPPPacket.ESME_UBD_RESP:
