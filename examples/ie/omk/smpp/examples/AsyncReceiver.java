@@ -23,32 +23,29 @@
  */
 package ie.omk.smpp.examples;
 
-import java.io.IOException;
-
-import java.util.Date;
-import java.util.Vector;
-
-import ie.omk.smpp.Address;
 import ie.omk.smpp.Connection;
-import ie.omk.smpp.SMPPException;
-
 import ie.omk.smpp.event.ConnectionObserver;
-import ie.omk.smpp.event.SMPPEvent;
 import ie.omk.smpp.event.ReceiverExitEvent;
-
+import ie.omk.smpp.event.SMPPEvent;
 import ie.omk.smpp.message.BindResp;
 import ie.omk.smpp.message.DeliverSM;
+import ie.omk.smpp.message.SMPPPacket;
 import ie.omk.smpp.message.Unbind;
 import ie.omk.smpp.message.UnbindResp;
-import ie.omk.smpp.message.SMPPPacket;
 
-import ie.omk.smpp.util.GSMConstants;
+import java.io.IOException;
+import java.util.Date;
 
 import org.apache.log4j.Logger;
 
-/** Example class to submit a message to a SMSC.
-  * This class simply binds to the server, submits a message and then unbinds.
-  */
+/** Example SMPP receiver using asynchronous communications.
+ * This example demonstrates asynchronous communications by
+ * implementing the ConnectionObserver interface and directly
+ * handling all receiver events.
+ * 
+ * @see ie.omk.smpp.examples.ParseArgs for details on running
+ * this class.
+ */
 public class AsyncReceiver implements ConnectionObserver {
 
     private Logger logger = Logger.getLogger("ie.omk.smpp.examples");
@@ -177,7 +174,7 @@ public class AsyncReceiver implements ConnectionObserver {
 
 	    // Bind to the SMSC
 	    logger.info("Binding to the SMSC..");
-	    BindResp resp = myConnection.bind(myConnection.RECEIVER,
+	    BindResp resp = myConnection.bind(Connection.RECEIVER,
 		    (String)myArgs.get(ParseArgs.SYSTEM_ID),
 		    (String)myArgs.get(ParseArgs.PASSWORD),
 		    (String)myArgs.get(ParseArgs.SYSTEM_TYPE),
@@ -188,7 +185,7 @@ public class AsyncReceiver implements ConnectionObserver {
 	    logger.info("Hit a key to issue an unbind..");
 	    System.in.read();
 
-	    if (myConnection.getState() == myConnection.BOUND) {
+	    if (myConnection.getState() == Connection.BOUND) {
 		logger.info("Sending unbind request..");
 		myConnection.unbind();
 	    }

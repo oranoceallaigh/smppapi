@@ -22,20 +22,26 @@
  */
 package ie.omk.smpp.examples;
 
-import java.util.HashMap;
-
 import ie.omk.smpp.Address;
 import ie.omk.smpp.Connection;
-import ie.omk.smpp.SMPPException;
+import ie.omk.smpp.message.BindResp;
+import ie.omk.smpp.message.SMPPPacket;
+import ie.omk.smpp.message.SubmitSM;
+import ie.omk.smpp.message.SubmitSMResp;
+import ie.omk.smpp.message.UnbindResp;
 
-import ie.omk.smpp.message.*;
-import ie.omk.smpp.util.BinaryEncoding;
-import ie.omk.smpp.util.DefaultAlphabetEncoding;
-import ie.omk.smpp.util.GSMConstants;
-import ie.omk.smpp.util.UCS2Encoding;
+import java.util.HashMap;
 
 import org.apache.log4j.Logger;
 
+/** Example class to submit a message to a SMSC using synchronous
+ * communication.
+ * This class simply binds to the server, submits a message,
+ * and then unbinds.
+ * 
+ * @see ie.omk.smpp.examples.ParseArgs ParseArgs class for details on running
+ * this class.
+ */
 public class SyncTransmitter {
 
     private HashMap myArgs = new HashMap();
@@ -64,7 +70,7 @@ public class SyncTransmitter {
 	    logger.info("Binding to the SMSC");
 
 	    // Bind the short way:
-	    BindResp resp = myConnection.bind(myConnection.TRANSMITTER,
+	    BindResp resp = myConnection.bind(Connection.TRANSMITTER,
 		    (String)myArgs.get(ParseArgs.SYSTEM_ID),
 		    (String)myArgs.get(ParseArgs.PASSWORD),
 		    (String)myArgs.get(ParseArgs.SYSTEM_TYPE),

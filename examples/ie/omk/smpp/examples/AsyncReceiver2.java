@@ -23,28 +23,29 @@
  */
 package ie.omk.smpp.examples;
 
-import java.io.IOException;
-
-import java.util.Date;
-
+import ie.omk.smpp.Connection;
+import ie.omk.smpp.event.ReceiverExitEvent;
+import ie.omk.smpp.event.SMPPEventAdapter;
 import ie.omk.smpp.message.BindResp;
 import ie.omk.smpp.message.DeliverSM;
 import ie.omk.smpp.message.Unbind;
 import ie.omk.smpp.message.UnbindResp;
-import ie.omk.smpp.Address;
 
-import ie.omk.smpp.Connection;
-import ie.omk.smpp.SMPPException;
-
-import ie.omk.smpp.event.SMPPEvent;
-import ie.omk.smpp.event.SMPPEventAdapter;
-import ie.omk.smpp.event.SMPPEventAdapter;
-import ie.omk.smpp.event.ReceiverExitEvent;
+import java.io.IOException;
+import java.util.Date;
 
 import org.apache.log4j.Logger;
 
 
-/** Example asynchronous receiver using the SMPPEventAdapter class.
+/** Example SMPP receiver using asynchronous communications.
+ * This example demonstrates asynchronous communications using
+ * the SMPPEventAdapter. The SMPPEventAdapter is a utility class
+ * which implements the ConnectionObserver interface for you
+ * and delivers received events to appropriate methods in
+ * the adapter implementation.
+ * 
+ * @see ie.omk.smpp.examples.ParseArgs ParseArgs class for details on running
+ * this class.
  */
 public class AsyncReceiver2 {
 
@@ -109,7 +110,7 @@ public class AsyncReceiver2 {
 
 	    // bind to the SMSC as a receiver
 	    logger.info("Binding to the SMSC..");
-	    BindResp resp = myConnection.bind(myConnection.RECEIVER,
+	    BindResp resp = myConnection.bind(Connection.RECEIVER,
 		    (String)myArgs.get(ParseArgs.SYSTEM_ID),
 		    (String)myArgs.get(ParseArgs.PASSWORD),
 		    (String)myArgs.get(ParseArgs.SYSTEM_TYPE),

@@ -423,7 +423,7 @@ public class Connection
       * By default, the listener thread will automatically ack an enquire_link
       * message from the Smsc so as not to lose the connection.  This
       * can be turned off with this method.
-      * @param true to activate automatic acknowledgment, false to disable
+      * @param b true to activate automatic acknowledgment, false to disable
       */
     public void autoAckLink(boolean b)
     {
@@ -432,7 +432,7 @@ public class Connection
 
     /** Set the behaviour of automatically acking Deliver_Sm's from the Smsc.
       * By default the listener thread will <b>not</b> acknowledge a message.
-      * @param true to activate this function, false to deactivate.
+      * @param b true to activate this function, false to deactivate.
       */
     public void autoAckMessages(boolean b)
     {
@@ -643,7 +643,7 @@ public class Connection
     }
 
     /** Send an smpp response packet to the SMSC
-      * @param r The response packet to send to the SMSC
+      * @param resp The response packet to send to the SMSC
       * @throws java.io.IOException If an I/O error occurs while writing the
       * response packet to the output stream.
       */
