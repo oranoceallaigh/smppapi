@@ -233,7 +233,7 @@ public class QueryMsgDetailsResp
 		    deliveryTime.toString().length() : 0)
 		+ ((expiryTime != null) ?
 		    expiryTime.toString().length() : 0)
-		+ ((message != null) ? message.length() : 0)
+		+ ((message != null) ? message.length : 0)
 		+ ((messageId != null) ? messageId.length() : 0)
 		+ ((finalDate != null) ? 
 		    finalDate.toString().length() : 0));
@@ -258,7 +258,7 @@ public class QueryMsgDetailsResp
     {
 	int smLength = 0;
 	if(message != null)
-	    smLength = message.length();
+	    smLength = message.length;
 
 	synchronized (destinationTable) {
 	    int noOfDests = destinationTable.size();

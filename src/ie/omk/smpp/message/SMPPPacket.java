@@ -28,9 +28,13 @@ import java.net.SocketException;
 import ie.omk.smpp.SMPPException;
 import ie.omk.smpp.InvalidMessageIDException;
 import ie.omk.smpp.StringTooLongException;
+
+import ie.omk.smpp.util.DefaultAlphabetExt;
+import ie.omk.smpp.util.GSMConstants;
 import ie.omk.smpp.util.SMPPDate;
 import ie.omk.smpp.util.SMPPIO;
-import ie.omk.smpp.util.GSMConstants;
+import ie.omk.smpp.util.SMSAlphabet;
+
 import ie.omk.debug.Debug;
 
 /** This is the abstract class that all SMPP messages are inherited from.
@@ -186,6 +190,8 @@ public abstract class SMPPPacket
     /** Error associated with message */
     protected int		errorCode = 0;
 
+    /** Alphabet to use to encode and decode the text of an SM. */
+    private SMSAlphabet		alphabet = new DefaultAlphabetExt();
 
     /** Create a new SMPPPacket with specified Id.
       * @param id Command Id value
@@ -489,16 +495,15 @@ public abstract class SMPPPacket
     }
 
     /** Set the text of the message (max 160 characters).
-      * This method will encode the message text using the US-ASCII encoding.
-      * If you wish to use an alternate message encoding, use setMessage.
-      * This method allows 160 characters to be sent because the SMSC will pack
-      * the 7-bit characters using the default SMS alphabet into the 140 octet
-      * message. For every 8 US-ASCII characters, you can fit 9 SMS alphabet
-      * characters. That works out as 160 - (160 / 8) = 140
-      * // XXX what about using 'extended' characters??
+      * This method will encode the Java String using the default SMS alphabet.
+      * The default alphabet is capable of packing 160 of it's 7-bit characters
+      * into the allowed 140 octets of message payload.<p>
+      * The data coding value will be set appropriatly by querying the 
+      * SMSAlphabet.getDataCoding value.
       * @param text The short message text.
       * @exception ie.omk.smpp.StringTooLongException if the message is too
       * long.
+      * @see ie.omk.smpp.util.SMSAlphabet#getDataCoding
       */
     public void setMessageText(String text)
 	throws ie.omk.smpp.SMPPException
@@ -512,7 +517,8 @@ public abstract class SMPPPacket
 	    Debug.warn(this, "setMessageText", "Message too long");
 	    throw new StringTooLongException(160);
 	} else {
-	    this.message = text.getBytes("US-ASCII");
+	    this.message = alphabet.encodeString(text);
+	    flags.data_coding = (0 | alphabet.getDataCoding());
 	    Debug.d(this, "setMessageText", text, 4);
 	}
     }
@@ -579,11 +585,14 @@ public abstract class SMPPPacket
     }
 
     /** Get the text of the message.
-      * This method decodes the message bytes as US-ASCII encoded bytes.
+      * The default alphabet is used to attempt to decode the bytes of the
+      * message payload into text.
+      * @see ie.omk.smpp.util.SMSAlphabet
+      * @see ie.omk.smpp.util.DefaultAlphabetExt
       */
     public String getMessageText()
     {
-	return (new String(this.message, "US-ASCII"));
+	return (alphabet.decodeString(this.message));
     }
 
     /** Get the length of the message text.
