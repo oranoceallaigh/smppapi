@@ -8,6 +8,3 @@ TODO list
 
     SMPP v3.4 support
 
-    Make thread-safe
-
-    Java 2 compliant (uses no deprecated APIs)
