@@ -27,17 +27,12 @@ package ie.omk.smpp.util;
   * Implementations of this interface convert Java Unicode strings into a series
   * of bytes representing the String in a particular SMS alphabet.
   */
-public interface SMSAlphabet
+public abstract class AlphabetEncoding
+    extends ie.omk.smpp.util.MessageEncoding
 {
-    /** Convert an SMS message into a Java String. */
-    public String decodeString(byte[] b);
+    /** Convert SMS message text into a Java String. */
+    public abstract String decodeString(byte[] b);
 
-    /** Convert a Java String into an SMS message. */
-    public byte[] encodeString(String s);
-
-    /** Return the valid data_coding value for this alphabet.
-      * This method should return an integer with only bits in the least
-      * significant nibble set. See GSM 03.38.
-      */
-    public int getDataCoding();
+    /** Convert a Java String into SMS message text. */
+    public abstract byte[] encodeString(String s);
 }
