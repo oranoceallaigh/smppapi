@@ -24,8 +24,6 @@
 package ie.omk.smpp.util;
 
 import ie.omk.smpp.BadCommandIDException;
-import ie.omk.smpp.SMPPException;
-
 import ie.omk.smpp.message.AlertNotification;
 import ie.omk.smpp.message.BindReceiver;
 import ie.omk.smpp.message.BindReceiverResp;

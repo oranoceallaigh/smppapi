@@ -23,80 +23,48 @@
  */
 package ie.omk.smpp;
 
-import java.io.EOFException;
-import java.io.IOException;
-
-import java.net.SocketTimeoutException;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-
 import ie.omk.smpp.event.ConnectionObserver;
 import ie.omk.smpp.event.EventDispatcher;
-import ie.omk.smpp.event.SimpleEventDispatcher;
-import ie.omk.smpp.event.SMPPEvent;
 import ie.omk.smpp.event.ReceiverExceptionEvent;
 import ie.omk.smpp.event.ReceiverExitEvent;
 import ie.omk.smpp.event.ReceiverStartEvent;
-
-import ie.omk.smpp.message.AlertNotification;
+import ie.omk.smpp.event.SMPPEvent;
+import ie.omk.smpp.event.SimpleEventDispatcher;
 import ie.omk.smpp.message.Bind;
 import ie.omk.smpp.message.BindReceiver;
-import ie.omk.smpp.message.BindReceiverResp;
 import ie.omk.smpp.message.BindResp;
 import ie.omk.smpp.message.BindTransceiver;
-import ie.omk.smpp.message.BindTransceiverResp;
 import ie.omk.smpp.message.BindTransmitter;
-import ie.omk.smpp.message.BindTransmitterResp;
-import ie.omk.smpp.message.CancelSM;
-import ie.omk.smpp.message.CancelSMResp;
-import ie.omk.smpp.message.DataSM;
-import ie.omk.smpp.message.DataSMResp;
 import ie.omk.smpp.message.DeliverSM;
 import ie.omk.smpp.message.DeliverSMResp;
 import ie.omk.smpp.message.EnquireLink;
 import ie.omk.smpp.message.EnquireLinkResp;
-import ie.omk.smpp.message.GenericNack;
 import ie.omk.smpp.message.InvalidParameterValueException;
-import ie.omk.smpp.message.ParamRetrieve;
-import ie.omk.smpp.message.ParamRetrieveResp;
-import ie.omk.smpp.message.QueryLastMsgs;
-import ie.omk.smpp.message.QueryLastMsgsResp;
-import ie.omk.smpp.message.QueryMsgDetails;
-import ie.omk.smpp.message.QueryMsgDetailsResp;
-import ie.omk.smpp.message.QuerySM;
-import ie.omk.smpp.message.QuerySMResp;
-import ie.omk.smpp.message.ReplaceSM;
-import ie.omk.smpp.message.ReplaceSMResp;
 import ie.omk.smpp.message.SMPPPacket;
 import ie.omk.smpp.message.SMPPProtocolException;
 import ie.omk.smpp.message.SMPPRequest;
 import ie.omk.smpp.message.SMPPResponse;
-import ie.omk.smpp.message.SubmitMulti;
-import ie.omk.smpp.message.SubmitMultiResp;
-import ie.omk.smpp.message.SubmitSM;
-import ie.omk.smpp.message.SubmitSMResp;
 import ie.omk.smpp.message.Unbind;
 import ie.omk.smpp.message.UnbindResp;
-
 import ie.omk.smpp.message.tlv.Tag;
-
 import ie.omk.smpp.net.SmscLink;
 import ie.omk.smpp.net.TcpLink;
-
-import ie.omk.smpp.util.AlphabetEncoding;
 import ie.omk.smpp.util.APIConfig;
+import ie.omk.smpp.util.AlphabetEncoding;
 import ie.omk.smpp.util.DefaultSequenceScheme;
 import ie.omk.smpp.util.PacketFactory;
 import ie.omk.smpp.util.PropertyNotFoundException;
-import ie.omk.smpp.util.SequenceNumberScheme;
-import ie.omk.smpp.util.SMPPDate;
 import ie.omk.smpp.util.SMPPIO;
-
+import ie.omk.smpp.util.SequenceNumberScheme;
 import ie.omk.smpp.version.SMPPVersion;
 import ie.omk.smpp.version.VersionException;
 
-import org.apache.log4j.Level;
+import java.io.EOFException;
+import java.io.IOException;
+import java.net.SocketTimeoutException;
+import java.util.ArrayList;
+import java.util.Iterator;
+
 import org.apache.log4j.Logger;
 
 /** SMPP client connection (ESME). An SMPP Connection represents any kind of

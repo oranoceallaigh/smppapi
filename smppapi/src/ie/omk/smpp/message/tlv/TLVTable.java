@@ -24,17 +24,14 @@
  */
 package ie.omk.smpp.message.tlv;
 
+import ie.omk.smpp.util.SMPPIO;
+
 import java.io.IOException;
 import java.io.OutputStream;
-
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Set;
 
 import org.apache.log4j.Logger;
-
-import ie.omk.smpp.util.SMPPIO;
 
 /** Table of optional parameters (TLVs). <p>TLV stands for Tag/Length/Value and was
  * a capability added to SMPP version 3.4. It is an extensible means of adding

@@ -23,9 +23,6 @@
  */
 package ie.omk.smpp.message;
 
-import ie.omk.smpp.util.SMPPIO;
-import ie.omk.smpp.BadCommandIDException;
-import org.apache.log4j.Logger;
 
 
 /** SMSC response to a ReplaceSM request.

@@ -23,30 +23,21 @@
  */
 package ie.omk.smpp.message;
 
-import java.io.IOException;
-import java.io.OutputStream;
-
-import java.net.SocketException;
-
-import java.util.Date;
-
-import org.apache.log4j.Logger;
-
 import ie.omk.smpp.Address;
-import ie.omk.smpp.SMPPException;
-
-import ie.omk.smpp.message.tlv.Tag;
 import ie.omk.smpp.message.tlv.TLVTable;
-
+import ie.omk.smpp.message.tlv.Tag;
 import ie.omk.smpp.util.AlphabetEncoding;
 import ie.omk.smpp.util.AlphabetFactory;
 import ie.omk.smpp.util.BinaryEncoding;
-import ie.omk.smpp.util.GSMConstants;
 import ie.omk.smpp.util.MessageEncoding;
 import ie.omk.smpp.util.SMPPDate;
 import ie.omk.smpp.util.SMPPIO;
-
 import ie.omk.smpp.version.SMPPVersion;
+
+import java.io.OutputStream;
+import java.util.Date;
+
+import org.apache.log4j.Logger;
 
 
 /** This is the abstract class that all SMPP messages are inherited from.
@@ -720,7 +711,7 @@ public abstract class SMPPPacket
 	    if ((start < 0) || (len < 0) || message.length < (start + len))
 		throw new ArrayIndexOutOfBoundsException("Not enough bytes in array");
 
-	    if (len > version.getMaxLength(version.MESSAGE_PAYLOAD))
+	    if (len > version.getMaxLength(SMPPVersion.MESSAGE_PAYLOAD))
 		throw new InvalidParameterValueException("Message is too long", message);
 
 	    this.message = new byte[len];

@@ -23,18 +23,11 @@
  */
 package ie.omk.smpp.message;
 
-import java.io.IOException;
-import java.io.OutputStream;
-
 import ie.omk.smpp.Address;
-import ie.omk.smpp.BadCommandIDException;
-import ie.omk.smpp.SMPPException;
-
 import ie.omk.smpp.util.GSMConstants;
 import ie.omk.smpp.util.SMPPIO;
-import ie.omk.smpp.util.SMPPDate;
 
-import org.apache.log4j.Logger;
+import java.io.OutputStream;
 
 /** Transfer data between the SC and an ESME. This message type is used to
  * transfer data both by the SMSC and the ESME. The command can be used as a

@@ -24,12 +24,9 @@
 package ie.omk.smpp.version;
 
 import ie.omk.smpp.Address;
-
 import ie.omk.smpp.message.SMPPPacket;
-
 import ie.omk.smpp.util.AlphabetEncoding;
 import ie.omk.smpp.util.MessageEncoding;
-import ie.omk.smpp.util.SMPPDate;
 
 public class SMPPVersion34 extends SMPPVersion {
 

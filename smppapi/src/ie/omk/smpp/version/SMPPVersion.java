@@ -24,10 +24,8 @@
 package ie.omk.smpp.version;
 
 import ie.omk.smpp.Address;
-
 import ie.omk.smpp.util.AlphabetEncoding;
 import ie.omk.smpp.util.MessageEncoding;
-import ie.omk.smpp.util.SMPPDate;
 
 
 /** Class representing an SMPP protocol version. Instances of this object are

@@ -23,22 +23,15 @@
  */
 package ie.omk.smpp.message;
 
-import java.io.IOException;
-import java.io.OutputStream;
+import ie.omk.smpp.Address;
+import ie.omk.smpp.ErrorAddress;
+import ie.omk.smpp.util.SMPPIO;
 
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-
-import ie.omk.smpp.Address;
-import ie.omk.smpp.ErrorAddress;
-import ie.omk.smpp.SMPPException;
-import ie.omk.smpp.BadCommandIDException;
-
-import ie.omk.smpp.util.SMPPIO;
-
-import org.apache.log4j.Logger;
 
 /** Submit to multiple destinations response.
   * Relevant inherited fields from SMPPPacket:<br>

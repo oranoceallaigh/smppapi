@@ -24,7 +24,6 @@
 
 package ie.omk.smpp.util;
 
-import java.util.Hashtable;
 
 /** SMS Alphabet to Java String mapping interface.
   * Implementations of this interface convert Java Unicode strings into a series

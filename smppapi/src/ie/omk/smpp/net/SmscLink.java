@@ -23,19 +23,17 @@
  */
 package ie.omk.smpp.net;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.EOFException;
-import java.io.InputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-
-import ie.omk.smpp.SMPPException;
 import ie.omk.smpp.message.SMPPPacket;
-
 import ie.omk.smpp.util.APIConfig;
 import ie.omk.smpp.util.PropertyNotFoundException;
 import ie.omk.smpp.util.SMPPIO;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.EOFException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 import org.apache.log4j.Logger;
 
@@ -109,8 +107,8 @@ public abstract class SmscLink
 	int inSize = -1, outSize = -1;
 	APIConfig cfg = APIConfig.getInstance();
 
-	inSize = getBufferSize(cfg, cfg.LINK_BUFFERSIZE_IN);
-	outSize = getBufferSize(cfg, cfg.LINK_BUFFERSIZE_OUT);
+	inSize = getBufferSize(cfg, APIConfig.LINK_BUFFERSIZE_IN);
+	outSize = getBufferSize(cfg, APIConfig.LINK_BUFFERSIZE_OUT);
 
 	if (logger.isDebugEnabled()) {
 	    logger.debug("IN buffer size: " + inSize);

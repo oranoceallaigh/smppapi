@@ -23,19 +23,13 @@
  */
 package ie.omk.smpp.message;
 
-import java.io.IOException;
-import java.io.OutputStream;
-
 import ie.omk.smpp.Address;
-import ie.omk.smpp.BadCommandIDException;
-import ie.omk.smpp.SMPPException;
-
-import ie.omk.smpp.util.InvalidDateFormatException;
 import ie.omk.smpp.util.GSMConstants;
+import ie.omk.smpp.util.InvalidDateFormatException;
 import ie.omk.smpp.util.SMPPDate;
 import ie.omk.smpp.util.SMPPIO;
 
-import org.apache.log4j.Logger;
+import java.io.OutputStream;
 
 /** Response to Query message details.
   * Gives all details of a specified message at the SMSC.

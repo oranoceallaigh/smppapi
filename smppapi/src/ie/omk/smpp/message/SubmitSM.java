@@ -23,19 +23,13 @@
  */
 package ie.omk.smpp.message;
 
-import java.io.IOException;
-import java.io.OutputStream;
-
 import ie.omk.smpp.Address;
-import ie.omk.smpp.BadCommandIDException;
-import ie.omk.smpp.SMPPException;
-
-import ie.omk.smpp.util.InvalidDateFormatException;
 import ie.omk.smpp.util.GSMConstants;
-import ie.omk.smpp.util.SMPPIO;
+import ie.omk.smpp.util.InvalidDateFormatException;
 import ie.omk.smpp.util.SMPPDate;
+import ie.omk.smpp.util.SMPPIO;
 
-import org.apache.log4j.Logger;
+import java.io.OutputStream;
 
 /** Submit a message to the SMSC for delivery to a single destination.
   * Relevant inherited fields from SMPPPacket:<br>

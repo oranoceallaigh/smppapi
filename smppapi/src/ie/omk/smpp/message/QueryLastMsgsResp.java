@@ -23,14 +23,11 @@
  */
 package ie.omk.smpp.message;
 
-import java.io.IOException;
-import java.io.OutputStream;
+import ie.omk.smpp.util.SMPPIO;
 
+import java.io.OutputStream;
 import java.util.Iterator;
 import java.util.Vector;
-
-import ie.omk.smpp.SMPPException;
-import ie.omk.smpp.util.SMPPIO;
 
 /** SMSC response to a QueryLastMsgs request.
   * @author Oran Kelly
