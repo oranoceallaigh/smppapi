@@ -39,8 +39,8 @@ import ie.omk.debug.Debug;
   *   source
   *   deliveryTime
   *   expiryTime
-  *   flags.registered
-  *   flags.default_msg
+  *   registered
+  *   defaultMsg
   *   message
   * </ul>
   * @author Oran Kelly
@@ -85,7 +85,7 @@ public class ReplaceSM
 
 	int smLength = 0;
 	String delivery, valid;
-	flags = new MsgFlags();
+
 	messageId = SMPPIO.readCString(in);
 	source = new SmeAddress(in);
 
@@ -96,8 +96,8 @@ public class ReplaceSM
 	if (valid != null)
 	    expiryTime = new SMPPDate(valid);
 
-	flags.registered = (SMPPIO.readInt(in, 1) == 0) ? false : true;
-	flags.default_msg = SMPPIO.readInt(in, 1);
+	registered = (SMPPIO.readInt(in, 1) == 0) ? false : true;
+	defaultMsg = SMPPIO.readInt(in, 1);
 	smLength = SMPPIO.readInt(in, 1);
 
 	if (smLength > 0) {
@@ -152,8 +152,8 @@ public class ReplaceSM
 
 	SMPPIO.writeCString(dt, out);
 	SMPPIO.writeCString(et, out);
-	SMPPIO.writeInt(flags.registered ? 1 : 0, 1, out);
-	SMPPIO.writeInt(flags.default_msg, 1, out);
+	SMPPIO.writeInt(registered ? 1 : 0, 1, out);
+	SMPPIO.writeInt(defaultMsg, 1, out);
 	SMPPIO.writeInt(smLength, 1, out);
 	if (message != null)
 	    out.write(message);
