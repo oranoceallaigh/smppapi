@@ -22,97 +22,215 @@
  */
 package ie.omk.debug;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
+
+import java.util.Properties;
+
+import ie.omk.smpp.message.SMPPPacket;
+
+/** Debugging helper.
+  * By default, this class has everything turned off. It can be configured
+  * manually by an application by calling the various methods, or it can be
+  * configured at run time using a properties file. To configure using a
+  * properties file, set a system property on the command line called
+  * 'smppapi.debug' and give it a value of a file to load. For example:<br>
+  * <code>java -Dsmppapi.debug=./smppdebug.properties ie.omk.smpp...</code><br>
+  * The following properties are read:
+  * <table cols="3" border="1" width="60%">
+  *   <tr>
+  *     <td><b>Property name</b></td>
+  *     <td><b>Type</b></td>
+  *     <td><b>Description</b></td>
+  *   </tr>
+  *
+  *   <tr>
+  *     <td>debug.info</td>
+  *     <td>boolean</td>
+  *     <td>Turn on information messages</td>
+  *   </tr>
+  *
+  *   <tr>
+  *     <td>debug.warn</td>
+  *     <td>boolean</td>
+  *     <td>Turn on warning messages</td>
+  *   </tr>
+  *
+  *   <tr>
+  *     <td>debug.level</td>
+  *     <td>integer</td>
+  *     <td>Turn on debug messages at this level</td>
+  *   </tr>
+  *
+  *   <tr>
+  *     <td>debug.stdout</td>
+  *     <td>boolean</td>
+  *     <td>By default, messages are send to System.err. Set this to true
+  *         to cause messages to be sent to System.out.</td>
+  *   </tr>
+  * </table>
+  */
 public class Debug
 {
-    private static java.io.FileOutputStream file = null;
+    private static OutputStream indump = null;
+    private static OutputStream outdump = null;
+
+    private static ByteArrayOutputStream inhelp = null;
+    private static ByteArrayOutputStream outhelp = null;
+
+    private static PrintStream		out = System.err;
 
     private static int			debugLevel = 0;
-    public static int			DBG_0 = 0;
-    public static int			DBG_1 = 1;
-    public static int			DBG_2 = 2;
-    public static int			DBG_3 = 3;
-    public static int			DBG_4 = 4;
-    public static int			DBG_5 = 5;
-    //	private static String		tabs = "\t\t\t\t\t\t\t\t\t\t\t";
-    private static String		tabs = "|---------------------";
 
-    public static boolean		dbg = false;
+    private static boolean		infoOn = false;
+    private static boolean		warning = false;
+
+    // Static initializer...see if there's a properties file!
+    static {
+	String filename = System.getProperty("smppapi.debug");
+	if (filename != null) {
+	    try {
+		Properties props = new Properties();
+		props.load(new FileInputStream(filename));
+
+		infoOn = new Boolean(
+			props.getProperty("debug.info")).booleanValue();
+		warning = new Boolean(
+			props.getProperty("debug.warn")).booleanValue();
+		int l = Integer.parseInt(props.getProperty("debug.level"));
+		if (new Boolean(
+			    props.getProperty("debug.stdout")).booleanValue())
+		    out = System.out;
+
+		setDebugLevel(l);
+	    } catch (IOException x) {
+	    }
+	}
+    }
 
     private Debug() { }
-    public static void setDebugLevel(int l)
+
+    public static void setInfo(boolean info)
+    {
+	infoOn = info;
+    }
+
+    public static void setWarning(boolean warning)
+    {
+	warning = warning;
+    }
+
+    public static void setDebugLevel(int level)
     { 
-	if(l <= 0) {
-	    debugLevel = DBG_0;
-	    dbg = false;
-	} else if(l > DBG_5) {
-	    debugLevel = DBG_5;
-	    dbg = true;
-	} else {
-	    debugLevel = l;
-	    dbg = true;
-	}
+	debugLevel = level;
+	if (debugLevel < 0)
+	    debugLevel = 0;
 
-	System.err.println("Debugger@setDebugLevel: Debug level set to "
-		+ debugLevel);
+	Debug.info(Debug.class, "setDebugLevel",
+		Integer.toString(debugLevel));
     }
 
-    public static void d(Object classt, String method, String s, int level)
+    public static void info(Object type, String method, String msg)
     {
-	String classFile = null;
-
-	if(debugLevel == 0 || level < debugLevel)
-	    return;
-
-	if(classt == null)
-	    classFile = "<null>";
-	else if (classt instanceof java.lang.Class)
-	    classFile = ((java.lang.Class)classt).getName();
-	else
-	    classFile = classt.getClass().getName();
-
-	System.err.print("#"+debugLevel+tabs.substring(0, debugLevel));
-	System.err.println(classFile
-		+ "@"
-		+ method
-		+ ": "
-		+ s);
-    }
-    /*
-       public static void d(String classFile, String method, String s, int level)
-       {
-       if(debugLevel == 0 || level < debugLevel) return;
-
-       System.err.print("#"+debugLevel+tabs.substring(0, debugLevel));
-       System.err.println(classFile + "@" + method + ": " +s);
-       }
-      */
-    public static void d(Object cf, String met, boolean b, int level)
-    {
-	d(cf, met, String.valueOf(b), level);
-    }
-    public static void d(Object cf, String met, int b, int level)
-    {
-	d(cf, met, String.valueOf(b), level);
-    }
-    public static void d(Object cf, String met, double b, int level)
-    {
-	d(cf, met, String.valueOf(b), level);
+	if (infoOn)
+	    print(type, method, msg, "Info");
     }
 
-    public static void setDumpFile(String name)
-	throws java.io.IOException
+    public static void warn(Object type, String method, String msg)
     {
-	file = new java.io.FileOutputStream(name);
+	if (warning)
+	    print(type, method, msg, "Warning");
     }
 
-    public static void dump(byte[] b, int off, int len)
+    public static void d(Object classt, String method, Object s, int level)
     {
-	try {
-	    if (file == null)
-		return;
-	    file.write(b, off, len);
-	    file.flush();
-	} catch (java.io.IOException x) {
+	String cn;
+
+	if (debugLevel >= level)
+	    print(classt, method, s.toString(), "Debug" + level);
+    }
+
+
+    public static void d(Object type, String method, boolean p, int level)
+    {
+	d(type, method, new Boolean(p), level);
+    }
+
+    public static void d(Object type, String method, short p, int level)
+    {
+	d(type, method, new Short(p), level);
+    }
+
+    public static void d(Object type, String method, int p, int level)
+    {
+	d(type, method, new Integer(p), level);
+    }
+
+    public static void d(Object type, String method, long p, int level)
+    {
+	d(type, method, new Long(p), level);
+    }
+
+    public static void d(Object type, String method, float p, int level)
+    {
+	d(type, method, new Float(p), level);
+    }
+
+    public static void d(Object type, String method, double p, int level)
+    {
+	d(type, method, new Double(p), level);
+    }
+
+
+    private static void print(Object type, String method, String msg, String s)
+    {
+	if (!(type instanceof Class))
+	    type = type.getClass();
+
+	String cn = ((Class)type).getName();
+	cn = cn.substring(((Class)type).getPackage().getName().length() + 1);
+
+	out.println(s + ":" + cn + "." + method + ":" + msg);
+    }
+
+
+    public static void setDumpStreams(OutputStream in, OutputStream out)
+    {
+	indump = in;
+	outdump = out;
+
+	inhelp = new ByteArrayOutputStream();
+	outhelp = new ByteArrayOutputStream();
+    }
+
+    public static void recv(SMPPPacket pak)
+    {
+	dump(pak, indump, inhelp);
+    }
+
+    public static void send(SMPPPacket pak)
+    {
+	dump(pak, outdump, outhelp);
+    }
+
+    private static void dump(SMPPPacket pak, OutputStream out,
+	ByteArrayOutputStream helper)
+    {
+	if (out != null) {
+	    try {
+		synchronized (out) {
+		    helper.reset();
+		    pak.writeTo(helper);
+		    out.write(helper.toByteArray());
+		}
+	    } catch (Exception x) {
+		warn(Debug.class, "dump", "Exception: " + x.getMessage());
+	    }
 	}
     }
 }
