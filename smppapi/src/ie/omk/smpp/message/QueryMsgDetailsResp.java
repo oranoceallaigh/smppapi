@@ -223,6 +223,15 @@ public class QueryMsgDetailsResp
 	return (sd);
     }
 
+    /** Get a handle to the destination table.
+      * @return a java.util.Collection containing SmeAddress_e objects.
+      */
+    public Collection getDestinationTable()
+    {
+	// XXX: should this return a deep-clone?
+	return ((Collection)this.destinationTable);
+    }
+
     /** Return the number of bytes this packet would be encoded as to an
       * OutputStream.
       * @return the number of bytes this packet would encode as.
