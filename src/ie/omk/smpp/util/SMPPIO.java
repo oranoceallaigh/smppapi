@@ -44,7 +44,7 @@ public class SMPPIO
       * @see java.io.InputStream
       */
     public static final int readInt(InputStream in, int len)
-	throws IOException
+	throws java.io.IOException
     {
 	byte[] b = new byte[len];
 	int p = 0;
@@ -58,13 +58,7 @@ public class SMPPIO
 	    p += r;
 	}
 
-	int shiftwidth = 8 * (len - 1);
-	for (int loop = 0; loop < b.length; loop++) {
-	    x |= ((int)b[loop]) << shiftwidth;
-	    shiftwidth -= 8;
-	}
-
-	return (x);
+	return (bytesToInt(b, 0, len));
     }
 
     /** Read in a NUL-terminated string from an InputStream
@@ -74,7 +68,7 @@ public class SMPPIO
       * @see java.io.InputStream
       */
     public static final String readCString(InputStream in)
-	throws IOException
+	throws java.io.IOException
     {
 	StringBuffer s = new StringBuffer();
 
@@ -87,7 +81,10 @@ public class SMPPIO
 	    b = in.read();
 	}
 
-	return (s.toString());
+	if (s.length() == 0)
+	    return (null);
+	else
+	    return (s.toString());
     }
 
     /** Read in a string of specified length from an InputStream.
@@ -99,7 +96,7 @@ public class SMPPIO
       * @see java.io.InputStream
       */
     public static final String readString(InputStream in, int len)
-	throws IOException
+	throws java.io.IOException
     {
 	if (len < 1)
 	    return (null);
@@ -117,21 +114,32 @@ public class SMPPIO
 	    s.append(new String(b, 0, r));
 	}
 
-	return (s.toString());
+	if (s.length() == 0)
+	    return (null);
+	else
+	    return (s.toString());
     }
 
 
-    /** Convert a 4-byte integer to a byte array in MSB first order
-      * @param b The array to store the integer in
-      * @param offset The position in the array to store the integer in
+    /** Convert an integer to a byte array in MSB first order
       * @param num The number to store
+      * @param len The length of the integer to convert
+      * @return An array of length len containing the byte representation of
+      * num.
       */
-    public static final void intToByteArray(byte b[], int offset, int num)
+    public static final byte[] intToBytes(int num, int len)
     {
-	b[offset]   = (byte)((num & 0xff000000) >> 24);
-	b[offset+1] = (byte)((num & 0x00ff0000) >> 16);
-	b[offset+2] = (byte)((num & 0x0000ff00) >> 8);
-	b[offset+3] = (byte)(num & 0x00000ff);
+	byte[] b = new byte[len];
+	int sw = ((len - 1) * 8);
+	int mask = (0xff << sw);
+
+	for (int l = 0; l < len; l++) {
+	    b[l] = (byte)((num & mask) >>> sw);
+	    sw -= 8;
+	    mask >>>= 8;
+	}
+
+	return (b);
     }
 
     /** Convert a byte array (or part thereof) into an integer.
@@ -147,7 +155,7 @@ public class SMPPIO
 	int sw = 8 * (size - 1);
 
 	for (int loop = 0; loop < size; loop++) {
-	    num |= ((int)b[offset + loop]) << sw;
+	    num |= ((int)b[offset + loop] & 0x00ff) << sw;
 	    sw -= 8;
 	}
 
@@ -163,19 +171,9 @@ public class SMPPIO
       * @see java.io.OutputStream
       */
     public static void writeInt(int x, int len, OutputStream out)
-	throws IOException
+	throws java.io.IOException
     {
-	byte[] b = new byte[len];
-	int sw = (8 * (len - 1));
-	int mask = (0xff << sw);
-
-	for (int loop = 0; loop < len; loop++) {
-	    b[loop] = (byte)((x & mask) >>> sw);
-
-	    mask = (mask >>> 8);
-	    sw -= 8;
-	}
-
+	byte[] b = intToBytes(x, len);
 	out.write(b);
     }
 
@@ -186,7 +184,7 @@ public class SMPPIO
       * @see java.io.OutputStream
       */
     public static void writeCString(String s, OutputStream out)
-	throws IOException
+	throws java.io.IOException
     {
 	if (s == null)
 	    s = new String();
@@ -201,7 +199,7 @@ public class SMPPIO
       * @see java.io.OutputStream
       */
     public static void writeString(String s, int len, OutputStream out)
-	throws IOException
+	throws java.io.IOException
     {
 	if (s == null)
 	    return;
@@ -219,7 +217,7 @@ public class SMPPIO
       * @see java.io.OutputStream
       */
     public static void writeString(String s, OutputStream out)
-	throws IOException
+	throws java.io.IOException
     {
 	if (s == null)
 	    return;
