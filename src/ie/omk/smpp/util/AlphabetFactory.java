@@ -88,9 +88,7 @@ public final class AlphabetFactory
      */
     public static AlphabetEncoding getAlphabet(String lang)
     {
-	// XXX Well, we only have one alphabet implementation anyway, so there's
-	// not much point in not returning that (even though it doesn't support
-	// all languages).
+	// XXX need to come up with a list of mappings here.
 	return (defaultAlphabet);
     }
 }
