@@ -339,7 +339,7 @@ public abstract class SmppConnection
 	Bind bindReq = null;
 
 	// Make sure we're not already bound
-	if(getState() != UNBOUND)
+	if (state != UNBOUND)
 	    throw new AlreadyBoundException();
 
 	// Open the network connection if necessary
