@@ -69,6 +69,24 @@ public class EncodingTest extends TestCase {
 	assertEquals(msg, enc.decodeString(msg_bytes));
     }
 
+    public void testHPRomanEncoding() {
+
+	HPRoman8Encoding enc = HPRoman8Encoding.getInstance();
+
+	// The full character table in a string..
+	String msg = " !\"#$%&,()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRS"
+	    + "TUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\u00a0ÀÂÈÊËÎÏ"
+	    + "\u00b4\u0300\u0302\u00a8\u0303ÙÛ\u20a4\u007eİı°ÇçÑñ¡"
+	    + "¿¤£¥§\u0192¢âêôûáéóúàèòùäëöüÅîØÆåíøæÄìÖÜÉïßÔÁÃãĞğÍÌÓÒÕõ¦¨Ú"
+	    + "¾ÿŞş·µ¶\u00be­\u00bc\u00bdªº«\u25a0»±";
+
+	byte[] b = enc.encodeString(msg);
+	String decStr = enc.decodeString(b);
+
+	assertEquals(msg.length(), b.length);
+	assertEquals(msg, decStr);
+    }
+
     public void testUCS2Encoding() {
     }
 
