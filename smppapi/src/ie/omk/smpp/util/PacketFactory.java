@@ -51,144 +51,170 @@ public class PacketFactory
 	    ByteArrayInputStream bin = new ByteArrayInputStream(b);
 	    switch(cmdId) {
 		case SMPPPacket.ESME_NACK:
-		    Debug.d(SMPPPacket.class, "readPacket", " GenericNack", 3);
+		    Debug.d(PacketFactory.class,
+			    "readPacket", " GenericNack", 3);
 		    response = new GenericNack(bin);
 		    break;
 
 		case SMPPPacket.ESME_BNDRCV:
-		    Debug.d(SMPPPacket.class, "readPacket", "BindReceiver", 3);
+		    Debug.d(PacketFactory.class,
+			    "readPacket", "BindReceiver", 3);
 		    response = new BindReceiver(bin);
 		    break;
 
 		case SMPPPacket.ESME_BNDRCV_RESP:
-		    Debug.d(SMPPPacket.class, "readPacket", "BindReceiverResp", 3);
+		    Debug.d(PacketFactory.class,
+			    "readPacket", "BindReceiverResp", 3);
 		    response = new BindReceiverResp(bin);
 		    break;
 
 		case SMPPPacket.ESME_BNDTRN:
-		    Debug.d(SMPPPacket.class, "readPacket", "BindTransmitter", 3);
+		    Debug.d(PacketFactory.class,
+			    "readPacket", "BindTransmitter", 3);
 		    response = new BindTransmitter(bin);
 		    break;
 
 		case SMPPPacket.ESME_BNDTRN_RESP:
-		    Debug.d(SMPPPacket.class, "readPacket",
-			    "BindTransmitterResp", 3);
+		    Debug.d(PacketFactory.class,
+			    "readPacket", "BindTransmitterResp", 3);
 		    response = new BindTransmitterResp(bin);
 		    break;
 
 		case SMPPPacket.ESME_UBD:
-		    Debug.d(SMPPPacket.class, "readPacket", "Unbind", 3);
+		    Debug.d(PacketFactory.class,
+			    "readPacket", "Unbind", 3);
 		    response = new Unbind(bin);
 		    break;
 
 		case SMPPPacket.ESME_UBD_RESP:
-		    Debug.d(SMPPPacket.class, "readPacket", "UnbindResp", 3);
+		    Debug.d(PacketFactory.class,
+			    "readPacket", "UnbindResp", 3);
 		    response = new UnbindResp(bin);
 		    break;
 
 		case SMPPPacket.ESME_SUB_SM:
-		    Debug.d(SMPPPacket.class, "readPacket", "SubmitSM", 3);
+		    Debug.d(PacketFactory.class,
+			    "readPacket", "SubmitSM", 3);
 		    response = new SubmitSM(bin);
 		    break;
 
 		case SMPPPacket.ESME_SUB_SM_RESP:
-		    Debug.d(SMPPPacket.class, "readPacket", "SubmitSMResp", 3);
+		    Debug.d(PacketFactory.class,
+			    "readPacket", "SubmitSMResp", 3);
 		    response = new SubmitSMResp(bin);
 		    break;
 
 		case SMPPPacket.ESME_SUB_MULTI:
-		    Debug.d(SMPPPacket.class, "readPacket", "SubmitMulti", 3);
+		    Debug.d(PacketFactory.class,
+			    "readPacket", "SubmitMulti", 3);
 		    response = new SubmitMulti(bin);
 		    break;
 
 		case SMPPPacket.ESME_SUB_MULTI_RESP:
-		    Debug.d(SMPPPacket.class, "readPacket", "SubmitMultiResp", 3);
+		    Debug.d(PacketFactory.class,
+			    "readPacket", "SubmitMultiResp", 3);
 		    response = new SubmitMultiResp(bin);
 		    break;
 
 		case SMPPPacket.SMSC_DELIVER_SM:
-		    Debug.d(SMPPPacket.class, "readPacket", "DeliverSm", 3);
+		    Debug.d(PacketFactory.class,
+			    "readPacket", "DeliverSm", 3);
 		    response = new DeliverSM(bin);
 		    break;
 
 		case SMPPPacket.SMSC_DELIVER_SM_RESP:
-		    Debug.d(SMPPPacket.class, "readPacket", "DeliverSMResp", 3);
+		    Debug.d(PacketFactory.class,
+			    "readPacket", "DeliverSMResp", 3);
 		    response = new DeliverSMResp(bin);
 		    break;
 
 		case SMPPPacket.ESME_QUERY_SM:
-		    Debug.d(SMPPPacket.class, "readPacket", "QuerySM", 3);
+		    Debug.d(PacketFactory.class,
+			    "readPacket", "QuerySM", 3);
 		    response = new QuerySM(bin);
 		    break;
 
 		case SMPPPacket.ESME_QUERY_SM_RESP:
-		    Debug.d(SMPPPacket.class, "readPacket", "QuerySMResp", 3);
+		    Debug.d(PacketFactory.class,
+			    "readPacket", "QuerySMResp", 3);
 		    response = new QuerySMResp(bin);
 		    break;
 
 		case SMPPPacket.ESME_QUERY_LAST_MSGS:
-		    Debug.d(SMPPPacket.class, "readPacket", "QueryLastMsgs", 3);
+		    Debug.d(PacketFactory.class,
+			    "readPacket", "QueryLastMsgs", 3);
 		    response = new QueryLastMsgs(bin);
 		    break;
 
 		case SMPPPacket.ESME_QUERY_LAST_MSGS_RESP:
-		    Debug.d(SMPPPacket.class, "readPacket", "QueryLastMsgsResp", 3);
+		    Debug.d(PacketFactory.class,
+			    "readPacket", "QueryLastMsgsResp", 3);
 		    response = new QueryLastMsgsResp(bin);
 		    break;
 
 		case SMPPPacket.ESME_QUERY_MSG_DETAILS:
-		    Debug.d(SMPPPacket.class, "readPacket", "QueryMsgDetails", 3);
+		    Debug.d(PacketFactory.class,
+			    "readPacket", "QueryMsgDetails", 3);
 		    response = new QueryMsgDetails(bin);
 		    break;
 
 		case SMPPPacket.ESME_QUERY_MSG_DETAILS_RESP:
-		    Debug.d(SMPPPacket.class, "readPacket",
-			    "QueryMsgDetailsResp", 3);
+		    Debug.d(PacketFactory.class,
+			    "readPacket", "QueryMsgDetailsResp", 3);
 		    response = new QueryMsgDetailsResp(bin);
 		    break;
 
 		case SMPPPacket.ESME_CANCEL_SM:
-		    Debug.d(SMPPPacket.class, "readPacket", "CancelSM", 3);
+		    Debug.d(PacketFactory.class,
+			    "readPacket", "CancelSM", 3);
 		    response = new CancelSM(bin);
 		    break;
 
 		case SMPPPacket.ESME_CANCEL_SM_RESP:
-		    Debug.d(SMPPPacket.class, "readPacket", "CancelSMResp", 3);
+		    Debug.d(PacketFactory.class,
+			    "readPacket", "CancelSMResp", 3);
 		    response = new CancelSMResp(bin);
 		    break;
 
 		case SMPPPacket.ESME_REPLACE_SM:
-		    Debug.d(SMPPPacket.class, "readPacket", "ReplaceSM", 3);
+		    Debug.d(PacketFactory.class,
+			    "readPacket", "ReplaceSM", 3);
 		    response = new ReplaceSM(bin);
 		    break;
 
 		case SMPPPacket.ESME_REPLACE_SM_RESP:
-		    Debug.d(SMPPPacket.class, "readPacket", "ReplaceSMResp", 3);
+		    Debug.d(PacketFactory.class,
+			    "readPacket", "ReplaceSMResp", 3);
 		    response = new ReplaceSMResp(bin);
 		    break;
 
 		case SMPPPacket.ESME_QRYLINK:
-		    Debug.d(SMPPPacket.class, "readPacket", "EnquireLink", 3);
+		    Debug.d(PacketFactory.class,
+			    "readPacket", "EnquireLink", 3);
 		    response = new EnquireLink(bin);
 		    break;
 
 		case SMPPPacket.ESME_QRYLINK_RESP:
-		    Debug.d(SMPPPacket.class, "readPacket", "EnquireLinkResp", 3);
+		    Debug.d(PacketFactory.class,
+			    "readPacket", "EnquireLinkResp", 3);
 		    response = new EnquireLinkResp(bin);
 		    break;
 
 		case SMPPPacket.ESME_PARAM_RETRIEVE:
-		    Debug.d(SMPPPacket.class, "readPacket", "ParamRetrieve", 3);
+		    Debug.d(PacketFactory.class,
+			    "readPacket", "ParamRetrieve", 3);
 		    response = new ParamRetrieve(bin);
 		    break;
 
 		case SMPPPacket.ESME_PARAM_RETRIEVE_RESP:
-		    Debug.d(SMPPPacket.class, "readPacket", "ParamRetrieveResp", 3);
+		    Debug.d(PacketFactory.class,
+			    "readPacket", "ParamRetrieveResp", 3);
 		    response = new ParamRetrieveResp(bin);
 		    break;
 
 		default:
-		    Debug.d(SMPPPacket.class, "readPacket", "Unknown Packet", 3);
+		    Debug.d(PacketFactory.class,
+			    "readPacket", "Unknown Packet", 3);
 		    throw new SMPPException("Unidentified Packet: "
 			    + Integer.toHexString(cmdId));
 	    }
