@@ -1,6 +1,6 @@
 /*
- * Java SMPP API
- * Copyright (C) 1998 - 2002 by Oran Kelly
+ * Java implementation of the SMPP v3.3 API
+ * Copyright (C) 1998 - 2000 by Oran Kelly
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,43 +18,46 @@
  * 
  * A copy of the LGPL can be viewed at http://www.gnu.org/copyleft/lesser.html
  * Java SMPP API author: orank@users.sf.net
- * Java SMPP API Homepage: http://smppapi.sourceforge.net/
  * $Id$
  */
+package ie.omk.smpp.examples;
+
+import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
+
+public class SMPPExample {
+    protected static Logger logger = Logger.getLogger("ie.omk.smpp.examples");
 
 
-/** Command line argument parser. This class will parse an argument line of the
- * form:
- * "hostname[:port] system_id password system_type [ton:npi:]source_range"
- * The command line can be shortened but the arguments are positional. That is,
- * if the password is missing, none of the following arguments may be present.
- * If they are, then system_type will be interpreted as the password,
- * source_range as the system_type and source_range will be null.
- */
-public class Args
-{
     public static final int DEFAULT_PORT = 5016;
 
 
-    public String hostName = "localhost";
+    protected static String hostName = "localhost";
     
-    public int port = DEFAULT_PORT;
+    protected static int port = DEFAULT_PORT;
     
-    public String sysID = null;
+    protected static String sysID = null;
     
-    public String password = null;
+    protected static String password = null;
     
-    public String sysType = null;
+    protected static String sysType = null;
 
-    public int ton = 0;
+    protected static int ton = 0;
 
-    public int npi = 0;
+    protected static int npi = 0;
 
-    public String sourceRange = null;
+    protected static String sourceRange = null;
 
 
-    public Args(String[] args)
-    {
+    static {
+	new SMPPExample();
+    }
+
+    protected SMPPExample() {
+	PropertyConfigurator.configure(getClass().getResource("smppapi.properties"));
+    }
+
+    protected static void parseArgs(String[] args) {
 	if (args.length > 1)
 	    hostName = args[0];
 	else
@@ -85,7 +88,7 @@ public class Args
 		sourceRange = sourceRange.substring(p2 + 1);
 	    }
 	} catch (NumberFormatException x) {
-	    System.err.println("TON or NPI is not a valid decimal number,"
+	    logger.warn("TON or NPI is not a valid decimal number,"
 		    + " using default.");
 	} catch (ArrayIndexOutOfBoundsException x) {
 	}
