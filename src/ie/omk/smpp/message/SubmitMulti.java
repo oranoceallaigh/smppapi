@@ -186,7 +186,7 @@ public class SubmitMulti
       */
     public int getCommandLen()
     {
-	int size = (getHeaderLen() + 12
+	int size = (getHeaderLen()
 		+ ((serviceType != null) ? serviceType.length() : 0)
 		+ ((source != null) ? source.size() : 3)
 		+ ((deliveryTime != null) ?
@@ -196,7 +196,7 @@ public class SubmitMulti
 		+ ((message != null) ? message.length() : 0));
 
 	Enumeration e = destinationTable.elements();
-	if(e != null && e.hasMoreElements()) {
+	if (e.hasMoreElements()) {
 	    while(e.hasMoreElements()) {
 		SmeAddress d = (SmeAddress) e.nextElement();
 		size += d.size();
@@ -205,7 +205,8 @@ public class SubmitMulti
 	    size += 1;
 	}
 
-	return size;
+	// 9 1-byte integers, 4 c-strings
+	return (size + 9 + 4);
     }
 
     /** Write a byte representation of this packet to an OutputStream
@@ -226,8 +227,7 @@ public class SubmitMulti
 	if(source != null) {
 	    source.writeTo(out);
 	} else {
-	    SMPPIO.writeInt(0, 2, out);
-	    SMPPIO.writeCString(null, out);
+	    SMPPIO.writeInt(0, 3, out);
 	}
 	SMPPIO.writeInt(noOfDests, 1, out);
 

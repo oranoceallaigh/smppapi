@@ -95,8 +95,11 @@ public class ParamRetrieve
       */
     public int getCommandLen()
     {
-	return (getHeaderLen()
-		+ ((paramName != null) ? paramName.length() : 1));
+	int len = (getHeaderLen()
+		+ ((paramName != null) ? paramName.length() : 0));
+
+	// 1 c-string
+	return (len + 1);
     }
 
     /** Write a byte representation of this packet to an OutputStream

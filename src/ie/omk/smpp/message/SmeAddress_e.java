@@ -63,6 +63,7 @@ public class SmeAddress_e
       */
     public int size()
     {
+	// error status is a 4-byte integer.
 	return (super.size() + 4);
     }
 

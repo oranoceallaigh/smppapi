@@ -193,17 +193,16 @@ public class QueryMsgDetailsResp
 	String id = Integer.toHexString(getMessageId());
 
 	int size = (getHeaderLen()
-		+ 7 // XXX Describe integers here!
-		+ ((serviceType != null) ? serviceType.length() : 1)
+		+ ((serviceType != null) ? serviceType.length() : 0)
 		+ ((source != null) ? source.size() : 3)
 		+ ((deliveryTime != null) ?
-		    deliveryTime.toString().length() : 1)
+		    deliveryTime.toString().length() : 0)
 		+ ((expiryTime != null) ?
-		    expiryTime.toString().length() : 1)
-		+ ((message != null) ? message.length() : 1)
-		+ ((id != null) ? id.length() : 1)
+		    expiryTime.toString().length() : 0)
+		+ ((message != null) ? message.length() : 0)
+		+ ((id != null) ? id.length() : 0)
 		+ ((finalDate != null) ? 
-		    finalDate.toString().length() : 1));
+		    finalDate.toString().length() : 0));
 
 	Enumeration e = destinationTable.elements();
 	if(e != null && e.hasMoreElements()) {
@@ -215,7 +214,8 @@ public class QueryMsgDetailsResp
 	    size += 1;
 	}
 
-	return (size);
+	// 8 1-byte integers, 5 c-strings
+	return (size + 8 + 5);
     }
 
     /** Write a byte representation of this packet to an OutputStream

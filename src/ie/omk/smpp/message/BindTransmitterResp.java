@@ -106,8 +106,11 @@ public class BindTransmitterResp
     {
 	// Calculated as the size of the header plus 1 null-terminator
 	// for the string plus the length of the string
-	return (getHeaderLen()
-		+ ((sysId != null) ? sysId.length() : 1));
+	int len = (getHeaderLen()
+		+ ((sysId != null) ? sysId.length() : 0));
+
+	// 1 c-string
+	return (len + 1);
     }
 
     /** Write a byte representation of this packet to an OutputStream

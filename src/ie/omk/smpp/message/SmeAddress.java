@@ -183,14 +183,17 @@ public class SmeAddress
       */
     public int size()
     {
+	int len = 2 + ((addr != null) ? addr.length() : 0);
+	len++; // for the nul byte
+
 	if(isSme) {
 	    if(useFlag)
-		return (4 + ((addr != null) ? addr.length() : 0));
-	    else
-		return (3 + ((addr != null) ? addr.length() : 0));
+		len++;
 	} else {
-	    return (2 + ((addr != null) ? addr.length() : 0));
+	    len = 1 + ((addr != null) ? addr.length() : 0);
+	    len++;
 	}
+	return (len);
     }
 
     /** Write a byte representation of this address to an OutputStream

@@ -173,7 +173,7 @@ public class SubmitMultiResp
 	SmeAddress_e sd[];
 	int loop;
 
-	int size = getHeaderLen() + 2
+	int size = getHeaderLen()
 	    + ((id != null) ? id.length() : 0);
 
 	sd = getDestAddresses();
@@ -185,7 +185,8 @@ public class SubmitMultiResp
 	    size += 1;
 	}
 
-	return (size);
+	// 1 1-byte integer, 1 c-string
+	return (size + 1 + 1);
     }
 
 

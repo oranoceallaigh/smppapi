@@ -99,10 +99,12 @@ public class QueryMsgDetails
     {
 	String id = Integer.toHexString(getMessageId());
 
-	return (getHeaderLen()
-		+ 1 // 1 1-byte integer
-		+ ((id != null) ? id.length() : 1)
+	int len = (getHeaderLen()
+		+ ((id != null) ? id.length() : 0)
 		+ ((source != null) ? source.size() : 3));
+
+	// 1 1-byte integer, 1 c-string
+	return (len + 1 + 1);
     }
 
     /** Write a byte representation of this packet to an OutputStream

@@ -102,8 +102,11 @@ public class ParamRetrieveResp
     /** Get the size in bytes of this packet */
     public int getCommandLen()
     {
-	return (getHeaderLen()
-		+ ((paramValue != null) ? paramValue.length() : 1));
+	int len = (getHeaderLen()
+		+ ((paramValue != null) ? paramValue.length() : 0));
+
+	// 1 c-string
+	return (len + 1);
     }
 
     /** Write a byte representation of this packet to an OutputStream

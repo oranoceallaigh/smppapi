@@ -77,11 +77,14 @@ public class CancelSM
     {
 	String id = Integer.toHexString(getMessageId());
 
-	return (getHeaderLen()
-		+ ((serviceType != null) ? serviceType.length() : 1)
-		+ ((id != null) ? id.length() : 1)
+	int len = (getHeaderLen()
+		+ ((serviceType != null) ? serviceType.length() : 0)
+		+ ((id != null) ? id.length() : 0)
 		+ ((source != null) ? source.size() : 3)
 		+ ((destination != null) ? destination.size() : 3));
+
+	// 2 c-strings
+	return (len + 2);
     }
 
     /** Write a byte representation of this packet to an OutputStream

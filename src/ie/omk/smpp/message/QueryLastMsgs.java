@@ -88,9 +88,11 @@ public class QueryLastMsgs
     /** Get the size in bytes of this packet */
     public int getCommandLen()
     {
-	return (getHeaderLen()
-		+ 1 // 1 1-byte int
+	int len = (getHeaderLen()
 		+ ((source != null) ? source.size() : 3));
+
+	// 1 1-byte integer
+	return (len + 1);
     }
 
     /** Write a byte representation of this packet to an OutputStream
