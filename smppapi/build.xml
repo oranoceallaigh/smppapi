@@ -67,8 +67,15 @@
   </target>
 
   <!-- Build the examples -->
-  <target name="examples" depends="api">
+  <target name="examples" depends="init,api">
     <javac srcdir="examples" destdir="examples">
+      <classpath path="${build}"/>
+    </javac>
+  </target>
+
+  <!-- Build the tests -->
+  <target name="tests" depends="init,api">
+    <javac srcdir="tests" destdir="tests">
       <classpath path="${build}"/>
     </javac>
   </target>
@@ -78,9 +85,8 @@
     <delete dir="${dist}"/>
     <delete dir="${build}"/>
     <delete>
-      <fileset dir="examples">
-        <include name="*.class"/>
-      </fileset>
+      <fileset dir="examples" includes="*.class"/>
+      <fileset dir="tests" includes="*.class"/>
     </delete>
   </target>
 </project>
