@@ -162,7 +162,7 @@ public class AsyncReceiver
 	    ex.props = new Properties();
 	    ex.props.load(new BufferedInputStream(in));
 
-	    String server = props.getProperty("smsc.name", "localhost");
+	    String server = props.getProperty("smsc.hostname", "localhost");
 	    String p = props.getProperty("smsc.port", "5432");
 	    int port = Integer.parseInt(p);
 

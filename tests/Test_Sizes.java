@@ -7,6 +7,7 @@ import java.io.ByteArrayInputStream;
 
 import ie.omk.smpp.message.*;
 import ie.omk.smpp.util.GSMConstants;
+import ie.omk.smpp.util.PacketFactory;
 import ie.omk.smpp.util.SMPPDate;
 
 /** Incredibly simple test that checks the reported length is the same as the
@@ -492,9 +493,7 @@ public class Test_Sizes
 		bo1 = new ByteArrayOutputStream();
 		bo2 = new ByteArrayOutputStream();
 		pak.writeTo(bo1);
-		SMPPPacket.readPacket(
-			new ByteArrayInputStream(bo1.toByteArray()))
-		    .writeTo(bo2);
+		PacketFactory.newPacket(bo1.toByteArray()).writeTo(bo2);
 
 		int ret = checkSize(pak);
 		if (ret == 0) {
@@ -545,8 +544,7 @@ public class Test_Sizes
 	if (b.length != len)
 	    return (1);
 
-	ByteArrayInputStream in = new ByteArrayInputStream(b);
-	SMPPPacket reread = pak.readPacket(in);
+	SMPPPacket reread = PacketFactory.newPacket(b);
 
 	if (reread.getCommandLen() != len)
 	    return (2);
