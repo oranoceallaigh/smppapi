@@ -1139,9 +1139,10 @@ public abstract class SMPPPacket
 		readBodyFrom(b, ptr);
 
 		// Read the optional parameters..
-		len -= (16 + getBodyLength());
+		int bl = getBodyLength();
+		len -= (16 + bl);
 		if (len > 0)
-		    tlvTable.readFrom(b, offset, len);
+		    tlvTable.readFrom(b, ptr + bl, len);
 	    }
 	} catch (ArrayIndexOutOfBoundsException x) {
 	    throw new SMPPProtocolException("Ran out of bytes to read for packet body", x);
