@@ -89,7 +89,7 @@ public class MessageDetails
     public SMPPDate		expiryTime = null;
 
     /** Text of the message */
-    public String		message = null;
+    public byte[]		message = null;
 
 
     /** Create a new Details object with all null (or default) values.
@@ -106,87 +106,11 @@ public class MessageDetails
     public MessageDetails(SMPPPacket p)
     {
 	int loop=0;
-	SmeAddress add[] = null;
 
 	if(p == null)
 	    return;
 
-	if(p instanceof SubmitSM) {
-	    serviceType = ((SubmitSM)p).getServiceType();
-	    sourceAddr = ((SubmitSM)p).getSource();
-	    destinationTable.addElement(((SubmitSM)p).getDestination());
-	    destinationTable.trimToSize();
-	    priority = ((SubmitSM)p).isPriority();
-	    registered = ((SubmitSM)p).isRegistered();
-	    defaultMsg = ((SubmitSM)p).getDefaultMsgId();
-	    protocolID = ((SubmitSM)p).getProtocolID();
-	    dataCoding = ((SubmitSM)p).getDataCoding();
-	    deliveryTime = ((SubmitSM)p).getDeliveryTime();
-	    expiryTime = ((SubmitSM)p).getExpiryTime();
-	    message = ((SubmitSM)p).getMessageText();
-	} else if(p instanceof DeliverSM) {
-	    serviceType = p.getServiceType();
-	    sourceAddr = p.getSource();
-	    destinationTable.addElement(p.getDestination());
-	    protocolID = p.getProtocolID();
-	    dataCoding = p.getDataCoding();
-	    esmClass = p.getEsmClass();
-	    message = p.getMessageText();
-	} else if(p instanceof SubmitMulti) {
-	    serviceType = ((SubmitMulti)p).getServiceType();
-	    sourceAddr = ((SubmitMulti)p).getSource();
-
-	    add = ((SubmitMulti)p).getDestAddresses();
-	    for(loop=0; loop<add.length; loop++)
-		destinationTable.addElement(add[loop]);
-
-	    priority = ((SubmitMulti)p).isPriority();
-	    registered = ((SubmitMulti)p).isRegistered();
-	    defaultMsg = ((SubmitMulti)p).getDefaultMsgId();
-	    protocolID = ((SubmitMulti)p).getProtocolID();
-	    dataCoding = ((SubmitMulti)p).getDataCoding();
-	    deliveryTime = ((SubmitMulti)p).getDeliveryTime();
-	    expiryTime = ((SubmitMulti)p).getExpiryTime();
-	    message = ((SubmitMulti)p).getMessageText();
-	} else if (p instanceof QueryMsgDetailsResp) {
-	    messageId = p.getMessageId();
-	    finalDate = p.getFinalDate();
-	    status = p.getMessageStatus();
-	    error = p.getErrorCode();
-	    serviceType = p.getServiceType();
-	    sourceAddr = p.getSource();
-	    deliveryTime = p.getDeliveryTime();
-	    expiryTime = p.getExpiryTime();
-	    message = p.getMessageText();
-
-	    priority = p.isPriority();
-	    registered = p.isRegistered();
-	    dataCoding = p.getDataCoding();
-	    protocolID = p.getProtocolID();
-	} else if (p instanceof QuerySMResp) {
-	    messageId = p.getMessageId();
-	    finalDate = p.getFinalDate();
-	    status = p.getMessageStatus();
-	    error = p.getErrorCode();
-	} else if(p instanceof ReplaceSM) {
-	    messageId = ((ReplaceSM)p).getMessageId();
-	    sourceAddr = ((ReplaceSM)p).getSource();
-	    deliveryTime = ((ReplaceSM)p).getDeliveryTime();
-	    expiryTime = ((ReplaceSM)p).getExpiryTime();
-	    registered = ((ReplaceSM)p).isRegistered();
-	    defaultMsg = ((ReplaceSM)p).getDefaultMsgId();
-	    message = ((ReplaceSM)p).getMessageText();
-	} else if(p instanceof CancelSM) {
-	    serviceType = ((CancelSM)p).getServiceType();
-	    messageId = ((CancelSM)p).getMessageId();
-	    sourceAddr = ((CancelSM)p).getSource();
-	    destinationTable.addElement(((CancelSM)p).getDestination());
-	    destinationTable.trimToSize();
-	} else if(p instanceof SubmitSMResp) {
-	    messageId = ((SubmitSMResp)p).getMessageId();
-	} else if(p instanceof SubmitMultiResp) {
-	    messageId = ((SubmitMultiResp)p).getMessageId();
-	}
+	getAllFields(p);
     }
 
     public SubmitSM getSubmitSM()
@@ -266,6 +190,44 @@ public class MessageDetails
 	return (p);
     }
 
+    private void getAllFields(SMPPPacket p)
+    {
+	this.messageId = p.getMessageId();
+	this.finalDate = p.getFinalDate();
+	this.status = p.getMessageStatus();
+	this.error = p.getErrorCode();
+	this.serviceType = p.getServiceType();
+	this.sourceAddr = p.getSource();
+	this.deliveryTime = p.getDeliveryTime();
+	this.expiryTime = p.getExpiryTime();
+	this.message = p.getMessage();
+
+	Collection dt = null;
+	switch (p.getCommandId()) {
+	case SMPPPacket.ESME_SUB_MULTI:
+	    dt = ((SubmitMulti)p).getDestinationTable();
+	    break;
+	case SMPPPacket.ESME_QUERY_MSG_DETAILS_RESP:
+	    dt = ((QueryMsgDetailsResp)p).getDestinationTable();
+	    break;
+	}
+
+	if (dt == null) {
+	    this.destinationTable.add(p.getDestination());
+	} else {
+	    Iterator i = dt.iterator();
+	    while (i.hasNext())
+		this.destinationTable.add(i.next());
+	}
+
+	this.replaceIfPresent = p.isReplaceIfPresent();
+	this.priority = p.isPriority();
+	this.dataCoding = p.getDataCoding();
+	this.defaultMsg = p.getDefaultMsgId();
+	this.protocolID = p.getProtocolID();
+	this.esmClass = p.getEsmClass();
+    }
+
     private void fillAllFields(SMPPPacket p)
 	throws ie.omk.smpp.SMPPException
     {
@@ -278,7 +240,7 @@ public class MessageDetails
 	p.setDestination((SmeAddress)destinationTable.get(0));
 	p.setDeliveryTime(deliveryTime);
 	p.setExpiryTime(expiryTime);
-	p.setMessageText(message);
+	p.setMessage(message);
 
 	p.setReplaceIfPresent(replaceIfPresent);
 	p.setPriority(priority);
