@@ -24,20 +24,16 @@
 package ie.omk.smpp.message;
 
 import ie.omk.smpp.Address;
-
-import ie.omk.smpp.message.tlv.Tag;
 import ie.omk.smpp.message.tlv.TLVTable;
-
+import ie.omk.smpp.message.tlv.Tag;
 import ie.omk.smpp.util.AlphabetEncoding;
 import ie.omk.smpp.util.BinaryEncoding;
 import ie.omk.smpp.util.Latin1Encoding;
 import ie.omk.smpp.util.MessageEncoding;
 import ie.omk.smpp.util.SMPPDate;
-
 import ie.omk.smpp.version.SMPPVersion;
 
 import java.io.ByteArrayOutputStream;
-
 import java.util.Arrays;
 
 import junit.framework.TestCase;

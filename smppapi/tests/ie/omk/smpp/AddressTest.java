@@ -23,12 +23,12 @@
  */
 package ie.omk.smpp;
 
+import ie.omk.smpp.util.GSMConstants;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 import junit.framework.TestCase;
-
-import ie.omk.smpp.util.GSMConstants;
 
 
 public class AddressTest extends TestCase {

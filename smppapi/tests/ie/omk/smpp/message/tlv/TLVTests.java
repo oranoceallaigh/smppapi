@@ -23,17 +23,14 @@
  */
 package ie.omk.smpp.message.tlv;
 
+import ie.omk.smpp.util.SMPPIO;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-
 import java.util.Arrays;
 import java.util.BitSet;
 
 import junit.framework.TestCase;
-
-import ie.omk.smpp.util.SMPPIO;
-
-import ie.omk.TestUtils;
 
 public class TLVTests extends TestCase {
 
