@@ -22,19 +22,13 @@
  */
 
 import java.io.IOException;
-import java.io.FileInputStream;
-import java.io.BufferedInputStream;
 
 import java.util.Date;
-import java.util.Properties;
-import java.util.Observable;
-import java.util.Observer;
 import java.util.Vector;
 
 import ie.omk.smpp.SMPPException;
-import ie.omk.smpp.SmppConnectionDropPacket;
+import ie.omk.smpp.SmppConnection;
 import ie.omk.smpp.SmppReceiver;
-import ie.omk.smpp.SmppEvent;
 import ie.omk.smpp.net.TcpLink;
 import ie.omk.smpp.message.SMPPPacket;
 import ie.omk.smpp.message.DeliverSM;
@@ -42,18 +36,16 @@ import ie.omk.smpp.message.SmeAddress;
 import ie.omk.smpp.message.Unbind;
 import ie.omk.smpp.message.UnbindResp;
 import ie.omk.smpp.util.GSMConstants;
+import ie.omk.smpp.event.ConnectionObserver;
+import ie.omk.smpp.event.SMPPEvent;
+import ie.omk.smpp.event.ReceiverExitEvent;
 
 /** Example class to submit a message to a SMSC.
   * This class simply binds to the server, submits a message and then unbinds.
   */
 public class AsyncReceiver
-    implements java.util.Observer
+    implements ConnectionObserver
 {
-    // Default properties file to read..
-    public static final String PROPS_FILE = "smpp.properties";
-
-    private static Properties props = null;
-
     private static int msgCount = 0;
 
     // Start time (once successfully bound).
@@ -67,11 +59,20 @@ public class AsyncReceiver
 
 
     // This is called when the connection receives a packet from the SMSC.
-    public void update(Observable o, Object arg)
+    public void update(SmppConnection source, SMPPEvent ev)
     {
-	SmppReceiver trans = (SmppReceiver)o;
-	SmppEvent ev = (SmppEvent)arg;
-	SMPPPacket pak = ev.getPacket();
+	SmppReceiver r = (SmppReceiver)source;
+
+	switch (ev.getType()) {
+	case SMPPEvent.RECEIVER_EXIT:
+	    receiverExit(r, (ReceiverExitEvent)ev);
+	    break;
+	}
+    }
+
+    public void packetReceived(SmppConnection source, SMPPPacket pak)
+    {
+	SmppReceiver recv = (SmppReceiver)source;
 
 	switch (pak.getCommandId()) {
 
@@ -112,7 +113,7 @@ public class AsyncReceiver
 	    System.out.println("\nSMSC has requested unbind! Responding..");
 	    try {
 		UnbindResp ubr = new UnbindResp((Unbind)pak);
-		trans.sendResponse(ubr);
+		recv.sendResponse(ubr);
 	    } catch (SMPPException x) {
 		x.printStackTrace(System.err);
 	    } catch (IOException x) {
@@ -129,15 +130,21 @@ public class AsyncReceiver
 	    endReport();
 	    break;
 
-	case SmppConnectionDropPacket.CONNECTION_DROP:
-	    this.end = System.currentTimeMillis();
-	    System.out.println("\nNetwork connection dropped!");
-	    endReport();
-	    break;
-
 	default:
 	    System.out.println("\nUnexpected packet received! Id = "
 		    + Integer.toHexString(pak.getCommandId()));
+	}
+    }
+
+    private void receiverExit(SmppReceiver recv, ReceiverExitEvent ev)
+    {
+	if (!ev.isException()) {
+	    System.out.println("Receiver thread has exited normally.");
+	} else {
+	    Throwable t = ev.getException();
+	    System.out.println("Receiver thread died due to exception:");
+	    t.printStackTrace(System.out);
+	    endReport();
 	}
     }
 
@@ -150,24 +157,14 @@ public class AsyncReceiver
 	System.out.println("Elapsed: " + (end - start) + " milliseconds.");
     }
 
-    public static void main(String[] args)
+    public static void main(String[] clargs)
     {
 	try {
 	    AsyncReceiver ex = new AsyncReceiver();
-
-	    if (args.length > 0 && "-s".equals(args[0]))
-		ex.showMsgs = true;
-
-	    FileInputStream in = new FileInputStream(PROPS_FILE);
-	    ex.props = new Properties();
-	    ex.props.load(new BufferedInputStream(in));
-
-	    String server = props.getProperty("smsc.hostname", "localhost");
-	    String p = props.getProperty("smsc.port", "5432");
-	    int port = Integer.parseInt(p);
+	    Args args = new Args(clargs);
 
 	    // Open a network link to the SMSC..
-	    TcpLink link = new TcpLink(server, port);
+	    TcpLink link = new TcpLink(args.hostName, args.port);
 
 	    // Create an SmppReceiver object (we won't bind just yet..)
 	    SmppReceiver recv = new SmppReceiver(link, true);
@@ -179,18 +176,12 @@ public class AsyncReceiver
 	    recv.autoAckLink(true);
 	    recv.autoAckMessages(true);
 
-	    // Set our authorisation information
-	    String sysType = props.getProperty("esme.system_type");
-	    String sysID = props.getProperty("esme.system_id");
-	    String password = props.getProperty("esme.password");
-
-	    SmeAddress source = new SmeAddress(
-		    GSMConstants.GSM_TON_UNKNOWN,
-		    GSMConstants.GSM_NPI_UNKNOWN,
-		    props.getProperty("esme.destination"));
+	    SmeAddress range = null;
+	    if (args.sourceRange != null)
+		new SmeAddress(args.ton, args.npi, args.sourceRange);
 
 	    // Bind to the SMSC
-	    recv.bind(sysID, password, sysType, source);
+	    recv.bind(args.sysID, args.password, args.sysType, range);
 
 	    System.out.println("Hit a key to issue an unbind..");
 	    System.in.read();
@@ -199,14 +190,14 @@ public class AsyncReceiver
 		System.out.println("Sending unbind request..");
 		recv.unbind();
 	    }
+
+	    Thread.sleep(2000);
 	} catch (IOException x) {
-	    x.printStackTrace(System.err);
-	} catch (NumberFormatException x) {
-	    System.err.println("Bad port number in properties file.");
 	    x.printStackTrace(System.err);
 	} catch (SMPPException x) {
 	    System.err.println("SMPP exception: " + x.getMessage());
 	    x.printStackTrace(System.err);
+	} catch (InterruptedException x) {
 	}
     }
 }

@@ -22,42 +22,44 @@
  */
 
 import java.io.IOException;
-import java.io.FileInputStream;
-import java.io.BufferedInputStream;
-
-import java.util.Properties;
-import java.util.Observable;
-import java.util.Observer;
 
 import ie.omk.smpp.SMPPException;
+import ie.omk.smpp.SmppConnection;
 import ie.omk.smpp.SmppTransmitter;
-import ie.omk.smpp.SmppEvent;
 import ie.omk.smpp.net.TcpLink;
 import ie.omk.smpp.message.SMPPPacket;
-import ie.omk.smpp.message.MsgFlags;
 import ie.omk.smpp.message.SmeAddress;
 import ie.omk.smpp.message.SubmitSM;
 import ie.omk.smpp.message.SubmitSMResp;
 import ie.omk.smpp.message.BindTransmitterResp;
 import ie.omk.smpp.util.GSMConstants;
+import ie.omk.smpp.event.ConnectionObserver;
+import ie.omk.smpp.event.SMPPEvent;
+import ie.omk.smpp.event.ReceiverExitEvent;
 
 /** Example class to submit a message to a SMSC.
   * This class simply binds to the server, submits a message and then unbinds.
   */
 public class AsyncTransmitter
-    implements java.util.Observer
+    implements ConnectionObserver
 {
-    // Default properties file to read..
-    public static final String PROPS_FILE = "smpp.properties";
-
-    private static Properties props = null;
+    private Object blocker = new Object();
 
     // This is called when the connection receives a packet from the SMSC.
-    public void update(Observable o, Object arg)
+    public void update(SmppConnection source, SMPPEvent ev)
     {
-	SmppTransmitter trans = (SmppTransmitter)o;
-	SmppEvent ev = (SmppEvent)arg;
-	SMPPPacket pak = ev.getPacket();
+	SmppTransmitter t = (SmppTransmitter)source;
+
+	switch (ev.getType()) {
+	case SMPPEvent.RECEIVER_EXIT:
+	    receiverExit(t, (ReceiverExitEvent)ev);
+	    break;
+	}
+    }
+
+    public void packetReceived(SmppConnection source, SMPPPacket pak)
+    {
+	SmppTransmitter trans = (SmppTransmitter)source;
 
 	System.out.println("Packet received: Id = "
 		+ Integer.toHexString(pak.getCommandId()));
@@ -68,6 +70,10 @@ public class AsyncTransmitter
 	    if (pak.getCommandStatus() != 0) {
 		System.out.println("Error binding to the SMSC. Error = "
 			+ pak.getCommandStatus());
+
+		synchronized (blocker) {
+		    blocker.notify();
+		}
 	    } else {
 		System.out.println("\tSuccessfully bound to SMSC \""
 			+ ((BindTransmitterResp)pak).getSystemId()
@@ -93,6 +99,9 @@ public class AsyncTransmitter
 		System.err.println("\tUnbind error. Closing network "
 			+ "connection.");
 		x.printStackTrace(System.err);
+		synchronized (blocker) {
+		    blocker.notify();
+		}
 	    } catch (SMPPException x) {
 		x.printStackTrace(System.err);
 	    }
@@ -109,6 +118,21 @@ public class AsyncTransmitter
 	}
     }
 
+    private void receiverExit(SmppTransmitter trans, ReceiverExitEvent ev)
+    {
+	if (!ev.isException()) {
+	    System.out.println("Receiver thread has exited normally.");
+	} else {
+	    Throwable t = ev.getException();
+	    System.out.println("Receiver thread died due to exception:");
+	    t.printStackTrace(System.out);
+	}
+
+	synchronized (blocker) {
+	    blocker.notify();
+	}
+    }
+
     // Send a short message to the SMSC
     public void send(SmppTransmitter trans)
     {
@@ -117,7 +141,7 @@ public class AsyncTransmitter
 	    SmeAddress destination = new SmeAddress(
 		    GSMConstants.GSM_TON_UNKNOWN,
 		    GSMConstants.GSM_NPI_UNKNOWN,
-		    props.getProperty("esme.destination"));
+		    "87654321");
 	    SubmitSM sm = new SubmitSM();
 	    sm.setDestination(destination);
 	    sm.setMessageText(message);
@@ -129,51 +153,48 @@ public class AsyncTransmitter
 	}
     }
 
-    public static void main(String[] args)
+    private void doit(String[] clargs)
     {
 	try {
-	    AsyncTransmitter ex = new AsyncTransmitter();
-
-	    FileInputStream in = new FileInputStream(PROPS_FILE);
-	    ex.props = new Properties();
-	    ex.props.load(new BufferedInputStream(in));
-
-	    String server = props.getProperty("smsc.hostname", "localhost");
-	    String p = props.getProperty("smsc.port", "5432");
-	    int port = Integer.parseInt(p);
+	    Args args = new Args(clargs);
 
 	    // Open a network link to the SMSC..
-	    TcpLink link = new TcpLink(server, port);
+	    TcpLink link = new TcpLink(args.hostName, args.port);
 
 	    // Create an SmppTransmitter object (we won't bind just yet..)
 	    SmppTransmitter trans = new SmppTransmitter(link, true);
 
 	    // Need to add myself to the list of listeners for this connection
-	    trans.addObserver(ex);
+	    trans.addObserver(this);
 
 	    // Automatically respond to ENQUIRE_LINK requests from the SMSC
 	    trans.autoAckLink(true);
 
-	    // Set our authorisation information
-	    String sysType = props.getProperty("esme.system_type");
-	    String sysID = props.getProperty("esme.system_id");
-	    String password = props.getProperty("esme.password");
-
-	    SmeAddress source = new SmeAddress(
-		    GSMConstants.GSM_TON_UNKNOWN,
-		    GSMConstants.GSM_NPI_UNKNOWN,
-		    props.getProperty("esme.destination"));
+	    SmeAddress range = null;
+	    if (args.sourceRange != null)
+		range = new SmeAddress(args.ton, args.npi, args.sourceRange);
 
 	    // Bind to the SMSC (as a transmitter)
-	    trans.bind(sysID, password, sysType, source);
+	    System.out.println("Binding to the SMSC..");
+	    trans.bind(args.sysID, args.password, args.sysType, range);
+
+	    synchronized (blocker) {
+		blocker.wait();
+	    }
 	} catch (IOException x) {
-	    x.printStackTrace(System.err);
-	} catch (NumberFormatException x) {
-	    System.err.println("Bad port number in properties file.");
 	    x.printStackTrace(System.err);
 	} catch (SMPPException x) {
 	    System.err.println("SMPP exception: " + x.getMessage());
 	    x.printStackTrace(System.err);
+	} catch (InterruptedException x) {
+	    x.printStackTrace(System.err);
 	}
+    }
+
+    public static void main(String[] clargs)
+    {
+	AsyncTransmitter at = new AsyncTransmitter();
+	at.doit(clargs);
+	System.exit(0);
     }
 }
