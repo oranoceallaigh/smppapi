@@ -34,7 +34,7 @@ import ie.omk.smpp.SMPPException;
 import ie.omk.smpp.util.GSMConstants;
 import ie.omk.smpp.util.SMPPIO;
 
-import ie.omk.debug.Debug;
+import org.apache.log4j.Logger;
 
 /** Query the last number of messages sent from a certain ESME.
   * Relevant inherited fields from SMPPPacket:<br>

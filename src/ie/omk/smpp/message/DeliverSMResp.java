@@ -29,7 +29,7 @@ import java.io.OutputStream;
 import ie.omk.smpp.SMPPException;
 import ie.omk.smpp.BadCommandIDException;
 import ie.omk.smpp.util.SMPPIO;
-import ie.omk.debug.Debug;
+import org.apache.log4j.Logger;
 
 /** ESME response to a Deliver message request.
   * Relevant inherited fields from SMPPPacket:<br>

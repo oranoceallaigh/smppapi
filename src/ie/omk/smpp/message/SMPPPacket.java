@@ -45,8 +45,6 @@ import ie.omk.smpp.util.MessageEncoding;
 import ie.omk.smpp.util.SMPPDate;
 import ie.omk.smpp.util.SMPPIO;
 
-import ie.omk.debug.Debug;
-
 /** This is the abstract class that all SMPP messages are inherited from.
  *  @author Oran Kelly
  *  @version 1.0
@@ -349,7 +347,6 @@ public abstract class SMPPPacket
     {
 	if(s != null) {
 	    this.source = s;
-	    Debug.d(this, "setSource", s, 4);
 	}
     }
 
@@ -372,7 +369,6 @@ public abstract class SMPPPacket
     {
 	if(s != null) {
 	    this.destination = s;
-	    Debug.d(this, "setDestination", s, 4);
 	}
     }
 
@@ -404,7 +400,6 @@ public abstract class SMPPPacket
 	    this.protocolID = f.protocol;
 	    this.dataCoding = f.data_coding;
 	    this.defaultMsg = f.default_msg;
-	    Debug.d(this, "setMessageFlags", f, 4);
 	}
     }
 
@@ -414,7 +409,6 @@ public abstract class SMPPPacket
     public void setPriority(boolean b)
     {
 	this.priority = (b) ? 1 : 0;
-	Debug.d(this, "setPriority", b, 4);
     }
 
     /** Set 'registered delivery' flag.
@@ -423,7 +417,6 @@ public abstract class SMPPPacket
     public void setRegistered(boolean b)
     {
 	this.registered = b;
-	Debug.d(this, "setRegistered", b, 4);
     }
 
     /** Set 'replace if present'.
@@ -432,7 +425,6 @@ public abstract class SMPPPacket
     public void setReplaceIfPresent(boolean b)
     {
 	this.replaceIfPresent = b;
-	Debug.d(this, "setReplaceIfPresent", b, 4);
     }
     
     /** Set the esm class of the message.
@@ -442,7 +434,6 @@ public abstract class SMPPPacket
     public void setEsmClass(int c)
     {
 	this.esmClass = c;
-	Debug.d(this, "setEsmClass", c, 4);
     }
 
     /** Set the protocol Id in the message flags.
@@ -453,7 +444,6 @@ public abstract class SMPPPacket
     public void setProtocolId(int id)
     {
 	this.protocolID = id;
-	Debug.d(this, "setProtocolId", id, 4);
     }
 
     /** Set the GSM protocol ID.
@@ -463,7 +453,6 @@ public abstract class SMPPPacket
     public void setProtocolID(int id)
     {
 	this.protocolID = id;
-	Debug.d(this, "setProtocolID", id, 4);
     }
 
     /** Set the GSM data coding of the message.
@@ -473,7 +462,6 @@ public abstract class SMPPPacket
     public void setDataCoding(int dc)
     {
 	this.dataCoding = dc;
-	Debug.d(this, "setDataCoding", dc, 4);
     }
 
     /** Set the default message id in the message flags.
@@ -482,7 +470,6 @@ public abstract class SMPPPacket
     public void setDefaultMsg(int id)
     {
 	this.defaultMsg = id;
-	Debug.d(this, "setDefaultMsg", id, 4);
     }
 
     /** Get the message flags.
@@ -664,7 +651,6 @@ public abstract class SMPPPacket
 		throw new ArrayIndexOutOfBoundsException();
 
 	    if (len > maxLen) {
-		Debug.warn(this, "setMessage", "Message data too long");
 		throw new StringTooLongException(maxLen);
 	    }
 
@@ -740,9 +726,7 @@ public abstract class SMPPPacket
 
 	if(type.length() < 6) {
 	    this.serviceType = type;
-	    Debug.d(this, "setServiceType", type, 4);
 	} else {
-	    Debug.warn(this, "setServiceType", "Service type too long");
 	    throw new StringTooLongException(5);
 	}
     }
@@ -759,7 +743,6 @@ public abstract class SMPPPacket
     public void setDeliveryTime(SMPPDate d)
     {
 	this.deliveryTime = d;
-	Debug.d(this, "setDeliveryTime", d, 4);
     }
 
     /** Get the current value of the scheduled delivery time for the short
@@ -778,7 +761,6 @@ public abstract class SMPPPacket
     public void setExpiryTime(SMPPDate d)
     {
 	expiryTime = d;
-	Debug.d(this, "setExpiryTime", d, 4);
     }
 
     /** Get the current expiry time of the message.
@@ -796,7 +778,6 @@ public abstract class SMPPPacket
     public void setFinalDate(SMPPDate d)
     {
 	finalDate = d;
-	Debug.d(this, "setFinalDate", d, 4);
     }
 
     /** Get the final date of the message.
@@ -842,7 +823,6 @@ public abstract class SMPPPacket
     public void setMessageStatus(int st)
     {
 	this.messageStatus = st;
-	Debug.d(this, "setMessageStatus", st, 4);
     }
 
     /** Get the message status.
@@ -858,7 +838,6 @@ public abstract class SMPPPacket
     public void setErrorCode(int code)
     {
 	errorCode = code; 
-	Debug.d(this, "setErrorCode", code, 4);
     }
 
     /** Get the error code.
@@ -985,7 +964,6 @@ public abstract class SMPPPacket
 	encodeBody(out);
 	tlvTable.writeTo(out);
 
-	Debug.d(this, "writeTo", "written!", 5);
     }
 
     // XXX javadoc

@@ -30,7 +30,7 @@ import java.io.InputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import ie.omk.debug.Debug;
+import org.apache.log4j.Logger;
 
 /** Implementation of an Smsc link over the tcp/ip protocol
   * @author Oran Kelly
@@ -74,7 +74,10 @@ public class TcpLink
 	throws java.net.UnknownHostException
     {
 	this.addr = InetAddress.getByName(address);
-	this.port = port;
+	if (port < 1)
+	    this.port = DEFAULT_PORT;
+	else
+	    this.port = port;
     }
 
     /** Create a new TcpLink
@@ -96,7 +99,10 @@ public class TcpLink
 	throws java.net.UnknownHostException
     {
 	this.addr = address;
-	this.port = port;
+	if (port < 1)
+	    this.port = DEFAULT_PORT;
+	else
+	    this.port = port;
     }
 
     /** Create a new Socket connection to the SMSC. This implementation creates
@@ -109,6 +115,7 @@ public class TcpLink
     protected void implOpen()
 	throws java.io.IOException
     {
+	logger.info("Opening TCP socket to " + addr + ":" + port);
 	sock = new Socket(addr, port);
 	connected = true;
     }
@@ -122,11 +129,13 @@ public class TcpLink
 	throws java.io.IOException
     {
 	if (connected && sock != null) {
+	    logger.info("Shutting down socket connection");
 	    try {
 		sock.close();
 		sock = null;
 		connected = false;
 	    } catch(IOException ix) {
+		logger.warn("I/O exception closing socket", ix);
 		connected = false;
 		ix.fillInStackTrace();
 		throw ix;

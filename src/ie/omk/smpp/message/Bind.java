@@ -27,7 +27,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 import ie.omk.smpp.SMPPException;
-import ie.omk.debug.Debug;
+import org.apache.log4j.Logger;
 import ie.omk.smpp.BadCommandIDException;
 import ie.omk.smpp.BadInterfaceVersionException;
 import ie.omk.smpp.InvalidNPIException;

@@ -33,7 +33,7 @@ import ie.omk.smpp.SMPPException;
 import ie.omk.smpp.util.GSMConstants;
 import ie.omk.smpp.util.SMPPIO;
 
-import ie.omk.debug.Debug;
+import org.apache.log4j.Logger;
 
 /** Cancal message.
   * This SMPP message is used to cancel a previously submitted but yet

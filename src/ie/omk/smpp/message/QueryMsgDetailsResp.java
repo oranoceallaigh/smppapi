@@ -34,7 +34,7 @@ import ie.omk.smpp.util.GSMConstants;
 import ie.omk.smpp.util.SMPPDate;
 import ie.omk.smpp.util.SMPPIO;
 
-import ie.omk.debug.Debug;
+import org.apache.log4j.Logger;
 
 /** Response to Query message details.
   * Gives all details of a specified message at the SMSC.

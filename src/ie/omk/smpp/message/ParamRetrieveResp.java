@@ -30,7 +30,7 @@ import ie.omk.smpp.SMPPException;
 import ie.omk.smpp.BadCommandIDException;
 import ie.omk.smpp.StringTooLongException;
 import ie.omk.smpp.util.SMPPIO;
-import ie.omk.debug.Debug;
+import org.apache.log4j.Logger;
 
 /** SMSC response to a ParamRetrieve request.
   * Returns the value of the requested parameter.

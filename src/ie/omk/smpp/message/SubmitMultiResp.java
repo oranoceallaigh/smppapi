@@ -38,7 +38,7 @@ import ie.omk.smpp.BadCommandIDException;
 
 import ie.omk.smpp.util.SMPPIO;
 
-import ie.omk.debug.Debug;
+import org.apache.log4j.Logger;
 
 /** Submit to multiple destinations response.
   * Relevant inherited fields from SMPPPacket:<br>

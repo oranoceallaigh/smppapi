@@ -27,7 +27,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
 import ie.omk.smpp.SMPPException;
-import ie.omk.debug.Debug;
 
 import ie.omk.smpp.message.AlertNotification;
 import ie.omk.smpp.message.BindReceiver;
@@ -62,6 +61,9 @@ import ie.omk.smpp.message.SubmitSM;
 import ie.omk.smpp.message.SubmitSMResp;
 import ie.omk.smpp.message.Unbind;
 import ie.omk.smpp.message.UnbindResp;
+
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 
 // XXX javadoc
 public class PacketFactory
@@ -209,14 +211,12 @@ public class PacketFactory
 		response = null;
 	}
 
-	if (Debug.getLevel() > 2) {
-	    if (response != null)
-		Debug.d(PacketFactory.class, "newPacket",
-			response.getClass().getName(), 3);
-	    else
-		Debug.d(PacketFactory.class, "newPacket",
-			"Unknown packet " + id, 3);
-	}
+	Logger l = Logger.getLogger("ie.omk.smpp.util");
+	if (response != null) {
+	    if (l.isDebugEnabled())
+		l.debug("New Packet: " + response.getClass().getName());
+	} else
+	    l.warn("Unknown packet ID " + id);
 
 	return (response);
     }

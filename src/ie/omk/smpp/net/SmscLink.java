@@ -33,7 +33,7 @@ import java.io.OutputStream;
 import ie.omk.smpp.SMPPException;
 import ie.omk.smpp.message.SMPPPacket;
 import ie.omk.smpp.util.SMPPIO;
-import ie.omk.debug.Debug;
+import org.apache.log4j.Logger;
 
 /** Abstract super class of all classes that implement a network link
   * to the SMSC. This class uses buffered input and output internally for
@@ -66,11 +66,14 @@ public abstract class SmscLink
     /** Outgoing bytes snoop stream. */
     private OutputStream snoopOut = null;
 
+    /** Log4J Logger object. Subclasses may use this logger too. */
+    protected Logger logger = null;
 
     /** Create a new unconnected SmscLink.
      */
     public SmscLink()
     {
+	logger = Logger.getLogger("ie.omk.smpp.net.SmscLink");
     }
 
 
@@ -243,7 +246,7 @@ public abstract class SmscLink
 	    if (s != null)
 		s.write(b, offset, len);
 	} catch (IOException x) {
-	    Debug.warn(this, "dump", "Error dumping debug bytes (ignorable).");
+	    logger.debug("Couldn't write incoming bytes to input snooper.", x);
 	}
     }
 

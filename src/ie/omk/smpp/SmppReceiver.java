@@ -63,7 +63,7 @@ import ie.omk.smpp.message.UnbindResp;
 
 import ie.omk.smpp.net.SmscLink;
 
-import ie.omk.debug.Debug;
+import org.apache.log4j.Logger;
 
 /** Receiver implementation of the SMPP Connection.
   * @author Oran Kelly
@@ -78,7 +78,7 @@ public class SmppReceiver
       */
     public SmppReceiver(SmscLink link)
     {
-	super(link);
+	super(link, false);
     }
 
     /** Create a new Smpp receiver specifying the type of communications
