@@ -318,12 +318,13 @@ public abstract class SmppConnection
     }
 
     /** bind this connection to the SMSC.
-      * Sub classes of SmppConnection must provide an implementation of this.
       * @param systemID The system ID of this ESME.
       * @param password The password used to authenticate to the SMSC.
       * @param systemType The system type of this ESME.
       * @param sourceRange The source routing information. If null, the defaults
       * at the SMSC will be used.
+      * @param transmitter true to bind as transmitter, false to bind as
+      * receiver.
       * @return The bind transmitter or bind receiver response or null if
       * asynchronous communications is in use.
       * @exception java.io.IOException If a communications error occurs
@@ -331,9 +332,38 @@ public abstract class SmppConnection
       * @see ie.omk.smpp.SmppTransmitter#bind
       * @see ie.omk.smpp.SmppReceiver#bind
       */
-    public abstract SMPPResponse bind(String systemID, String password,
-	    String systemType, SmeAddress sourceRange)
-	throws java.io.IOException, ie.omk.smpp.SMPPException;
+    public BindResp bind(String systemID, String password,
+	    String systemType, SmeAddress sourceRange, boolean transmitter)
+	throws java.io.IOException, ie.omk.smpp.SMPPException
+    {
+	Bind bindReq = null;
+
+	// Make sure we're not already bound
+	if(getState() != UNBOUND)
+	    throw new AlreadyBoundException();
+
+	// Open the network connection if necessary
+	openLink();
+
+	if (transmitter)
+	    bindReq = new BindTransmitter();
+	else
+	    bindReq = new BindReceiver();
+
+	bindReq.setSystemId(systemID);
+	bindReq.setPassword(password);
+	bindReq.setSystemType(systemType);
+	bindReq.setInterfaceVersion(interfaceVersion);
+	if (sourceRange != null) {
+	    bindReq.setAddressTon(sourceRange.getTON());
+	    bindReq.setAddressNpi(sourceRange.getNPI());
+	    bindReq.setAddressRange(sourceRange.getAddress());
+	}
+
+	Debug.d(this, "bind", "bind request sent", 3);
+
+	return ((BindResp)sendRequest(bindReq));
+    }
 
 
     /** Unbind from the SMSC. This method constructs and sends an unbind request
