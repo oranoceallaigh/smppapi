@@ -92,8 +92,4 @@ public class UCS2Encoding
 	    return (new byte[0]);
 	}
     }
-
-    public int getEncodingLength() {
-	return (16);
-    }
 }

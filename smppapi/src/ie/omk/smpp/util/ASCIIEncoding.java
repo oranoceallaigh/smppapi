@@ -75,8 +75,4 @@ public class ASCIIEncoding
 	    return (new byte[0]);
 	}
     }
-
-    public int getEncodingLength() {
-	return (8);
-    }
 }
