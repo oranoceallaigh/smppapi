@@ -1,0 +1,389 @@
+<!--
+
+    Java SMPP API
+    Copyright (C) 1998 - 2001 by Oran Kelly 
+
+    This library is free software; you can redistribute it and/or 
+    modify it under the terms of the GNU Lesser General Public 
+    License as published by the Free Software Foundation; either 
+    version 2.1 of the License, or (at your option) any later version. 
+
+    This library is distributed in the hope that it will be useful, 
+    but WITHOUT ANY WARRANTY; without even the implied warranty of 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+    Lesser General Public License for more details. 
+
+    You should have received a copy of the GNU Lesser General Public 
+    License along with this library; if not, write to the Free Software 
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
+
+    A copy of the LGPL can be viewed at http://www.gnu.org/copyleft/lesser.html 
+    Java SMPP API author: orank@users.sf.net 
+    Java SMPP API Homepage: http://smppapi.sourceforge.net/ 
+
+    User manual for the SMPP API                  
+    Authors (in alphabetical order):
+        Oran Kelly
+-->
+
+<html>
+
+  <head>
+    <style type="text/css">
+      BODY { background-color: white; color: black; }
+      .codeblock { border-style:solid; border-width:1; background-color: #efefef;}
+    </style>
+    <title>Java SMPP API User's Guide</title>
+  <head>
+
+    <body>
+
+    <h1>Java SMPP API User's Guide</h1>
+
+    <h2>0. Document status</h2>
+    <p>
+    This is the first-attempt and <i>very</i> rough draft of the user guide.
+    Feedback and criticism should be posted to the relevant discussion forums
+    on <a href="http://www.sf.net/projects/smppapi/">Sourceforge</a>.
+    </p>
+
+    <h2>1. Introduction</h2>
+    <p>
+    This guide describes the use of the <b>Java SMPP API (<i>smppapi</i>)</b> in an
+    application. See <a href="http://www.opensource.org/">
+      The Open Source pages</a> for the complete text of the LGPL. The smppapi
+    project resides on the web at <a href="http://www.sf.net/projects/smppapi">
+      http://www.sf.net/projects/smppapi</a>.
+    </p>
+
+    <p>
+    This guide is meant only as an introduction to the functionality provided
+    by the API. Developer's should refer to the <a href="apiDocs/index.html">API
+      documentation</a> for a comprehensive description of the interfaces available.
+    </p>
+
+    <h2>2. Interface version</h2>
+    <p>
+    The smppapi implements version 3.3 of the SMPP specification.
+    Development efforts to support for version 3.4 are underway.
+    </p>
+
+    <h2>3. Packages</h2>
+    <p>
+    The smppapi classes are packaged in (and under) the <code>ie.omk.smpp namespace.</code>
+    Top-level classes (such as
+    <b><code><a href="apiDocs/ie/omk/smpp/SmppConnection.html">SmppConnection</a> and
+    <a href="apiDocs/ie/omk/smpp/SmppTransmitter.html">SmppTransmitter</a></code></b>)
+    are in the <code>ie.omk.smpp</code> package. SMPP message primitives (requests
+    and responses) are in the <code>ie.omk.smpp.message</code> package. Classes which
+    handle network connectivity
+    (eg <b><code><a href="apiDocs/ie/omk/smpp/net/TcpLink.html">TcpLink</a></code></b>) reside in the
+    <code>ie.omk.smpp.net</code> package. There are also some utility classes in
+    <code>ie.omk.smpp.util</code> package.
+
+    <h2>4. Establishing the network link</h2>
+    <p>
+    The physical connection between an SMPP application (<i>ESME</i>) and the
+    <i>SMSC</i> is defined by the <code>SmscLink</code> abstract class. Specific
+    network implementations extend this class to allow the API to communicate
+    with the SMSC over any Java-supported network protocol. The smppapi currently
+    provides two concrete SmscLink implementations:
+    <ul>
+      <li><code>TcpLink</code>. This allows an ESME to communicate with the SMSC
+      over the Internet-standard TCP/IP protocol.
+
+      <li><code>StreamLink</code>. This class is mainly provided for debugging purposes.
+      It allows the ESME to provide any Java input stream and output stream for the
+      smppapi to use for i/o.
+    </ul>
+    </p>
+
+    <h3>4.1 Using <code>TcpLink</code></h3>
+    <p>
+    A TCP/IP link can be established to the SMSC in two ways. In the first case,
+    the developer relies on the API to open the underlying socket to the remote
+    system. In the second, the socket connection is already established.
+    </p>
+
+    <p>
+    <u>Case 1</u>:
+    <pre class="codeblock">
+      try {
+          // First get the java.net.InetAddress for the SMSC:
+          InetAddress smscAddr = InetAddress.getByName("smsc.domain.com");
+
+          // Use port 5432
+          TcpLink smscLink = new TcpLink(smscAddr, 5432);
+
+          // Open the connection (not required)..
+          smscLink.open();
+      } catch(java.net.UnknownHostException ux) {
+          System.err.println("SMPPAPI: " + ux.getMessage());
+      }
+    </pre>
+    </p>
+
+    <p>
+    <u>Case 2</u>:
+    <pre class="codeblock">
+      try {
+          // Open the socket..
+          Socket s = new Socket("smsc.domain.com", 5432);
+
+          // Create the TCP link..
+          TcpLink smscLink = new TcpLink(s);
+      } catch (java.net.UnknownHostException x) {
+          ...
+      } catch (java.io.IOException x) {
+          ...
+      }
+    </pre>
+    </p>
+
+    <h3>4.2 Using <code>StreamLink</code></h3>
+    <p>
+    The <code>StreamLink</code> class is provided mainly for debugging purposes.
+    It's primary purpose is to read SMPP packets from a binary file. However, it
+    is possible to pass any Java <code>InputStream</code> and <code>OutputStream</code>
+    to the <code>StreamLink</code> constructor. For instance, if a file 'responses.bin' exists that contains
+    a set of response messages that a developer wishes to test against, she may do so like this:
+    <pre class="codeblock">
+      FileInputStream fin = new FileInputStream("responses.bin");
+      FileOutputStream fout = new FileOutputStream("/dev/null");
+
+      StreamLink link = new StreamLink(fin, fout);
+
+      SmppTransmitter tran = new SmppTransmitter(link);
+
+      // run tests...
+    </pre>
+    Obviously, the responses should match whatever requests are sent.
+    </p>
+
+    <h2>5. Connections, Transmitters and Receivers.</h2>
+    <p>
+    SMPP defines two modes of operations for an ESME. They are transmitter and
+    receiver mode. An ESME defines it's mode to the SMSC by <i>binding</i> to
+    the SMSC either as a transmitter or receiver, depending on what operations
+    it wishes to carry out. In the smppapi, an application signifies that it
+    wishes to bind as either a transmitter or receiver by instantiating the
+    relevant child of the abstract <code>SmppConnection</code> class. To bind
+    as a transmitter, use the <code>SmppTransmitter</code> class. To bind as a
+    receiver, use the <code>SmppReceiver</code> class.
+
+    <h2>6. Synchronous versus Asynchronous communication.</h2>
+    <p>
+    The smppapi supports both synchronous and asynchronous communication. <b>Synchronous</b>
+    communication is the default. This means that when a request is sent to the SMSC, the
+    API <i>blocks</i> until the response is received from the SMSC. In asynchronous
+    communication, the API returns immediately after sending a request and notifies your application
+    once the response is received from the SMSC. More than one <i>observer</i> can
+    be notified of an incoming SMPP packet from the SMSC.
+    </p>
+
+    <p>
+    As synchronous communication is the default, no special action needs to be taken when using
+    the <code>SmppTransmitter</code> and <code>SmppReceiver</code> classes. Their use is simply:
+    <pre class="codeblock">
+      try {
+          SmppTransmitter trans = new SmppTransmitter(smscLink);
+
+          .
+          .
+          .
+
+          SMPPResponse resp = trans.sendRequest(req);
+          if (resp.getCommandStatus() != 0) {
+              ...
+          }
+      } catch (SMPPException x) {
+          ...
+      }
+    </pre>
+    </p>
+
+    <p>
+    To create an <code>SmppConnection</code> that uses asynchronous
+    communication, an implementation of the <code>java.util.Observer</code>
+    interface is needed. This implementation will receive
+    <code>SmppEvent</code> objects for each SMPP packet received from the SMSC.
+    <pre class="codeblock">
+      public class MyListener implements java.util.Observer
+      {
+          public void update(java.util.Observable o, Object arg)
+          {
+              SmppConnection source = (SmppConnection)o;
+              SmppEvent ev = (SmppEvent)arg;
+              ...
+          }
+      }
+    </pre>
+    </p>
+
+    <p>
+    This Observer object must now be registered with the <code>SmppConnection</code> class so
+    that it can receive updates.
+    <pre class="codeblock">
+      // Create an Observer object
+      MyListener myListener = new MyListener();
+
+      // Create an asynchronous transmitter..
+      SmppTransmitter trans = new SmppTransmitter(trans, true);
+
+      // Register the listener..
+      trans.addObserver(myListener);
+    </pre>
+    </p>
+
+    <h2>7. Synchronous communication as a Receiver</h2>
+    <p>
+    While it is possible to use synchronous communication with a Receiver connection, it is
+    generally more useful to use asynchronous communication when binding as a receiver.
+    This is because the only thing a receiver application does once it binds is wait for
+    the SMSC to deliver messages to it. Therefore, it makes sense for a receiver application
+    to bind and then let the smppapi wait for incoming messages. Once received, the application
+    will be passed an <code>SmppEvent</code> as described above.
+    </p>
+
+    <p>
+    To use synchronous communication while bound as a receiver, have a look at the
+    <code>
+      <a href="apiDocs/ie/omk/smpp/SmppConnection.html#readNextPacket(long)">SmppConnection.readNextPacket</a>
+    </code> method.
+
+    <h2>8. Binding to the SMSC</h2>
+    <p>
+    There are 2 ways to bind to the SMSC. The first is to use the <code>bind</code>
+    helper methods in <code>SmppTransmitter</code> and <code>SmppReceiver</code>.
+    The second is to instantiate the relevant Bind SMPP packet (<code>BindTransmitter</code>
+    or <code>BindReceiver</code>) and use the <code>SmppConnection.sendRequest</code>
+    method. Here are code snippets demonstrating both ways:
+    </p>
+
+    <p>
+    <u>Method 1</u>:
+    <pre class="codeblock">
+      SmppReceiver recv = new SmppReceiver(smscLink);
+
+      /*
+       * Bind to the SMSC...use the default routing information
+       * configured at the SMSC..
+       */
+      SMPPResponse r = recv.bind("sysID", "secret", "sysType", null);
+      if (r.getCommandID() != SMPPPacket.ESME_BNDRCV_RESP) {
+          ...
+      }
+
+      BindReceiverResp brr = (BindReceiverResp)r;
+      ...
+    </pre>
+    </p>
+
+    <p>
+    <u>Method 2</u>:
+    <pre class="codeblock">
+      MyListener myListener = new MyListener();
+      SmppReceiver recv = new SmppReceiver(smscLink, true);
+      recv.addObserver(myListener);
+
+      // Bind as receiver, specify source routing information.
+      BindReceiver br = new BindReceiver();
+      br.setSystemID("sysID");
+      br.setPassword("secret");
+      br.setSystemType("sysType");
+      br.setAddressRange(new SmeAddress(
+          GSMConstants.GSM_TON_UNKNOWN,
+          GSMConstants.GSM_NPI_UNKNOWN,
+          "123456789871"));
+
+      recv.sendRequest(br);
+
+      // myListener will get the response packet when it's received..
+    </pre>
+    </p>
+
+
+    <h2>9. Handling an SmppEvent</h2>
+    <p>
+    As already discussed, when using asynchronous communication, the smppapi will
+    notify an Observer of an incoming SMPP packet from the SMSC with an
+    <code>SmppEvent</code>. The <code>SmppEvent</code> contains the received
+    SMPP packet (which can be accessed using <code>SmppEvent.getPacket</code>),
+    the source <code>SmppConnection</code> that created the event and possibly
+    some 'extra information' depending on the packet type received (see the
+    <code>SmppEvent</code> API documentation for a full description). <u>It's important
+      to keep thread-safety in mind when writing your event handler method</u> as the smppapi
+    makes no guarantees that it will dispatch only one event at a time.
+    Although it does not happen in the current release, a future version may dispatch
+    multiple SmppEvents on multiple threads. An SMPP
+    event handler might look similar to this:
+    <pre class="codeblock">
+      public class MyListener implements java.util.Observer
+      {
+          public void update(java.util.Observable o, Object arg)
+          {
+              try {
+                  SmppEvent ev = (SmppEvent)arg;
+                  SMPPPacket pak = ev.getPacket();
+
+                  switch (pak.getCommandID()) {
+                  case SMPPPacket.ESME_BNDTRN_RESP:
+                      if (pak.getCommandStatus() == 0) {
+                          // successfully bound...
+                          this.submitMessages();
+                      } else {
+                          // handle error...
+                      }
+                      break;
+
+                  case SMPPPacket.ESME_SUB_SM_RESP:
+                      ...
+                      break;
+
+                  case SMPPPacket.GENERIC_NAK:
+                      ..
+                      break;
+
+                  case SmppConnectionDropPacket.CONNECTION_DROP:
+                      // special case...network connection was dropped
+                      System.err.println("Fatal error: network connection closed.");
+                  }
+              } catch (SMPPException x) {
+                  // handle exception...
+              }
+          }
+      }
+    </pre>
+    </p>
+
+    <h2>10. Automatic responses.</h2>
+    <p>
+    In certain cases the SMSC may send request packets to an ESME. The only two
+    cases in SMPP version 3.3 are when the SMSC is delivering short messages to
+    an ESME (only relevant to a Receiver) and when the SMSC sends an
+    <code>EnquireLink</code> request (both Receiver and Transmitter). The
+    <code>SmppConnection</code> can be set up to automatically respond to these
+    messages. Thus, so long as the ESME is 'alive', if the SMSC sends an
+    <code>EnquireLink</code> request, the smppapi will respond immediately with
+    <code>EnquireLinkResp</code>. The request packet will still be passed to the
+    application by the smppapi.
+    </p>
+
+    <p>
+    By default, automatically acknowledging links is <b>enabled</b> while
+    automatically acknowledging messages is <b>disabled</b>. To change these
+    settings, use the <code>SmppConnection.autoAckLink</code> and
+    <code>SmppConnection.autoAckMessages</code> methods.
+    </p>
+
+    <h2>Appendix A: Glossary.</h2>
+    <table cols="2">
+      <tr><td>SMPP</td><td>Short Message Peer to Peer</td></tr>
+      SMSC or SC,Short Message Service Centre
+      ESME or SME,(External) Short Message Entity
+    </table>
+
+    <hr>
+    &copy; Copyright 1998 - 2001 by <a href="mailto:orank@users.sf.net">Oran Kelly</a>
+  </body>
+</html>
