@@ -69,10 +69,10 @@ public abstract class SMPPVersion {
 	this.versionString = versionString;
     }
 
-    /** Get an object representing the default version of the API.
+    /** Get an object representing the default version of the API, which is 3.4.
      */
     public static final SMPPVersion getDefaultVersion() {
-	return (V33);
+	return (V34);
     }
 
     public static final SMPPVersion getVersion(int id) throws VersionException {
