@@ -160,16 +160,18 @@
 
   <!-- Build the distribution. -->
   <target name="dist" depends="all" if="releaseNumber">
+    <property name="releaseDir" value="${dist}/smppapi-${releaseNumber}"/>
+
     <delete dir="${dist}"/>
-    <mkdir dir="${dist}/smppapi"/>
-    <copy todir="${dist}/smppapi">
-      <fileset dir=".">
-        <exclude name="${dist}"/>
-        <exclude name="${build}"/>
+    <mkdir dir="${releaseDir}"/>
+    <copy todir="${releaseDir}" includeemptydirs="no">
+      <fileset dir="." defaultexcludes="true">
+        <exclude name="${build}/**/*.class"/>
+        <exclude name="${dist}/**/*"/>
       </fileset>
     </copy>
 
-    <tar tarfile="${dist}/smppapi-${releaseNumber}.tar" basedir="${dist}"/>
+    <tar tarfile="${dist}/smppapi-${releaseNumber}.tar" basedir="${releaseDir}"/>
     <gzip src="${dist}/smppapi-${releaseNumber}.tar" zipfile="${dist}/smppapi-${releaseNumber}.tar.gz"/>
     <delete file="${dist}/smppapi-${releaseNumber}.tar"/>
   </target>
