@@ -1122,8 +1122,12 @@ public class Connection
      * methods in this class that read from the incoming connection.
      */
     private void handleBindResp(BindResp resp) {
-	if (state == BINDING && resp.getCommandStatus() == 0)
+	int st = resp.getCommandStatus();
+
+	if (state == BINDING && st == 0)
 	    setState(BOUND);
+	else if (st != 0)
+	    setState(UNBOUND);
 
 	// Read the version of the protocol supported at the SMSC.
 	Number n = (Number)resp.getOptionalParameter(Tag.SC_INTERFACE_VERSION);
