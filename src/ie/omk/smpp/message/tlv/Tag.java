@@ -97,7 +97,7 @@ public class Tag implements java.io.Serializable {
 	 = new Tag(0x20a, Number.class, 2);
 
     public static final Tag DESTINATION_PORT
-	 = new Tag(0x20b2, Number.class, 2);
+	 = new Tag(0x20b, Number.class, 2);
 
     public static final Tag SAR_MSG_REF_NUM
 	 = new Tag(0x20c, Number.class, 2);
