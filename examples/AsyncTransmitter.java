@@ -25,6 +25,10 @@ package ie.omk.smpp.examples;
 
 import java.io.IOException;
 
+import java.util.HashMap;
+
+import org.apache.log4j.Logger;
+
 import ie.omk.smpp.Address;
 import ie.omk.smpp.Connection;
 import ie.omk.smpp.SMPPException;
@@ -33,22 +37,23 @@ import ie.omk.smpp.event.ConnectionObserver;
 import ie.omk.smpp.event.ReceiverExitEvent;
 import ie.omk.smpp.event.SMPPEvent;
 
-import ie.omk.smpp.message.BindTransmitterResp;
-import ie.omk.smpp.message.SMPPPacket;
-import ie.omk.smpp.message.SubmitSM;
-import ie.omk.smpp.message.SubmitSMResp;
-
-import ie.omk.smpp.net.TcpLink;
+import ie.omk.smpp.message.*;
 
 import ie.omk.smpp.util.GSMConstants;
 
 /** Example class to submit a message to a SMSC.
   * This class simply binds to the server, submits a message and then unbinds.
   */
-public class AsyncTransmitter extends SMPPExample
-    implements ConnectionObserver
-{
+public class AsyncTransmitter implements ConnectionObserver {
+
     private Object blocker = new Object();
+
+    private Connection myConnection = null;
+
+    private HashMap myArgs = new HashMap();
+
+    private Logger logger = Logger.getLogger("ie.omk.smpp.examples");
+
 
     // This is called when the connection receives a packet from the SMSC.
     public void update(Connection t, SMPPEvent ev)
@@ -60,7 +65,7 @@ public class AsyncTransmitter extends SMPPExample
 	}
     }
 
-    public void packetReceived(Connection trans, SMPPPacket pak)
+    public void packetReceived(Connection myConnection, SMPPPacket pak)
     {
 	logger.info("Packet received: Id = "
 		+ Integer.toHexString(pak.getCommandId()));
@@ -76,30 +81,28 @@ public class AsyncTransmitter extends SMPPExample
 		    blocker.notify();
 		}
 	    } else {
-		logger.info("\tSuccessfully bound to SMSC \""
+		logger.info("Successfully bound to SMSC \""
 			+ ((BindTransmitterResp)pak).getSystemId()
 			+ "\".\n\tSubmitting message...");
-		send(trans);
+		send(myConnection);
 	    }
 	    break;
 
 	// Submit message response...
 	case SMPPPacket.SUBMIT_SM_RESP:
 	    if (pak.getCommandStatus() != 0) {
-		logger.info("\tMessage was not submitted. Error code: "
+		logger.info("Message was not submitted. Error code: "
 			+ pak.getCommandStatus());
 	    } else {
-		logger.info("\tMessage Submitted! Id = "
+		logger.info("Message Submitted! Id = "
 			    + ((SubmitSMResp)pak).getMessageId());
 	    }
 
-	    // Unbind. The Connection's listener thread will stop itself..
 	    try {
-		trans.unbind();
+		// Unbind. The Connection's listener thread will stop itself..
+		myConnection.unbind();
 	    } catch (IOException x) {
-		logger.info("\tUnbind error. Closing network "
-			+ "connection.");
-		logger.warn("Exception", x);
+		logger.info("IO exception" + x.toString());
 		synchronized (blocker) {
 		    blocker.notify();
 		}
@@ -108,16 +111,19 @@ public class AsyncTransmitter extends SMPPExample
 
 	// Unbind response..
 	case SMPPPacket.UNBIND_RESP:
-	    logger.info("\tUnbound.");
+	    logger.info("Unbound.");
+	    synchronized (blocker) {
+		blocker.notify();
+	    }
 	    break;
 
 	default:
-	    logger.info("\tUnknown response received! Id = "
+	    logger.info("Unknown response received! Id = "
 		    + pak.getCommandId());
 	}
     }
 
-    private void receiverExit(Connection trans, ReceiverExitEvent ev)
+    private void receiverExit(Connection myConnection, ReceiverExitEvent ev)
     {
 	if (!ev.isException()) {
 	    logger.info("Receiver thread has exited normally.");
@@ -133,7 +139,7 @@ public class AsyncTransmitter extends SMPPExample
     }
 
     // Send a short message to the SMSC
-    public void send(Connection trans)
+    public void send(Connection myConnection)
     {
 	try {
 	    String message = new String("Test Short Message. :-)");
@@ -141,10 +147,10 @@ public class AsyncTransmitter extends SMPPExample
 		    GSMConstants.GSM_TON_UNKNOWN,
 		    GSMConstants.GSM_NPI_UNKNOWN,
 		    "87654321");
-	    SubmitSM sm = new SubmitSM();
+	    SubmitSM sm = (SubmitSM)myConnection.newInstance(SMPPPacket.SUBMIT_SM);
 	    sm.setDestination(destination);
 	    sm.setMessageText(message);
-	    trans.sendRequest(sm);
+	    myConnection.sendRequest(sm);
 	} catch (IOException x) {
 	    logger.warn("I/O Exception", x);
 	} catch (SMPPException x) {
@@ -152,41 +158,42 @@ public class AsyncTransmitter extends SMPPExample
 	}
     }
 
-    private void doit(String[] clargs)
+    private void init(String[] args) {
+	try {
+	    myArgs = ParseArgs.parse(args);
+
+	    int port = Integer.parseInt((String)myArgs.get(ParseArgs.PORT));
+
+	    myConnection = new Connection((String)myArgs.get(ParseArgs.HOSTNAME), port, true);
+	} catch (Exception x) {
+	    System.err.println("Bad command line arguments.");
+	}
+    }
+
+    private void run()
     {
 	try {
-	    parseArgs(clargs);
-
-	    // Open a network link to the SMSC..
-	    TcpLink link = new TcpLink(hostName, port);
-
-	    // Create a Connection object (we won't bind just yet..)
-	    Connection trans = new Connection(link, true);
-
 	    // Need to add myself to the list of listeners for this connection
-	    trans.addObserver(this);
+	    myConnection.addObserver(this);
 
 	    // Automatically respond to ENQUIRE_LINK requests from the SMSC
-	    trans.autoAckLink(true);
-
-	    Address range = null;
-	    if (sourceRange != null)
-		range = new Address(ton, npi, sourceRange);
+	    myConnection.autoAckLink(true);
 
 	    // Bind to the SMSC (as a transmitter)
 	    logger.info("Binding to the SMSC..");
-	    trans.bind(Connection.TRANSMITTER,
-		    sysID,
-		    password,
-		    sysType);
+	    BindResp resp = myConnection.bind(myConnection.TRANSMITTER,
+		    (String)myArgs.get(ParseArgs.SYSTEM_ID),
+		    (String)myArgs.get(ParseArgs.PASSWORD),
+		    (String)myArgs.get(ParseArgs.SYSTEM_TYPE),
+		    Integer.parseInt((String)myArgs.get(ParseArgs.ADDRESS_TON)),
+		    Integer.parseInt((String)myArgs.get(ParseArgs.ADDRESS_NPI)),
+		    (String)myArgs.get(ParseArgs.ADDRESS_RANGE));
 
 	    synchronized (blocker) {
 		blocker.wait();
 	    }
 	} catch (IOException x) {
 	    logger.warn("I/O Exception", x);
-	} catch (SMPPException x) {
-	    logger.warn("SMPP exception", x);
 	} catch (InterruptedException x) {
 	    logger.warn("Interrupted exception", x);
 	}
@@ -195,7 +202,7 @@ public class AsyncTransmitter extends SMPPExample
     public static void main(String[] clargs)
     {
 	AsyncTransmitter at = new AsyncTransmitter();
-	at.doit(clargs);
-	System.exit(0);
+	at.init(clargs);
+	at.run();
     }
 }
