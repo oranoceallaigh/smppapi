@@ -712,7 +712,14 @@ public abstract class SMPPPacket
 	    if ((start < 0) || (len < 0) || message.length < (start + len))
 		throw new ArrayIndexOutOfBoundsException("Not enough bytes in array");
 
-	    if (len > version.getMaxLength(SMPPVersion.MESSAGE_PAYLOAD))
+            
+            int encodedLength = message.length;
+            int encodingLength = encoding.getEncodingLength();
+	    if (encodingLength != 8) {
+	        encodedLength = (len * encodingLength) / 8;
+	    }
+
+	    if (encodedLength > version.getMaxLength(SMPPVersion.MESSAGE_PAYLOAD))
 		throw new InvalidParameterValueException("Message is too long", message);
 
 	    this.message = new byte[len];

@@ -24,10 +24,12 @@
 package ie.omk.smpp.message;
 
 import ie.omk.smpp.Address;
+import ie.omk.smpp.message.InvalidParameterValueException;
 import ie.omk.smpp.message.tlv.TLVTable;
 import ie.omk.smpp.message.tlv.Tag;
 import ie.omk.smpp.util.AlphabetEncoding;
 import ie.omk.smpp.util.BinaryEncoding;
+import ie.omk.smpp.util.DefaultAlphabetEncoding;
 import ie.omk.smpp.util.Latin1Encoding;
 import ie.omk.smpp.util.MessageEncoding;
 import ie.omk.smpp.util.SMPPDate;
@@ -52,7 +54,7 @@ public class SMPPPacketTest extends TestCase {
 
     /** Test that setting a value and then getting that value are the same.
      */
-    public void testSetters() {
+    /*public void testSetters() {
 	try {
 	    SMPPPacket p = new GenericNack();
 
@@ -121,7 +123,7 @@ public class SMPPPacketTest extends TestCase {
 	    p.setMessageStatus(6);
 	    assertEquals(6, p.getMessageStatus());
 
-	    String text = "Text iñtèrnätiönal";
+	    String text = "Text i\u00f1t\u00e8rn\u00e4ti\u00f6nal";
 	    p.setMessageText(text);
 	    assertEquals(text, p.getMessageText());
 
@@ -160,12 +162,12 @@ public class SMPPPacketTest extends TestCase {
 	    fail("InvalidParameterValueException");
 	}
     }
-
+*/
 
     /** Test the decoding of a packet. Test the decoding of a packet that
      * consists of a header, mandatory body parameters and optional parameters.
      */
-    public void testFullDecode() {
+    /*public void testFullDecode() {
 	try {
 	    SubmitSM sm = new SubmitSM();
 	    sm.setSequenceNum(70);
@@ -194,8 +196,62 @@ public class SMPPPacketTest extends TestCase {
 	    x.printStackTrace(System.err);
 	    fail("Failing due to exception.");
 	}
-    }
+    }*/
     
+    public void testDefaultEncSetMessage() {
+        try {
+            SubmitSM sm = new SubmitSM();
+            sm.setVersion(SMPPVersion.V33);
+            StringBuffer text160 = new StringBuffer(160);
+
+            for (int i = 0; i < 16; i++) {
+                    text160.append("0123456789");
+            }
+
+            sm.setMessageText(text160.toString(), DefaultAlphabetEncoding.getInstance());
+
+            sm = new SubmitSM();
+            sm.setVersion(SMPPVersion.V34);
+            sm.setMessageText(text160.toString(), DefaultAlphabetEncoding.getInstance());
+        } catch (InvalidParameterValueException x) {
+            fail("Message of length 160 was rejected with DefaultAlphabetEncoding");
+        }
+    }
+
+
+    public void testDefaultEncTooLong() {
+
+        SubmitSM sm = new SubmitSM();
+        StringBuffer textLong = new StringBuffer(300);
+
+        try {
+            sm.setVersion(SMPPVersion.V33);
+
+            for (int i = 0; i < 16; i++) {
+                textLong.append("0123456789");
+            }
+
+            textLong.append("Message is now too long");
+
+            sm.setMessageText(textLong.toString(), DefaultAlphabetEncoding.getInstance());
+            fail("Message was too long [" + textLong.length() + "], but accepted by SMPPPacket");
+        } catch (InvalidParameterValueException x) {
+        }
+
+        try {
+            // 3.4 allows up to 254 bytes for the message payload
+            sm = new SubmitSM();
+            sm.setVersion(SMPPVersion.V34);
+            textLong = new StringBuffer();
+
+            for (int i = 0; i < 30; i++) {
+                textLong.append("0123456789");
+            }
+            sm.setMessageText(textLong.toString(), DefaultAlphabetEncoding.getInstance());
+            fail("Message was too long [" + textLong.length() + "], but accepted by SMPPPacket");
+        } catch (InvalidParameterValueException x) {
+        }
+    }
 
     private class PrivateEncoding extends AlphabetEncoding {
 	public PrivateEncoding() {

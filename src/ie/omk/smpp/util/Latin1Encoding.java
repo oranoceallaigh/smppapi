@@ -75,8 +75,4 @@ public class Latin1Encoding
 	    return (null);
 	}
     }
-
-    public int getEncodingLength() {
-	return (8);
-    }
 }

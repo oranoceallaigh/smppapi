@@ -62,7 +62,7 @@ public class EncodingTest extends TestCase {
 	    0x61, 0x67, 0x65, (byte)0xa5, (byte)0xa3, (byte)0xb3, (byte)0xc6
 	};
 
-	String msg = "Test message¥£³Æ";
+	String msg = "Test message\u00a5\u00a3\u00b3\u00c6";
 
 	Latin1Encoding enc = Latin1Encoding.getInstance();
 	assertTrue(Arrays.equals(msg_bytes, enc.encodeString(msg)));

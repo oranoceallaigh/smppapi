@@ -535,7 +535,7 @@ public class Connection
      * @throws ie.omk.smpp.version.VersionException if the version in use
      * does not support the request being sent.
      */
-    protected SMPPResponse sendRequestInternal(SMPPRequest r)
+    protected synchronized SMPPResponse sendRequestInternal(SMPPRequest r)
     throws java.net.SocketTimeoutException, java.io.IOException, AlreadyBoundException, VersionException, SMPPProtocolException {
 	SMPPResponse resp = null;
 	int id = r.getCommandId();
@@ -617,7 +617,7 @@ public class Connection
      * @see #readNextPacket
      * @see java.net.SocketTimeoutException
      */
-    protected SMPPResponse waitForResponsePacket(SMPPPacket req)
+    protected synchronized SMPPResponse waitForResponsePacket(SMPPPacket req)
     throws java.net.SocketTimeoutException, java.io.IOException, SMPPProtocolException {
 	try {
 	    int id = -1;
@@ -637,7 +637,9 @@ public class Connection
 			StringBuffer b = new StringBuffer("Expected:")
 			    .append(Integer.toString(expectedSeq))
 			    .append(" but got ")
-			    .append(Integer.toString(resp.getSequenceNum()));
+			    .append(Integer.toString(resp.getSequenceNum()))
+                            .append(" type: ")
+                            .append(Integer.toString(resp.getCommandId()));
 			logger.debug(b.toString());
 		    }
 		    packetQueue.add(resp);
@@ -1058,7 +1060,7 @@ public class Connection
       * @throws java.io.IOException If an I/O error occurs while reading from
       * the network connection.
       */
-    private SMPPPacket readNextPacketInternal()
+    private synchronized SMPPPacket readNextPacketInternal()
 	throws java.io.IOException, SMPPProtocolException
     {
 	try {
