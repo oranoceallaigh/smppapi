@@ -175,7 +175,8 @@ public abstract class SmppConnection
       * @param ton The Type of Number
       * @param npi The Numbering plan indicator
       * @param range The address routing expression (Up to 40 characters)
-      * @exception SMPPException If the routing expression is invalid
+      * @exception ie.omk.smpp.StringTooLongException if the source routing
+      * expression is too long.
       * @see ie.omk.smpp.util.GSMConstants
       */
     public void setSourceAddress(int ton, int npi, String range)
@@ -192,12 +193,13 @@ public abstract class SmppConnection
 	if(range.length() < 41)
 	    this.addrRange = range;
 	else
-	    throw new SMPPException("Address range must be < 41 chars");
+	    throw new StringTooLongException(40);
     }
 
     /** Set the system Id for this Esme
       * @param name System Id (Up to 15 characters)
-      * @exception SMPPException If the system Id is invalid
+      * @exception ie.omk.smpp.StringTooLongException if the system id is too
+      * long.
       */
     public void setSystemId(String name)
 	throws ie.omk.smpp.SMPPException
@@ -210,12 +212,13 @@ public abstract class SmppConnection
 	if(name.length() < 16)
 	    this.sysId = name;
 	else
-	    throw new SMPPException("System Id must be < 16 chars");
+	    throw new StringTooLongException(15);
     }
 
     /** Set the authentication password
       * @param pass The password to use (Up to 8 characters)
-      * @exception SMPPException If the password is invalid
+      * @exception ie.omk.smpp.StringTooLongException if the password is too
+      * long.
       */
     public void setPassword(String pass)
 	throws ie.omk.smpp.SMPPException
@@ -228,12 +231,13 @@ public abstract class SmppConnection
 	if(pass.length() < 9)
 	    this.password = pass;
 	else
-	    throw new SMPPException("Password must be < 9 chars");
+	    throw new StringTooLongException(8);
     }
 
     /** Set the system type for this connection
       * @param type The System type (Up to 12 characters)
-      * @exception SMPPException If the system type is invalid
+      * @exception ie.omk.smpp.StringTooLongException if the system type is too
+      * long.
       */
     public void setSystemType(String type)
 	throws ie.omk.smpp.SMPPException
@@ -246,7 +250,7 @@ public abstract class SmppConnection
 	if(type.length() < 13)
 	    this.sysType = type;
 	else
-	    throw new SMPPException("System type must be < 13 chars");
+	    throw new StringTooLongException(12);
     }
 
     /** Set the behaviour of automatically acking QRYLINK's from the SMSC.
@@ -308,7 +312,6 @@ public abstract class SmppConnection
       * @param r The request packet to send to the SMSC
       * @return The response packet returned by the SMSC, or null if asynchronous
       * communication is being used.
-      * @exception SMPPException If an invalid response packet is returned
       * @exception java.io.IOException If a network error occurs
       */
     public SMPPResponse sendRequest(SMPPRequest r)
@@ -316,13 +319,6 @@ public abstract class SmppConnection
     {
 	if (link == null)
 	    throw new IOException("Connection to the SMSC is not open.");
-
-	if(r.getSequenceNum() < seqNum - 1) {
-	    throw new SMPPException("Sequence numbering invalid.  Current="
-		    + String.valueOf(seqNum-1)
-		    + ", Packet value="
-		    + r.getSequenceNum());
-	}
 
 	SMPPPacket resp = null;
 	OutputStream out = link.getOutputStream();
@@ -340,8 +336,8 @@ public abstract class SmppConnection
 		    waitingAck--;
 		    inTable.put(new Integer(resp.getSequenceNum()), resp);
 		} else {
-		    throw new SMPPException("Invalid response from SMSC. Id is "
-			    + resp.getCommandId());
+		    Debug.d(this, "sendRequest", "Response received from "
+			+ "SMSC is not an SMPPResponse!", Debug.DBG_1);
 		}
 	    }
 	}
@@ -351,7 +347,8 @@ public abstract class SmppConnection
 
     /** Send an smpp response packet to the SMSC
       * @param r The response packet to send to the SMSC
-      * @exception SMPPException If the sequence numbering is incorrect
+      * @exception ie.omk.smpp.NoSuchRequestException if the response contains a
+      * sequence number of a request this connection has not seen.
       * @exception java.io.IOException If a network error occurs
       * @see SmppConnection#nextPacket
       */
@@ -372,13 +369,8 @@ public abstract class SmppConnection
 	    rq = null;
 	}
 
-	if (rq == null) {
-	    throw new SMPPException("There was no request with sequence no. "
-		    + key);
-	} else if (rq.isAckd()) {
-	    throw new SMPPException("The packet with sequence "
-		    + key + " is already acknowledged.");
-	}
+	if (rq == null)
+	    throw new NoSuchRequestException();
 
 	Object lock = null;
 	OutputStream out = link.getOutputStream();
@@ -408,18 +400,19 @@ public abstract class SmppConnection
 	throws java.io.IOException, ie.omk.smpp.SMPPException;
 
     /** Unbind from the SMSC and close the network connections.
-      * @return The Unbind response packet, or null if asynchronous communication
-      * is being used.
-      * @exception SMPPException If already bound or a Nack arrives.
+      * @return The Unbind response packet, or null if asynchronous
+      * communication is being used.
+      * @exception ie.omk.smpp.NotBoundException if the connection is not yet
+      * bound.
       * @exception java.io.IOException If a network error occurs.
-      * @exception ie.omk.smpp.SMPPExceptione XXX when?
+      * @see ie.omk.smpp.SmppTrasnmitter#bind
       * @see ie.omk.smpp.SmppReceiver#bind
       */
     public UnbindResp unbind()
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	if((state != BOUND) || !(link.isConnected()))
-	    throw new SMPPException("Not bound to SMSC yet.");
+	    throw new NotBoundException();
 
 	/* If this is set, the run() method will return when an
 	 * unbind response packet arrives, stopping the listener
@@ -449,8 +442,7 @@ public abstract class SmppConnection
 	if(state != UNBINDING) {
 	    Debug.d(this, "force_close", "Force tried before normal unbind.",
 		    Debug.DBG_2);
-	    throw new SMPPException("Please Try a normal unbind before "
-		    + "forcing one.");
+	    throw new AlreadyBoundException("Try a normal unbind first.");
 	}
 
 	Debug.d(this, "force_unbind",
@@ -585,7 +577,8 @@ public abstract class SmppConnection
     /** Reset's this connection as if before binding.
       * This loses all packets currently stored and reset's the
       * sequence numbering to the start.
-      * @exception ie.omk.smpp.SMPPException XXX why?
+      * @exception ie.omk.smpp.AlreadyBoundException if the connection is
+      * currently bound to the SMSC.
       */
     public void reset()
 	throws ie.omk.smpp.SMPPException
@@ -595,8 +588,8 @@ public abstract class SmppConnection
 		    + state
 		    + ", link="
 		    + link.isConnected(), Debug.DBG_3);
-	    throw new SMPPException("Cannot reset connection while bound or "
-		    + "connected.");
+	    throw new AlreadyBoundException("Cannot reset connection "
+		    + "while bound");
 	}
 
 	Debug.d(this, "reset", "SmppConnection reset", Debug.DBG_1);
@@ -653,7 +646,7 @@ public abstract class SmppConnection
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	if (asyncComms)
-	    throw new SMPPException("Asynchronous communication in use.");
+	    throw new InvalidOperationException("Asynchronous comms in use.");
 
 	Date start = new Date();
 	InputStream in = link.getInputStream();

@@ -71,8 +71,8 @@ public class SmppTransmitter
       * this method.
       * @return The bind response, or null if asynchronous communication is
       * used.
-      * @exception SMPPException If already bound, or system Id, password
-      * and system type fields are not filled in correctly.
+      * @exception ie.omk.smpp.AlreadyBoundException if the connection is
+      * already bound to the SMSC.
       * @exception java.io.IOException If there is a network error
       * @see SmppReceiver#bind
       */
@@ -81,15 +81,7 @@ public class SmppTransmitter
     {
 	// Make sure we're not already bound
 	if(getState() != UNBOUND)
-	    throw new SMPPException("Already bound to SMSC");
-
-	// Check the required fields are filled in
-	if(sysId == null)
-	    throw new SMPPException("Need a system Id to bind as.");
-	if(password == null)
-	    throw new SMPPException("Need a password to authenticate.");
-	if(sysType == null)
-	    throw new SMPPException("Need a system type to identify as.");
+	    throw new AlreadyBoundException();
 
 	// Open the network connection if necessary.
 	if(!link.isConnected()) {
@@ -225,6 +217,11 @@ public class SmppTransmitter
       * @param valid The validity period of the message, after which it will
       * @return The submit multi response, or null if asynchronous
       * communication is used.
+      * @exception ie.omk.smpp.InvalidDestinationCountException if the
+      * destination table contains 0 addresses. There is currently no upper
+      * limit.
+      * @exception ie.omk.smpp.InvalidReplaceIfPresentException if the
+      * replace-if-present flag is set and there are more than 1 destination.
       * @exception java.io.IOException If a network error occurs
       * @see SmeAddress
       * @see SmppTransmitter#submitMulti
@@ -243,7 +240,7 @@ public class SmppTransmitter
 
 	// Just to make sure a message doesn't get sent to 0 destinations
 	if(dst == null || dst.length == 0)
-	    throw new SMPPException("Cannot submit multi to 0 destinations");
+	    throw new InvalidDestinationCountException();
 
 	// Add in all the destinations
 	for(loop=0; loop<dst.length; loop++)
@@ -251,8 +248,7 @@ public class SmppTransmitter
 
 	// Cannot use replace-if-present to more than one destination
 	if(dst.length > 1 && flags.replace_if_present)
-	    throw new SMPPException("Cannot set replace-if-present flag for "
-		    + "messges to more than one destination ESME");
+	    throw new InvalidReplaceIfPresentException();
 
 	SMPPResponse resp = sendRequest(s);
 	Debug.d(this, "submitMulti", "Request send", Debug.DBG_3);
