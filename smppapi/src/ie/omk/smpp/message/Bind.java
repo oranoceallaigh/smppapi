@@ -24,11 +24,10 @@
 package ie.omk.smpp.message;
 
 
-import java.io.OutputStream;
-
 import ie.omk.smpp.util.SMPPIO;
-
 import ie.omk.smpp.version.SMPPVersion;
+
+import java.io.OutputStream;
 
 /** Abstract parent of BindTransmitter and BindReceiver.
   * @author Oran Kelly

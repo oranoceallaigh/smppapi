@@ -24,7 +24,7 @@
 
 package ie.omk.smpp.util;
 
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.LogFactory;
 
 /** Factory class for getting SMS alphabet encoding objects.
  * The API maintains what it considers a 'default alphabet' for the current VM.
@@ -79,7 +79,7 @@ public final class AlphabetFactory
 	    }
 	} catch (Exception x) {
 	    // Leave the alphabet as DefaultAlphabet
-	    Logger.getLogger("ie.omk.smpp.util").warn("Couldn't load default alphabet "
+	    LogFactory.getLog(AlphabetFactory.class).warn("Couldn't load default alphabet "
 		    + className, x);
 	    defaultAlphabet = DefaultAlphabetEncoding.getInstance();
 	}

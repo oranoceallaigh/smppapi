@@ -32,7 +32,8 @@ import ie.omk.smpp.message.UnbindResp;
 
 import java.util.HashMap;
 
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /** Example class to submit a message to a SMSC using synchronous
  * communication.
@@ -48,7 +49,7 @@ public class SyncTransmitter {
 
     private Connection myConnection = null;
 
-    private Logger logger = Logger.getLogger("ie.omk.smpp.examples");
+    private Log logger = LogFactory.getLog(SyncTransmitter.class);
 
     public SyncTransmitter() {
     }

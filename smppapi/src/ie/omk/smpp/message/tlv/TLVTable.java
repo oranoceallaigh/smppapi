@@ -31,7 +31,8 @@ import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Iterator;
 
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /** Table of optional parameters (TLVs). <p>TLV stands for Tag/Length/Value and was
  * a capability added to SMPP version 3.4. It is an extensible means of adding
@@ -69,7 +70,7 @@ import org.apache.log4j.Logger;
  */
 public class TLVTable implements java.io.Serializable {
 
-    private static final Logger logger = Logger.getLogger("ie.omk.smpp.message.tlv");
+    private static final Log logger = LogFactory.getLog(TLVTable.class);
 
     /** Map of tag to values.
      */    

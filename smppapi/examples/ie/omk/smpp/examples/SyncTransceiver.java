@@ -33,7 +33,8 @@ import ie.omk.smpp.version.SMPPVersion;
 
 import java.util.HashMap;
 
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /** A synchronous transceiver example. Using sync mode for either a transceiver
  * or receiver connection is less useful than using async mode as your
@@ -49,7 +50,7 @@ public class SyncTransceiver {
 
     private Connection myConnection = null;
 
-    private Logger logger = Logger.getLogger("ie.omk.smpp.examples");
+    private Log logger = LogFactory.getLog(SyncTransceiver.class);
 
     public SyncTransceiver() {
     }

@@ -196,6 +196,10 @@ int main(int argc, char *argv[])
 	memcpy(bind_resp.sys_id, SMSC_ID, strlen(SMSC_ID) + 1);
 	bind_resp.cmd_len = htonl(16 + strlen(SMSC_ID) + 1);
 
+printf("Sleeping..\n");
+sleep(20);
+printf("Continuing..\n");
+
 	/* Send the bind_recevier response */
 	if (write(sock, (void *)&bind_resp, ntohl(bind_resp.cmd_len)) == -1) {
 		perror("write");

@@ -23,18 +23,16 @@
  */
 package ie.omk.smpp.message;
 
-import java.io.OutputStream;
+import ie.omk.smpp.Address;
+import ie.omk.smpp.util.SMPPIO;
 
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.ListIterator;
 
-import ie.omk.smpp.Address;
-
-import ie.omk.smpp.util.SMPPIO;
-
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.LogFactory;
 
 public class DestinationTable
 {
@@ -132,7 +130,7 @@ public class DestinationTable
 		offset += d.length() + 1;
 		dests.add(d);
 	    } else {
-		Logger.getLogger("ie.omk.smpp.message")
+		LogFactory.getLog(DestinationTable.class)
 		    .warn("Unidentified destination type on input.");
 	    }
 	}

@@ -39,7 +39,8 @@ import ie.omk.smpp.util.GSMConstants;
 import java.io.IOException;
 import java.util.HashMap;
 
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /** Example class to submit a message to a SMSC using asynchronous
  * communication.
@@ -57,7 +58,7 @@ public class AsyncTransmitter implements ConnectionObserver {
 
     private HashMap myArgs = new HashMap();
 
-    private Logger logger = Logger.getLogger("ie.omk.smpp.examples");
+    private Log logger = LogFactory.getLog(AsyncTransmitter.class);
 
 
     // This is called when the connection receives a packet from the SMSC.

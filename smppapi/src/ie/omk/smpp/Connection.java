@@ -65,7 +65,8 @@ import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /** SMPP client connection (ESME). An SMPP Connection represents any kind of
  * connection to the SMSC, be it a transmitter, receiver or transceiver. It also
@@ -88,7 +89,7 @@ public class Connection
     implements java.lang.Runnable
 {
     /** Get the logger for this Connection. */
-    protected Logger logger = Logger.getLogger("ie.omk.smpp.Connection");
+    protected Log logger = LogFactory.getLog(Connection.class);
 
     /** SMPP Transmitter connection type. */
     public static final int	TRANSMITTER = 1;

@@ -24,11 +24,10 @@
 
 package ie.omk.smpp.event;
 
-import java.util.Iterator;
-
 import ie.omk.smpp.Connection;
-
 import ie.omk.smpp.message.SMPPPacket;
+
+import java.util.Iterator;
 
 /** This interface defines the observable side of the observer pattern for
  * asynchronous SMPP event notification. Each {@link ie.omk.smpp.Connection}
@@ -42,13 +41,6 @@ import ie.omk.smpp.message.SMPPPacket;
  * @see ie.omk.smpp.event.SimpleEventDispatcher
  */
 public interface EventDispatcher {
-
-    /** The name of the default logger to use for logging event info. If an
-     * implementation wishes to log events to the same logger as other event
-     * objects, call
-     * <code>Logger.getLogger(EventDispatcher.DEFAULT_LOGGER_NAME)</code>.
-     */
-    public static final String DEFAULT_LOGGER_NAME = "ie.omk.smpp.event";
 
     /** Initialise the event dispatcher. The <code>init</code> method will be
      * called by the <code>Connection</code> before it makes any attempt to add

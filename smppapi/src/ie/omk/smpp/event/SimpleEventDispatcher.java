@@ -25,13 +25,13 @@
 package ie.omk.smpp.event;
 
 import ie.omk.smpp.Connection;
-
 import ie.omk.smpp.message.SMPPPacket;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /** A simple implementation of the event dispatcher interface. This
  * implementation simply iterates over the set of registered observers and
@@ -44,7 +44,7 @@ import org.apache.log4j.Logger;
  */
 public class SimpleEventDispatcher implements EventDispatcher {
 
-    protected Logger logger = Logger.getLogger(DEFAULT_LOGGER_NAME);
+    protected Log logger = LogFactory.getLog(SimpleEventDispatcher.class);
 
     /** List of observers registered on this event dispatcher.
      */
