@@ -127,8 +127,11 @@ public class SubmitMulti
 	flags.default_msg = SMPPIO.readInt(in, 1);
 	smLength = SMPPIO.readInt(in, 1);
 
-	for (int i = 0; i < smLength; i++)
-	    in.read(message, i, (smLength - i));
+	if (smLength > 0) {
+	    message = new byte[smLength];
+	    for (int i = 0; i < smLength; )
+		i += in.read(message, i, (smLength - i));
+	}
     }
 
 
@@ -281,8 +284,6 @@ public class SubmitMulti
 	SMPPIO.writeInt(smLength, 1, out);
 	if (message != null)
 	    out.write(message);
-	else
-	    out.write((byte)0);
     }
 
     /** Convert this packet to a String. Not to be interpreted programmatically,
