@@ -2,12 +2,21 @@
 How to build
 ------------
 
-To build you'll need a version of Jakarta Ant installed, version 1.3 or
-better. You can get Ant from http://jakarta.apache.org/
+To build you'll need a version of Jakarta Ant installed. I currently use
+Ant 1.5.1. You can get Ant from http://ant.apache.org/
 
 Build the API by issuing the command
-ant dist
+ant all
 
-This should create a subdirectory called 'dist' which contains the smppapi.jar
-file. That's all there is to it.
+This will build the Jar files, javadoc documentation and build and run the JUnit
+test suite. The jar files will be placed in the lib sub-directory.
+
+
+Notes on building the API
+-------------------------
+
+If you're building the API from scratch, be wary of the locale you're building
+in. A number of the alphabet encoding classes contain characters in them that
+may cause problems depending on your locale. The source files are in the
+ISO-8859-1 character encoding format.
 
