@@ -288,7 +288,7 @@ public class SmppTransmitter
     {
 	CancelSM s = new CancelSM(nextPacket());
 	s.setServiceType(st);
-	s.setMessageId(msgId);
+	s.setMessageId(Integer.toHexString(msgId));
 	if(dst != null)
 	    s.setDestination(dst);
 	if(src != null)
@@ -348,7 +348,7 @@ public class SmppTransmitter
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	ReplaceSM s = new ReplaceSM(nextPacket());
-	s.setMessageId(msgId);
+	s.setMessageId(Integer.toHexString(msgId));
 	s.setMessageFlags(flags);
 	if(src != null)
 	    s.setSource(src);
@@ -409,7 +409,7 @@ public class SmppTransmitter
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	QuerySM s = new QuerySM(nextPacket());
-	s.setMessageId(msgId);
+	s.setMessageId(Integer.toHexString(msgId));
 	if(src != null)
 	    s.setSource(src);
 
@@ -482,7 +482,7 @@ public class SmppTransmitter
 	    len = 161;
 
 	QueryMsgDetails s = new QueryMsgDetails(nextPacket());
-	s.setMessageId(msgId);
+	s.setMessageId(Integer.toHexString(msgId));
 	if(src != null)
 	    s.setSource(src);
 	s.setSmLength(len);

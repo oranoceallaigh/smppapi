@@ -58,16 +58,10 @@ public class CancelSM
 	if(commandStatus != 0)
 	    return;
 
-	try {
-	    serviceType = SMPPIO.readCString(in);
-	    // XXX shouldn't fail because of number format.
-	    messageId = Integer.parseInt(SMPPIO.readCString(in), 16);
-	    source = new SmeAddress(in);
-	    destination = new SmeAddress(in);
-	} catch(NumberFormatException x) {
-	    throw new SMPPException("Error parsing the message Id field from "
-		    + "stream.");
-	}
+	serviceType = SMPPIO.readCString(in);
+	messageId = SMPPIO.readCString(in);
+	source = new SmeAddress(in);
+	destination = new SmeAddress(in);
     }
 
     /** Return the number of bytes this packet would be encoded as to an
@@ -75,11 +69,9 @@ public class CancelSM
       */
     public int getCommandLen()
     {
-	String id = Integer.toHexString(getMessageId());
-
 	int len = (getHeaderLen()
 		+ ((serviceType != null) ? serviceType.length() : 0)
-		+ ((id != null) ? id.length() : 0)
+		+ ((messageId != null) ? messageId.length() : 0)
 		+ ((source != null) ? source.size() : 3)
 		+ ((destination != null) ? destination.size() : 3));
 
@@ -96,7 +88,7 @@ public class CancelSM
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	SMPPIO.writeCString(serviceType, out);
-	SMPPIO.writeCString(Integer.toHexString(getMessageId()), out);
+	SMPPIO.writeCString(getMessageId(), out);
 	if(source != null) {
 	    source.writeTo(out);
 	} else {

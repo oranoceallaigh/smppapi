@@ -95,17 +95,16 @@ public class QueryLastMsgsResp
       * @return The current number of message Ids in the message table
       * @exception ie.omk.smpp.SMPPException If the message Id is invalid
       */
-    public int addMessageId(int id)
+    public int addMessageId(String id)
 	throws ie.omk.smpp.SMPPException
     {
 	if(messageTable == null)
 	    messageTable = new Vector();
 
-	String s = Integer.toHexString(id);
-	if(s.length() > 8)
+	if(id.length() > 8)
 	    throw new SMPPException("Message Id must be < 9 chars");
 
-	messageTable.addElement(new Integer(id));
+	messageTable.addElement(id);
 	return (messageTable.size());
     }
 
@@ -118,17 +117,17 @@ public class QueryLastMsgsResp
     /** Get an array of the message Ids.
       * @return An int array of all the message Ids
       */
-    public int[] getMessageIds()
+    public String[] getMessageIds()
     {
-	int ids[];
+	String[] ids;
 	int loop;
 
 	if(messageTable == null || messageTable.size() == 0)
 	    return null;
 
-	ids = new int[messageTable.size()];
+	ids = new String[messageTable.size()];
 	for(loop=0; loop<messageTable.size(); loop++)
-	    ids[loop] = ((Integer)messageTable.elementAt(loop)).intValue();
+	    ids[loop] = (String)messageTable.elementAt(loop);
 
 	return ids;
     }
@@ -138,18 +137,13 @@ public class QueryLastMsgsResp
       */
     public int getCommandLen()
     {
-	int id;
 	String s = null;
 
 	// 1 1-byte integer!
 	int size = getHeaderLen() + 1;
 	Enumeration e = messageTable.elements();
 	while(e.hasMoreElements()) {
-	    id = ((Integer)e.nextElement()).intValue();
-	    s = Integer.toHexString(id);
-
-	    // String length plus nul-terminator..
-	    size += s.length() + 1;
+	    size += ((String)e.nextElement()).length() + 1;
 	}
 	return (size);
     }
@@ -166,8 +160,7 @@ public class QueryLastMsgsResp
 	SMPPIO.writeInt(messageTable.size(), 1, out);
 	Enumeration e = messageTable.elements();
 	while(e.hasMoreElements()) {
-	    s = Integer.toHexString(((Integer)e.nextElement()).intValue());
-	    SMPPIO.writeCString(s, out);
+	    SMPPIO.writeCString((String)e.nextElement(), out);
 	}
     }
 

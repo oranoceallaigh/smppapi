@@ -73,22 +73,16 @@ public class SubmitMultiResp
 	if(commandStatus != 0)
 	    return;
 
-	try {
-	    // XXX should not fail on number format.
-	    messageId = Integer.parseInt(SMPPIO.readCString(in), 16);
-	    int unsuccessfulCount =  SMPPIO.readInt(in, 1);
+	messageId = SMPPIO.readCString(in);
+	int unsuccessfulCount =  SMPPIO.readInt(in, 1);
 
-	    if(unsuccessfulCount < 1)
-		return;
+	if(unsuccessfulCount < 1)
+	    return;
 
-	    unsuccessfulTable = new Vector(unsuccessfulCount);
-	    for(int loop=0; loop<unsuccessfulCount; loop++) {
-		SmeAddress_e a = new SmeAddress_e(in);
-		unsuccessfulTable.addElement(a);
-	    }
-	} catch(NumberFormatException nx) {
-	    throw new SMPPException("Error reading message Id from the "
-		    + "input stream.");
+	unsuccessfulTable = new Vector(unsuccessfulCount);
+	for(int loop=0; loop<unsuccessfulCount; loop++) {
+	    SmeAddress_e a = new SmeAddress_e(in);
+	    unsuccessfulTable.addElement(a);
 	}
     }
 
@@ -169,12 +163,11 @@ public class SubmitMultiResp
       */
     public int getCommandLen()
     {
-	String id = Integer.toHexString(getMessageId());
 	SmeAddress_e sd[];
 	int loop;
 
 	int size = getHeaderLen()
-	    + ((id != null) ? id.length() : 0);
+	    + ((messageId != null) ? messageId.length() : 0);
 
 	sd = getDestAddresses();
 	if(sd.length > 0) {
@@ -202,7 +195,7 @@ public class SubmitMultiResp
 	int loop, size = 0;
 
 	size = (unsuccessfulTable != null) ? unsuccessfulTable.size() : 0;
-	SMPPIO.writeCString(Integer.toHexString(getMessageId()), out);
+	SMPPIO.writeCString(getMessageId(), out);
 	SMPPIO.writeInt(size, 1, out);
 
 	sd = getDestAddresses();

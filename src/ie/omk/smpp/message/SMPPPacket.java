@@ -178,7 +178,7 @@ public abstract class SMPPPacket
     /** Date of reaching final state */
     protected SMPPDate		finalDate;
     /** Smsc allocated message Id */
-    protected int		messageId;
+    protected String		messageId;
     /** Status of message */
     protected int		messageStatus;
     /** Error associated with message */
@@ -586,25 +586,25 @@ public abstract class SMPPPacket
       * @param id The message's id.
       * @exception ie.omk.smpp.SMPPException if the message id is invalid.
       */
-    public void setMessageId(int id)
+    public void setMessageId(String id)
 	throws ie.omk.smpp.SMPPException
     {
-	if(id < 0) {
-	    messageId = 0;
-	    return;
+	if (id == null) {
+	    this.messageId = null;
+	} else {
+	    if (id.length() > 9)
+		throw new SMPPException("Message Id too long. Max 8 digits.");
+	    else
+		this.messageId = id;
 	}
 
-	if (id > 0xffffffff)
-	    throw new SMPPException("Message id is too long.");
-
-	messageId = id;
 	if(Debug.dbg)
 	    Debug.d(this, "setMessageId", id, Debug.DBG_4);
     }
     
     /** Get the message id.
       */
-    public int getMessageId()
+    public String getMessageId()
     {
 	return (messageId);
     }

@@ -66,42 +66,36 @@ public class QueryMsgDetailsResp
 	int noOfDests = 0, smLength = 0;
 	String delivery, valid, finalD;
 	flags = new MsgFlags();
-	try {
-	    serviceType = SMPPIO.readCString(in);
-	    source = new SmeAddress(in);
-	    noOfDests = SMPPIO.readInt(in, 1);
+	serviceType = SMPPIO.readCString(in);
+	source = new SmeAddress(in);
+	noOfDests = SMPPIO.readInt(in, 1);
 
-	    destinationTable = new Vector(noOfDests);
-	    for(int loop=0; loop<noOfDests; loop++) {
-		SmeAddress d = new SmeAddress(in, true);
-		destinationTable.addElement(d);
-	    }
-
-	    flags.protocol =  SMPPIO.readInt(in, 1);
-	    flags.priority =  (SMPPIO.readInt(in, 1) == 0) ? false : true;
-
-	    delivery = SMPPIO.readCString(in);
-	    valid = SMPPIO.readCString(in);
-	    deliveryTime = new SMPPDate(delivery);
-	    expiryTime = new SMPPDate(valid);
-
-	    flags.registered = (SMPPIO.readInt(in, 1) == 0) ? false : true;
-	    flags.data_coding = SMPPIO.readInt(in, 1);
-	    smLength = SMPPIO.readInt(in, 1);
-
-	    // XXX shouldn't fail on number format
-	    message = SMPPIO.readString(in, smLength);
-	    messageId = Integer.parseInt(SMPPIO.readCString(in), 16);
-
-	    finalD = SMPPIO.readCString(in);
-	    finalDate = new SMPPDate(finalD);
-
-	    messageStatus = SMPPIO.readInt(in, 1);
-	    errorCode = SMPPIO.readInt(in, 1);
-	} catch(NumberFormatException nx) {
-	    throw new SMPPException("Error reading message Id from the input "
-		    + "stream.");
+	destinationTable = new Vector(noOfDests);
+	for(int loop=0; loop<noOfDests; loop++) {
+	    SmeAddress d = new SmeAddress(in, true);
+	    destinationTable.addElement(d);
 	}
+
+	flags.protocol =  SMPPIO.readInt(in, 1);
+	flags.priority =  (SMPPIO.readInt(in, 1) == 0) ? false : true;
+
+	delivery = SMPPIO.readCString(in);
+	valid = SMPPIO.readCString(in);
+	deliveryTime = new SMPPDate(delivery);
+	expiryTime = new SMPPDate(valid);
+
+	flags.registered = (SMPPIO.readInt(in, 1) == 0) ? false : true;
+	flags.data_coding = SMPPIO.readInt(in, 1);
+	smLength = SMPPIO.readInt(in, 1);
+
+	message = SMPPIO.readString(in, smLength);
+	messageId = SMPPIO.readCString(in);
+
+	finalD = SMPPIO.readCString(in);
+	finalDate = new SMPPDate(finalD);
+
+	messageStatus = SMPPIO.readInt(in, 1);
+	errorCode = SMPPIO.readInt(in, 1);
     }
 
     /** Create a new QueryMsgDetailsResp packet in response to a BindReceiver.
@@ -190,8 +184,6 @@ public class QueryMsgDetailsResp
       */
     public int getCommandLen()
     {
-	String id = Integer.toHexString(getMessageId());
-
 	int size = (getHeaderLen()
 		+ ((serviceType != null) ? serviceType.length() : 0)
 		+ ((source != null) ? source.size() : 3)
@@ -200,7 +192,7 @@ public class QueryMsgDetailsResp
 		+ ((expiryTime != null) ?
 		    expiryTime.toString().length() : 0)
 		+ ((message != null) ? message.length() : 0)
-		+ ((id != null) ? id.length() : 0)
+		+ ((messageId != null) ? messageId.length() : 0)
 		+ ((finalDate != null) ? 
 		    finalDate.toString().length() : 0));
 
@@ -262,7 +254,7 @@ public class QueryMsgDetailsResp
 	SMPPIO.writeInt(flags.data_coding, 1, out);
 	SMPPIO.writeInt(smLength, 1, out);
 	SMPPIO.writeString(message, smLength, out);
-	SMPPIO.writeCString(Integer.toHexString(getMessageId()), out);
+	SMPPIO.writeCString(getMessageId(), out);
 	SMPPIO.writeCString(fd, out);
 	SMPPIO.writeInt(messageStatus, 1, out);
 	SMPPIO.writeInt(errorCode, 1, out);

@@ -57,16 +57,7 @@ public class DeliverSMResp
 	if(commandStatus != 0)
 	    return;
 
-	try {
-	    // XXX shouldn't fail because of number format
-	    messageId = Integer.parseInt(SMPPIO.readCString(in), 16);
-	} catch(NumberFormatException x) {
-	    Debug.d(this, "DeliverSMResp", "Error reading message id from "
-		    + "Input stream", Debug.DBG_1);
-	    throw new SMPPException("Error reading message Id from input "
-		    + "stream");
-	}
-
+	messageId = SMPPIO.readCString(in);
     }
 
     /** Create a new DeliverSMResp packet in response to a DeliverSM.
@@ -83,10 +74,8 @@ public class DeliverSMResp
       */
     public int getCommandLen()
     {
-	String id = Integer.toHexString(getMessageId());
-
 	int len = (getHeaderLen() + 1
-		+ ((id != null) ? id.length() : 0));
+		+ ((messageId != null) ? messageId.length() : 0));
 
 	// 1 c-string
 	return (len + 1);
@@ -100,7 +89,7 @@ public class DeliverSMResp
     protected void encodeBody(OutputStream out)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
-	SMPPIO.writeCString(Integer.toHexString(getMessageId()), out);
+	SMPPIO.writeCString(getMessageId(), out);
     }
 
     /** Convert this packet to a String. Not to be interpreted programmatically,
