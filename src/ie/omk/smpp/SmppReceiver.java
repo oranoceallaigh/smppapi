@@ -61,8 +61,8 @@ public class SmppReceiver
     /** Bind to the SMSC as a receiver.
       * @return The bind response, or null if asynchronous
       * communication is used.
-      * @exception ie.omk.smpp.SMPPException If we are already bound to the
-      * SMSC, or the necessary fields aren't filled in.
+      * @exception ie.omk.smpp.AlreadyBoundException If the connection is
+      * already bound to the SMSC.
       * @exception java.io.IOException If a network error occurs.
       * @see SmppTransmitter#bind
       */
@@ -71,15 +71,7 @@ public class SmppReceiver
     {
 	// Make sure we're not already bound
 	if(getState() != UNBOUND)
-	    throw new SMPPException("Already bound to SMSC.");
-
-	// Check the required fields are filled in
-	if(this.sysId == null)
-	    throw new SMPPException("Need a system Id to bind as.");
-	if(this.password == null)
-	    throw new SMPPException("Need a password to authenticate.");
-	if(this.sysType == null)
-	    throw new SMPPException("Need a system type to identify as.");
+	    throw new AlreadyBoundException();
 
 	// Open the network connection if necessary
 	if(!link.isConnected())
@@ -89,7 +81,7 @@ public class SmppReceiver
 	t.setSystemId(this.sysId);
 	t.setPassword(this.password);
 	t.setSystemType(this.sysType);
-	t.setInterfaceVersion(INTERFACE_VERSION);
+	t.setInterfaceVersion(SmppConnection.INTERFACE_VERSION);
 	t.setAddressTon(this.addrTon);
 	t.setAddressNpi(this.addrNpi);
 	t.setAddressRange(this.addrRange);
