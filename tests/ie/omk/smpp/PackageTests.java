@@ -28,7 +28,7 @@ import junit.framework.TestSuite;
 
 public class PackageTests {
     public static Test suite() {
-	TestSuite suite = new TestSuite();
+	TestSuite suite = new TestSuite("ie.omk.smpp package tests");
 	
 	suite.addTest(new AddressTest("Address size test - empty fields") {
 	    public void runTest() {
@@ -47,6 +47,8 @@ public class PackageTests {
 		testEquals();
 	    }
 	});
+
+	suite.addTestSuite(TestConnection.class);
 
 	return (suite);
     }
