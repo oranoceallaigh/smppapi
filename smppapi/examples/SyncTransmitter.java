@@ -27,7 +27,7 @@ import ie.omk.smpp.SMPPException;
 import ie.omk.smpp.SmppTransmitter;
 import ie.omk.smpp.net.TcpLink;
 import ie.omk.smpp.message.*;
-import ie.omk.smpp.util.GSMConstants;
+import ie.omk.smpp.util.*;
 
 public class SyncTransmitter
 {
@@ -71,6 +71,44 @@ public class SyncTransmitter
 
 	    if (smr.getCommandStatus() != 0) {
 		System.err.println("Error submitting message.");
+	    } else {
+		System.out.println("Message submitted. ID is \""
+			+ smr.getMessageId() + "\"");
+	    }
+
+	    // Send a UCS2 encoded message...
+	    SubmitSM sm = new SubmitSM();
+	    sm.setDestination(new SmeAddress(
+			GSMConstants.GSM_TON_UNKNOWN,
+			GSMConstants.GSM_NPI_UNKNOWN,
+			"434325425"));
+	    sm.setMessageText("¡My ìntérñætîõnäl message!",
+		    new UCS2Encoding());
+	    smr = (SubmitSMResp)trans.sendRequest(sm);
+	    if (smr.getCommandStatus() != 0) {
+		System.err.println("Error submitting UCS2 message");
+	    } else {
+		System.out.println("Message submitted. ID is \""
+			+ smr.getMessageId() + "\"");
+	    }
+
+	    // Send a Binary encoded message...
+	    sm = new SubmitSM();
+	    sm.setDestination(new SmeAddress(
+			GSMConstants.GSM_TON_UNKNOWN,
+			GSMConstants.GSM_NPI_UNKNOWN,
+			"434325425"));
+	    byte[] msg = {
+		(byte)0x45,
+		(byte)0x32,
+		(byte)0x22,
+		(byte)0x57,
+		(byte)0x12
+	    };
+	    sm.setMessage(msg, new BinaryEncoding());
+	    smr = (SubmitSMResp)trans.sendRequest(sm);
+	    if (smr.getCommandStatus() != 0) {
+		System.err.println("Error submitting Binary message");
 	    } else {
 		System.out.println("Message submitted. ID is \""
 			+ smr.getMessageId() + "\"");
