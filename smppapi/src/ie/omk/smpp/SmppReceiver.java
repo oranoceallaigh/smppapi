@@ -85,9 +85,11 @@ public class SmppReceiver
 	t.setPassword(password);
 	t.setSystemType(systemType);
 	t.setInterfaceVersion(super.INTERFACE_VERSION);
-	t.setAddressTon(sourceRange.getTON());
-	t.setAddressNpi(sourceRange.getNPI());
-	t.setAddressRange(sourceRange.getAddress());
+	if (sourceRange != null) {
+	    t.setAddressTon(sourceRange.getTON());
+	    t.setAddressNpi(sourceRange.getNPI());
+	    t.setAddressRange(sourceRange.getAddress());
+	}
 
 	Debug.d(this, "bind", "bind_receiver sent", 3);
 
