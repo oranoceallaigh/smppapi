@@ -75,12 +75,6 @@ public abstract class SmppConnection
     /** The network link (virtual circuit) to the SMSC */
     private SmscLink		link = null;
 
-    /** Buffered output of the SMSC link. */
-    private BufferedOutputStream outLink = null;
-
-    /** Buffered input of the SMSC link. */
-    private BufferedInputStream inLink = null;
-
     /** Current state of the SMPP connection.
       * Possible states are UNBOUND, BINDING, BOUND and UNBINDING.
       */
@@ -108,15 +102,7 @@ public abstract class SmppConnection
 	if(link == null)
 	    throw new NullPointerException("Smsc Link cannot be null.");
 
-	try {
-	    this.link = link;
-	    if (link.isConnected()) {
-		this.inLink = new BufferedInputStream(link.getInputStream());
-		this.outLink = new BufferedOutputStream(link.getOutputStream());
-	    }
-	} catch (IOException x) {
-	    Debug.warn(this, "<init>", "IOException: " + x.getMessage());
-	}
+	this.link = link;
     }
 
     /** Create a new Smpp connection specifying the type of communications
@@ -159,8 +145,6 @@ public abstract class SmppConnection
 	if (!this.link.isConnected()) {
 	    Debug.d(this, "openLink", "Opening network link.", 1);
 	    this.link.open();
-	    this.inLink = new BufferedInputStream(link.getInputStream());
-	    this.outLink = new BufferedOutputStream(link.getOutputStream());
 	}
     }
 
@@ -170,7 +154,7 @@ public abstract class SmppConnection
       * can be turned off with this method.
       * @param true to activate automatic acknowledgment, false to disable
       */
-    public synchronized void autoAckLink(boolean b)
+    public void autoAckLink(boolean b)
     {
 	this.ackQryLinks = b;
     }
@@ -179,7 +163,7 @@ public abstract class SmppConnection
       * By default the listener thread will <b>not</b> acknowledge a message.
       * @param true to activate this function, false to deactivate.
       */
-    public synchronized void autoAckMessages(boolean b)
+    public void autoAckMessages(boolean b)
     {
 	this.ackDeliverSm = b;
     }
@@ -237,19 +221,16 @@ public abstract class SmppConnection
 	}
 
 	id = -1;
-	synchronized (link) {
-	    r.writeTo(this.outLink);
-	    this.outLink.flush();
-	    Debug.send(r);
+	link.write(r);
+	Debug.send(r);
 
-	    if (!asyncComms) {
-		resp = SMPPPacket.readPacket(this.inLink);
-		id = resp.getCommandId();
-		Debug.recv(resp);
-		if(!(resp instanceof SMPPResponse)) {
-		    Debug.d(this, "sendRequest", "packet received from "
-			+ "SMSC is not an SMPPResponse!", 1);
-		}
+	if (!asyncComms) {
+	    resp = link.read();
+	    id = resp.getCommandId();
+	    Debug.recv(resp);
+	    if(!(resp instanceof SMPPResponse)) {
+		Debug.d(this, "sendRequest", "packet received from "
+		    + "SMSC is not an SMPPResponse!", 1);
 	    }
 	}
 
@@ -277,15 +258,12 @@ public abstract class SmppConnection
 	if (link == null)
 	    throw new IOException("Connection to SMSC is not valid.");
 
-	synchronized (link) {
-	    resp.writeTo(this.outLink);
-	    this.outLink.flush();
-	    Debug.send(resp);
+	link.write(resp);
+	Debug.send(resp);
 
-	    if (resp.getCommandId() == SMPPPacket.ESME_UBD_RESP
-		    && resp.getCommandStatus() == 0)
-		setState(UNBOUND);
-	}
+	if (resp.getCommandId() == SMPPPacket.ESME_UBD_RESP
+		&& resp.getCommandStatus() == 0)
+	    setState(UNBOUND);
     }
 
     /** bind this connection to the SMSC.
@@ -306,7 +284,9 @@ public abstract class SmppConnection
 	    String systemType, SmeAddress sourceRange)
 	throws java.io.IOException, ie.omk.smpp.SMPPException;
 
-    /** Unbind from the SMSC and close the network connections.
+
+    /** Unbind from the SMSC. This method constructs and sends an unbind request
+      * packet to the SMSC.
       * @return The Unbind response packet, or null if asynchronous
       * communication is being used.
       * @exception ie.omk.smpp.NotBoundException if the connection is not yet
@@ -335,6 +315,28 @@ public abstract class SmppConnection
 		setState(UNBOUND);
 	}
 	return ((UnbindResp)resp);
+    }
+
+    /** Unbind from the SMSC. This method can be used to acknowledge an unbind
+      * request from the SMSC.
+      * @exception ie.omk.smpp.NotBoundException if the link is currently not
+      * connected.
+      * @exception ie.omk.smpp.AlreadyBoundException if no unbind request has
+      * been received from the SMSC.
+      * @exception java.io.IOException If a network error occurs.
+      * @see ie.omk.smpp.SmppTransmitter#bind
+      * @see ie.omk.smpp.SmppReceiver#bind
+      */
+    public void unbind(UnbindResp ubr)
+	throws java.io.IOException, ie.omk.smpp.SMPPException
+    {
+	if (state != UNBINDING)
+	    throw new NotBoundException("Link is not connected.");
+
+	if (!(link.isConnected()))
+	    throw new AlreadyBoundException("No unbind request received.");
+
+	sendResponse(ubr);
     }
 
     /** Use of this <b><i>highly</i></b> discouraged.
@@ -471,29 +473,60 @@ public abstract class SmppConnection
     {
 	if (asyncComms)
 	    throw new InvalidOperationException("Asynchronous comms in use.");
+	else
+	    return (readNextPacketInternal(timeout));
+    }
 
+
+    /** Read the next packet from the SMSC link. Internal version...handles
+      * special case packets like bind responses and unbind request and
+      * responses.
+      * @param timeout Timeout (in milliseconds) to wait for the next packet.
+      * @return The read SMPP packet, or null if the connection timed out.
+      */
+    private SMPPPacket readNextPacketInternal(long timeout)
+	throws java.io.IOException, ie.omk.smpp.SMPPException
+    {
 	Date start = new Date();
 	SMPPPacket pak = null;
+	int st = -1;
 
-	synchronized (link) {
-	    while ((new Date().getTime() - start.getTime()) < timeout) {
-		if (this.inLink.available() < 16) {
-		    try {
-			Thread.sleep(5);
-		    continue;
-		    } catch (InterruptedException x) {
-			break;
-		    }
+	pak = link.read(timeout);
+
+	if (pak != null) {
+	    Debug.recv(pak);
+
+	    Debug.d(this, "readNextPacketInternal",
+		    "Packet received: " + pak.getCommandId(), 6);
+
+	    // Special case handling for certain packet types..
+	    st = pak.getCommandStatus();
+	    switch (pak.getCommandId()) {
+	    case SMPPPacket.ESME_BNDTRN_RESP:
+	    case SMPPPacket.ESME_BNDRCV_RESP:
+		if (state == BINDING && st == 0)
+		    setState(BOUND);
+		break;
+
+	    case SMPPPacket.ESME_UBD_RESP:
+		if (state == UNBINDING && st == 0) {
+		    Debug.d(this, "readNextPacketInternal",
+			    "Successfully unbound.", 3);
+		    setState(UNBOUND);
 		}
+		break;
 
-		pak = SMPPPacket.readPacket(this.inLink);
-		if (pak != null)
-		    Debug.recv(pak);
+	    case SMPPPacket.ESME_UBD:
+		Debug.d(this, "readNextPacketInternal",
+			"SMSC requested unbind.", 2);
+		setState(UNBINDING);
+		break;
 	    }
 	}
 
 	return (pak);
     }
+
 
     /** Add an observer to receive SmppEvents from this connection.
       * If asynchronous communication is not turned on, this method call has no
@@ -523,117 +556,93 @@ public abstract class SmppConnection
 	super.notifyObservers(ev);
     }
 
-    // XXX Fix exception handling in this method!
+
+    /** Listener thread method for asynchronous communication.
+      */
     public void run()
     {
-	Integer key = null;
-	SMPPRequest rq = null;
 	SMPPPacket pak = null;
+	int smppEx = 0, id = 0, st = 0;
 
 	Debug.d(this, "run", "Listener thread started", 4);
 	while (state != UNBOUND) {
 	    try {
-		try {
-		    pak = SMPPPacket.readPacket(this.inLink);
-		    if (pak == null)
-			continue;
-
-		    Debug.recv(pak);
-		} catch(SMPPException ix) {
-		    /* Don't mind this.  Just try and read another one.. */
-		    Debug.d(this, "run",
-			    "Smpp Exception: " + ix.getMessage(), 3);
-		    pak = null;
+		pak = readNextPacketInternal(timeout);
+		if (pak == null) {
+		    // XXX Send an event to the application??
 		    continue;
-		} catch(EOFException ex) { 
-		    /* This, on the other hand, is a Bad Thing */
-		    Debug.d(this, "run",
-			    "EOFException: " + ex.getMessage(), 3);
-		    setState(UNBOUND);
-		    try { link.close(); }
-		    catch(IOException ix) { }
-		    SmppConnectionDropPacket p =
-			new SmppConnectionDropPacket(0xffffffff);
-		    p.setErrorMessage(ex.getMessage());
-		    notifyObservers(p);
+		}
+	    } catch (SMPPException x) {
+		smppEx++;
+		if (smppEx > 3) {
+		    Debug.d(this, "run", "3 SMPP exceptions in receiver"
+			    + " thread. Terminating.", 2);
 
+		    // XXX send an event to the application and stop the thread.
 		    return;
-		} catch(IOException ix) {
-		    /* And this too...tut tut */
-		    Debug.d(this, "run",
-			    "IOException: " + ix.getMessage(), 3);
-		    setState(UNBOUND);
-		    try {
-			link.close();
-		    } catch(IOException ex) {
-		    }
-		    SmppConnectionDropPacket p =
-			new SmppConnectionDropPacket(0xffffffff);
-		    p.setErrorMessage(ix.getMessage());
-		    notifyObservers(p);
 		}
-
-
-		if(pak == null)
-		    continue;
-
-		int id = pak.getCommandId();
-		int st = pak.getCommandStatus();
-
-		// Special case packets...
-		try {
-		    switch (id) {
-		    case SMPPPacket.ESME_BNDTRN_RESP:
-		    case SMPPPacket.ESME_BNDRCV_RESP:
-			if (state == BINDING && st == 0)
-			    setState(BOUND);
-			break;
-
-		    case SMPPPacket.ESME_UBD:
-			Debug.d(this, "run", "SMSC requested unbind.", 2);
-			setState(UNBINDING);
-			break;
-
-		    case SMPPPacket.ESME_UBD_RESP:
-			if (state == UNBINDING && st == 0) {
-			    Debug.d(this, "run",
-				    "Successfully unbound.", 3);
-			    setState(UNBOUND);
-			}
-			break;
-
-		    case SMPPPacket.SMSC_DELIVER_SM:
-			if (ackDeliverSm) {
-			    DeliverSMResp dr =
-				new DeliverSMResp((DeliverSM)pak);
-			    sendResponse(dr);
-			    Debug.d(this, "run", "Ack'd deliver_sm #"
-				    + dr.getSequenceNum(), 3);
-			}
-			break;
-
-		    case SMPPPacket.ESME_QRYLINK:
-			if(ackQryLinks) {
-			    EnquireLinkResp el =
-				new EnquireLinkResp((EnquireLink)pak);
-			    sendResponse(el);
-			    Debug.d(this, "run", "Ack'd enquire_link #"
-				    + el.getSequenceNum(), 3);
-			}
-			break;
-		    }
-		} catch (SMPPException x) {
-		    // XXX Handle properly
-		    System.err.print("[SmppConnection.run]\n\t");
-		    x.printStackTrace(System.err);
-		}
-
-		// Tell all the observers about the new packet
-		Debug.d(this, "run", "Notifying observers..", 4);
-		notifyObservers(pak);
-	    } catch(IOException x) {
-		Debug.d(this, "run", "IOException: " + x.getMessage(), 1);
+	    } catch (IOException x) {
+		// This is fatal to the receiver thread.
+		Debug.d(this, "run", "IOException: " + x.getMessage(), 2);
+		setState(UNBOUND);
+		SmppConnectionDropPacket p =
+		    new SmppConnectionDropPacket(0xffffffff);
+		p.setErrorMessage(x.getMessage());
+		notifyObservers(p);
+		return;
 	    }
-	} // end while
-    } // end run()
+
+	    id = pak.getCommandId();
+	    st = pak.getCommandStatus();
+
+	    // Handle special case packets..
+	    switch (id) {
+	    case SMPPPacket.SMSC_DELIVER_SM:
+		if (ackDeliverSm)
+		    ackDelivery((DeliverSM)pak);
+		break;
+
+	    case SMPPPacket.ESME_QRYLINK:
+		if (ackQryLinks)
+		    ackLinkQuery((EnquireLink)pak);
+		break;
+	    }
+
+	    // Tell all the observers about the new packet
+	    Debug.d(this, "run", "Notifying observers..", 4);
+	    notifyObservers(pak);
+	}
+    }
+
+    private void ackDelivery(DeliverSM dm)
+    {
+	try {
+	    Debug.d(this, "ackDelivery", "Auto acking deliver_sm "
+		    + dm.getSequenceNum(), 4);
+	    DeliverSMResp dmr = new DeliverSMResp(dm);
+	    sendResponse(dmr);
+	} catch (SMPPException x) {
+	    Debug.d(this, "ackDelivery", "SMPP exception acking deliver_sm "
+		    + dm.getSequenceNum(), 3);
+	} catch (IOException x) {
+	    Debug.d(this, "ackDelivery", "IO exception acking deliver_sm "
+		    + dm.getSequenceNum(), 3);
+	}
+    }
+
+    private void ackLinkQuery(EnquireLink el)
+    {
+	try {
+	    Debug.d(this, "ackLinkEnquire", "Auto acking enquire_link "
+		    + el.getSequenceNum(), 4);
+	    EnquireLinkResp elr = new EnquireLinkResp(el);
+	    sendResponse(elr);
+	} catch (SMPPException x) {
+	    Debug.d(this, "ackLinkEnquire", "SMPP exception acking "
+		    + "enquire_link " + el.getSequenceNum(), 3);
+	} catch (IOException x) {
+	    Debug.d(this, "ackLinkEnquire", "IO exception acking enquire_link "
+		    + el.getSequenceNum(), 3);
+	}
+    }
 }
