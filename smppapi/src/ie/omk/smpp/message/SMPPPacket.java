@@ -25,9 +25,6 @@ package ie.omk.smpp.message;
 
 import java.io.*;
 import java.net.SocketException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
 
 import ie.omk.smpp.Address;
 import ie.omk.smpp.SMPPException;
