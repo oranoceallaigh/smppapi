@@ -174,6 +174,36 @@ public abstract class SmscLink
 	in = null;
 
 	implClose();
+
+	boolean autoClose = true;
+	try {
+	    autoClose = APIConfig.getInstance()
+		.getBoolean(APIConfig.LINK_AUTOCLOSE_SNOOP);
+	} catch (PropertyNotFoundException x) {
+	    logger.debug(APIConfig.LINK_AUTOCLOSE_SNOOP
+		    + " property not found. Using the default of "
+		    + autoClose);
+	}
+
+	if (autoClose) {
+	    try {
+		if (snoopOut != null)
+		    snoopOut.close();
+		if (snoopIn != null)
+		    snoopIn.close();
+	    } catch (IOException x) {
+		logger.warn("Exception while closing snoop streams.", x);
+	    }
+	} else {
+	    try {
+		if (snoopOut != null)
+		    snoopOut.flush();
+		if (snoopIn != null)
+		    snoopIn.flush();
+	    } catch (IOException x) {
+		logger.warn("Exception while flushing snoop streams.", x);
+	    }
+	}
     }
 
     /** Implementation-specific link close. This method is called by the
@@ -205,8 +235,12 @@ public abstract class SmscLink
 	    throw new IOException("Link not established.");
 
 	synchronized (writeLock) {
-	    if (snoopOut != null)
-		pak.writeTo(snoopOut);
+	    try {
+		if (snoopOut != null)
+		    pak.writeTo(snoopOut);
+	    } catch (IOException x) {
+		logger.warn("IOException writing to snoop output stream.", x);
+	    }
 
 	    pak.writeTo(out);
 	    if (autoFlush)
@@ -334,7 +368,7 @@ public abstract class SmscLink
 	    if (s != null)
 		s.write(b, offset, len);
 	} catch (IOException x) {
-	    logger.debug("Couldn't write incoming bytes to input snooper.", x);
+	    logger.warn("Couldn't write incoming bytes to input snooper.", x);
 	}
     }
 
