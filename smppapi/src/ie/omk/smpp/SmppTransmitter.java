@@ -62,7 +62,7 @@ public class SmppTransmitter
       */
     public SMPPRequest getLastRequest()
     {
-	return (SMPPRequest)outTable.get(new Integer(seqNum - 1));
+	return (SMPPRequest)outTable.get(new Integer(getSeqNum() - 1));
     }
 
     /** Bind to the SMSC as a transmitter. This method will
@@ -99,7 +99,7 @@ public class SmppTransmitter
 		rcvThread.start();
 	}
 
-	BindTransmitter t = new BindTransmitter(nextPacket());
+	BindTransmitter t = new BindTransmitter(1);
 	t.setSystemId(this.sysId);
 	t.setPassword(this.password);
 	t.setSystemType(this.sysType);
@@ -174,7 +174,7 @@ public class SmppTransmitter
 	    SmeAddress src, SmeAddress dst, SMPPDate del, SMPPDate valid)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
-	SubmitSM s = new SubmitSM(nextPacket());
+	SubmitSM s = new SubmitSM(1);
 	s.setMessageFlags(flags);
 	s.setMessageText(msg);
 	s.setDestination(dst);
@@ -231,7 +231,7 @@ public class SmppTransmitter
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	int loop = 0;
-	SubmitMulti s = new SubmitMulti(nextPacket());
+	SubmitMulti s = new SubmitMulti(1);
 	s.setMessageFlags(flags);
 	s.setMessageText(msg);
 
@@ -282,7 +282,7 @@ public class SmppTransmitter
 	    SmeAddress src, SmeAddress dst)
 	throws IOException, ie.omk.smpp.SMPPException
     {
-	CancelSM s = new CancelSM(nextPacket());
+	CancelSM s = new CancelSM(1);
 	s.setServiceType(st);
 	s.setMessageId(Integer.toHexString(msgId));
 	if(dst != null)
@@ -343,7 +343,7 @@ public class SmppTransmitter
 	    SmeAddress src, SMPPDate del, SMPPDate valid)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
-	ReplaceSM s = new ReplaceSM(nextPacket());
+	ReplaceSM s = new ReplaceSM(1);
 	s.setMessageId(Integer.toHexString(msgId));
 	s.setMessageFlags(flags);
 	if(src != null)
@@ -370,7 +370,7 @@ public class SmppTransmitter
     public ParamRetrieveResp paramRetrieve(String name)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
-	ParamRetrieve s = new ParamRetrieve(nextPacket());
+	ParamRetrieve s = new ParamRetrieve(1);
 	s.setParamName(name);
 
 	SMPPResponse resp = sendRequest(s);
@@ -404,7 +404,7 @@ public class SmppTransmitter
     public QuerySMResp queryMessage(int msgId, SmeAddress src)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
-	QuerySM s = new QuerySM(nextPacket());
+	QuerySM s = new QuerySM(1);
 	s.setMessageId(Integer.toHexString(msgId));
 	if(src != null)
 	    s.setSource(src);
@@ -416,7 +416,7 @@ public class SmppTransmitter
 
     /** Query the last number of messages for an Sme.
       * @param src The address of the Sme to query for.
-      * @param num The number of messages to query (0 < num <= 100).
+      * @param num The number of messages to query (0 &lt; num &lt;= 100).
       * @return The query last messages response, or null if asynchronous
       * communication is used.
       * @exception java.io.IOException If a network error occurs.
@@ -430,7 +430,7 @@ public class SmppTransmitter
 	if(num < 1) num = 1;
 	if(num > 100) num = 100;
 
-	QueryLastMsgs s = new QueryLastMsgs(nextPacket());
+	QueryLastMsgs s = new QueryLastMsgs(1);
 	s.setSource(src);
 	s.setMsgCount(num);
 
@@ -477,7 +477,7 @@ public class SmppTransmitter
 	if(len > 161)
 	    len = 161;
 
-	QueryMsgDetails s = new QueryMsgDetails(nextPacket());
+	QueryMsgDetails s = new QueryMsgDetails(1);
 	s.setMessageId(Integer.toHexString(msgId));
 	if(src != null)
 	    s.setSource(src);

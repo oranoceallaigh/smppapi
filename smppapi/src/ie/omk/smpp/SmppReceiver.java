@@ -59,7 +59,7 @@ public class SmppReceiver
     }
 
     /** Bind to the SMSC as a receiver.
-      * @return The bind response, or null if asynchronous
+      * @return The bind receiver response or null if asynchronous
       * communication is used.
       * @exception ie.omk.smpp.AlreadyBoundException If the connection is
       * already bound to the SMSC.
@@ -77,7 +77,7 @@ public class SmppReceiver
 	if(!link.isConnected())
 	    link.open();
 
-	BindReceiver t = new BindReceiver(nextPacket());
+	BindReceiver t = new BindReceiver(1);
 	t.setSystemId(this.sysId);
 	t.setPassword(this.password);
 	t.setSystemType(this.sysType);
