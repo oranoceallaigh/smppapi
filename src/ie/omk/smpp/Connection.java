@@ -88,11 +88,8 @@ public class Connection
     /** Byte buffer used in readNextPacketInternal. */
     private byte[]		buf = new byte[300];
 
-    /** Sequence number */
-    private int			seqNum = 1;
-
-    /** Sequence numbering lock object. */
-    private Object		seqNumLock = new Object();
+    /** Sequence numbering scheme to use for this connection. */
+    private SequenceNumberScheme seqNumScheme = new DefaultSequenceScheme();
 
     /** The network link (virtual circuit) to the SMSC */
     private SmscLink		link = null;
@@ -205,6 +202,8 @@ public class Connection
 	if (!this.link.isConnected()) {
 	    Debug.d(this, "openLink", "Opening network link.", 1);
 	    this.link.open();
+	    if (this.seqNumScheme != null)
+		this.seqNumScheme.reset();
 	}
     }
 
@@ -321,7 +320,8 @@ public class Connection
 
 	SMPPPacket resp = null;
 
-	r.setSequenceNum(nextPacket());
+	if (this.seqNumScheme != null)
+	    r.setSequenceNum(this.seqNumScheme.nextNumber());
 
 	// Special packet handling..
 	if (id == SMPPPacket.BIND_TRANSMITTER
@@ -635,34 +635,33 @@ public class Connection
 		    + "while bound");
 	}
 
-	synchronized (seqNumLock) {
-	    seqNum = 1;
-	}
+	if (this.seqNumScheme != null)
+	    this.seqNumScheme.reset();
+
 	Debug.d(this, "reset", "Connection reset", 1);
     }
 
-    /** Get the next sequence number for the next SMPP packet.
-      * @return The next valid sequence number for this connection.
-      */
-    private int nextPacket()
-    {
-	synchronized (seqNumLock) {
-	    if (seqNum == 0x7fffffff)
-		seqNum = 1;
-
-	    return (seqNum++);
-	}
+    /** Set the sequence numbering scheme for this connection. A sequence
+     * numbering scheme determines what sequence number each SMPP packet will
+     * have. By default, {@link ie.omk.smpp.util.DefaultSequenceScheme} is used,
+     * which will begin with sequence number 1 and increase the number by 1 for
+     * each packet thereafter.
+     * <p>If the application sets the <code>scheme</code> to null, it is
+     * responsible for maintaining and setting the sequence number for each SMPP
+     * request it sends to the SMSC.
+     * @see ie.omk.smpp.util.SequenceNumberScheme
+     * @see ie.omk.smpp.message.SMPPPacket#setSequenceNum
+     */
+    public void setSeqNumScheme(SequenceNumberScheme scheme) {
+	this.seqNumScheme = scheme;
     }
 
-    /** Get the current packet sequence number.
-      * This method will not affect the current value of the sequence
-      * number, just allow applications read what the current value is.
-      */
-    public int getSeqNum()
-    {
-	return (seqNum);
+    /** Get the current sequence numbering scheme object being used by this
+     * connection.
+     */
+    public SequenceNumberScheme getSeqNumScheme() {
+	return (this.seqNumScheme);
     }
-
 
     /** Read in the next packet from the SMSC link.
       * If asynchronous communications is in use, calling this method results in
