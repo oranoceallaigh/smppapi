@@ -75,6 +75,7 @@ public class APIConfig extends Properties {
 
     public static final String LINK_AUTO_FLUSH = "smppapi.net.autoflush";
 
+    public static final String TOO_MANY_IO_EXCEPTIONS = "smppapi.connection.rcv_daemon.ioex_count";
 
     private static final String[] SEARCH_PATH = {
 	"/", "/ie/", "/ie/omk/", "/ie/omk/smpp/"

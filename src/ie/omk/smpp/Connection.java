@@ -23,6 +23,7 @@
  */
 package ie.omk.smpp;
 
+import java.io.EOFException;
 import java.io.IOException;
 
 import java.net.SocketTimeoutException;
@@ -79,8 +80,10 @@ import ie.omk.smpp.message.UnbindResp;
 import ie.omk.smpp.net.SmscLink;
 import ie.omk.smpp.net.TcpLink;
 
+import ie.omk.smpp.util.APIConfig;
 import ie.omk.smpp.util.DefaultSequenceScheme;
 import ie.omk.smpp.util.PacketFactory;
+import ie.omk.smpp.util.PropertyNotFoundException;
 import ie.omk.smpp.util.SequenceNumberScheme;
 import ie.omk.smpp.util.SMPPDate;
 import ie.omk.smpp.util.SMPPIO;
@@ -1124,8 +1127,19 @@ public class Connection
 	SMPPPacket pak = null;
 	int smppEx = 0, id = 0, st = 0;
 	SMPPEvent exitEvent = null;
-
+	int tooManyIOEx = 5;
+	
 	logger.info("Receiver thread started");
+
+	try {
+	    tooManyIOEx =
+		APIConfig.getInstance().getInt(APIConfig.TOO_MANY_IO_EXCEPTIONS);
+	} catch (PropertyNotFoundException x) {
+	    // just stick with the default
+	    logger.debug("Didn't find I/O exception config. Using default of "
+		    + tooManyIOEx);
+	}
+
 	notifyObservers(new ReceiverStartEvent(this));
 	try {
 	    while (state != UNBOUND) {
@@ -1138,16 +1152,27 @@ public class Connection
 		} catch (SocketTimeoutException x) {
 		    // is it okay to ignore this ??
 		    logger.info("Ignoring SocketTimeoutException");
+
+		    continue;
+		} catch (EOFException x) {
+		    // The network connection has disappeared! Wah!
+		    logger.error("EOFException received in daemon thread.", x);
+
+		    // Will be caught by the general handler lower in this
+		    // method.
+		    throw x;
 		} catch (IOException x) {
-		    // catch EOFException before this
-		    logger.info("I/O Exception caught", x);
+		    logger.warn("I/O Exception caught", x);
 		    ReceiverExceptionEvent ev =
 			new ReceiverExceptionEvent(this, x, state);
+		    notifyObservers(ev);
 		    smppEx++;
-		    if (smppEx > 5) {
-			logger.warn("Too many IO exceptions in receiver thread", x);
+		    if (smppEx > tooManyIOEx) {
+			logger.warn("Too many IOExceptions in receiver thread", x);
 			throw x;
 		    }
+
+		    continue;
 		}
 
 		id = pak.getCommandId();
