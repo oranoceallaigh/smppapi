@@ -31,7 +31,7 @@ import java.util.HashMap;
  * <code>java ExampleClass SmscHost:Port system_id password system_type
  * ton:npi:bind_address</code><br />
  * <table border="1">
- * <tr><td>SmscHost:Port
+ * <tr><th>SmscHost:Port
  * <td>The hostname (or ip address) and port of the SMSC to bind to.
  * Example: "10.0.0.33:5757"
  * 

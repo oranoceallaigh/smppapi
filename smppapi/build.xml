@@ -66,8 +66,7 @@
   <!-- Build the javadoc files -->
   <target name="docs" depends="init">
     <mkdir dir="${apiDoc}"/>
-    <javadoc sourcepath="src"
-             packagenames="ie.omk.smpp.*"
+    <javadoc packagenames="ie.omk.smpp.*"
              destdir="${apiDoc}"
              Overview="docs/overview.html"
              protected="true"
@@ -76,6 +75,8 @@
              Windowtitle="Java SMPP API documentation"
              bottom="&lt;font size=-1&gt;&lt;i&gt;&amp;copy; Copyright 2002 by Oran Kelly&lt;/i&gt;&lt;/font&gt;"
              header="&lt;b&gt;&lt;font size=-1&gt;SMPPAPI&lt;/font&gt;&lt;br&gt;documentation&lt;/b&gt;">
+      <fileset dir="${api-src}" />
+      <fileset dir="${examples-src}" />
       <classpath refid="build.classpath"/>
     </javadoc>
   </target>

@@ -40,7 +40,7 @@ import org.apache.log4j.Logger;
  * application must now poll the connection continuously for incoming delivery
  * messages from the SMSC.
  * 
- * @see ie.omk.smpp.examples.ParseArgs ParseArgs class for details on running
+ * @see ie.omk.smpp.examples.ParseArgs ParseArgs for details on running
  * this class.
  */
 public class SyncTransceiver {
