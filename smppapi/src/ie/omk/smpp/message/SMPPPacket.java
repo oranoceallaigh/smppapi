@@ -983,7 +983,7 @@ public abstract class SMPPPacket
     }
 
     /** Get an optional parameter. This is a convenience method and merely calls
-     * {@link ie.omk.smpp.message.tlv.TLVTable#set} on this message's optional
+     * {@link ie.omk.smpp.message.tlv.TLVTable#get} on this message's optional
      * parameter table.
      * @param tag the tag of the parameter value to get.
      */
