@@ -1,0 +1,28 @@
+<project name="smppapi" basedir="." default="dist">
+  <!-- property name="build.compiler" value="jikes"/-->
+
+  <property name="src" value="src"/>
+  <property name="build" value="classes"/>
+  <property name="dist" value="dist"/>
+
+  <!-- Create the destination directory -->
+  <target name="init">
+    <mkdir dir="classes"/>
+  </target>
+
+  <!-- Build the API -->
+  <target name="api" depends="init">
+    <javac srcdir="${src}" destdir="${build}"/>
+  </target>
+
+  <target name="dist" depends="api">
+    <mkdir dir="${dist}"/>
+    <jar jarfile="${dist}/smpp.jar" basedir="${build}"/>
+  </target>
+
+  <!-- Clean up -->
+  <target name="clean">
+    <delete dir="${dist}"/>
+    <delete dir="${build}"/>
+  </target>
+</project>
