@@ -30,6 +30,8 @@ import java.net.SocketException;
 
 import java.util.Date;
 
+import org.apache.log4j.Logger;
+
 import ie.omk.smpp.Address;
 import ie.omk.smpp.SMPPException;
 
@@ -53,6 +55,8 @@ import ie.omk.smpp.version.SMPPVersion;
  */
 public abstract class SMPPPacket
 {
+    protected static final Logger logger = Logger.getLogger("ie.omk.smpp.message");
+
     /** Command Id: Negative Acknowledgement */
     public static final int GENERIC_NACK                = 0x80000000;
     /** Command Id: Bind Receiver */
