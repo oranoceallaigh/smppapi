@@ -28,10 +28,18 @@ import java.text.SimpleDateFormat;
 import java.text.ParsePosition;
 
 /** Implement methods to convert a Date object into SMPP date format.
+  * This class doesn't handle times that aren't UTC yet. The string
+  * representation will always end in '00+' indicating a zero offset from UTC.
   */
 public class SMPPDate
 {
     private Date date = null;
+
+    private SimpleDateFormat inFormat = new SimpleDateFormat("yyMMddHHmmssS");
+
+    private SimpleDateFormat outFormat = new SimpleDateFormat("yyMMddHHmmss");
+
+    private SimpleDateFormat tenths = new SimpleDateFormat("S");
 
     /** Create a new SMPPDate. A new java.util.Date is created to represent the
       * current time.
@@ -43,9 +51,13 @@ public class SMPPDate
 
     /** Create a new SMPPDate.
       * @param d The java.util.Date value to use.
+      * @exception java.lang.NullPointerException if d is null.
       */
     public SMPPDate(Date d)
     {
+	if (d == null)
+	    throw new NullPointerException();
+
 	date = d;
     }
 
@@ -62,15 +74,22 @@ public class SMPPDate
       * </ul>
       * @param An SMSC time string of the above format.
       * @return A java.util.Date object representing the time and date given
-      * @throws java.lang.NullPointerException If s is null.
+      * @exception java.lang.NullPointerException If s is null.
       */
     public SMPPDate(String s)
     {
-	SimpleDateFormat formatter = new SimpleDateFormat("yyMMddHHmmss");
+	if (s == null)
+	    throw new NullPointerException();
+
 	ParsePosition pos = new ParsePosition(0);
-	date = formatter.parse(s, pos);
+	date = this.inFormat.parse(s, pos);
     }
 
+    public Date getDate()
+    {
+	return (this.date);
+    }
+    
     /** Make an SMPP protocol string representing this Date object.
       * Note that the SMPP Protocol defines a string that contains information
       * about the time difference between local time and UTC.  Since the
@@ -80,8 +99,8 @@ public class SMPPDate
       */
     public String toString()
     {
-	SimpleDateFormat formatter = new SimpleDateFormat("yyMMddHHmmssS");
-	String s = formatter.format(date);
-	return (new String(s + "00+"));
+	String s = this.outFormat.format(date);
+	String t = this.tenths.format(date).substring(0, 1);
+	return (new String(s + t + "00+"));
     }
 }
