@@ -37,7 +37,10 @@ import ie.omk.debug.Debug;
 /** Abstract super class of all classes that implement a network link
   * to the SMSC. This class uses buffered input and output internally for
   * reading and writing to whatever input/output streams the concrete
-  * implementation provides it.
+  * implementation provides it. Sending and receiving are guarded against
+  * multiple-thread access. That is, if more than one thread attempts to write
+  * packets to the link, they will not get "mixed" in the output stream.
+  * Likewise on read, only one thread will receive an incoming packet.
   * @author Oran Kelly
   * @version 1.0
   */
@@ -56,16 +59,76 @@ public abstract class SmscLink
     private final Object writeLock = new Object();
 
 
-    /** Open the connection to the SMSC.
-      * @exception java.io.IOException If a communication error occurs
-      */
-    public abstract void open()
+    /** Incoming bytes snoop stream. */
+    private OutputStream snoopIn = null;
+
+    /** Outgoing bytes snoop stream. */
+    private OutputStream snoopOut = null;
+
+
+    /** Create a new unconnected SmscLink.
+     */
+    public SmscLink()
+    {
+    }
+
+
+    /** Open the connection to the SMSC. Calling this method will cause the
+     * network link to the SMSC to be established. Once this method returns an
+     * application may bind to the SMSC to begin it's SMPP session.
+     * @exception java.io.IOException If an error occurs while opening the
+     * connection.
+     */
+    public final void open()
+	throws java.io.IOException
+    {
+	implOpen();
+
+	this.out = new BufferedOutputStream(getOutputStream());
+	this.in = new BufferedInputStream(getInputStream());
+    }
+
+    /** Implementation-specific link open. This method will be called by the
+     * {@link #open} method. This method is responsible for establishing the
+     * underlying network connection to the remote SMSC system. For example, The
+     * TCP/IP implementation would create and connect a new
+     * <code>java.io.Socket</code> to the SMSC host.
+     */
+    protected abstract void implOpen()
 	throws java.io.IOException;
 
-    /** Close the connection to the SMSC.
-      * @exception java.io.IOException If a communication error occurs
-      */
-    public abstract void close()
+
+    /** Close the connection to the SMSC. Calling this method will close the
+     * network link to the remote SMSC system. Applications should be unbound
+     * from the SMPP link (using {@link ie.omk.smpp.SmppConnection#unbind})
+     * before closing the underlying network link. The connection may be
+     * reestablished using {@link #open}.
+     * @exception java.io.IOException If an error occurs while closing the
+     * connection.
+     */
+    public final void close()
+	throws java.io.IOException
+    {
+	out = null;
+	in = null;
+
+	implClose();
+    }
+
+    /** Implementation-specific link close. This method is called by the
+     * {@link #close} method after ensuring no further writes or reads can
+     * occur. Note that any threads that are writing, reading or blocked on
+     * either the readLock or writeLock at the moment this method is called will
+     * still execute. Only further reads or writes will be disallowed. An
+     * implementation should completely close the underlying network link to the
+     * remote SMSC system but it should not free any resources that will
+     * preclude the {@link #open} method from reconnecting.
+     * @exception java.io.IOException if an exception occurs during close.
+     * @see #getInputStream
+     * @see #getOutputStream
+     * @see #close
+     */
+    protected abstract void implClose()
 	throws java.io.IOException;
 
 
@@ -73,14 +136,16 @@ public abstract class SmscLink
       * @param pak the SMPP packet to send.
       * @exception java.io.IOException if an I/O error occurs.
       */
-    public final void write(SMPPPacket pak)
+    public void write(SMPPPacket pak)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
-	synchronized (writeLock) {
-	    if (out == null)
-		out = new BufferedOutputStream(getOutputStream());
+	if (out == null)
+	    throw new IOException("Link not established.");
 
-	    Debug.send(pak);
+	synchronized (writeLock) {
+	    if (snoopOut != null)
+		pak.writeTo(snoopOut);
+
 	    pak.writeTo(out);
 	    out.flush(); // XXX does it make sense to flush every packet?
 	}
@@ -88,7 +153,7 @@ public abstract class SmscLink
 
     /** Flush the output stream of the SMSC link.
       */
-    public final void outFlush()
+    public void flush()
 	throws java.io.IOException
     {
 	if (out != null)
@@ -107,46 +172,72 @@ public abstract class SmscLink
       * @exception ie.omk.smpp.SMPPException if an SMPP packet cannot be
       * extracted from the incoming data.
       */
-    public final byte[] read(byte[] buf)
+    public byte[] read(byte[] buf)
 	throws java.io.IOException
     {
 	int ptr = 0,
 	    c = 0,
 	    cmdLen = 0;
 
-	synchronized (readLock) {
-	    if (in == null)
-		in = new BufferedInputStream(getInputStream());
+	if (in == null)
+	    throw new IOException("Link not established.");
 
-	    if ((ptr = in.read(buf, 0, 16)) < 4) {
-		while (ptr < 4) {
-		    if ((c = in.read(buf, ptr, 16 - ptr)) < 0)
+	synchronized (readLock) {
+	    try {
+		if ((ptr = in.read(buf, 0, 16)) < 4) {
+		    if (ptr == -1)
 			throw new EOFException("EOS reached. No data "
 				+ "available");
-		    ptr += c;
+
+		    while (ptr < 4) {
+			if ((c = in.read(buf, ptr, 16 - ptr)) < 0)
+			    throw new EOFException("EOS reached. No data "
+				    + "available");
+			ptr += c;
+		    }
 		}
-	    }
 
-	    cmdLen = SMPPIO.bytesToInt(buf, 0, 4);
-	    if (cmdLen > buf.length) {
-		byte[] newbuf = new byte[cmdLen];
-		System.arraycopy(buf, 0, newbuf, 0, ptr);
-		buf = newbuf;
-	    }
+		cmdLen = SMPPIO.bytesToInt(buf, 0, 4);
+		if (cmdLen > buf.length) {
+		    byte[] newbuf = new byte[cmdLen];
+		    System.arraycopy(buf, 0, newbuf, 0, ptr);
+		    buf = newbuf;
+		}
 
-	    c = in.read(buf, ptr, cmdLen - ptr);
-	    if (c == -1)
-		throw new EOFException("EOS reached. No data available.");
-
-	    ptr += c;
-	    while (ptr < cmdLen) {
-		if ((c = in.read(buf, ptr, cmdLen - ptr)) < 0)
-		    throw new EOFException("EOS reached. No data available");
+		c = in.read(buf, ptr, cmdLen - ptr);
+		if (c == -1)
+		    throw new EOFException("EOS reached. No data available.");
 
 		ptr += c;
+		while (ptr < cmdLen) {
+		    if ((c = in.read(buf, ptr, cmdLen - ptr)) < 0)
+			throw new EOFException("EOS reached. No data available");
+
+		    ptr += c;
+		}
+	    } catch (IOException x) {
+		throw x;
+	    } finally {
+		dump(snoopIn, buf, 0, ptr);
 	    }
 	}
 	return (buf);
+    }
+
+    /** Dump bytes to an output stream.
+     * @param s the stream to write to (if null, do nothing).
+     * @param b the byte array to dump bytes from.
+     * @param offset the offset in <code>b</code> to begin from.
+     * @param len the number of bytes to dump.
+     */
+    private void dump(OutputStream s, byte[] b, int offset, int len)
+    {
+	try {
+	    if (s != null)
+		s.write(b, offset, len);
+	} catch (IOException x) {
+	    Debug.warn(this, "dump", "Error dumping debug bytes (ignorable).");
+	}
     }
 
     /** Get the output stream of the virtual circuit.
@@ -164,4 +255,22 @@ public abstract class SmscLink
     /** Check whether or not the connection to the SMSC is open.
       */
     public abstract boolean isConnected();
+
+
+    /** Set the snooper streams. The snooper streams will receive every byte
+     * that is either received or sent using this class. This functionality is
+     * intended as a debugging aid for SMPP developers. It will be up to the
+     * application using the API to provide valid output streams for the data to
+     * be written to. Either or both of the streams may be set to null, which in
+     * effect turns off snooping.
+     * @param snoopIn stream to receive incoming bytes from the SMSC (may be
+     * null).
+     * @param snoopOut stream to receive outgoing bytes to the SMSC (may be
+     * null).
+     */
+    public void setSnoopStreams(OutputStream snoopIn, OutputStream snoopOut)
+    {
+	this.snoopIn = snoopIn;
+	this.snoopOut = snoopOut;
+    }
 }
