@@ -82,10 +82,10 @@ public class Tag implements java.io.Serializable {
 	 = new Tag(0x201, Number.class, 1);
 
     public static final Tag SOURCE_SUBADDRESS
-	 = new Tag(0x202, byte[].class, 2);
+	 = new Tag(0x202, byte[].class, 2, 23);
 
     public static final Tag DEST_SUBADDRESS
-	 = new Tag(0x203, byte[].class, 2);
+	 = new Tag(0x203, byte[].class, 2, 23);
 
     public static final Tag USER_MESSAGE_REFERENCE
 	 = new Tag(0x204, Number.class, 2);
