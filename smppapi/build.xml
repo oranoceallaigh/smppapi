@@ -22,16 +22,17 @@
 <!--  Java SMPP API author: oran.kelly@ireland.com                          -->
 <!--  Java SMPP API Homepage: http://smppapi.sourceforge.net/               -->
 
-<project name="smppapi" basedir="." default="dist">
-  <!-- Set this to javac to use Sun's JDK -->
+<project name="smppapi" basedir="." default="all">
+  <!-- Set this to modern to use Sun's JDK -->
   <property name="build.compiler" value="jikes"/>
-  <!-- Set this to true for using Vim quickfix mode -->
+  <!-- Set this to true for using Emacs or Vim quickfix mode -->
   <property name="build.compiler.emacs" value="false"/>
 
   <property name="src" value="src"/>
   <property name="build" value="classes"/>
   <property name="dist" value="dist"/>
-  <property name="apiDocs" value="docs/apiDocs"/>
+  <property name="docs" value="docs"/>
+  <property name="apiDoc" value="apiDocs"/>
 
   <!-- Create the destination directory -->
   <target name="init">
@@ -39,21 +40,20 @@
     <mkdir dir="${build}"/>
   </target>
 
+  <!-- Build all -->
+  <target name="all" depends="init,api,examples,docs"/>
+
   <!-- Build the API -->
   <target name="api" depends="init">
     <javac srcdir="${src}" destdir="${build}"/>
-  </target>
-
-  <target name="dist" depends="api">
-    <mkdir dir="${dist}"/>
-    <jar jarfile="${dist}/smppapi.jar" basedir="${build}"/>
+    <jar jarfile="smppapi.jar" basedir="${build}"/>
   </target>
 
   <!-- Build the javadoc files -->
   <target name="docs">
-    <mkdir dir="${apiDocs}"/>
+    <mkdir dir="${docs}/${apiDoc}"/>
     <javadoc sourcepath="src"
-             destdir="${apiDocs}"
+      destdir="${docs}/${apiDoc}"
              packagenames="ie.omk.smpp,ie.omk.smpp.message,ie.omk.smpp.net,ie.omk.smpp.util,ie.omk.debug"
              Overview="docs/overview.html"
              protected="true"
@@ -80,10 +80,29 @@
     </javac>
   </target>
 
+  <!-- Build the distribution. -->
+  <target name="dist" depends="all">
+    <delete dir="${dist}"/>
+    <mkdir dir="${dist}/smppapi"/>
+    <copy todir="${dist}/smppapi">
+      <fileset dir=".">
+        <exclude name="${dist}"/>
+        <exclude name="${build}"/>
+        <exclude name="tests/**/*.class"/>
+      </fileset>
+    </copy>
+
+    <tar tarfile="${dist}/smppapi.tar" basedir="${dist}"/>
+    <gzip src="${dist}/smppapi.tar" zipfile="${dist}/smppapi.tar.gz"/>
+    <delete file="${dist}/smppapi.tar"/>
+  </target>
+
   <!-- Clean up -->
   <target name="clean">
     <delete dir="${dist}"/>
     <delete dir="${build}"/>
+    <delete dir="${docs}/${apiDocs}"/>
+    <delete file="smppapi.jar"/>
     <delete>
       <fileset dir="examples" includes="*.class"/>
       <fileset dir="tests" includes="*.class"/>
