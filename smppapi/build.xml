@@ -40,7 +40,7 @@
   </target>
 
   <!-- Build all -->
-  <target name="all" depends="init,api-jar,examples-jar,docs,tests-jar,tests"/>
+  <target name="all" depends="init,jars,docs,tests"/>
 
   <!-- Build the API -->
   <target name="compile-api" depends="init">
@@ -157,17 +157,30 @@
     </java>
   </target>
 
+  <!-- Build the project jar files -->
+  <target name="jars" depends="init,api-jar,examples-jar,tests-jar"/>
+
+  <target name="clean-jars">
+    <delete>
+      <fileset dir="${lib}">
+        <include name="${tests-jar}"/>
+        <include name="${examples-jar}"/>
+        <include name="${api-jar}"/>
+      </fileset>
+    </delete>
+  </target>
 
   <!-- Build the distribution. -->
-  <target name="dist" depends="all" if="releaseNumber">
+  <target name="dist" depends="init,really-clean,all" if="releaseNumber">
     <property name="releaseDir" value="${dist}/smppapi-${releaseNumber}"/>
 
-    <delete dir="${dist}"/>
     <mkdir dir="${releaseDir}"/>
     <copy todir="${releaseDir}" includeemptydirs="no">
       <fileset dir="." defaultexcludes="true">
         <exclude name="${build}/**/*.class"/>
         <exclude name="${dist}/**/*"/>
+        <!-- Vim swap files -->
+        <exclude name="**/.*.sw?"/>
       </fileset>
     </copy>
 
@@ -181,7 +194,18 @@
   </target>
 
   <!-- Clean up -->
-  <target name="clean" depends="clean-dist,clean-docs,clean-tests,clean-examples,clean-api">
+  <target name="clean" depends="init,clean-dist,clean-docs,clean-tests,clean-examples,clean-api">
     <delete dir="${build}"/>
+  </target>
+
+  <!-- Clean everything, including any editor backup files etc. -->
+  <target name="really-clean" depends="init,clean">
+    <delete>
+      <fileset dir="." defaultexcludes="no">
+        <include name="**/*~"/>
+        <include name="**/*.bak"/>
+        <include name="**/*-old"/>
+      </fileset>
+    </delete>
   </target>
 </project>
