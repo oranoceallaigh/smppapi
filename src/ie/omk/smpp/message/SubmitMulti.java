@@ -215,6 +215,15 @@ public class SubmitMulti
 	return (sd);
     }
 
+    /** Get a handle to the destination table.
+      * @return a java.util.Collection containing SmeAddress objects.
+      */
+    public Collection getDestinationTable()
+    {
+	// XXX: Should this return a deep-clone??
+	return (this.destinationTable);
+    }
+
     /** Return the number of bytes this packet would be encoded as to an
       * OutputStream.
       * @return the number of bytes this packet would encode as.
