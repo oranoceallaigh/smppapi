@@ -30,6 +30,10 @@ import ie.omk.smpp.util.SMPPIO;
 import ie.omk.debug.Debug;
 
 /** Submit to multiple destinations response.
+  * Relevant inherited fields from SMPPPacket:<br>
+  * <ul>
+  *   messageId
+  * </ul>
   * @author Oran Kelly
   * @version 1.0
   */
@@ -86,7 +90,7 @@ public class SubmitMultiResp
 	}
     }
 
-    /** Get the number of unsuccessful destinations */
+    /** Get the number of destinations the message was not delivered to. */
     public int getUnsuccessfulCount()
     {
 	return (unsuccessfulTable.size());
@@ -159,6 +163,7 @@ public class SubmitMultiResp
 
     /** Return the number of bytes this packet would be encoded as to an
       * OutputStream.
+      * @return the number of bytes this packet would encode as.
       */
     public int getCommandLen()
     {

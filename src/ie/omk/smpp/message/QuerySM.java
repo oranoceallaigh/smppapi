@@ -30,6 +30,11 @@ import ie.omk.smpp.util.SMPPIO;
 import ie.omk.debug.Debug;
 
 /** Query the state of a message.
+  * Relevant inherited fields from SMPPPacket:<br>
+  * <ul>
+  *   messageId<br>
+  *   source<br>
+  * </ul>
   * @author Oran Kelly
   * @version 1.0
   */
@@ -68,6 +73,7 @@ public class QuerySM
 
     /** Return the number of bytes this packet would be encoded as to an
       * OutputStream.
+      * @return the number of bytes this packet would encode as.
       */
     public int getCommandLen()
     {

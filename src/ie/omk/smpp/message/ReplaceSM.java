@@ -33,6 +33,16 @@ import ie.omk.debug.Debug;
 /** Replace a message.
   * This message submits a short message to the SMSC replacing a previously
   * submitted message.
+  * Relevant inherited fields from SMPPPacket:<br>
+  * <ul>
+  *   messageId
+  *   source
+  *   deliveryTime
+  *   expiryTime
+  *   flags.registered
+  *   flags.default_msg
+  *   message
+  * </ul>
   * @author Oran Kelly
   * @version 1.0
   */
@@ -87,6 +97,7 @@ public class ReplaceSM
 
     /** Return the number of bytes this packet would be encoded as to an
       * OutputStream.
+      * @return the number of bytes this packet would encode as.
       */
     public int getCommandLen()
     {

@@ -31,6 +31,10 @@ import ie.omk.smpp.util.SMPPIO;
 import ie.omk.debug.Debug;
 
 /** Query the last number of messages sent from a certain ESME.
+  * Relevant inherited fields from SMPPPacket:<br>
+  * <ul>
+  *   source<br>
+  * </ul>
   * @author Oran Kelly
   * @version 1.0
   */
@@ -86,13 +90,16 @@ public class QueryLastMsgs
 	}
     }
 
-    /** Get the count of the number of messages being requested. */
+    /** Get the number of messages being requested. */
     public int getMsgCount()
     {
 	return (msgCount);
     }
 
-    /** Get the size in bytes of this packet */
+    /** Return the number of bytes this packet would be encoded as to an
+      * OutputStream.
+      * @return the number of bytes this packet would encode as.
+      */
     public int getCommandLen()
     {
 	int len = (getHeaderLen()

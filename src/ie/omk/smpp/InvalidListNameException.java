@@ -35,17 +35,25 @@ public class InvalidListNameException
     {
     }
 
+    /** Construct a new InvalidListNameException with specified message.
+      */
     public InvalidListNameException(String s)
     {
 	super(s);
     }
 
+    /** Construct a new InvalidListNameException with specified message.
+      * @param s A detail message.
+      * @param name The list name that caused this exception.
+      */
     public InvalidListNameException(String s, String name)
     {
 	super(s);
 	this.name = name;
     }
 
+    /** Get the list name that caused this exception.
+      */
     public String getName()
     {
 	return (this.name);

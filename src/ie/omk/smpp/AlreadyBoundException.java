@@ -33,6 +33,8 @@ public class AlreadyBoundException
     {
     }
 
+    /** Construct a new AlreadyBoundException with specified message.
+      */
     public AlreadyBoundException(String s)
     {
 	super(s);

@@ -33,6 +33,8 @@ public class InvalidMessageIDException
     {
     }
 
+    /** Construct a new InvalidMessageIDException with specified message.
+      */
     public InvalidMessageIDException(String s)
     {
 	super(s);

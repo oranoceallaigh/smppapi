@@ -33,6 +33,8 @@ public class NotBoundException
     {
     }
 
+    /** Construct a new NotBoundException with specified message.
+      */
     public NotBoundException(String s)
     {
 	super(s);

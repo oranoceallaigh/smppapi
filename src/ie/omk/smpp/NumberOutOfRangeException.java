@@ -36,22 +36,36 @@ public class NumberOutOfRangeException
     {
     }
 
+    /** Construct a new NumberOutOfRangeException with specified message.
+      */
     public NumberOutOfRangeException(String s)
     {
 	super(s);
     }
 
+    /** Construct a new NumberOutOfRangeException.
+      * @param min The minimum value allowed.
+      * @param max The maximum value allowed.
+      */
     public NumberOutOfRangeException(int min, int max)
     {
 	this.min = min;
 	this.max = max;
     }
 
+    /** Get the minimum value allowed.
+      * This value refers to the argument to which ever method raised this
+      * exception.
+      */
     public int getMin()
     {
 	return (this.min);
     }
 
+    /** Get the maximum value allowed.
+      * This value refers to the argument to which ever method raised this
+      * exception.
+      */
     public int getMax()
     {
 	return (this.max);

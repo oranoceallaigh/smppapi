@@ -33,6 +33,8 @@ public class BadCommandStatusException
     {
     }
 
+    /** Construct a new BadCommandStatusException with specified message.
+      */
     public BadCommandStatusException(String s)
     {
 	super(s);

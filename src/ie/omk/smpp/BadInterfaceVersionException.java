@@ -35,16 +35,23 @@ public class BadInterfaceVersionException
     {
     }
 
+    /** Construct a new BadInterfaceVersionException with specified message.
+      */
     public BadInterfaceVersionException(String s)
     {
 	super(s);
     }
 
+    /** Construct a new BadInterfaceVersionException.
+      * @param version The invalid version number.
+      */
     public BadInterfaceVersionException(int version)
     {
 	this.version = version;
     }
 
+    /** Get the version number that caused this exception.
+      */
     public int getVersion()
     {
 	return (this.version);

@@ -39,8 +39,9 @@ public class SMPPIO
       * @param in The InputStream to read from
       * @param len The number of bytes to form the integer from (usually
       * either 1 or 4, limited to 1 &lt;= len &lt;= 8)
-      * @return An integer representation of the <i>len</i> bytes read in
+      * @return An integer representation of the len bytes read from in.
       * @exception java.io.IOException If EOS is reached before <i>len</i> bytes
+      * are read.
       * @see java.io.InputStream
       */
     public static final int readInt(InputStream in, int len)
@@ -91,7 +92,8 @@ public class SMPPIO
       * The String may contain NUL bytes.
       * @param in The InputStream to read from
       * @param len The number of bytes to read in from the InputStream
-      * @return A String of length <i>len</i>
+      * @return A String of length <i>len</i>. null if <i>len</i> is less than
+      * 1.
       * @exception java.io.IOException If EOS is reached before a NUL byte
       * @see java.io.InputStream
       */
@@ -148,6 +150,7 @@ public class SMPPIO
       * @param b The array containing the bytes
       * @param offset The array index of the MSB
       * @param size The number of bytes to convert into the integer
+      * @return An integer value represented by the specified bytes.
       */
     public static final int bytesToInt(byte[] b, int offset, int size)
     {
@@ -163,7 +166,7 @@ public class SMPPIO
     }
 
     /** Write the byte representation of an integer to an OutputStream in MSB
-      * order
+      * order.
       * @param x The integer to write
       * @param len The number of bytes in this integer (usually either 1 or 4)
       * @param out The OutputStream to write the integer to
@@ -173,8 +176,7 @@ public class SMPPIO
     public static void writeInt(int x, int len, OutputStream out)
 	throws java.io.IOException
     {
-	byte[] b = intToBytes(x, len);
-	out.write(b);
+	out.write(intToBytes(x, len));
     }
 
     /** Write a String to an OutputStream followed by a NUL byte
@@ -186,9 +188,8 @@ public class SMPPIO
     public static void writeCString(String s, OutputStream out)
 	throws java.io.IOException
     {
-	if (s == null)
-	    s = new String();
-	writeString(new String(s + (char)0), out);
+	writeString(s, out);
+	out.write((byte)0);
     }
 
     /** Write a String of specified length to an OutputStream
@@ -221,7 +222,6 @@ public class SMPPIO
     {
 	if (s == null)
 	    return;
-	byte[] b = s.getBytes();
-	out.write(b);
+	out.write(s.getBytes());
     }
 }

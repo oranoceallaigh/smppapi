@@ -32,6 +32,21 @@ import ie.omk.smpp.util.SMPPDate;
 import ie.omk.debug.Debug;
 
 /** Submit a message to multiple destinations.
+  * Relevant inherited fields from SMPPPacket:<br>
+  * <ul>
+  *   serviceType<br>
+  *   source<br>
+  *   flags.esm_class<br>
+  *   flags.protocol<br>
+  *   flags.priority<br>
+  *   deliveryTime<br>
+  *   expiryTime<br>
+  *   flags.registered<br>
+  *   flags.replace_if_present<br>
+  *   flags.data_coding<br>
+  *   flags.default_msg<br>
+  *   message<br>
+  * </ul>
   * @author Oran Kelly
   * @version 1.0
   */
@@ -67,7 +82,7 @@ public class SubmitMulti
 	if (getCommandStatus() != 0)
 	    return;
 
-	int noOfDests = 0, smLength = 0;
+	int numDests = 0, smLength = 0;
 	String delivery, valid;
 	flags = new MsgFlags();
 	// First the service type
@@ -76,10 +91,10 @@ public class SubmitMulti
 	source = new SmeAddress(in, false);
 
 	// Read in the number of destination structures to follow:
-	noOfDests = SMPPIO.readInt(in, 1);			
+	numDests = SMPPIO.readInt(in, 1);			
 
-	// Now read in noOfDests number of destination structs
-	for(int loop=0; loop<noOfDests; loop++) {
+	// Now read in numDests number of destination structs
+	for(int loop=0; loop<numDests; loop++) {
 	    SmeAddress d = new SmeAddress(in, true);
 	    destinationTable.addElement(d);
 	}
@@ -111,7 +126,8 @@ public class SubmitMulti
     /** Add a destination address to the destination table.
       * @param d Destination address representing Sme address or distribution
       * list
-      * @return The current number of destination addresses
+      * @return The current number of destination addresses (including the new
+      * one).
       * @see SmeAddress
       */
     public int addDestination(SmeAddress d)
@@ -167,7 +183,7 @@ public class SubmitMulti
     }
 
     /** Get an array of the SmeAddress(es) in the destination table.
-      * @return Array of SmeAddresses in the destination table
+      * @return Array of SmeAddresses in the destination table (never null)
       */
     public SmeAddress[] getDestAddresses()
     {
@@ -176,7 +192,7 @@ public class SubmitMulti
 
 	synchronized (destinationTable) {
 	    if(destinationTable.size() == 0)
-		return null;
+		return (new SmeAddress[0]);
 
 	    sd = new SmeAddress[destinationTable.size()];
 	    Iterator i = destinationTable.iterator();
@@ -189,6 +205,7 @@ public class SubmitMulti
 
     /** Return the number of bytes this packet would be encoded as to an
       * OutputStream.
+      * @return the number of bytes this packet would encode as.
       */
     public int getCommandLen()
     {
@@ -224,7 +241,7 @@ public class SubmitMulti
 	    smLength = message.length();
 
 	synchronized (destinationTable) {
-	    int noOfDests = destinationTable.size();
+	    int numDests = destinationTable.size();
 	    SMPPIO.writeCString(serviceType, out);
 	    if(source != null) {
 		source.writeTo(out);
@@ -233,7 +250,7 @@ public class SubmitMulti
 		new SmeAddress(GSMConstants.GSM_TON_UNKNOWN,
 			GSMConstants.GSM_NPI_UNKNOWN, "").writeTo(out);
 	    }
-	    SMPPIO.writeInt(noOfDests, 1, out);
+	    SMPPIO.writeInt(numDests, 1, out);
 
 	    Iterator i = destinationTable.iterator();
 	    while (i.hasNext())

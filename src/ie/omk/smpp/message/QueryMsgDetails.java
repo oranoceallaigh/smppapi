@@ -31,6 +31,11 @@ import ie.omk.debug.Debug;
 
 /** Query Message details.
   * Get all information about an existing message at the SMSC.
+  * Relevant inherited fields from SMPPPacket:<br>
+  * <ul>
+  *   messageId
+  *   source
+  * </ul>
   * @author Oran Kelly
   * @version 1.0
   */
@@ -87,7 +92,7 @@ public class QueryMsgDetails
 	    smLength = 160;
     }
 
-    /** Get the number of bytes being requested of the original message */
+    /** Get the number of bytes of the original message being requested. */
     public int getSmLength()
     {
 	return (smLength);
@@ -96,6 +101,7 @@ public class QueryMsgDetails
 
     /** Return the number of bytes this packet would be encoded as to an
       * OutputStream.
+      * @return the number of bytes this packet would encode as.
       */
     public int getCommandLen()
     {

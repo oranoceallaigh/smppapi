@@ -35,16 +35,26 @@ public class StringTooLongException
     {
     }
 
+    /** Construct a new StringTooLongException with specified message.
+      */
     public StringTooLongException(String s)
     {
 	super(s);
     }
 
+    /** Construct a new StringTooLongException.
+      * @param maxLength The maximum length allowed for the String parameter
+      * that raised this exception.
+      */
     public StringTooLongException(int maxLength)
     {
 	this.maxLength = maxLength;
     }
 
+    /** Get the maximum length allowed.
+      * The maximum length is that of the argument to whichever method raised
+      * this exception.
+      */
     public int getMaxLength()
     {
 	return (this.maxLength);

@@ -35,16 +35,23 @@ public class UnexpectedInputException
     {
     }
 
+    /** Construct a new UnexpectedInputException with specified message.
+      */
     public UnexpectedInputException(String s)
     {
 	super(s);
     }
 
+    /** Construct a new UnexpectedInputException.
+      * @param c The unexpected byte.
+      */
     public UnexpectedInputException(int c)
     {
 	this.c = c;
     }
 
+    /** Get the byte that caused this exception.
+      */
     public int getByte()
     {
 	return (this.c);

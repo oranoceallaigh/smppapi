@@ -34,6 +34,22 @@ import ie.omk.debug.Debug;
   * This message is sent from the SMSC to a Receiver ESME to deliver a short
   * message. It is also used to notify an ESME that submitted a message using
   * registered delivery that a message has reached it's end point successfully.
+  * Relevant inherited fields from SMPPPacket:<br>
+  * <ul>
+	serviceType<br>
+	source<br>
+	destination<br>
+	flags.esm_class<br>
+	flags.protocol<br>
+	flags.priority<br>
+	delivery<br>
+	valid<br>
+	flags.registered<br>
+	flags.replace_if_present<br>
+	flags.data_coding<br>
+	flags.default_msg<br>
+	message<br>
+  * </ul>
   * @author Oran Kelly
   * @version 1.0
   */
@@ -100,6 +116,7 @@ public class DeliverSM
 
     /** Return the number of bytes this packet would be encoded as to an
       * OutputStream.
+      * @return the number of bytes this packet would encode as.
       */
     public int getCommandLen()
     {

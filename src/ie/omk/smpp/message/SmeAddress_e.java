@@ -83,6 +83,7 @@ public class SmeAddress_e
 
     /** Return the number of bytes this address would be encoded as to an
       * OutputStream.
+      * @return the number of bytes this object would encode as.
       */
     public int size()
     {

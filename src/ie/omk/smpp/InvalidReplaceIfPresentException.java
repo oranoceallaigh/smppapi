@@ -33,6 +33,8 @@ public class InvalidReplaceIfPresentException
     {
     }
 
+    /** Construct a new InvalidReplaceIfPresentException with specified message.
+      */
     public InvalidReplaceIfPresentException(String s)
     {
 	super(s);

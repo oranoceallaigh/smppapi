@@ -33,6 +33,8 @@ public class InvalidTONException
     {
     }
 
+    /** Construct a new InvalidTONException with specified message.
+      */
     public InvalidTONException(String s)
     {
 	super(s);

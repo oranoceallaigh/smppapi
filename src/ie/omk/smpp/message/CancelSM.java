@@ -32,6 +32,13 @@ import ie.omk.debug.Debug;
 /** Cancal message.
   * This SMPP message is used to cancel a previously submitted but yet
   * undelivered short message at the SMSC.
+  * Relevant inherited fields from SMPPPacket:<br>
+  * <ul>
+  *   serviceType<br>
+  *   messageId<br>
+  *   source<br>
+  *   destination<br>
+  * </ul>
   * @author Oran Kelly
   * @version 1.0
   */
@@ -72,6 +79,7 @@ public class CancelSM
 
     /** Return the number of bytes this packet would be encoded as to an
       * OutputStream.
+      * @return the number of bytes this packet would encode as.
       */
     public int getCommandLen()
     {

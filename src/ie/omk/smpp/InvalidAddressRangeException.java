@@ -35,17 +35,25 @@ public class InvalidAddressRangeException
     {
     }
 
+    /** Construct a new InvalidAddressRangeException with specified message.
+      */
     public InvalidAddressRangeException(String s)
     {
 	super(s);
     }
 
+    /** Construct a new InvalidAddressRangeException.
+      * @param s A detail message.
+      * @param addressRange The addressRange that caused the exception.
+      */
     public InvalidAddressRangeException(String s, String addressRange)
     {
 	super(s);
 	this.addressRange = addressRange;
     }
 
+    /** Get the address range that caused this exception.
+      */
     public String getAddressRange()
     {
 	return (this.addressRange);

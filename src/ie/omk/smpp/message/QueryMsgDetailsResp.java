@@ -33,6 +33,22 @@ import ie.omk.debug.Debug;
 
 /** Response to Query message details.
   * Gives all details of a specified message at the SMSC.
+  * Relevant inherited fields from SMPPPacket:<br>
+  * <ul>
+	serviceType<br>
+	source<br>
+	flags.protocol<br>
+	flags.priority<br>
+	deliveryTime<br>
+	expiryTime<br>
+	flags.registered<br>
+	flags.data_coding<br>
+	message<br>
+	messageId<br>
+	finalDate<br>
+	messageStatus<br>
+	errorCode<br>
+  * </ul>
   * @author Oran Kelly
   * @version 1.0
   */
@@ -158,13 +174,22 @@ public class QueryMsgDetailsResp
 	}
     }
 
-    /** Get the number of destination addresses in the destination table */
+    /** Get the current number of destination addresses.
+      * @deprecated Use getNumDests.
+      */
     public int getNoOfDests()
     {
 	return (destinationTable.size());
     }
 
-    /** Get an array of the SmeAddresses in the Destination table
+    /** Get the current number of destination addresses.
+      */
+    public int getNumDests()
+    {
+	return (destinationTable.size());
+    }
+
+    /** Get an array of SmeAddresse representing the destination list.
       * @return An array of the destination addresses the message was
       * submitted to.
       */
@@ -188,6 +213,7 @@ public class QueryMsgDetailsResp
 
     /** Return the number of bytes this packet would be encoded as to an
       * OutputStream.
+      * @return the number of bytes this packet would encode as.
       */
     public int getCommandLen()
     {
