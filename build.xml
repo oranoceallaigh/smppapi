@@ -22,7 +22,7 @@
 <!--  Java SMPP API author: oran.kelly@ireland.com                          -->
 <!--  Java SMPP API Homepage: http://smppapi.sourceforge.net/               -->
 
-<project name="smppapi" basedir="." default="all">
+<project name="smppapi" basedir="." default="api">
   <!-- Set this to modern to use Sun's JDK -->
   <property name="build.compiler" value="jikes"/>
   <!-- Set this to true for using Emacs or Vim quickfix mode -->
@@ -68,14 +68,14 @@
 
   <!-- Build the examples -->
   <target name="examples" depends="init,api">
-    <javac srcdir="examples" destdir="examples">
+    <javac srcdir="examples" destdir="examples" deprecation="true">
       <classpath path="${build}"/>
     </javac>
   </target>
 
   <!-- Build the tests -->
   <target name="tests" depends="init,api">
-    <javac srcdir="tests" destdir="tests">
+    <javac srcdir="tests" destdir="tests" deprecation="true">
       <classpath path="${build}"/>
     </javac>
   </target>
