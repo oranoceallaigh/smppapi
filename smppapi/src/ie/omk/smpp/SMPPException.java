@@ -24,43 +24,40 @@ package ie.omk.smpp;
 import ie.omk.debug.Debug;
 
 public class SMPPException
-	extends RuntimeException
+    extends RuntimeException
 {
-// File identifier string: used for debug output
-	private static String FILE = "SMPPException";
+    String msgx;
+    String detail;
 
-	String msgx;
-	String detail;
+    public SMPPException()
+    {
+	super();
+	msgx = new String("");
+	detail = new String("");
+    }
 
-	public SMPPException()
-	{
-		super();
-		msgx = new String("");
-		detail = new String("");
-	}
+    public SMPPException(String s)
+    {
+	super(s);
+	msgx = new String("");
+	detail = new String("");
+    }
 
-	public SMPPException(String s)
-	{
-		super(s);
-		msgx = new String("");
-		detail = new String("");
-	}
+    public SMPPException(String s, Exception e)
+    {
+	super(s);
+	msgx = new String(e.getMessage());
+	detail = new String(e.toString());
+    }
 
-	public SMPPException(String s, Exception e)
-	{
-		super(s);
-		msgx = new String(e.getMessage());
-		detail = new String(e.toString());
-	}
+    public String getExtendedMsg()
+    {
+	return new String(msgx);
+    }
 
-	public String getExtendedMsg()
-	{
-		return new String(msgx);
-	}
-
-	public String getDetails()
-	{
-		return new String(detail);
-	}
+    public String getDetails()
+    {
+	return new String(detail);
+    }
 }
 

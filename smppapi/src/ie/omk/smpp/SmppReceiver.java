@@ -36,84 +36,84 @@ import ie.omk.debug.Debug;
   * @version 1.0
   */
 public class SmppReceiver
-	extends ie.omk.smpp.SmppConnection
+    extends ie.omk.smpp.SmppConnection
 {
-	/** Create a new smpp Receiver connection
-	  * @param link The network link to the Smsc
-	  */
-	public SmppReceiver(SmscLink link)
+    /** Create a new smpp Receiver connection
+     * @param link The network link to the Smsc
+     */
+    public SmppReceiver(SmscLink link)
+    {
+	super(link);
+    }
+
+
+    /** Bind to the SMSC as a receiver.
+     * @return true if the bind is successful, false otherwise
+     * @exception SMPPException If we are already bound to the SMSC, or the
+     * necessary fields aren't filled in.
+     * @exception java.io.IOException If a network error occurs.
+     * @see SmppConnection#bind
+     * @see SmppTransmitter#bind
+     */
+    public boolean bind()
+	throws java.io.IOException
+    {
+	// Make sure we're not already bound
+	if(bound)
+	    throw new SMPPException("Already bound to SMSC as Receiver.");
+
+	// Check the required fields are filled in
+	if(sysId == null)
+	    throw new SMPPException("Need a system Id to bind as.");
+	if(password == null)
+	    throw new SMPPException("Need a password to authenticate.");
+	if(sysType == null)
+	    throw new SMPPException("Need a system type to identify as.");
+
+	if(!link.isConnected())
+	    link.open();
+	in = link.getInputStream();
+	out = link.getOutputStream();
+
+	BindReceiver t = new BindReceiver(nextPacket());
+	t.setSystemId(this.sysId);
+	t.setPassword(this.password);
+	t.setSystemType(this.sysType);
+	t.setInterfaceVersion(INTERFACE_VERSION);
+	t.setAddressTon(this.addrTon);
+	t.setAddressNpi(this.addrNpi);
+	t.setAddressRange(this.addrRange);
+
+	// Start the listener thread on the incoming socket...
+	rcvThread.start();
+
+	sendRequest(t);
+	Debug.d(this, "bind", "Request sent", Debug.DBG_3);
+	return true;
+    }
+
+    /** Acknowledge a DeliverSM command received from the Smsc. */
+    public void ackDeliverSm(DeliverSM rq)
+	throws java.io.IOException
+    {
+	DeliverSMResp rsp = new DeliverSMResp(rq);
+	sendResponse(rsp);
+	Debug.d(this, "ackDeliverSM", "Response sent", Debug.DBG_3);
+    }
+
+    /** Unbind from the SMSC.  This method stops the listener thread
+     * and calls SmppConnection.unbind()
+     * @return true if the unbind is successful, false otherwise
+     * @exception java.io.IOException If a network error occurs
+     */
+    /*	public boolean unbind()
+	throws java.io.IOException
 	{
-		super(link);
-	}
+    // Stop the thread listening on the incoming socket...
+    if(listener != null)
+    listener.stop();
 
-	
-	/** Bind to the SMSC as a receiver.
-	  * @return true if the bind is successful, false otherwise
-	  * @exception SMPPException If we are already bound to the SMSC, or the
-	  * necessary fields aren't filled in.
-	  * @exception java.io.IOException If a network error occurs.
-	  * @see SmppConnection#bind
-	  * @see SmppTransmitter#bind
-	  */
-	public boolean bind()
-		throws java.io.IOException
-	{
-		// Make sure we're not already bound
-		if(bound)
-			throw new SMPPException("Already bound to SMSC as Receiver.");
-
-		// Check the required fields are filled in
-		if(sysId == null)
-			throw new SMPPException("Need a system Id to bind as.");
-		if(password == null)
-			throw new SMPPException("Need a password to authenticate.");
-		if(sysType == null)
-			throw new SMPPException("Need a system type to identify as.");
-
-		if(!link.isConnected())
-			link.open();
-		in = link.getInputStream();
-		out = link.getOutputStream();
-
-		BindReceiver t = new BindReceiver(nextPacket());
-		t.setSystemId(this.sysId);
-		t.setPassword(this.password);
-		t.setSystemType(this.sysType);
-		t.setInterfaceVersion(INTERFACE_VERSION);
-		t.setAddressTon(this.addrTon);
-		t.setAddressNpi(this.addrNpi);
-		t.setAddressRange(this.addrRange);
-			
-		// Start the listener thread on the incoming socket...
-		rcvThread.start();
-
-		sendRequest(t);
-		Debug.d(this, "bind", "Request sent", Debug.DBG_3);
-		return true;
-	}
-
-	/** Acknowledge a DeliverSM command received from the Smsc. */
-	public void ackDeliverSm(DeliverSM rq)
-		throws java.io.IOException
-	{
-		DeliverSMResp rsp = new DeliverSMResp(rq);
-		sendResponse(rsp);
-		Debug.d(this, "ackDeliverSM", "Response sent", Debug.DBG_3);
-	}
-
-	/** Unbind from the SMSC.  This method stops the listener thread
-	  * and calls SmppConnection.unbind()
-	  * @return true if the unbind is successful, false otherwise
-	  * @exception java.io.IOException If a network error occurs
-	  */
-/*	public boolean unbind()
-		throws java.io.IOException
-	{
-		// Stop the thread listening on the incoming socket...
-		if(listener != null)
-			listener.stop();
-			
-		return super.unbind();
-	}*/
+    return super.unbind();
+    }*/
 }
 

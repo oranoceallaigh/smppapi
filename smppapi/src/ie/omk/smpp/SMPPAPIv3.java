@@ -25,22 +25,21 @@ import ie.omk.smpp.message.*;
 /*
  * Define the functions required in an SMPP implementation
  */
-interface SMPPAPIv3
+public interface SMPPAPIv3
 {
-	public final int INTERFACE_VERSION = 0x00000003;
+    public final int INTERFACE_VERSION = 0x00000003;
 
-	SMPPResponse bind_receiver(SMPPRequest request);
-	SMPPResponse bind_transmitter(SMPPRequest request);
-	SMPPResponse unbind(SMPPRequest request);
-	SMPPResponse submit_sm(SMPPRequest request);
-	SMPPResponse submit_multi(SMPPRequest request);
-	SMPPResponse deliver_sm(SMPPRequest request);
-	SMPPResponse query_sm(SMPPRequest request);
-	SMPPResponse query_last_msgs(SMPPRequest request);
-	SMPPResponse query_msg_details(SMPPRequest request);
-	SMPPResponse cancel_sm(SMPPRequest request);
-	SMPPResponse replace_sm(SMPPRequest request);
-	SMPPResponse enquire_link(SMPPRequest request);
-	SMPPResponse pararetrieve(SMPPRequest request);
+    SMPPResponse bind_receiver(BindReceiver request);
+    SMPPResponse bind_transmitter(BindTransmitter request);
+    SMPPResponse unbind(Unbind request);
+    SMPPResponse submit_sm(SubmitSM request);
+    SMPPResponse submit_multi(SubmitMulti request);
+    SMPPResponse deliver_sm(DeliverSM request);
+    SMPPResponse query_sm(QuerySM request);
+    SMPPResponse query_last_msgs(QueryLastMsgs request);
+    SMPPResponse query_msg_details(QueryMsgDetails request);
+    SMPPResponse cancel_sm(CancelSM request);
+    SMPPResponse replace_sm(ReplaceSM request);
+    SMPPResponse enquire_link(EnquireLink request);
+    SMPPResponse param_retrieve(ParamRetrieve request);
 }
-

@@ -34,45 +34,37 @@ import ie.omk.debug.Debug;
   */
 public abstract class SmscLink
 {
-// File identifier string: used for debug output
-	private static String FILE = "SmscLink";
+    /** Tells whether the connection is open or not */
+    protected boolean connected = false;
 
-	/** Tells whether the connection is open or not */
-	protected boolean connected = false;
-	
-	SmscLink()
-		{ }
+    /** Open the connection to the SMSC.
+     * @exception java.io.IOException If a communication error occurs
+     */
+    public abstract void open()
+	throws IOException;
 
-	/** Open the connection to the SMSC.
-	  * @exception java.io.IOException If a communication error occurs
-	  */
-	public abstract void open()
-		throws IOException;
+    /** Close the connection to the SMSC.
+     * @exception java.io.IOException If a communication error occurs
+     */
+    public abstract void close()
+	throws IOException;
 
-	/** Close the connection to the SMSC.
-	  * @exception java.io.IOException If a communication error occurs
-	  */
-	public abstract void close()
-		throws IOException;
+    /** Get the output stream of the virtual circuit.
+     * @exception java.io.IOException If a communication error occurs
+     */
+    public abstract OutputStream getOutputStream()
+	throws IOException;
 
-	/** Get the output stream of the virtual circuit.
-	  * @exception java.io.IOException If a communication error occurs
-	  */
-	public abstract OutputStream getOutputStream()
-		throws IOException;
+    /** Get the input stream of the virtual circuit
+     * @exception java.io.IOException If a communication error occurs
+     */
+    public abstract InputStream getInputStream()
+	throws IOException;
 
-	/** Get the input stream of the virtual circuit
-	  * @exception java.io.IOException If a communication error occurs
-	  */
-	public abstract InputStream getInputStream()
-		throws IOException;
-
-	/** Check whether or not the connection to the SMSC is open
-	  */
-	public boolean isConnected()
-	{
-		return connected;
-	}
-
+    /** Check whether or not the connection to the SMSC is open
+     */
+    public boolean isConnected()
+    {
+	return connected;
+    }
 }
-
