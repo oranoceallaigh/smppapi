@@ -57,10 +57,6 @@ public abstract class BindResp
     {
 	super(in);
 
-	if (getCommandId() != SMPPPacket.ESME_BNDTRN_RESP)
-	    throw new BadCommandIDException(SMPPPacket.ESME_BNDTRN_RESP,
-		    getCommandId());
-
 	if (getCommandStatus() != 0)
 	    return;
 
