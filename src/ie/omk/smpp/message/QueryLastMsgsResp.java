@@ -44,7 +44,7 @@ public class QueryLastMsgsResp
       */
     public QueryLastMsgsResp()
     {
-	super(ESME_QUERY_LAST_MSGS_RESP);
+	super(QUERY_LAST_MSGS_RESP);
     }
 
     /** Construct a new QueryLastMsgsResp with specified sequence number.
@@ -53,7 +53,7 @@ public class QueryLastMsgsResp
       */
     public QueryLastMsgsResp(int seqNum)
     {
-	super(ESME_QUERY_LAST_MSGS_RESP, seqNum);
+	super(QUERY_LAST_MSGS_RESP, seqNum);
     }
 
     /** Read in a QueryLastMsgsResp from an InputStream.  A full packet,
@@ -62,14 +62,14 @@ public class QueryLastMsgsResp
       * @exception java.io.IOException if there's an error reading from the
       * input stream.
       */
-    public QueryLastMsgsResp(InputStream in)
+    /*public QueryLastMsgsResp(InputStream in)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super(in);
 
-	if (getCommandId() != SMPPPacket.ESME_QUERY_LAST_MSGS_RESP)
+	if (getCommandId() != SMPPPacket.QUERY_LAST_MSGS_RESP)
 	    throw new BadCommandIDException(
-		    SMPPPacket.ESME_QUERY_LAST_MSGS_RESP, getCommandId());
+		    SMPPPacket.QUERY_LAST_MSGS_RESP, getCommandId());
 
 	if (getCommandStatus() != 0)
 	    return;
@@ -83,7 +83,7 @@ public class QueryLastMsgsResp
 	    messageTable.addElement(s);
 	    Debug.d(this, "<init>", "Adding " + s + " to destinations", 3);
 	}
-    }
+    }*/
 
     /** Create a new QueryLastMsgsResp packet in response to a BindReceiver.
       * This constructor will set the sequence number to it's expected value.
@@ -138,16 +138,12 @@ public class QueryLastMsgsResp
 	return ids;
     }
 
-    /** Return the number of bytes this packet would be encoded as to an
-      * OutputStream.
-      * @return the number of bytes this packet would encode as.
-      */
-    public int getCommandLen()
+    public int getBodyLength()
     {
 	String s = null;
 
 	// 1 1-byte integer!
-	int size = getHeaderLen() + 1;
+	int size = 1;
 	synchronized (messageTable) {
 	    Iterator i = messageTable.iterator();
 	    while (i.hasNext())
@@ -172,6 +168,20 @@ public class QueryLastMsgsResp
 	    Iterator i = messageTable.iterator();
 	    while (i.hasNext())
 		SMPPIO.writeCString((String)i.next(), out);
+	}
+    }
+
+    public void readBodyFrom(byte[] body, int offset)
+    {
+	int msgCount = 0;
+	long id = 0;
+	msgCount = SMPPIO.bytesToInt(body, offset++, 1);
+
+	for(int loop = 0; loop < msgCount; loop++) {
+	    String s = SMPPIO.readCString(body, offset);
+	    offset += s.length() + 1;
+	    messageTable.addElement(s);
+	    Debug.d(this, "<init>", "Adding " + s + " to destinations", 3);
 	}
     }
 

@@ -42,7 +42,7 @@ public class EnquireLink
       */
     public EnquireLink()
     {
-	super(ESME_QRYLINK);
+	super(ENQUIRE_LINK);
     }
 
     /** Construct a new EnquireLink with specified sequence number.
@@ -51,7 +51,7 @@ public class EnquireLink
       */
     public EnquireLink(int seqNum)
     {
-	super(ESME_QRYLINK, seqNum);
+	super(ENQUIRE_LINK, seqNum);
     }
 
     /** Read in a EnquireLink from an InputStream.  A full packet,
@@ -65,18 +65,18 @@ public class EnquireLink
     {
 	super(in);
 
-	if (getCommandId() != SMPPPacket.ESME_QRYLINK)
-	    throw new BadCommandIDException(SMPPPacket.ESME_QRYLINK,
+	if (getCommandId() != SMPPPacket.ENQUIRE_LINK)
+	    throw new BadCommandIDException(SMPPPacket.ENQUIRE_LINK,
 		    getCommandId());
     }
 
-    /** Return the number of bytes this packet would be encoded as to an
-      * OutputStream.
-      * @return the number of bytes this packet would encode as.
-      */
-    public int getCommandLen()
+    public int getBodyLength()
     {
-	return (getHeaderLen());
+	return (0);
+    }
+
+    public void readBodyFrom(byte[] body, int offset)
+    {
     }
 
     /** Convert this packet to a String. Not to be interpreted programmatically,

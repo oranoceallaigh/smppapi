@@ -37,7 +37,7 @@ public class UnbindResp
       */
     public UnbindResp()
     {
-	super(ESME_UBD_RESP);
+	super(UNBIND_RESP);
     }
 
     /** Construct a new UnbindResp with specified sequence number.
@@ -46,7 +46,7 @@ public class UnbindResp
       */
     public UnbindResp(int seqNum)
     {
-	super(ESME_UBD_RESP, seqNum);
+	super(UNBIND_RESP, seqNum);
     }
 
     /** Read in a UnbindResp from an InputStream.  A full packet,
@@ -60,8 +60,8 @@ public class UnbindResp
     {
 	super(in);
 
-	if (getCommandId() != SMPPPacket.ESME_UBD_RESP)
-	    throw new BadCommandIDException(SMPPPacket.ESME_UBD_RESP,
+	if (getCommandId() != SMPPPacket.UNBIND_RESP)
+	    throw new BadCommandIDException(SMPPPacket.UNBIND_RESP,
 		    getCommandId());
     }
 
@@ -74,13 +74,14 @@ public class UnbindResp
 	super(r);
     }
 
-    /** Return the number of bytes this packet would be encoded as to an
-      * OutputStream.
-      * @return the number of bytes this packet would encode as.
-      */
-    public int getCommandLen()
+    public int getBodyLength()
     {
-	return (getHeaderLen());
+	return (0);
+    }
+
+    public void readBodyFrom(byte[] b, int offset)
+    {
+	return;
     }
 
     /** Convert this packet to a String. Not to be interpreted programmatically,

@@ -44,7 +44,7 @@ public class ParamRetrieve
       */
     public ParamRetrieve()
     {
-	super(ESME_PARAM_RETRIEVE);
+	super(PARAM_RETRIEVE);
 	paramName = null;
     }
 
@@ -54,7 +54,7 @@ public class ParamRetrieve
       */
     public ParamRetrieve(int seqNum)
     {
-	super(ESME_PARAM_RETRIEVE, seqNum);
+	super(PARAM_RETRIEVE, seqNum);
 	paramName = null;
     }
 
@@ -64,20 +64,20 @@ public class ParamRetrieve
       * @exception java.io.IOException if there's an error reading from the
       * input stream.
       */
-    public ParamRetrieve(InputStream in)
+    /*public ParamRetrieve(InputStream in)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super(in);
 
-	if (getCommandId() != SMPPPacket.ESME_PARAM_RETRIEVE)
-	    throw new BadCommandIDException(SMPPPacket.ESME_PARAM_RETRIEVE,
+	if (getCommandId() != SMPPPacket.PARAM_RETRIEVE)
+	    throw new BadCommandIDException(SMPPPacket.PARAM_RETRIEVE,
 		    getCommandId());
 
 	if (getCommandStatus() != 0)
 	    return;
 
 	paramName = SMPPIO.readCString(in);
-    }
+    }*/
 
     /** Set the name of the parameter to retrieve
       * @param paramName Parameter name, up to 31 characters
@@ -106,14 +106,9 @@ public class ParamRetrieve
     }
 
 
-    /** Return the number of bytes this packet would be encoded as to an
-      * OutputStream.
-      * @return the number of bytes this packet would encode as.
-      */
-    public int getCommandLen()
+    public int getBodyLength()
     {
-	int len = (getHeaderLen()
-		+ ((paramName != null) ? paramName.length() : 0));
+	int len = (((paramName != null) ? paramName.length() : 0));
 
 	// 1 c-string
 	return (len + 1);
@@ -128,6 +123,11 @@ public class ParamRetrieve
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	SMPPIO.writeCString(paramName, out);
+    }
+
+    public void readBodyFrom(byte[] body, int offset)
+    {
+	paramName = SMPPIO.readCString(body, offset);
     }
 
     /** Convert this packet to a String. Not to be interpreted programmatically,

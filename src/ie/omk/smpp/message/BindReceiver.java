@@ -42,7 +42,7 @@ public class BindReceiver
       */
     public BindReceiver()
     {
-	super(ESME_BNDRCV);
+	super(BIND_RECEIVER);
     }
 
     /** Read a BindReceiver packet from an InputStream.  An entire packet
@@ -50,15 +50,15 @@ public class BindReceiver
       * @param in The InputStream to read from
       * @exception java.io.IOException if there's a read error.
       */
-    public BindReceiver(InputStream in)
+    /*public BindReceiver(InputStream in)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super(in);
 
-	if (getCommandId() != SMPPPacket.ESME_BNDRCV)
-	    throw new BadCommandIDException(SMPPPacket.ESME_BNDRCV,
+	if (getCommandId() != SMPPPacket.BIND_RECEIVER)
+	    throw new BadCommandIDException(SMPPPacket.BIND_RECEIVER,
 		    getCommandId());
-    }
+    }*/
 
     /** Convert this packet to a String. Not to be interpreted programmatically,
       * it's just dead handy for debugging!
@@ -68,4 +68,3 @@ public class BindReceiver
 	return ("bind_receiver");
     }
 }
-

@@ -24,7 +24,11 @@ package ie.omk.smpp.message;
 
 import java.io.*;
 import java.net.SocketException;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
+import ie.omk.smpp.Address;
 import ie.omk.smpp.SMPPException;
 import ie.omk.smpp.InvalidMessageIDException;
 import ie.omk.smpp.StringTooLongException;
@@ -46,60 +50,71 @@ import ie.omk.debug.Debug;
 public abstract class SMPPPacket
 {
     /** Command Id: Negative Acknowledgement */
-    public static final int ESME_NACK 		= 0x80000000;
+    public static final int GENERIC_NACK                = 0x80000000;
     /** Command Id: Bind Receiver */
-    public static final int ESME_BNDRCV 	= 0x00000001;
+    public static final int BIND_RECEIVER               = 0x00000001;
     /** Command Id: Bind Receiver Response */
-    public static final int ESME_BNDRCV_RESP 	= 0x80000001;
+    public static final int BIND_RECEIVER_RESP          = 0x80000001;
     /** Command Id: Bind transmitter */
-    public static final int ESME_BNDTRN 	= 0x00000002;
+    public static final int BIND_TRANSMITTER            = 0x00000002;
     /** Command Id: Bind transmitter response */
-    public static final int ESME_BNDTRN_RESP 	= 0x80000002;
-    /** Command Id: Unbind */
-    public static final int ESME_UBD		= 0x00000006;
-    /** Command Id: Unbind response */
-    public static final int ESME_UBD_RESP	= 0x80000006;
-    /** Command Id: Submit message */
-    public static final int ESME_SUB_SM		= 0x00000004;
-    /** Command Id: Submit message response */
-    public static final int ESME_SUB_SM_RESP	= 0x80000004;
-    /** Command Id: Submit multiple messages */
-    public static final int ESME_SUB_MULTI	= 0x00000021;
-    /** Command Id: Submit multi response */
-    public static final int ESME_SUB_MULTI_RESP	= 0x80000021;
-    /** Command Id: Deliver Short message */
-    public static final int SMSC_DELIVER_SM	= 0x00000005;
-    /** Command Id: Deliver message response */
-    public static final int SMSC_DELIVER_SM_RESP= 0x80000005;
+    public static final int BIND_TRANSMITTER_RESP       = 0x80000002;
     /** Command Id: Query message */
-    public static final int ESME_QUERY_SM	= 0x00000003;
+    public static final int QUERY_SM                    = 0x00000003;
     /** Command Id: Query message response */
-    public static final int ESME_QUERY_SM_RESP	= 0x80000003;
-    /** Command Id: Query last messages */
-    public static final int ESME_QUERY_LAST_MSGS= 0x00000023;
-    /** Command Id: Query last messages response */
-    public static final int ESME_QUERY_LAST_MSGS_RESP = 0x80000023;
-    /** Command Id: Query message details */
-    public static final int ESME_QUERY_MSG_DETAILS = 0x00000024;
-    /** Command Id: Query message details response */
-    public static final int ESME_QUERY_MSG_DETAILS_RESP	= 0x80000024;
-    /** Command Id: Cancel message */
-    public static final int ESME_CANCEL_SM	= 0x00000008;
-    /** Command Id: Cancel message response */
-    public static final int ESME_CANCEL_SM_RESP	= 0x80000008;
+    public static final int QUERY_SM_RESP               = 0x80000003;
+    /** Command Id: Submit message */
+    public static final int SUBMIT_SM                   = 0x00000004;
+    /** Command Id: Submit message response */
+    public static final int SUBMIT_SM_RESP              = 0x80000004;
+    /** Command Id: Deliver Short message */
+    public static final int DELIVER_SM                  = 0x00000005;
+    /** Command Id: Deliver message response */
+    public static final int DELIVER_SM_RESP             = 0x80000005;
+    /** Command Id: Unbind */
+    public static final int UNBIND                      = 0x00000006;
+    /** Command Id: Unbind response */
+    public static final int UNBIND_RESP                 = 0x80000006;
     /** Command Id: Replace message */
-    public static final int ESME_REPLACE_SM	= 0x00000007;
+    public static final int REPLACE_SM                  = 0x00000007;
     /** Command Id: replace message response */
-    public static final int ESME_REPLACE_SM_RESP= 0x80000007;
+    public static final int REPLACE_SM_RESP             = 0x80000007;
+    /** Command Id: Cancel message */
+    public static final int CANCEL_SM                   = 0x00000008;
+    /** Command Id: Cancel message response */
+    public static final int CANCEL_SM_RESP              = 0x80000008;
+    /** Command Id: Bind transceiver */
+    public static final int BIND_TRANSCEIVER            = 0x00000009;
+    /** Command Id: Bind transceiever response. */
+    public static final int BIND_TRANSCEIVER_RESP       = 0x80000009;
+    /** Command Id: Outbind. */
+    public static final int OUTBIND                     = 0x0000000b;
     /** Command Id: Enquire Link */
-    public static final int ESME_QRYLINK	= 0x00000015;
+    public static final int ENQUIRE_LINK                = 0x00000015;
     /** Command Id: Enquire link respinse */
-    public static final int ESME_QRYLINK_RESP	= 0x80000015;
+    public static final int ENQUIRE_LINK_RESP           = 0x80000015;
+    /** Command Id: Submit multiple messages */
+    public static final int SUBMIT_MULTI                = 0x00000021;
+    /** Command Id: Submit multi response */
+    public static final int SUBMIT_MULTI_RESP           = 0x80000021;
     /** Command Id: Parameter retrieve */
-    public static final int ESME_PARAM_RETRIEVE	= 0x00000022;
+    public static final int PARAM_RETRIEVE              = 0x00000022;
     /** Command Id: Paramater retrieve response */
-    public static final int ESME_PARAM_RETRIEVE_RESP = 0x80000022;
-
+    public static final int PARAM_RETRIEVE_RESP         = 0x80000022;
+    /** Command Id: Query last messages */
+    public static final int QUERY_LAST_MSGS             = 0x00000023;
+    /** Command Id: Query last messages response */
+    public static final int QUERY_LAST_MSGS_RESP        = 0x80000023;
+    /** Command Id: Query message details */
+    public static final int QUERY_MSG_DETAILS           = 0x00000024;
+    /** Command Id: Query message details response */
+    public static final int QUERY_MSG_DETAILS_RESP	= 0x80000024;
+    /** Command Id: alert notification. */
+    public static final int ALERT_NOTIFICATION          = 0x00000102;
+    /** Command Id: Data message. */
+    public static final int DATA_SM                     = 0x00000103;
+    /** Command Id: Data message response. */
+    public static final int DATA_SM_RESP                = 0x80000103;
 
     /** Message state at Smsc: En route */
     public static final int SM_STATE_EN_ROUTE		= 1;
@@ -170,10 +185,10 @@ public abstract class SMPPPacket
      */
 
     /** Source address */
-    protected SmeAddress	source = null;
+    protected Address	source = null;
     
     /** Destination address */
-    protected SmeAddress	destination = null;
+    protected Address	destination = null;
     
     /** The short message data */
     protected byte[]		message = null;
@@ -218,11 +233,10 @@ public abstract class SMPPPacket
     public int			dataCoding = 0;
 
     /** Default message number. */
-    public int			defaultMsg = 0;
+    protected int		defaultMsg = 0;
 
     /** Alphabet to use to encode this message's text. */
     private AlphabetEncoding	alphabet = AlphabetFactory.getDefaultAlphabet();
-
 
     /** Create a new SMPPPacket with specified Id.
       * @param id Command Id value
@@ -259,17 +273,40 @@ public abstract class SMPPPacket
     /** Return the number of bytes this packet would be encoded as to an
       * OutputStream.
       * @return The size in bytes of the packet
+      * @deprecated
       */
-    public abstract int getCommandLen();
+    public final int getCommandLen()
+    {
+	// stop overriding this deprecated method.
+	return (getLength());
+    }
+
+    /** Get the number of bytes this packet would be encoded as. This returns
+     * the sum of the size of the header (always 16), the packet's body and all
+     * optional parameters.
+     * @return the number of bytes this packet would encode as.
+     */
+    public final int getLength()
+    {
+	return (16 + getBodyLength());
+    }
+
+    /** Get the number of bytes the body of this packet would encode as. This
+     * method should only return the number of bytes the fields in the mandatory
+     * parameters section of the packet would encode as. The total size of the
+     * packet then is 16 (header length) + getBodyLength() + SUM(foreach
+     * optionalParameter: getLength()).
+     */
+    public abstract int getBodyLength();
 
     /** Get the length of the SMPP header.
       */
-    protected int getHeaderLen()
+    /* XXX REMOVE protected int getHeaderLen()
     {
 	// 1 4-byte integer each for command length, id, status and sequence
 	// number.
 	return (16);
-    }
+    }*/
 
     /** Get the Command Id of this SMPP packet.
       * @return The Command Id of this packet
@@ -310,7 +347,7 @@ public abstract class SMPPPacket
       * @see ie.omk.smpp.message.DeliverSM
       * XXX Add other packets.
       */
-    public void setSource(SmeAddress s)
+    public void setSource(Address s)
     {
 	if(s != null) {
 	    this.source = s;
@@ -322,7 +359,7 @@ public abstract class SMPPPacket
       * Not used by all SMPP Packet types.
       * @return The source address or null if it is not set.
       */
-    public SmeAddress getSource()
+    public Address getSource()
     {
 	if(source != null)
 	    return (source);
@@ -333,7 +370,7 @@ public abstract class SMPPPacket
     /** Set the destination address.
       * Not used by all SMPP Packet types.
       */
-    public void setDestination(SmeAddress s)
+    public void setDestination(Address s)
     {
 	if(s != null) {
 	    this.destination = s;
@@ -345,7 +382,7 @@ public abstract class SMPPPacket
       * Not used by all SMPP Packet types.
       * @return The destination address or null if it is not set.
       */
-    public SmeAddress getDestination()
+    public Address getDestination()
     {
 	if(destination != null) {
 	    return (destination);
@@ -866,15 +903,19 @@ public abstract class SMPPPacket
 	    this.alphabet = enc;
     }
 
-    /** Convert this packet to a String. Not to be interpreted programmatically,
-      * it's just dead handy for debugging!
-      */
+    /** Return a String representation of this packet. This method does not
+     * return any value which is useful programatically...it returns a
+     * description of the packet's header as follows:<br>
+     * <code>"SMPP(l:[len], c:[commandId], s:[status], n:[sequence])"</code>
+     */
     public String toString()
     {
-	return new String("header: " + getHeaderLen() + ", "
-		+ Integer.toHexString(commandId) + ", "
-		+ commandStatus + ", "
-		+ Integer.toHexString(sequenceNum));
+	return (new StringBuffer("SMPP(l:")
+		.append(Integer.toString(getLength()))
+		.append(", c:0x").append(Integer.toHexString(commandId))
+		.append(", s:").append(Integer.toString(commandStatus))
+		.append(", n:").append(Integer.toString(sequenceNum))
+		.append(")").toString());
     }
 
     /** Encode the body of the SMPP Packet to the output stream. Sub classes
@@ -888,9 +929,8 @@ public abstract class SMPPPacket
     protected void encodeBody(OutputStream out)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
-	// This method is not abstract so that packets that are really just an
-	// SMPP header need not override it to just return the value from
-	// getHeaderLen.
+	// some packets ain't got a body...provide a default adapter instead of
+	// making it abstract.
     }
 
     /** Write the byte representation of this SMPP packet to an OutputStream
@@ -901,8 +941,7 @@ public abstract class SMPPPacket
     public final void writeTo(OutputStream out)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
-	// Make sure the size is set properly
-	int commandLen = getCommandLen();
+	int commandLen = 16 + getBodyLength();
 
 	SMPPIO.writeInt(commandLen, 4, out);
 	SMPPIO.writeInt(commandId, 4, out);
@@ -913,4 +952,36 @@ public abstract class SMPPPacket
 
 	Debug.d(this, "writeTo", "written!", 5);
     }
+
+    // XXX javadoc
+    public void readFrom(byte[] b, int offset)
+    {
+	if (b.length < (offset + 16)) {
+	    // XXX exception??
+	    throw new RuntimeException("no header present in bytes (not enuf)");
+	}
+
+	int len = SMPPIO.bytesToInt(b, offset, 4);
+	int id = SMPPIO.bytesToInt(b, offset + 4, 4);
+
+	if (id != commandId) {
+	    // Command type mismatch...ye can't do that, lad!
+	    // XXX exception
+	    throw new RuntimeException("Command ID mismatch.");
+	}
+	if (b.length < (offset + len)) {
+	    // not enough bytes there for me to read in, buddy!
+	    // XXX exception
+	    throw new RuntimeException("not enough bytes in array.");
+	}
+
+	commandStatus = SMPPIO.bytesToInt(b, offset + 8, 4);
+	sequenceNum = SMPPIO.bytesToInt(b, offset + 12, 4);
+
+	if (commandStatus == 0)
+	    readBodyFrom(b, offset + 16);
+    }
+
+    // XXX javadoc
+    public abstract void readBodyFrom(byte[] b, int offset);
 }

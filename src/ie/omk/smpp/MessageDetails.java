@@ -24,8 +24,13 @@ package ie.omk.smpp;
 
 import java.io.*;
 import java.util.*;
-import ie.omk.smpp.util.SMPPDate;
+
+import ie.omk.smpp.Address;
+
 import ie.omk.smpp.message.*;
+
+import ie.omk.smpp.util.SMPPDate;
+
 import ie.omk.debug.Debug;
 
 /** Object used as extra information in an SMPP event.
@@ -56,7 +61,7 @@ public class MessageDetails
     public String		serviceType = null;
 
     /** Source address this message came from */
-    public SmeAddress		sourceAddr = null;
+    public Address		sourceAddr = null;
 
     /** Table of all destinations this message was successfully delivered to */
     public Vector		destinationTable = new Vector();
@@ -135,10 +140,11 @@ public class MessageDetails
 	SubmitMulti p = new SubmitMulti();
 	fillAllFields(p);
 
-	SmeAddress[] smes = new SmeAddress[destinationTable.size()];
-	System.arraycopy(destinationTable.toArray(), 0, smes, 0, smes.length);
-	p.setDestAddresses(smes);
-
+	DestinationTable t = p.getDestinationTable();
+	Iterator i = destinationTable.iterator();
+	while (i.hasNext()) {
+	    t.add((Address)i.next());
+	}
 	return (p);
     }
 
@@ -202,12 +208,12 @@ public class MessageDetails
 	this.expiryTime = p.getExpiryTime();
 	this.message = p.getMessage();
 
-	Collection dt = null;
+	DestinationTable dt = null;
 	switch (p.getCommandId()) {
-	case SMPPPacket.ESME_SUB_MULTI:
+	case SMPPPacket.SUBMIT_MULTI:
 	    dt = ((SubmitMulti)p).getDestinationTable();
 	    break;
-	case SMPPPacket.ESME_QUERY_MSG_DETAILS_RESP:
+	case SMPPPacket.QUERY_MSG_DETAILS_RESP:
 	    dt = ((QueryMsgDetailsResp)p).getDestinationTable();
 	    break;
 	}
@@ -237,7 +243,7 @@ public class MessageDetails
 	p.setErrorCode(error);
 	p.setServiceType(serviceType);
 	p.setSource(sourceAddr);
-	p.setDestination((SmeAddress)destinationTable.get(0));
+	p.setDestination((Address)destinationTable.get(0));
 	p.setDeliveryTime(deliveryTime);
 	p.setExpiryTime(expiryTime);
 	p.setMessage(message);

@@ -26,17 +26,22 @@ package ie.omk.smpp;
 import java.io.*;
 import java.util.*;
 
+import ie.omk.smpp.Address;
+
 import ie.omk.smpp.message.*;
 import ie.omk.smpp.net.*;
+
 import ie.omk.smpp.util.SMPPDate;
+
 import ie.omk.debug.Debug;
 
 /** Transmitter implementation of the SMPP Connection.
   * @author Oran Kelly
   * @version 1.0
+  * @deprecated Use the {@link Connection} parent class instead.
   */
 public class SmppTransmitter
-    extends ie.omk.smpp.SmppConnection
+    extends ie.omk.smpp.Connection
 {
     /** Create a new smpp Transmitter connection
       * @param link The network link to the Smsc
@@ -71,13 +76,20 @@ public class SmppTransmitter
       * @exception ie.omk.smpp.AlreadyBoundException if the connection is
       * already bound to the SMSC.
       * @exception java.io.IOException If there is a network error
-      * @see ie.omk.smpp.SmppConnection#bind
+      * @see ie.omk.smpp.Connection#bind
       */
     public BindResp bind(String systemID, String password,
-	    String systemType, SmeAddress sourceRange)
+	    String systemType, Address sourceRange)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
-	return (super.bind(systemID, password, systemType, sourceRange, true));
+	return (super.bind(
+		    TRANSMITTER,
+		    systemID,
+		    password,
+		    systemType,
+		    sourceRange.getTON(),
+		    sourceRange.getNPI(),
+		    sourceRange.getAddress()));
     }
 
     /** Submit a message to an ESME
@@ -88,13 +100,13 @@ public class SmppTransmitter
       * @return The submit message response, or null if asynchronous
       * communication is used.
       * @exception java.io.IOException If a network error occurs
-      * @see SmeAddress
+      * @see Address
       * @see SmppTransmitter#submitMulti
       * @deprecated This method will disappear from this class within the next 2
       * releases.
       */
     public SubmitSMResp submitMessage(String msg, MsgFlags flags,
-	    SmeAddress dst)
+	    Address dst)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	return (this.submitMessage(msg, flags, null, dst, null, null));
@@ -109,13 +121,13 @@ public class SmppTransmitter
       * @return The submit message response, or null if asynchronous
       * communication is used.
       * @exception java.io.IOException If a network error occurs
-      * @see SmeAddress
+      * @see Address
       * @see SmppTransmitter#submitMulti
       * @deprecated This method will disappear from this class within the next 2
       * releases.
       */
     public SubmitSMResp submitMessage(String msg, MsgFlags flags,
-	    SmeAddress src, SmeAddress dst)
+	    Address src, Address dst)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	return (this.submitMessage(msg, flags, src, dst, null, null));
@@ -131,13 +143,13 @@ public class SmppTransmitter
       * @return The submit message response, or null if asynchronous
       * communication is used.
       * @exception java.io.IOException If a network error occurs
-      * @see SmeAddress
+      * @see Address
       * @see SmppTransmitter#submitMulti
       * @deprecated This method will disappear from this class within the next 2
       * releases.
       */
     public SubmitSMResp submitMessage(String msg, MsgFlags flags,
-	    SmeAddress src, SmeAddress dst, SMPPDate del, SMPPDate valid)
+	    Address src, Address dst, SMPPDate del, SMPPDate valid)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	SubmitSM s = new SubmitSM();
@@ -163,18 +175,18 @@ public class SmppTransmitter
       * (may be null)
       * @param flags Message flags information
       * @param src Source ESME this message is from (may be null)
-      * @param dst Table of SmeAddress structures to send the message to
+      * @param dst Table of Address structures to send the message to
       * @param del The absolute delivery time of the message (may be null)
       * @param valid The validity period of the message, after which it will
       * @return The submit multi response, or null if asynchronous
       * communication is used.
       * @exception java.io.IOException If a network error occurs
-      * @see SmeAddress
+      * @see Address
       * @deprecated This method will disappear from this class within the next 2
       * releases.
       */
     public SubmitMultiResp submitMulti(String msg, MsgFlags flags,
-	    SmeAddress src, SmeAddress dst[])
+	    Address src, Address dst[])
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	return (this.submitMulti(msg, flags, src, dst, null, null));
@@ -185,7 +197,7 @@ public class SmppTransmitter
       * (may be null)
       * @param flags Message flags information
       * @param src Source ESME this message is from (may be null)
-      * @param dst Table of SmeAddress structures to send the message to
+      * @param dst Table of Address structures to send the message to
       * @param del The absolute delivery time of the message (may be null)
       * @param valid The validity period of the message, after which it will
       * @return The submit multi response, or null if asynchronous
@@ -196,13 +208,13 @@ public class SmppTransmitter
       * @exception ie.omk.smpp.InvalidReplaceIfPresentException if the
       * replace-if-present flag is set and there are more than 1 destination.
       * @exception java.io.IOException If a network error occurs
-      * @see SmeAddress
+      * @see Address
       * @see SmppTransmitter#submitMulti
       * @deprecated This method will disappear from this class within the next 2
       * releases.
       */
     public SubmitMultiResp submitMulti(String msg, MsgFlags flags,
-	    SmeAddress src, SmeAddress dst[], SMPPDate del, SMPPDate valid)
+	    Address src, Address dst[], SMPPDate del, SMPPDate valid)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	int loop = 0;
@@ -223,8 +235,10 @@ public class SmppTransmitter
 	    throw new InvalidDestinationCountException();
 
 	// Add in all the destinations
-	for(loop=0; loop<dst.length; loop++)
-	    s.addDestination(dst[loop]);
+	ie.omk.smpp.message.DestinationTable t = s.getDestinationTable();
+	for(loop=0; loop<dst.length; loop++) {
+	    t.add(dst[loop]);
+	}
 
 	// Cannot use replace-if-present to more than one destination
 	if(dst.length > 1 && flags.replace_if_present)
@@ -243,7 +257,7 @@ public class SmppTransmitter
       * communication is used.
       * @exception java.io.IOException If a network error occurs.
       */
-    public CancelSMResp cancelMessage(String st, String msgId, SmeAddress d)
+    public CancelSMResp cancelMessage(String st, String msgId, Address d)
 	throws IOException, ie.omk.smpp.SMPPException
     {
 	return (this.cancelMessage(st, msgId, null, d));
@@ -259,7 +273,7 @@ public class SmppTransmitter
       * @exception java.io.IOException If a network error occurs.
       */
     public CancelSMResp cancelMessage(String st, String msgId,
-	    SmeAddress src, SmeAddress dst)
+	    Address src, Address dst)
 	throws IOException, ie.omk.smpp.SMPPException
     {
 	CancelSM s = new CancelSM();
@@ -306,7 +320,7 @@ public class SmppTransmitter
       * releases.
       */
     public ReplaceSMResp replaceMessage(String msgId, String msg,
-	    MsgFlags flags, SmeAddress src)
+	    MsgFlags flags, Address src)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	return (this.replaceMessage(msgId, msg, flags, src, null, null));
@@ -327,7 +341,7 @@ public class SmppTransmitter
       * releases.
       */
     public ReplaceSMResp replaceMessage(String msgId, String msg,
-	    MsgFlags flags, SmeAddress src, SMPPDate del, SMPPDate valid)
+	    MsgFlags flags, Address src, SMPPDate del, SMPPDate valid)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	ReplaceSM s = new ReplaceSM();
@@ -393,7 +407,7 @@ public class SmppTransmitter
       * @exception java.io.IOException If a network error occurs.
       * @see MessageDetails
       */
-    public QuerySMResp queryMessage(String msgId, SmeAddress src)
+    public QuerySMResp queryMessage(String msgId, Address src)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	QuerySM s = new QuerySM();
@@ -413,7 +427,7 @@ public class SmppTransmitter
       * communication is used.
       * @exception java.io.IOException If a network error occurs.
       */
-    public QueryLastMsgsResp queryLastMsgs(SmeAddress src, int num)
+    public QueryLastMsgsResp queryLastMsgs(Address src, int num)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	if(src == null)
@@ -455,7 +469,7 @@ public class SmppTransmitter
       * communication is used.
       * @exception java.io.IOException If a network error occurs.
       */
-    public QueryMsgDetailsResp queryMsgDetails(String msgId, SmeAddress src,
+    public QueryMsgDetailsResp queryMsgDetails(String msgId, Address src,
 	    int len)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {

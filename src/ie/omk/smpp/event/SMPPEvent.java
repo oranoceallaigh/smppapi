@@ -23,7 +23,7 @@
 
 package ie.omk.smpp.event;
 
-import ie.omk.smpp.SmppConnection;
+import ie.omk.smpp.Connection;
 
 /** Abstract super class of SMPP control events.
  * @author Oran Kelly
@@ -41,8 +41,8 @@ public abstract class SMPPEvent
     public static final int RECEIVER_EXCEPTION = 4;
 
 
-    /** The source SmppConnection of this event. */
-    private SmppConnection source = null;
+    /** The source Connection of this event. */
+    private Connection source = null;
 
     /** The type of this event. */
     private int type = 0;
@@ -51,7 +51,7 @@ public abstract class SMPPEvent
     /** Construct a new event. The <code>type</code> parameter should match one
      * of the enumeration constants defined in this class.
      */
-    protected SMPPEvent(int type, SmppConnection source)
+    protected SMPPEvent(int type, Connection source)
     {
 	this.source = source;
 	this.type = type;
@@ -59,7 +59,7 @@ public abstract class SMPPEvent
 
     /** Get the source connection of this event.
      */
-    public SmppConnection getSource()
+    public Connection getSource()
     {
 	return (source);
     }

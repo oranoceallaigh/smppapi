@@ -39,7 +39,7 @@ public class ReplaceSMResp
       */
     public ReplaceSMResp()
     {
-	super(ESME_REPLACE_SM_RESP);
+	super(REPLACE_SM_RESP);
     }
 
     /** Construct a new ReplaceSMResp with specified sequence number.
@@ -48,7 +48,7 @@ public class ReplaceSMResp
       */
     public ReplaceSMResp(int seqNum)
     {
-	super(ESME_REPLACE_SM_RESP, seqNum);
+	super(REPLACE_SM_RESP, seqNum);
     }
 
     /** Read in a ReplaceSMResp from an InputStream.  A full packet,
@@ -56,15 +56,15 @@ public class ReplaceSMResp
       * @exception java.io.IOException if there's an error reading from the
       * input stream.
       */
-    public ReplaceSMResp(InputStream in)
+    /*public ReplaceSMResp(InputStream in)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super(in);
 
-	if (getCommandId() != SMPPPacket.ESME_REPLACE_SM_RESP)
-	    throw new BadCommandIDException(SMPPPacket.ESME_REPLACE_SM_RESP,
+	if (getCommandId() != SMPPPacket.REPLACE_SM_RESP)
+	    throw new BadCommandIDException(SMPPPacket.REPLACE_SM_RESP,
 		    getCommandId());
-    }
+    }*/
 
     /** Create a new ReplaceSMResp packet in response to a BindReceiver.
       * This constructor will set the sequence number to it's expected value.
@@ -75,13 +75,13 @@ public class ReplaceSMResp
 	super(r);
     }
 
-    /** Return the number of bytes this packet would be encoded as to an
-      * OutputStream.
-      * @return the number of bytes this packet would encode as.
-      */
-    public int getCommandLen()
+    public int getBodyLength()
     {
-	return (getHeaderLen());
+	return (0);
+    }
+
+    public void readBodyFrom(byte[] body, int offset)
+    {
     }
 
     /** Convert this packet to a String. Not to be interpreted programmatically,

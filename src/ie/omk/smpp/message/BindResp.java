@@ -52,7 +52,7 @@ public abstract class BindResp
       * @exception java.io.IOException if there's an error reading from the
       * input stream.
       */
-    public BindResp(InputStream in)
+    /*public BindResp(InputStream in)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super(in);
@@ -61,7 +61,7 @@ public abstract class BindResp
 	    return;
 
 	sysId = SMPPIO.readCString(in);
-    }
+    }*/
 
 
     /** Create a new BindResp packet in response to a
@@ -104,15 +104,10 @@ public abstract class BindResp
       * OutputStream.
       * @return the number of bytes this packet would encode as.
       */
-    public int getCommandLen()
+    public int getBodyLength()
     {
-	// Calculated as the size of the header plus 1 null-terminator
-	// for the string plus the length of the string
-	int len = (getHeaderLen()
-		+ ((sysId != null) ? sysId.length() : 0));
-
-	// 1 c-string
-	return (len + 1);
+	// Length of system ID plus a nul terminator.
+	return (((sysId != null) ? sysId.length() : 0) + 1);
     }
 
     /** Write a byte representation of this packet to an OutputStream
@@ -124,6 +119,11 @@ public abstract class BindResp
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	SMPPIO.writeCString(sysId, out);
+    }
+
+    public void readBodyFrom(byte[] body, int offset)
+    {
+	sysId = SMPPIO.readCString(body, offset);
     }
 
     /** Convert this packet to a String. Not to be interpreted programmatically,

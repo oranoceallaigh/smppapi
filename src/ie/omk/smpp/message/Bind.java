@@ -50,7 +50,7 @@ public abstract class Bind
     private String addressRange = null;
 
     /** Interface version */
-    private int interfaceVer = 0x33;
+    private int interfaceVer = 0x33; // XXX use SMPPVersion class.
 
     /** Address Type Of Number for message routing */
     private int addrTon = 0;
@@ -70,7 +70,7 @@ public abstract class Bind
       * @exception java.io.IOException if there's a problem reading from the
       * input stream.
       */
-    public Bind(InputStream in)
+    /*public Bind(InputStream in)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super(in);
@@ -85,7 +85,7 @@ public abstract class Bind
 	addrTon =  SMPPIO.readInt(in, 1);
 	addrNpi =  SMPPIO.readInt(in, 1);
 	addressRange = SMPPIO.readCString(in);
-    }
+    }*/
 
     /** Set the system Id
       * @param sysId The System Id to use (Up to 15 characters)
@@ -248,12 +248,11 @@ public abstract class Bind
       * OutputStream.
       * @return the number of bytes this packet would encode as.
       */
-    public int getCommandLen()
+    public int getBodyLength()
     {
 	// Calculated as the size of the header plus 3 1-byte ints and
 	// 4 null-terminators for the strings plus the length of the strings
-	int len = (getHeaderLen()
-		+ ((sysId != null) ? sysId.length() : 0)
+	int len = (((sysId != null) ? sysId.length() : 0)
 		+ ((password != null) ? password.length() : 0)
 		+ ((sysType != null) ? sysType.length() : 0)
 		+ ((addressRange != null) ? addressRange.length() : 0));
@@ -277,6 +276,23 @@ public abstract class Bind
 	SMPPIO.writeInt(addrTon, 1, out);
 	SMPPIO.writeInt(addrNpi, 1, out);
 	SMPPIO.writeCString(addressRange, out);
+    }
+
+    public void readBodyFrom(byte[] body, int offset)
+    {
+	sysId = SMPPIO.readCString(body, offset);
+	offset += sysId.length() + 1;
+
+	password = SMPPIO.readCString(body, offset);
+	offset += password.length() + 1;
+
+	sysType = SMPPIO.readCString(body, offset);
+	offset += sysType.length() + 1;
+
+	interfaceVer = SMPPIO.bytesToInt(body, offset++, 1);
+	addrTon = SMPPIO.bytesToInt(body, offset++, 1);
+	addrNpi = SMPPIO.bytesToInt(body, offset++, 1);
+	addressRange = SMPPIO.readCString(body, offset);
     }
 
     /** Convert this packet to a String. Not to be interpreted programmatically,

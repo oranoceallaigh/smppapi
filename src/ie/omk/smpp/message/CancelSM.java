@@ -23,10 +23,14 @@
 package ie.omk.smpp.message;
 
 import java.io.*;
-import ie.omk.smpp.SMPPException;
+
+import ie.omk.smpp.Address;
 import ie.omk.smpp.BadCommandIDException;
+import ie.omk.smpp.SMPPException;
+
 import ie.omk.smpp.util.GSMConstants;
 import ie.omk.smpp.util.SMPPIO;
+
 import ie.omk.debug.Debug;
 
 /** Cancal message.
@@ -49,7 +53,7 @@ public class CancelSM
       */
     public CancelSM()
     {
-	super(ESME_CANCEL_SM);
+	super(CANCEL_SM);
     }
 
     /** Construct a new CancelSM with specified sequence number.
@@ -58,7 +62,7 @@ public class CancelSM
       */
     public CancelSM(int seqNum)
     {
-	super(ESME_CANCEL_SM, seqNum);
+	super(CANCEL_SM, seqNum);
     }
 
     /** Read in a CancelSM from an InputStream.  A full packet,
@@ -67,13 +71,13 @@ public class CancelSM
       * @exception java.io.IOException if there's an error reading from the
       * input stream.
       */
-    public CancelSM(InputStream in)
+    /*public CancelSM(InputStream in)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super(in);
 
-	if (getCommandId() != SMPPPacket.ESME_CANCEL_SM)
-	    throw new BadCommandIDException(SMPPPacket.ESME_CANCEL_SM,
+	if (getCommandId() != SMPPPacket.CANCEL_SM)
+	    throw new BadCommandIDException(SMPPPacket.CANCEL_SM,
 		    getCommandId());
 
 	if (getCommandStatus() != 0)
@@ -81,21 +85,16 @@ public class CancelSM
 
 	serviceType = SMPPIO.readCString(in);
 	messageId = SMPPIO.readCString(in);
-	source = new SmeAddress(in);
-	destination = new SmeAddress(in);
-    }
+	source = new Address(in);
+	destination = new Address(in);
+    }*/
 
-    /** Return the number of bytes this packet would be encoded as to an
-      * OutputStream.
-      * @return the number of bytes this packet would encode as.
-      */
-    public int getCommandLen()
+    public int getBodyLength()
     {
-	int len = (getHeaderLen()
-		+ ((serviceType != null) ? serviceType.length() : 0)
+	int len = (((serviceType != null) ? serviceType.length() : 0)
 		+ ((messageId != null) ? messageId.length() : 0)
-		+ ((source != null) ? source.size() : 3)
-		+ ((destination != null) ? destination.size() : 3));
+		+ ((source != null) ? source.getLength() : 3)
+		+ ((destination != null) ? destination.getLength() : 3));
 
 	// 2 c-strings
 	return (len + 2);
@@ -115,7 +114,7 @@ public class CancelSM
 	    source.writeTo(out);
 	} else {
 	    // Write ton=0(null), npi=0(null), address=\0(nul)
-	    new SmeAddress(GSMConstants.GSM_TON_UNKNOWN,
+	    new Address(GSMConstants.GSM_TON_UNKNOWN,
 		    GSMConstants.GSM_NPI_UNKNOWN, "").writeTo(out);
 	}
 
@@ -123,9 +122,24 @@ public class CancelSM
 	    destination.writeTo(out);
 	} else {
 	    // Write ton=0(null), npi=0(null), address=\0(nul)
-	    new SmeAddress(GSMConstants.GSM_TON_UNKNOWN,
+	    new Address(GSMConstants.GSM_TON_UNKNOWN,
 		    GSMConstants.GSM_NPI_UNKNOWN, "").writeTo(out);
 	}
+    }
+    public void readBodyFrom(byte[] body, int offset)
+    {
+	serviceType = SMPPIO.readCString(body, offset);
+	offset += serviceType.length() + 1;
+
+	messageId = SMPPIO.readCString(body, offset);
+	offset += messageId.length() + 1;
+
+	source = new Address();
+	source.readFrom(body, offset);
+	offset += source.getLength();
+
+	destination = new Address();
+	destination.readFrom(body, offset);
     }
 
     /** Convert this packet to a String. Not to be interpreted programmatically,

@@ -39,7 +39,7 @@ public class GenericNack
       */
     public GenericNack()
     {
-	super(ESME_NACK);
+	super(GENERIC_NACK);
     }
 
     /** Construct a new GenericNack with specified sequence number.
@@ -48,7 +48,7 @@ public class GenericNack
       */
     public GenericNack(int seqNum)
     {
-	super(ESME_NACK, seqNum);
+	super(GENERIC_NACK, seqNum);
     }
 
     /** Read in a GenericNack from an InputStream.  A full packet,
@@ -62,18 +62,19 @@ public class GenericNack
     {
 	super(in);
 
-	if (getCommandId() != SMPPPacket.ESME_NACK)
-	    throw new BadCommandIDException(SMPPPacket.ESME_NACK,
+	if (getCommandId() != SMPPPacket.GENERIC_NACK)
+	    throw new BadCommandIDException(SMPPPacket.GENERIC_NACK,
 		    getCommandId());
     }
 
-    /** Return the number of bytes this packet would be encoded as to an
-      * OutputStream.
-      * @return the number of bytes this packet would encode as.
-      */
-    public int getCommandLen()
+    public int getBodyLength()
     {
-	return (getHeaderLen());
+	return (0);
+    }
+
+    public void readBodyFrom(byte[] b, int offset)
+    {
+	return;
     }
 
     /** Convert this packet to a String. Not to be interpreted programmatically,

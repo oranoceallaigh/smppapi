@@ -39,7 +39,7 @@ public class SubmitSMResp
       */
     public SubmitSMResp()
     {
-	super(ESME_SUB_SM_RESP);
+	super(SUBMIT_SM_RESP);
     }
 
     /** Construct a new SubmitSMResp with specified sequence number.
@@ -48,7 +48,7 @@ public class SubmitSMResp
       */
     public SubmitSMResp(int seqNum)
     {
-	super(ESME_SUB_SM_RESP, seqNum);
+	super(SUBMIT_SM_RESP, seqNum);
     }
 
     /** Read in a SubmitSMResp from an InputStream.  A full packet,
@@ -57,20 +57,20 @@ public class SubmitSMResp
       * @exception java.io.IOException If an error occurs writing to the input
       * stream.
       */
-    public SubmitSMResp(InputStream in)
+    /*public SubmitSMResp(InputStream in)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super(in);
 
-	if (getCommandId() != SMPPPacket.ESME_SUB_SM_RESP)
-	    throw new BadCommandIDException(SMPPPacket.ESME_SUB_SM_RESP,
+	if (getCommandId() != SMPPPacket.SUBMIT_SM_RESP)
+	    throw new BadCommandIDException(SMPPPacket.SUBMIT_SM_RESP,
 		    getCommandId());
 
 	if (getCommandStatus() != 0)
 	    return;
 
 	messageId = SMPPIO.readCString(in);
-    }
+    }*/
 
     /** Create a new SubmitSMResp packet in response to a SubmitSM.
       * This constructor will set the sequence number to it's expected value.
@@ -81,17 +81,9 @@ public class SubmitSMResp
 	super(r);
     }
 
-    /** Return the number of bytes this packet would be encoded as to an
-      * OutputStream.
-      * @return the number of bytes this packet would encode as.
-      */
-    public int getCommandLen()
+    public int getBodyLength()
     {
-	int len = (getHeaderLen()
-		+ ((messageId != null) ? messageId.length() : 0));
-
-	// 1 c-string
-	return (len + 1);
+	return (((messageId != null) ? messageId.length() : 0) + 1);
     }
 
     /** Write a byte representation of this packet to an OutputStream
@@ -103,6 +95,11 @@ public class SubmitSMResp
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	SMPPIO.writeCString(getMessageId(), out);
+    }
+
+    public void readBodyFrom(byte[] b, int offset)
+    {
+	messageId = SMPPIO.readCString(b, offset);
     }
 
     /** Convert this packet to a String. Not to be interpreted programmatically,

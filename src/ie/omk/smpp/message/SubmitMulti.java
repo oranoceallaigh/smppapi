@@ -24,11 +24,15 @@ package ie.omk.smpp.message;
 
 import java.io.*;
 import java.util.*;
-import ie.omk.smpp.SMPPException;
+
+import ie.omk.smpp.Address;
 import ie.omk.smpp.BadCommandIDException;
+import ie.omk.smpp.SMPPException;
+
 import ie.omk.smpp.util.GSMConstants;
 import ie.omk.smpp.util.SMPPIO;
 import ie.omk.smpp.util.SMPPDate;
+
 import ie.omk.debug.Debug;
 
 /** Submit a message to multiple destinations.
@@ -54,13 +58,13 @@ public class SubmitMulti
     extends ie.omk.smpp.message.SMPPRequest
 {
     /** Table of destinations */
-    private Vector destinationTable = new Vector();
+    private DestinationTable destinationTable = new DestinationTable();
 
     /** Construct a new SubmitMulti.
       */
     public SubmitMulti()
     {
-	super(ESME_SUB_MULTI);
+	super(SUBMIT_MULTI);
     }
 
     /** Construct a new SubmitMulti with specified sequence number.
@@ -69,7 +73,7 @@ public class SubmitMulti
       */
     public SubmitMulti(int seqNum)
     {
-	super(ESME_SUB_MULTI, seqNum);
+	super(SUBMIT_MULTI, seqNum);
     }
 
     /** Read in a SubmitMulti from an InputStream.  A full packet,
@@ -78,13 +82,13 @@ public class SubmitMulti
       * @exception java.io.IOException if there's an error reading from the
       * input stream.
       */
-    public SubmitMulti(InputStream in)
+    /*public SubmitMulti(InputStream in)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super(in);
 
-	if (getCommandId() != SMPPPacket.ESME_SUB_MULTI)
-	    throw new BadCommandIDException(SMPPPacket.ESME_SUB_MULTI,
+	if (getCommandId() != SMPPPacket.SUBMIT_MULTI)
+	    throw new BadCommandIDException(SMPPPacket.SUBMIT_MULTI,
 		    getCommandId());
 
 	if (getCommandStatus() != 0)
@@ -96,14 +100,14 @@ public class SubmitMulti
 	// First the service type
 	serviceType = SMPPIO.readCString(in);
 
-	source = new SmeAddress(in, false);
+	source = new Address(in, false);
 
 	// Read in the number of destination structures to follow:
 	numDests = SMPPIO.readInt(in, 1);			
 
 	// Now read in numDests number of destination structs
 	for(int loop=0; loop<numDests; loop++) {
-	    SmeAddress d = new SmeAddress(in, true);
+	    Address d = new Address(in, true);
 	    destinationTable.addElement(d);
 	}
 
@@ -132,34 +136,53 @@ public class SubmitMulti
 	    for (int i = 0; i < smLength; )
 		i += in.read(message, i, (smLength - i));
 	}
+    }*/
+
+
+    /** Get a handle to the error destination table. Applications may add
+     * destination addresses or distribution list names to the destination
+     * table.
+     */
+    public DestinationTable getDestinationTable()
+    {
+	return (destinationTable);
     }
 
-
-    /** Add a destination address to the destination table.
-      * @param d Destination address representing Sme address or distribution
-      * list
+    /** Add an address to the destination table.
+      * @param d The SME destination address
       * @return The current number of destination addresses (including the new
       * one).
-      * @see SmeAddress
+      * @see Address
       */
-    public int addDestination(SmeAddress d)
+    public int addDestination(Address d)
     {
 	synchronized (destinationTable) {
-	    if(d != null) {
-		d.useFlag = true;
-		destinationTable.addElement(d);
-	    }
+	    destinationTable.add(d);
+	    return (destinationTable.size());
+	}
+    }
 
+    /** Add a distribution list to the destination table.
+     * @param d the distribution list name.
+     * @return The current number of destination addresses (including the new
+     * @exception ie.omk.smpp.StringTooLongException if the distribution list
+     * name is too long.
+     */
+    public int addDestination(String d)
+	throws ie.omk.smpp.StringTooLongException
+    {
+	synchronized (destinationTable) {
+	    destinationTable.add(d);
 	    return (destinationTable.size());
 	}
     }
 
     /** Set the destination address table.
-      * @param d The array of SmeAddresses to submit the message to
+      * @param d The array of Addresses to submit the message to
       * @exception java.lang.NullPointerException if the array is null
       * or 0 length
       */
-    public void setDestAddresses(SmeAddress d[])
+    /*public void setDestAddresses(Address d[])
     {
 	int loop=0;
 
@@ -172,12 +195,12 @@ public class SubmitMulti
 	    destinationTable.ensureCapacity(d.length);
 
 	    for(loop=0; loop<d.length; loop++) {
-		// Gotta make sure the SmeAddress uses the dest_flag
+		// Gotta make sure the Address uses the dest_flag
 		d[loop].useFlag = true;
 		destinationTable.addElement(d[loop]);
 	    }
 	}
-    }
+    }*/
 
     /** Get the number of destinations in the destination table.
       * @deprecated Use getNumDests()
@@ -194,56 +217,42 @@ public class SubmitMulti
 	return (destinationTable.size());
     }
 
-    /** Get an array of the SmeAddress(es) in the destination table.
-      * @return Array of SmeAddresses in the destination table (never null)
+    /** Get an array of the Address(es) in the destination table.
+      * @return Array of Addresses in the destination table (never null)
       */
-    public SmeAddress[] getDestAddresses()
+    /*public Address[] getDestAddresses()
     {
-	SmeAddress sd[];
+	Address sd[];
 	int loop = 0;
 
 	synchronized (destinationTable) {
 	    if(destinationTable.size() == 0)
-		return (new SmeAddress[0]);
+		return (new Address[0]);
 
-	    sd = new SmeAddress[destinationTable.size()];
+	    sd = new Address[destinationTable.size()];
 	    Iterator i = destinationTable.iterator();
 	    while (i.hasNext())
-		sd[loop++] = (SmeAddress)i.next();
+		sd[loop++] = (Address)i.next();
 	}
 
 	return (sd);
-    }
-
-    /** Get a handle to the destination table.
-      * @return a java.util.Collection containing SmeAddress objects.
-      */
-    public Collection getDestinationTable()
-    {
-	// XXX: Should this return a deep-clone??
-	return (this.destinationTable);
-    }
+    }*/
 
     /** Return the number of bytes this packet would be encoded as to an
       * OutputStream.
       * @return the number of bytes this packet would encode as.
       */
-    public int getCommandLen()
+    public int getBodyLength()
     {
-	int size = (getHeaderLen()
-		+ ((serviceType != null) ? serviceType.length() : 0)
-		+ ((source != null) ? source.size() : 3)
+	int size = (((serviceType != null) ? serviceType.length() : 0)
+		+ ((source != null) ? source.getLength() : 3)
 		+ ((deliveryTime != null) ?
 		    deliveryTime.toString().length() : 0)
 		+ ((expiryTime != null) ?
 		    expiryTime.toString().length() : 0)
 		+ ((message != null) ? message.length : 0));
 
-	synchronized (destinationTable) {
-	    Iterator i = destinationTable.iterator();
-	    while (i.hasNext())
-		size += ((SmeAddress)i.next()).size();
-	}
+	size += destinationTable.getLength();
 
 	// 9 1-byte integers, 4 c-strings
 	return (size + 9 + 3);
@@ -261,22 +270,22 @@ public class SubmitMulti
 	if(message != null)
 	    smLength = message.length;
 
-	synchronized (destinationTable) {
-	    int numDests = destinationTable.size();
-	    SMPPIO.writeCString(serviceType, out);
-	    if(source != null) {
-		source.writeTo(out);
-	    } else {
-		// Write ton=0(null), npi=0(null), address=\0(nul)
-		new SmeAddress(GSMConstants.GSM_TON_UNKNOWN,
-			GSMConstants.GSM_NPI_UNKNOWN, "").writeTo(out);
-	    }
-	    SMPPIO.writeInt(numDests, 1, out);
+	// Get a clone of the table that can't be changed while writing..
+	DestinationTable table =
+		(DestinationTable)this.destinationTable.clone();
 
-	    Iterator i = destinationTable.iterator();
-	    while (i.hasNext())
-		((SmeAddress)i.next()).writeTo(out);
+	SMPPIO.writeCString(serviceType, out);
+	if(source != null) {
+	    source.writeTo(out);
+	} else {
+	    // Write ton=0(null), npi=0(null), address=\0(nul)
+	    new Address(GSMConstants.GSM_TON_UNKNOWN,
+		    GSMConstants.GSM_NPI_UNKNOWN, "").writeTo(out);
 	}
+
+	int numDests = table.size();
+	SMPPIO.writeInt(numDests, 1, out);
+	table.writeTo(out);
 
 	String dt = (deliveryTime == null) ? null : deliveryTime.toString();
 	String et = (expiryTime == null) ? null : expiryTime.toString();
@@ -293,6 +302,60 @@ public class SubmitMulti
 	SMPPIO.writeInt(smLength, 1, out);
 	if (message != null)
 	    out.write(message);
+    }
+
+    public void readBodyFrom(byte[] body, int offset)
+    {
+	int numDests = 0, smLength = 0;
+	String delivery, valid;
+
+	// First the service type
+	serviceType = SMPPIO.readCString(body, offset);
+	offset += serviceType.length() + 1;
+
+	source = new Address();
+	source.readFrom(body, offset);
+	offset += source.getLength();
+
+	// Read in the number of destination structures to follow:
+	numDests = SMPPIO.bytesToInt(body, offset++, 1);
+
+	// Now read in numDests number of destination structs
+	DestinationTable dt = new DestinationTable();
+	dt.readFrom(body, offset, numDests);
+	offset += dt.getLength();
+	this.destinationTable = dt;
+
+	// ESM class, protocol Id, priorityFlag...
+	esmClass = SMPPIO.bytesToInt(body, offset++, 1);
+	protocolID = SMPPIO.bytesToInt(body, offset++, 1);
+	priority = SMPPIO.bytesToInt(body, offset++, 1);
+
+	delivery = SMPPIO.readCString(body, offset);
+	offset += delivery.length() + 1;
+	if (delivery.length() > 0)
+	    deliveryTime = new SMPPDate(delivery);
+
+	valid = SMPPIO.readCString(body, offset);
+	offset += valid.length() + 1;
+	if (valid.length() > 0)
+	    expiryTime = new SMPPDate(valid);
+
+
+	// Registered delivery, replace if present, data coding, default msg
+	// and message length
+	registered =
+		(SMPPIO.bytesToInt(body, offset++, 1) == 0) ? false : true;
+	replaceIfPresent =
+		(SMPPIO.bytesToInt(body, offset++, 1) == 0) ? false : true;
+	dataCoding = SMPPIO.bytesToInt(body, offset++, 1);
+	defaultMsg = SMPPIO.bytesToInt(body, offset++, 1);
+	smLength = SMPPIO.bytesToInt(body, offset++, 1);
+
+	if (smLength > 0) {
+	    message = new byte[smLength];
+	    System.arraycopy(body, offset, message, 0, smLength);
+	}
     }
 
     /** Convert this packet to a String. Not to be interpreted programmatically,

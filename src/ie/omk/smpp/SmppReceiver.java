@@ -32,9 +32,10 @@ import ie.omk.debug.Debug;
 /** Receiver implementation of the SMPP Connection.
   * @author Oran Kelly
   * @version 1.0
+  * @deprecated Use the {@link Connection} parent class instead.
   */
 public class SmppReceiver
-    extends ie.omk.smpp.SmppConnection
+    extends ie.omk.smpp.Connection
 {
     /** Create a new smpp Receiver connection
       * @param link The network link to the Smsc
@@ -68,21 +69,20 @@ public class SmppReceiver
       * @exception ie.omk.smpp.AlreadyBoundException If the connection is
       * already bound to the SMSC.
       * @exception java.io.IOException If a network error occurs.
-      * @see ie.omk.smpp.SmppConnection#bind
+      * @see ie.omk.smpp.Connection#bind
+      * @deprecated see class description.
       */
     public BindResp bind(String systemID, String password,
-	    String systemType, SmeAddress sourceRange)
+	    String systemType, Address sourceRange)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
-	return (super.bind(systemID, password, systemType, sourceRange, false));
-    }
-
-    /** Acknowledge a DeliverSM command received from the Smsc. */
-    public void ackDeliverSm(DeliverSM rq)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
-    {
-	DeliverSMResp rsp = new DeliverSMResp(rq);
-	sendResponse(rsp);
-	Debug.d(this, "ackDeliverSM", "deliver_sm_resp sent", 3);
+	return (super.bind(
+		    RECEIVER,
+		    systemID,
+		    password,
+		    systemType,
+		    sourceRange.getTON(),
+		    sourceRange.getNPI(),
+		    sourceRange.getAddress()));
     }
 }

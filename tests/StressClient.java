@@ -20,22 +20,23 @@
  * Java SMPP API author: orank@users.sf.net
  * Java SMPP API Homepage: http://smppapi.sourceforge.net/
  */
+package tests;
 
 import java.io.IOException;
 
 import java.util.Date;
 import java.util.Vector;
 
+import ie.omk.smpp.Address;
 import ie.omk.smpp.Connection;
 import ie.omk.smpp.SMPPException;
 
 import ie.omk.smpp.event.ConnectionObserver;
-import ie.omk.smpp.event.SMPPEvent;
 import ie.omk.smpp.event.ReceiverExitEvent;
+import ie.omk.smpp.event.SMPPEvent;
 
-import ie.omk.smpp.message.SMPPPacket;
 import ie.omk.smpp.message.DeliverSM;
-import ie.omk.smpp.message.SmeAddress;
+import ie.omk.smpp.message.SMPPPacket;
 import ie.omk.smpp.message.Unbind;
 import ie.omk.smpp.message.UnbindResp;
 
@@ -46,7 +47,7 @@ import ie.omk.smpp.util.GSMConstants;
 /** Example class to submit a message to a SMSC.
   * This class simply binds to the server, submits a message and then unbinds.
   */
-public class AsyncReceiver
+public class StressClient
     implements ConnectionObserver
 {
     private static int msgCount = 0;
@@ -159,7 +160,7 @@ public class AsyncReceiver
     public static void main(String[] clargs)
     {
 	try {
-	    AsyncReceiver ex = new AsyncReceiver();
+	    StressClient ex = new StressClient();
 	    Args args = new Args(clargs);
 
 	    // Open a network link to the SMSC..
@@ -175,11 +176,7 @@ public class AsyncReceiver
 	    recv.autoAckLink(true);
 	    recv.autoAckMessages(true);
 
-	    SmeAddress range = null;
-	    if (args.sourceRange != null)
-		new SmeAddress(args.ton, args.npi, args.sourceRange);
-
-	    // Bind to the SMSC
+	    // Bind to the SMSC as a receiver
 	    recv.bind(Connection.RECEIVER,
 		    args.sysID,
 		    args.password,

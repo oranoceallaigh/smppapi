@@ -24,11 +24,15 @@ package ie.omk.smpp.message;
 
 import java.io.*;
 import java.util.*;
-import ie.omk.smpp.SMPPException;
+
+import ie.omk.smpp.Address;
 import ie.omk.smpp.BadCommandIDException;
+import ie.omk.smpp.SMPPException;
+
 import ie.omk.smpp.util.GSMConstants;
-import ie.omk.smpp.util.SMPPIO;
 import ie.omk.smpp.util.SMPPDate;
+import ie.omk.smpp.util.SMPPIO;
+
 import ie.omk.debug.Debug;
 
 /** Response to Query message details.
@@ -56,13 +60,13 @@ public class QueryMsgDetailsResp
     extends ie.omk.smpp.message.SMPPResponse
 {
     /** Table of destinations the message was routed to */
-    private Vector destinationTable = new Vector();
+    private DestinationTable destinationTable = new DestinationTable();
 
     /** Construct a new QueryMsgDetailsResp.
       */
     public QueryMsgDetailsResp()
     {
-	super(ESME_QUERY_MSG_DETAILS_RESP);
+	super(QUERY_MSG_DETAILS_RESP);
     }
 
     /** Construct a new QueryMsgDetailsResp with specified sequence number.
@@ -71,7 +75,7 @@ public class QueryMsgDetailsResp
       */
     public QueryMsgDetailsResp(int seqNum)
     {
-	super(ESME_QUERY_MSG_DETAILS_RESP, seqNum);
+	super(QUERY_MSG_DETAILS_RESP, seqNum);
     }
 
     /** Read in a QueryMsgDetailsResp from an InputStream.  A full packet,
@@ -80,14 +84,14 @@ public class QueryMsgDetailsResp
       * @exception java.io.IOException if there's an error reading from the
       * input stream.
       */
-    public QueryMsgDetailsResp(InputStream in)
+    /*public QueryMsgDetailsResp(InputStream in)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super(in);
 
-	if (getCommandId() != SMPPPacket.ESME_QUERY_MSG_DETAILS_RESP)
+	if (getCommandId() != SMPPPacket.QUERY_MSG_DETAILS_RESP)
 	    throw new BadCommandIDException(
-		    SMPPPacket.ESME_QUERY_MSG_DETAILS_RESP, getCommandId());
+		    SMPPPacket.QUERY_MSG_DETAILS_RESP, getCommandId());
 
 	if (getCommandStatus() != 0)
 	    return;
@@ -96,11 +100,11 @@ public class QueryMsgDetailsResp
 	String delivery, valid, finalD;
 
 	serviceType = SMPPIO.readCString(in);
-	source = new SmeAddress(in);
+	source = new Address(in);
 	noOfDests = SMPPIO.readInt(in, 1);
 
 	for(int loop=0; loop<noOfDests; loop++) {
-	    SmeAddress d = new SmeAddress(in, true);
+	    Address d = new Address(in, true);
 	    destinationTable.addElement(d);
 	}
 
@@ -131,7 +135,7 @@ public class QueryMsgDetailsResp
 
 	messageStatus = SMPPIO.readInt(in, 1);
 	errorCode = SMPPIO.readInt(in, 1);
-    }
+    }*/
 
     /** Create a new QueryMsgDetailsResp packet in response to a BindReceiver.
       * This constructor will set the sequence number to it's expected value.
@@ -146,28 +150,40 @@ public class QueryMsgDetailsResp
 	source = r.getSource();
     }
 
-    /** Add a destination address to the destination table
-      * @param d Destination address structure to add
-      * @return Number of destinations currently in table (including new one)
-      * @see SmeAddress
+    /** Add an address to the destination table.
+      * @param d The SME destination address
+      * @return The current number of destination addresses (including the new
+      * one).
+      * @see Address
       */
-    public int addDestination(SmeAddress d)
+    public int addDestination(Address d)
     {
 	synchronized (destinationTable) {
-	    if(d != null) {
-		d.useFlag = true;
-		destinationTable.addElement(d);
-	    }
+	    destinationTable.add(d);
+	    return (destinationTable.size());
+	}
+    }
 
+    /** Add a distribution list to the destination table.
+     * @param d the distribution list name.
+     * @return The current number of destination addresses (including the new
+     * @exception ie.omk.smpp.StringTooLongException if the distribution list
+     * name is too long.
+     */
+    public int addDestination(String d)
+	throws ie.omk.smpp.StringTooLongException
+    {
+	synchronized (destinationTable) {
+	    destinationTable.add(d);
 	    return (destinationTable.size());
 	}
     }
 
     /** Set the destination address table.
-      * @param d The array of SmeAddresses to submit the message to
+      * @param d The array of Addresses to submit the message to
       * @exception java.lang.NullPointerException if the array is null
       */
-    public void setDestAddresses(SmeAddress d[])
+    /*public void setDestAddresses(Address d[])
     {
 	int loop=0;
 
@@ -184,7 +200,7 @@ public class QueryMsgDetailsResp
 		destinationTable.addElement(d[loop]);
 	    }
 	}
-    }
+    }*/
 
     /** Get the current number of destination addresses.
       * @deprecated Use getNumDests.
@@ -201,46 +217,39 @@ public class QueryMsgDetailsResp
 	return (destinationTable.size());
     }
 
-    /** Get an array of SmeAddresse representing the destination list.
+    /** Get an array of Addresse representing the destination list.
       * @return An array of the destination addresses the message was
       * submitted to.
       */
-    public SmeAddress[] getDestAddresses()
+    /*public Address[] getDestAddresses()
     {
-	SmeAddress sd[];
+	Address sd[];
 	int loop = 0;
 
 	synchronized (destinationTable) {
 	    if(destinationTable.size() == 0)
 		return null;
 
-	    sd = new SmeAddress[destinationTable.size()];
+	    sd = new Address[destinationTable.size()];
 	    Iterator i = destinationTable.iterator();
 	    while (i.hasNext())
-		sd[loop++] = (SmeAddress)i.next();
+		sd[loop++] = (Address)i.next();
 	}
 
 	return (sd);
-    }
+    }*/
 
     /** Get a handle to the destination table.
-      * @return a java.util.Collection containing SmeAddress_e objects.
       */
-    public Collection getDestinationTable()
+    public DestinationTable getDestinationTable()
     {
-	// XXX: should this return a deep-clone?
-	return ((Collection)this.destinationTable);
+	return (destinationTable);
     }
 
-    /** Return the number of bytes this packet would be encoded as to an
-      * OutputStream.
-      * @return the number of bytes this packet would encode as.
-      */
-    public int getCommandLen()
+    public int getBodyLength()
     {
-	int size = (getHeaderLen()
-		+ ((serviceType != null) ? serviceType.length() : 0)
-		+ ((source != null) ? source.size() : 3)
+	int size = (((serviceType != null) ? serviceType.length() : 0)
+		+ ((source != null) ? source.getLength() : 3)
 		+ ((deliveryTime != null) ?
 		    deliveryTime.toString().length() : 0)
 		+ ((expiryTime != null) ?
@@ -250,11 +259,7 @@ public class QueryMsgDetailsResp
 		+ ((finalDate != null) ? 
 		    finalDate.toString().length() : 0));
 
-	synchronized (destinationTable) {
-	    Iterator i = destinationTable.iterator();
-	    while (i.hasNext())
-		size += ((SmeAddress)i.next()).size();
-	}
+	size += destinationTable.getLength();
 
 	// 8 1-byte integers, 5 c-strings
 	return (size + 8 + 5);
@@ -272,22 +277,20 @@ public class QueryMsgDetailsResp
 	if(message != null)
 	    smLength = message.length;
 
-	synchronized (destinationTable) {
-	    int noOfDests = destinationTable.size();
-	    SMPPIO.writeCString(serviceType, out);
-	    if(source != null) {
-		source.writeTo(out);
-	    } else {
-		// Write ton=0(null), npi=0(null), address=\0(nul)
-		new SmeAddress(GSMConstants.GSM_TON_UNKNOWN,
-			GSMConstants.GSM_NPI_UNKNOWN, "").writeTo(out);
-	    }
-	    SMPPIO.writeInt(noOfDests, 1, out);
-
-	    Iterator i = destinationTable.iterator();
-	    while(i.hasNext())
-		((SmeAddress)i.next()).writeTo(out);
+	SMPPIO.writeCString(serviceType, out);
+	if(source != null) {
+	    source.writeTo(out);
+	} else {
+	    // Write ton=0(null), npi=0(null), address=\0(nul)
+	    new Address(GSMConstants.GSM_TON_UNKNOWN,
+		    GSMConstants.GSM_NPI_UNKNOWN, "").writeTo(out);
 	}
+
+	DestinationTable table = 
+		(DestinationTable)destinationTable.clone();
+	int numDests = table.size();
+	SMPPIO.writeInt(numDests, 1, out);
+	table.writeTo(out);
 
 	String dt = (deliveryTime == null) ? null : deliveryTime.toString();
 	String et = (expiryTime == null) ? null : expiryTime.toString();
@@ -306,6 +309,60 @@ public class QueryMsgDetailsResp
 	SMPPIO.writeCString(fd, out);
 	SMPPIO.writeInt(messageStatus, 1, out);
 	SMPPIO.writeInt(errorCode, 1, out);
+    }
+
+    public void readBodyFrom(byte[] body, int offset)
+    {
+	int numDests = 0, smLength = 0;
+	String delivery, valid, finalD;
+
+	serviceType = SMPPIO.readCString(body, offset);
+	offset += serviceType.length() + 1;
+
+	source = new Address();
+	source.readFrom(body, offset);
+	offset += source.getLength();
+
+	numDests = SMPPIO.bytesToInt(body, offset++, 1);
+	DestinationTable dt = new DestinationTable();
+	dt.readFrom(body, offset, numDests);
+	offset += dt.getLength();
+	this.destinationTable = dt;
+
+	protocolID =  SMPPIO.bytesToInt(body, offset++, 1);
+	priority =  SMPPIO.bytesToInt(body, offset++, 1);
+
+	delivery = SMPPIO.readCString(body, offset);
+	offset += delivery.length() + 1;
+	if (delivery.length() > 0)
+	    deliveryTime = new SMPPDate(delivery);
+
+	valid = SMPPIO.readCString(body, offset);
+	offset += valid.length() + 1;
+	if (valid.length() > 0)
+	    expiryTime = new SMPPDate(valid);
+
+	registered =
+		(SMPPIO.bytesToInt(body, offset++, 1) == 0) ? false : true;
+	dataCoding = SMPPIO.bytesToInt(body, offset++, 1);
+	smLength = SMPPIO.bytesToInt(body, offset++, 1);
+
+	if (smLength > 0) {
+	    message = new byte[smLength];
+	    System.arraycopy(body, offset, message, 0, smLength);
+	    offset += smLength;
+	}
+
+	messageId = SMPPIO.readCString(body, offset);
+	offset += messageId.length() + 1;
+
+	finalD = SMPPIO.readCString(body, offset);
+	offset += finalD.length() + 1;
+	if (finalD.length() > 0)
+	    finalDate = new SMPPDate(finalD);
+
+	messageStatus = SMPPIO.bytesToInt(body, offset++, 1);
+	errorCode = SMPPIO.bytesToInt(body, offset++, 1);
     }
 
     /** Convert this packet to a String. Not to be interpreted programmatically,

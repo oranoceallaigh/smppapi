@@ -100,7 +100,7 @@ public abstract class SmscLink
 
     /** Close the connection to the SMSC. Calling this method will close the
      * network link to the remote SMSC system. Applications should be unbound
-     * from the SMPP link (using {@link ie.omk.smpp.SmppConnection#unbind})
+     * from the SMPP link (using {@link ie.omk.smpp.Connection#unbind})
      * before closing the underlying network link. The connection may be
      * reestablished using {@link #open}.
      * @exception java.io.IOException If an error occurs while closing the

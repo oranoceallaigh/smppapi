@@ -33,9 +33,8 @@ import ie.omk.smpp.message.SmeAddress;
 
 import ie.omk.smpp.net.TcpLink;
 
-import ie.omk.smpp.SmppConnection;
+import ie.omk.smpp.Connection;
 import ie.omk.smpp.SMPPException;
-import ie.omk.smpp.SmppReceiver;
 
 import ie.omk.smpp.event.SMPPEvent;
 import ie.omk.smpp.event.SMPPEventAdapter;
@@ -54,7 +53,7 @@ public class AsyncReceiver2 extends SMPPEventAdapter
     private Args args = null;
 
     // Our receiver connection
-    private SmppReceiver recv = null;
+    private Connection recv = null;
 
     // Network link to the SMSC.
     private TcpLink link = null;
@@ -77,9 +76,9 @@ public class AsyncReceiver2 extends SMPPEventAdapter
     }
 
     // Handle message delivery. This method does not need to acknowledge the
-    // deliver_sm message as we set the SmppReceiver connection object to
+    // deliver_sm message as we set the Connection object to
     // automatically acknowledge them.
-    public void deliverSM(SmppConnection source, DeliverSM dm)
+    public void deliverSM(Connection source, DeliverSM dm)
     {
 	int st = dm.getCommandStatus();
 
@@ -97,7 +96,7 @@ public class AsyncReceiver2 extends SMPPEventAdapter
     }
 
     // Called when a bind response packet is received.
-    public void bindResponse(SmppConnection source, BindResp br)
+    public void bindResponse(Connection source, BindResp br)
     {
 	if (br.getCommandStatus() == 0)
 	    System.out.println("Successfully bound. Awaiting messages..");
@@ -117,7 +116,7 @@ public class AsyncReceiver2 extends SMPPEventAdapter
 
     // This method is called when the SMSC sends an unbind request to our
     // receiver. We must acknowledge it and terminate gracefully..
-    public void unbind(SmppConnection source, Unbind ubd)
+    public void unbind(Connection source, Unbind ubd)
     {
 	System.out.println("SMSC requested unbind. Acknowledging..");
 
@@ -137,7 +136,7 @@ public class AsyncReceiver2 extends SMPPEventAdapter
     // This method is called when the SMSC responds to an unbind request we sent
     // to it..it signals that we can shut down the network connection and
     // terminate our application..
-    public void unbindResponse(SmppConnection source, UnbindResp ubr)
+    public void unbindResponse(Connection source, UnbindResp ubr)
     {
 	int st = ubr.getCommandStatus();
 
@@ -149,7 +148,7 @@ public class AsyncReceiver2 extends SMPPEventAdapter
     }
 
     // this method is called when the receiver thread is exiting normally.
-    public void receiverExit(SmppConnection source, ReceiverExitEvent ev)
+    public void receiverExit(Connection source, ReceiverExitEvent ev)
     {
 	System.out.println("Receiver thread has exited normally.");
 	synchronized (blocker) {
@@ -159,7 +158,7 @@ public class AsyncReceiver2 extends SMPPEventAdapter
 
     // this method is called when the receiver thread exits due to an exception
     // in the thread...
-    public void receiverExitException(SmppConnection source,
+    public void receiverExitException(Connection source,
 	    ReceiverExitEvent ev)
     {
 	System.out.println("Receiver thread exited abnormally. The following"
@@ -187,7 +186,7 @@ public class AsyncReceiver2 extends SMPPEventAdapter
 	    link = new TcpLink(args.hostName, args.port);
 
 	    // create the receiver
-	    recv = new SmppReceiver(link, true);
+	    recv = new Connection(link, true);
 
 	    // set the receiver to automatically acknowledge deliver_sm and
 	    // enquire_link requests from the SMSC.
@@ -207,7 +206,10 @@ public class AsyncReceiver2 extends SMPPEventAdapter
 
 	    // bind to the SMSC as a receiver
 	    System.out.println("Binding to the SMSC..");
-	    recv.bind(args.sysID, args.password, args.sysType, range);
+	    recv.bind(Connection.RECEIVER,
+		    args.sysID,
+		    args.password,
+		    args.sysType);
 
 	    // block until we're unbound from the SMSC..
 	    synchronized (blocker) {

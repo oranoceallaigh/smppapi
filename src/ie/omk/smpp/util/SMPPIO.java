@@ -89,6 +89,26 @@ public class SMPPIO
 	    return (s.toString());
     }
 
+    /** Read a nul-terminated ASCII string from a byte array.
+     * @return A java String object representing the read string without the
+     * terminating nul.
+     */
+    public static final String readCString(byte[] b, int offset)
+    {
+	try {
+	    int p = offset;
+	    while (b[p] != (byte)0)
+		p++;
+
+	    if (p > offset)
+		return (new String(b, offset, p - offset, "US-ASCII"));
+	    else
+		return ("");
+	} catch (java.io.UnsupportedEncodingException x) {
+	    return ("");
+	}
+    }
+
     /** Read in a string of specified length from an InputStream.
       * The String may contain NUL bytes.
       * @param in The InputStream to read from
@@ -123,6 +143,19 @@ public class SMPPIO
 	    return (s.toString());
     }
 
+    /** XXX write the javadoc.
+     */
+    public static final String readString(byte[] b, int offset, int len)
+    {
+	try {
+	    if (len > 0)
+		return (new String(b, offset, len - offset, "US-ASCII"));
+	    else
+		return ("");
+	} catch (java.io.UnsupportedEncodingException x) {
+	    return ("");
+	}
+    }
 
     /** Convert an integer to a byte array in MSB first order
       * @param num The number to store
@@ -132,12 +165,30 @@ public class SMPPIO
       */
     public static final byte[] intToBytes(int num, int len)
     {
-	byte[] b = new byte[len];
+	return (SMPPIO.intToBytes(num, len, null, 0));
+    }
+
+    /** Convert an integer to a byte array in MSB first order
+      * @param num The number to store
+      * @param len The length of the integer to convert (that is, the number of
+      * bytes to generate).
+      * @param b the byte array to write the integer to.
+      * @param offset the offset in <code>b</code> to write the integer to.
+      * @return An array of length len containing the byte representation of
+      * num.
+      */
+    public static final byte[] intToBytes(int num, int len,
+	    byte[] b, int offset)
+    {
+	if (b == null) {
+	    b = new byte[len];
+	    offset = 0;
+	}
 	int sw = ((len - 1) * 8);
 	int mask = (0xff << sw);
 
 	for (int l = 0; l < len; l++) {
-	    b[l] = (byte)((num & mask) >>> sw);
+	    b[offset + l] = (byte)((num & mask) >>> sw);
 	    sw -= 8;
 	    mask >>>= 8;
 	}
@@ -195,7 +246,8 @@ public class SMPPIO
 
     /** Write a String of specified length to an OutputStream
       * @param s The String to write
-      * @param len The length of the String to write.  If this is longer than the length of the String, the whole String will be sent.
+      * @param len The length of the String to write.  If this is longer than
+      * the length of the String, the whole String will be sent.
       * @param out The OutputStream to use
       * @exception java.io.IOException If an I/O error occurs
       * @see java.io.OutputStream
@@ -225,4 +277,111 @@ public class SMPPIO
 	    return;
 	out.write(s.getBytes());
     }
+
+    /*public static final void main(String[] args)
+    {
+	// Integer/byte conversion tests
+	int[] twoByte_vals = {
+	    0x4512, 0xdead, 0xcafe, 0xfcfc
+	};
+	byte[][] twoByte_bytes = {
+	    { 0x45, 0x12 },
+	    { (byte)0xde, (byte)0xad },
+	    { (byte)0xca, (byte)0xfe },
+	    { (byte)0xfc, (byte)0xfc }
+	};
+
+	int[] threeByte_vals = {
+	    0x112233, 0x432165, 0xf88ee2
+	};
+	byte[][] threeByte_bytes = {
+	    { 0x11, 0x22, 0x33 },
+	    { 0x43, 0x21, 0x65 },
+	    { (byte)0xf8, (byte)0x8e, (byte)0xe2 }
+	};
+
+	int[] fourByte_vals = {
+	    0xdeadbeef, 0xcafefeed, 0xbeeffeed
+	};
+	byte[][] fourByte_bytes = {
+	    { (byte)0xde, (byte)0xad, (byte)0xbe, (byte)0xef },
+	    { (byte)0xca, (byte)0xfe, (byte)0xfe, (byte)0xed },
+	    { (byte)0xbe, (byte)0xef, (byte)0xfe, (byte)0xed }
+	};
+
+	boolean passed = true;
+	passed &= b2iTest(twoByte_bytes, twoByte_vals, 2);
+	passed &= b2iTest(threeByte_bytes, threeByte_vals, 3);
+	passed &= b2iTest(fourByte_bytes, fourByte_vals, 4);
+
+	// C-string test..
+	try {
+	    String s = "This is a CString test. ASCII chars only, please!";
+	    byte[] sb = s.getBytes("US-ASCII");
+	    byte[] sb1 = new byte[sb.length + 1];
+	    byte[] sb2;
+	    java.io.ByteArrayOutputStream os =
+		    new java.io.ByteArrayOutputStream();
+
+	    System.arraycopy(sb, 0, sb1, 0, sb.length);
+	    sb1[sb.length] = (byte)0;
+	    writeCString(s, os);
+	    sb2 = os.toByteArray();
+
+	    String s1 = readCString(sb1, 0);
+	    passed &= (s1.equals(s));
+	    passed &= java.util.Arrays.equals(sb1, sb2);
+	} catch (java.io.UnsupportedEncodingException x) {
+	    passed = false;
+	    System.out.println("Unsupported encoding!");
+	    x.printStackTrace(System.out);
+	} catch (java.io.IOException x) {
+	    passed = false;
+	    x.printStackTrace(System.out);
+	}
+	
+
+	if (!passed)
+	    System.out.println("Test failed.");
+	else
+	    System.out.println("All tests passed.");
+    }
+    // Run a byte array/integer conversion test.
+    // @param bArray array of array of bytes representing the values.
+    // @param vArray array of values.
+    // @param size the number of bytes per integer.
+    private static final boolean b2iTest(byte[][] bArray,
+	    int[] vArray, int size)
+    {
+	boolean ret = true;
+	for (int i = 0; i < vArray.length; i++) {
+	    int ri = bytesToInt(bArray[i], 0, size);
+	    byte[] bo = intToBytes(vArray[i], size);
+
+	    if (ri != vArray[i]) {
+		ret = false;
+		System.out.println("bytesToInt failed on "
+			+ size + " bytes, pos " + i);
+		System.out.println("\tValue = " + vArray[i] + ", ri = " + ri);
+	    }
+
+	    if (!java.util.Arrays.equals(bo, bArray[i])) {
+		ret = false;
+		System.out.println("intToBytes failed in "
+			+ size + " bytes, pos " + i);
+
+		System.out.print("Fixed:    ");
+		for (int j = 0; j < bo.length; j++) {
+		    System.out.print(Integer.toHexString(new Byte(
+				    bo[j]).intValue()&0xff) + " ");
+		}
+		System.out.print("Generated:");
+		for (int j = 0; j < bArray[i].length; j++) {
+		    System.out.print(Integer.toHexString(new Byte(
+				    bArray[i][j]).intValue()&0xff) + " ");
+		}
+	    }
+	}
+	return (ret);
+    }*/
 }

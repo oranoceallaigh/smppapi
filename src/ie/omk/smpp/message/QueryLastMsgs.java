@@ -23,11 +23,15 @@
 package ie.omk.smpp.message;
 
 import java.io.*;
-import ie.omk.smpp.SMPPException;
+
+import ie.omk.smpp.Address;
 import ie.omk.smpp.BadCommandIDException;
 import ie.omk.smpp.NumberOutOfRangeException;
+import ie.omk.smpp.SMPPException;
+
 import ie.omk.smpp.util.GSMConstants;
 import ie.omk.smpp.util.SMPPIO;
+
 import ie.omk.debug.Debug;
 
 /** Query the last number of messages sent from a certain ESME.
@@ -48,7 +52,7 @@ public class QueryLastMsgs
       */
     public QueryLastMsgs()
     {
-	super(ESME_QUERY_LAST_MSGS);
+	super(QUERY_LAST_MSGS);
 	msgCount = 0;
     }
 
@@ -58,7 +62,7 @@ public class QueryLastMsgs
       */
     public QueryLastMsgs(int seqNum)
     {
-	super(ESME_QUERY_LAST_MSGS, seqNum);
+	super(QUERY_LAST_MSGS, seqNum);
 	msgCount = 0;
     }
 
@@ -68,21 +72,21 @@ public class QueryLastMsgs
       * @exception java.io.IOException if there's an error reading from the
       * input stream.
       */
-    public QueryLastMsgs(InputStream in)
+    /*public QueryLastMsgs(InputStream in)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super(in);
 
-	if (getCommandId() != SMPPPacket.ESME_QUERY_LAST_MSGS)
-	    throw new BadCommandIDException(SMPPPacket.ESME_QUERY_LAST_MSGS,
+	if (getCommandId() != SMPPPacket.QUERY_LAST_MSGS)
+	    throw new BadCommandIDException(SMPPPacket.QUERY_LAST_MSGS,
 		    getCommandId());
 
 	if (getCommandStatus() != 0)
 	    return;
 
-	this.source = new SmeAddress(in);
+	this.source = new Address(in);
 	this.msgCount = SMPPIO.readInt(in, 1);
-    }
+    }*/
 
     /** Set the number of messages to look up.
       * @param n The message count (1 &lt;= n &lt;= 100)
@@ -105,14 +109,9 @@ public class QueryLastMsgs
 	return (msgCount);
     }
 
-    /** Return the number of bytes this packet would be encoded as to an
-      * OutputStream.
-      * @return the number of bytes this packet would encode as.
-      */
-    public int getCommandLen()
+    public int getBodyLength()
     {
-	int len = (getHeaderLen()
-		+ ((source != null) ? source.size() : 3));
+	int len = (((source != null) ? source.getLength() : 3));
 
 	// 1 1-byte integer
 	return (len + 1);
@@ -130,10 +129,19 @@ public class QueryLastMsgs
 	    source.writeTo(out);
 	} else {
 	    // Write ton=0(null), npi=0(null), address=\0(nul)
-	    new SmeAddress(GSMConstants.GSM_TON_UNKNOWN,
+	    new Address(GSMConstants.GSM_TON_UNKNOWN,
 		    GSMConstants.GSM_NPI_UNKNOWN, "").writeTo(out);
 	}
 	SMPPIO.writeInt(msgCount, 1, out);
+    }
+
+    public void readBodyFrom(byte[] body, int offset)
+    {
+	source = new Address();
+	source.readFrom(body, offset);
+	offset += source.getLength();
+
+	msgCount = SMPPIO.bytesToInt(body, offset++, 1);
     }
 
     /** Convert this packet to a String. Not to be interpreted programmatically,

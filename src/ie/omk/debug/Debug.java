@@ -132,6 +132,11 @@ public class Debug
 		Integer.toString(debugLevel));
     }
 
+    public static int getLevel()
+    {
+	return (debugLevel);
+    }
+
     public static void info(Object type, String method, String msg)
     {
 	if (infoOn)

@@ -1,6 +1,6 @@
 /*
  * Java SMPP API
- * Copyright (C) 1998 - 2001 by Oran Kelly
+ * Copyright (C) 1998 - 2002 by Oran Kelly
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -20,20 +20,9 @@
  * Java SMPP API author: orank@users.sf.net
  * Java SMPP API Homepage: http://smppapi.sourceforge.net/
  */
-package ie.omk.smpp.message;
+package tests;
 
-
-/** The address of an SME.
- * @deprecated Use {@link ie.omk.smpp.Address}.
- */
-public class SmeAddress extends ie.omk.smpp.Address
+public interface SMPPTest
 {
-    public SmeAddress()
-    {
-    }
-
-    public SmeAddress(int ton, int npi, String addr)
-    {
-	super(ton, npi, addr);
-    }
+    public boolean runTest();
 }

@@ -43,7 +43,7 @@ public class DeliverSMResp
       */
     public DeliverSMResp()
     {
-	super(SMSC_DELIVER_SM_RESP);
+	super(DELIVER_SM_RESP);
     }
 
     /** Construct a new DeliverSMResp with specified sequence number.
@@ -52,7 +52,7 @@ public class DeliverSMResp
       */
     public DeliverSMResp(int seqNum)
     {
-	super(SMSC_DELIVER_SM_RESP, seqNum);
+	super(DELIVER_SM_RESP, seqNum);
     }
 
 
@@ -62,20 +62,20 @@ public class DeliverSMResp
       * @exception java.io.IOException if there's an error reading from the
       * input stream.
       */
-    public DeliverSMResp(InputStream in)
+    /*public DeliverSMResp(InputStream in)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super(in);
 
-	if (getCommandId() != SMPPPacket.SMSC_DELIVER_SM_RESP)
-	    throw new BadCommandIDException(SMPPPacket.SMSC_DELIVER_SM_RESP,
+	if (getCommandId() != SMPPPacket.DELIVER_SM_RESP)
+	    throw new BadCommandIDException(SMPPPacket.DELIVER_SM_RESP,
 		    getCommandId());
 
 	if (getCommandStatus() != 0)
 	    return;
 
 	messageId = SMPPIO.readCString(in);
-    }
+    }*/
 
     /** Create a new DeliverSMResp packet in response to a DeliverSM.
       * This constructor will set the sequence number to it's expected value.
@@ -86,17 +86,9 @@ public class DeliverSMResp
 	super(r);
     }
 
-    /** Return the number of bytes this packet would be encoded as to an
-      * OutputStream.
-      * @return the number of bytes this packet would encode as.
-      */
-    public int getCommandLen()
+    public int getBodyLength()
     {
-	int len = (getHeaderLen()
-		+ ((messageId != null) ? messageId.length() : 0));
-
-	// 1 c-string
-	return (len + 1);
+	return (((messageId != null) ? messageId.length() : 0) + 1);
     }
 
     /** Write a byte representation of this packet to an OutputStream
@@ -108,6 +100,11 @@ public class DeliverSMResp
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	SMPPIO.writeCString(getMessageId(), out);
+    }
+
+    public void readBodyFrom(byte[] b, int offset)
+    {
+	messageId = SMPPIO.readCString(b, offset);
     }
 
     /** Convert this packet to a String. Not to be interpreted programmatically,
