@@ -24,6 +24,8 @@ package ie.omk.smpp.message;
 
 import java.io.*;
 import ie.omk.smpp.SMPPException;
+import ie.omk.smpp.BadCommandIDException;
+import ie.omk.smpp.util.GSMConstants;
 import ie.omk.smpp.util.SMPPIO;
 import ie.omk.smpp.util.SMPPDate;
 import ie.omk.debug.Debug;
@@ -56,29 +58,31 @@ public class ReplaceSM
     {
 	super(in);
 
-	if(commandStatus != 0)
+	if (getCommandId() != SMPPPacket.ESME_REPLACE_SM)
+	    throw new BadCommandIDException(SMPPPacket.ESME_REPLACE_SM,
+		    getCommandId());
+
+	if (getCommandStatus() != 0)
 	    return;
 
 	int smLength = 0;
 	String delivery, valid;
 	flags = new MsgFlags();
-	try {
-	    messageId = SMPPIO.readCString(in);
-	    source = new SmeAddress(in);
+	messageId = SMPPIO.readCString(in);
+	source = new SmeAddress(in);
 
-	    delivery = SMPPIO.readCString(in);
-	    valid = SMPPIO.readCString(in);
+	delivery = SMPPIO.readCString(in);
+	valid = SMPPIO.readCString(in);
+	if (delivery != null)
 	    deliveryTime = new SMPPDate(delivery);
+	if (valid != null)
 	    expiryTime = new SMPPDate(valid);
 
-	    flags.registered = (SMPPIO.readInt(in, 1) == 0) ? false : true;
-	    flags.default_msg = SMPPIO.readInt(in, 1);
-	    smLength = SMPPIO.readInt(in, 1);
+	flags.registered = (SMPPIO.readInt(in, 1) == 0) ? false : true;
+	flags.default_msg = SMPPIO.readInt(in, 1);
+	smLength = SMPPIO.readInt(in, 1);
 
-	    message = SMPPIO.readString(in, smLength);
-	} catch(NumberFormatException x) {
-	    throw new SMPPException("Bad message Id.");
-	}
+	message = SMPPIO.readString(in, smLength);
     }
 
     /** Return the number of bytes this packet would be encoded as to an
@@ -95,8 +99,8 @@ public class ReplaceSM
 		    expiryTime.toString().length() : 0)
 		+ ((message != null) ? message.length() : 0));
 
-	// 2 1-byte integers, 3 c-strings
-	return (len + 2 + 3);
+	// 3 1-byte integers, 3 c-strings
+	return (len + 3 + 3);
     }
 
     /** Write a byte representation of this packet to an OutputStream
@@ -115,11 +119,13 @@ public class ReplaceSM
 	if(source != null) {
 	    source.writeTo(out);
 	} else {
-	    SMPPIO.writeInt(0, 3, out);
+	    // Write ton=0(null), npi=0(null), address=\0(nul)
+	    new SmeAddress(GSMConstants.GSM_TON_UNKNOWN,
+		    GSMConstants.GSM_NPI_UNKNOWN, "").writeTo(out);
 	}
 
-	String dt = (deliveryTime == null) ? "" : deliveryTime.toString();
-	String et = (expiryTime == null) ? "" : expiryTime.toString();
+	String dt = (deliveryTime == null) ? null : deliveryTime.toString();
+	String et = (expiryTime == null) ? null : expiryTime.toString();
 
 	SMPPIO.writeCString(dt, out);
 	SMPPIO.writeCString(et, out);

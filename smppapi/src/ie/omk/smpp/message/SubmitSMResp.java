@@ -24,6 +24,7 @@ package ie.omk.smpp.message;
 
 import java.io.*;
 import ie.omk.smpp.SMPPException;
+import ie.omk.smpp.BadCommandIDException;
 import ie.omk.smpp.util.SMPPIO;
 import ie.omk.debug.Debug;
 
@@ -53,7 +54,11 @@ public class SubmitSMResp
     {
 	super(in);
 
-	if(commandStatus != 0)
+	if (getCommandId() != SMPPPacket.ESME_SUB_SM_RESP)
+	    throw new BadCommandIDException(SMPPPacket.ESME_SUB_SM_RESP,
+		    getCommandId());
+
+	if (getCommandStatus() != 0)
 	    return;
 
 	messageId = SMPPIO.readCString(in);

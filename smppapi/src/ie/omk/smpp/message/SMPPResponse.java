@@ -25,6 +25,7 @@ package ie.omk.smpp.message;
 import java.io.InputStream;
 
 import ie.omk.smpp.SMPPException;
+import ie.omk.smpp.BadCommandStatusException;
 
 /** Abstract parent class of all SMPP Response packets.
   * @author Oran Kelly
@@ -65,7 +66,7 @@ public abstract class SMPPResponse
 
     /** Set the status of this command (header field)
       * @param s The value for the status
-      * @exception ie.omk.smpp.SMPPException if the status is invalid.
+      * @exception ie.omk.smpp.BadCommandStatus if the status is invalid.
       */
     public void setCommandStatus(int s)
 	throws ie.omk.smpp.SMPPException
@@ -73,6 +74,6 @@ public abstract class SMPPResponse
 	if(s >= 0)
 	    this.commandStatus = s;
 	else
-	    throw new SMPPException("Invalid command status.");
+	    throw new BadCommandStatusException("Command status must be >= 0");
     }
 }

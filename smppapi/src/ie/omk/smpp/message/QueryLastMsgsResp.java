@@ -25,6 +25,8 @@ package ie.omk.smpp.message;
 import java.io.*;
 import java.util.*;
 import ie.omk.smpp.SMPPException;
+import ie.omk.smpp.BadCommandIDException;
+import ie.omk.smpp.InvalidMessageIDException;
 import ie.omk.smpp.util.SMPPIO;
 import ie.omk.debug.Debug;
 
@@ -36,7 +38,7 @@ public class QueryLastMsgsResp
     extends ie.omk.smpp.message.SMPPResponse
 {
     /** The table of messages returned */
-    private Vector messageTable;
+    private Vector messageTable = new Vector();
 
     /** Construct a new QueryLastMsgsResp with specified sequence number.
       * @param seqNum The sequence number to use
@@ -44,7 +46,6 @@ public class QueryLastMsgsResp
     public QueryLastMsgsResp(int seqNum)
     {
 	super(ESME_QUERY_LAST_MSGS_RESP, seqNum);
-	messageTable = null;
     }
 
     /** Read in a QueryLastMsgsResp from an InputStream.  A full packet,
@@ -58,26 +59,22 @@ public class QueryLastMsgsResp
     {
 	super(in);
 
-	if(commandStatus != 0)
+	if (getCommandId() != SMPPPacket.ESME_QUERY_LAST_MSGS_RESP)
+	    throw new BadCommandIDException(
+		    SMPPPacket.ESME_QUERY_LAST_MSGS_RESP, getCommandId());
+
+	if (getCommandStatus() != 0)
 	    return;
 
 	int msgCount = 0;
 	long id = 0;
 	msgCount = SMPPIO.readInt(in, 1);
 
-	messageTable = new Vector(msgCount);
-
 	for(int loop = 0; loop < msgCount; loop++) {
 	    String s = SMPPIO.readCString(in);
-	    try {
-		id = Long.parseLong(s, 16);
-		messageTable.addElement(new Integer((int)id));
-		Debug.d(this, "<init>", "Adding " + id
-			+ " to destinations", Debug.DBG_3);
-	    } catch(NumberFormatException nx) {
-		/* Just don't add it to the table! */
-		Debug.d(this, "<init>", "Not added: " + id, Debug.DBG_2);
-	    }
+	    messageTable.addElement(s);
+	    Debug.d(this, "<init>", "Adding " + s
+		    + " to destinations", Debug.DBG_3);
 	}
     }
 
@@ -93,25 +90,24 @@ public class QueryLastMsgsResp
     /** Add a message Id to the message table.
       * @param id The message Id to add to the table (0h - ffffffffh)
       * @return The current number of message Ids in the message table
-      * @exception ie.omk.smpp.SMPPException If the message Id is invalid
+      * @exception ie.omk.smpp.InvalidMessageIDException if the id is invalid.
       */
     public int addMessageId(String id)
 	throws ie.omk.smpp.SMPPException
     {
-	if(messageTable == null)
-	    messageTable = new Vector();
-
 	if(id.length() > 8)
-	    throw new SMPPException("Message Id must be < 9 chars");
+	    throw new InvalidMessageIDException(id);
 
-	messageTable.addElement(id);
-	return (messageTable.size());
+	synchronized (messageTable) {
+	    messageTable.addElement(id);
+	    return (messageTable.size());
+	}
     }
 
     /** Get the number of messages in the message table */
     public int getMsgCount()
     {
-	return (messageTable != null) ? messageTable.size() : 0;
+	return (messageTable.size());
     }
 
     /** Get an array of the message Ids.
@@ -120,14 +116,17 @@ public class QueryLastMsgsResp
     public String[] getMessageIds()
     {
 	String[] ids;
-	int loop;
+	int loop = 0;
 
-	if(messageTable == null || messageTable.size() == 0)
-	    return null;
+	synchronized (messageTable) {
+	    if(messageTable.size() == 0)
+		return null;
 
-	ids = new String[messageTable.size()];
-	for(loop=0; loop<messageTable.size(); loop++)
-	    ids[loop] = (String)messageTable.elementAt(loop);
+	    ids = new String[messageTable.size()];
+	    Iterator i = messageTable.iterator();
+	    while (i.hasNext())
+		ids[loop++] = (String)i.next();
+	}
 
 	return ids;
     }
@@ -141,10 +140,12 @@ public class QueryLastMsgsResp
 
 	// 1 1-byte integer!
 	int size = getHeaderLen() + 1;
-	Enumeration e = messageTable.elements();
-	while(e.hasMoreElements()) {
-	    size += ((String)e.nextElement()).length() + 1;
+	synchronized (messageTable) {
+	    Iterator i = messageTable.iterator();
+	    while (i.hasNext())
+		size += ((String)i.next()).length() + 1;
 	}
+
 	return (size);
     }
 
@@ -157,10 +158,12 @@ public class QueryLastMsgsResp
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	String s = null;
-	SMPPIO.writeInt(messageTable.size(), 1, out);
-	Enumeration e = messageTable.elements();
-	while(e.hasMoreElements()) {
-	    SMPPIO.writeCString((String)e.nextElement(), out);
+	synchronized (messageTable) {
+	    int size = messageTable.size();
+	    SMPPIO.writeInt(size, 1, out);
+	    Iterator i = messageTable.iterator();
+	    while (i.hasNext())
+		SMPPIO.writeCString((String)i.next(), out);
 	}
     }
 

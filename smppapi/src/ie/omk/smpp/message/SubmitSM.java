@@ -24,6 +24,8 @@ package ie.omk.smpp.message;
 
 import java.io.*;
 import ie.omk.smpp.SMPPException;
+import ie.omk.smpp.BadCommandIDException;
+import ie.omk.smpp.util.GSMConstants;
 import ie.omk.smpp.util.SMPPIO;
 import ie.omk.smpp.util.SMPPDate;
 import ie.omk.debug.Debug;
@@ -54,7 +56,11 @@ public class SubmitSM
     {
 	super(in);
 
-	if(commandStatus != 0)
+	if (getCommandId() != SMPPPacket.ESME_SUB_SM)
+	    throw new BadCommandIDException(SMPPPacket.ESME_SUB_SM,
+		    getCommandId());
+
+	if (getCommandStatus() != 0)
 	    return;
 
 	int smLength = 0;
@@ -71,8 +77,10 @@ public class SubmitSM
 
 	delivery = SMPPIO.readCString(in);
 	valid = SMPPIO.readCString(in);
-	deliveryTime = new SMPPDate(delivery);
-	expiryTime = new SMPPDate(valid);
+	if (delivery != null)
+	    deliveryTime = new SMPPDate(delivery);
+	if (valid != null)
+	    expiryTime = new SMPPDate(valid);
 
 	// Registered delivery, replace if present, data coding, default msg
 	// and message length
@@ -121,12 +129,16 @@ public class SubmitSM
 	if(source != null) {
 	    source.writeTo(out);
 	} else {
-	    SMPPIO.writeInt(0, 3, out);
+	    // Write ton=0(null), npi=0(null), address=\0(nul)
+	    new SmeAddress(GSMConstants.GSM_TON_UNKNOWN,
+		    GSMConstants.GSM_NPI_UNKNOWN, "").writeTo(out);
 	}
 	if(destination != null) {
 	    destination.writeTo(out);
 	} else {
-	    SMPPIO.writeInt(0, 3, out);
+	    // Write ton=0(null), npi=0(null), address=\0(nul)
+	    new SmeAddress(GSMConstants.GSM_TON_UNKNOWN,
+		    GSMConstants.GSM_NPI_UNKNOWN, "").writeTo(out);
 	}
 
 	String dt = (deliveryTime == null) ? "" : deliveryTime.toString();

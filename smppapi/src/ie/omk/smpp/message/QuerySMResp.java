@@ -24,6 +24,7 @@ package ie.omk.smpp.message;
 
 import java.io.*;
 import ie.omk.smpp.SMPPException;
+import ie.omk.smpp.BadCommandIDException;
 import ie.omk.smpp.util.SMPPIO;
 import ie.omk.smpp.util.SMPPDate;
 import ie.omk.debug.Debug;
@@ -55,11 +56,17 @@ public class QuerySMResp
     {
 	super(in);
 
-	if(commandStatus != 0)
+	if (getCommandId() != SMPPPacket.ESME_QUERY_SM_RESP)
+	    throw new BadCommandIDException(SMPPPacket.ESME_QUERY_SM_RESP,
+		    getCommandId());
+
+	if (getCommandStatus() != 0)
 	    return;
 
 	messageId = SMPPIO.readCString(in);
-	finalDate = new SMPPDate(SMPPIO.readCString(in));
+	String finald = SMPPIO.readCString(in);
+	if (finald != null)
+	    finalDate = new SMPPDate(finald);
 	messageStatus =  SMPPIO.readInt(in, 1);
 	errorCode =  SMPPIO.readInt(in, 1);
     }
@@ -100,8 +107,9 @@ public class QuerySMResp
     protected void encodeBody(OutputStream out)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
+	String fdate = (finalDate == null) ? null : finalDate.toString();
 	SMPPIO.writeCString(getMessageId(), out);
-	SMPPIO.writeCString(finalDate.toString(), out);
+	SMPPIO.writeCString(fdate, out);
 	SMPPIO.writeInt(messageStatus, 1, out);
 	SMPPIO.writeInt(errorCode, 1, out);
     }

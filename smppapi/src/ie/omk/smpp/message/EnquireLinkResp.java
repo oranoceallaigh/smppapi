@@ -23,6 +23,7 @@
 package ie.omk.smpp.message;
 
 import java.io.*;
+import ie.omk.smpp.BadCommandIDException;
 import ie.omk.debug.Debug;
 
 
@@ -53,6 +54,10 @@ public class EnquireLinkResp
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super(in);
+
+	if (getCommandId() != SMPPPacket.ESME_QRYLINK_RESP)
+	    throw new BadCommandIDException(SMPPPacket.ESME_QRYLINK_RESP,
+		    getCommandId());
     }
 
     /** Create a new BindReceiverResp packet in response to a BindReceiver.

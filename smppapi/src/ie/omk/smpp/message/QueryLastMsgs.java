@@ -24,6 +24,9 @@ package ie.omk.smpp.message;
 
 import java.io.*;
 import ie.omk.smpp.SMPPException;
+import ie.omk.smpp.BadCommandIDException;
+import ie.omk.smpp.NumberOutOfRangeException;
+import ie.omk.smpp.util.GSMConstants;
 import ie.omk.smpp.util.SMPPIO;
 import ie.omk.debug.Debug;
 
@@ -57,7 +60,11 @@ public class QueryLastMsgs
     {
 	super(in);
 
-	if(commandStatus != 0)
+	if (getCommandId() != SMPPPacket.ESME_QUERY_LAST_MSGS)
+	    throw new BadCommandIDException(SMPPPacket.ESME_QUERY_LAST_MSGS,
+		    getCommandId());
+
+	if (getCommandStatus() != 0)
 	    return;
 
 	this.source = new SmeAddress(in);
@@ -66,7 +73,8 @@ public class QueryLastMsgs
 
     /** Set the number of messages to look up.
       * @param n The message count (1 &lt;= n &lt;= 100)
-      * @exception ie.omk.smpp.SMPPException if the message count is invalid.
+      * @exception ie.omk.smpp.NumberOutOfRangeException if the count is set
+      * outside the valid range.
       */
     public void setMsgCount(int n)
 	throws ie.omk.smpp.SMPPException
@@ -74,8 +82,7 @@ public class QueryLastMsgs
 	if(n > 0 && n <= 100) {
 	    this.msgCount = n;
 	} else {
-	    throw new SMPPException("Number of messages to query must be > 0 "
-		    + "and <= 100");
+	    throw new NumberOutOfRangeException(1, 100);
 	}
     }
 
@@ -106,7 +113,9 @@ public class QueryLastMsgs
 	if(source != null) {
 	    source.writeTo(out);
 	} else {
-	    SMPPIO.writeInt(0, 3, out);
+	    // Write ton=0(null), npi=0(null), address=\0(nul)
+	    new SmeAddress(GSMConstants.GSM_TON_UNKNOWN,
+		    GSMConstants.GSM_NPI_UNKNOWN, "").writeTo(out);
 	}
 	SMPPIO.writeInt(msgCount, 1, out);
     }

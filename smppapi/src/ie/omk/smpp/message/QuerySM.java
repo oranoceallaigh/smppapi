@@ -24,6 +24,8 @@ package ie.omk.smpp.message;
 
 import java.io.*;
 import ie.omk.smpp.SMPPException;
+import ie.omk.smpp.BadCommandIDException;
+import ie.omk.smpp.util.GSMConstants;
 import ie.omk.smpp.util.SMPPIO;
 import ie.omk.debug.Debug;
 
@@ -53,7 +55,11 @@ public class QuerySM
     {
 	super(in);
 
-	if(commandStatus != 0)
+	if (getCommandId() != SMPPPacket.ESME_QUERY_SM)
+	    throw new BadCommandIDException(SMPPPacket.ESME_QUERY_SM,
+		    getCommandId());
+
+	if (getCommandStatus() != 0)
 	    return;
 
 	messageId = SMPPIO.readCString(in);
@@ -85,7 +91,9 @@ public class QuerySM
 	if(source != null) {
 	    source.writeTo(out);
 	} else {
-	    SMPPIO.writeInt(0, 3, out);
+	    // Write ton=0(null), npi=0(null), address=\0(nul)
+	    new SmeAddress(GSMConstants.GSM_TON_UNKNOWN,
+		    GSMConstants.GSM_NPI_UNKNOWN, "").writeTo(out);
 	}
     }
 

@@ -37,13 +37,22 @@ public class SmeAddress_e
     extends SmeAddress
 {
     /** Error status */
-    public int			errorStatus;
+    private int			errorStatus;
 
     /** Construct a new SmeAddress_e */
     public SmeAddress_e()
     {
 	super();
 	errorStatus = 0;
+    }
+
+    /** Construct a new SmeAddress_e with the specified parameters.
+      */
+    public SmeAddress_e(int ton, int npi, String addr, int errorCode)
+	throws ie.omk.smpp.SMPPException
+    {
+	super(ton, npi, addr);
+	this.errorStatus = errorCode;
     }
 
     /** Read in an SmeAddress_e from an InputStream
@@ -56,6 +65,20 @@ public class SmeAddress_e
     {
 	super(in);
 	this.errorStatus = SMPPIO.readInt(in, 4);
+    }
+
+    /** Get the error status.
+      */
+    public int getErrorStatus()
+    {
+	return (this.errorStatus);
+    }
+
+    /** Set the error status for this SmeAddress.
+      */
+    public void setErrorStatus(int error)
+    {
+	this.errorStatus = error;
     }
 
     /** Return the number of bytes this address would be encoded as to an

@@ -24,6 +24,7 @@ package ie.omk.smpp.message;
 
 import java.io.InputStream;
 import ie.omk.smpp.SMPPException;
+import ie.omk.smpp.BadCommandIDException;
 import ie.omk.debug.Debug;
 
 /** Unbind from the SMSC. This operation does not close the network
@@ -53,6 +54,10 @@ public class Unbind
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super(in);
+
+	if (getCommandId() != SMPPPacket.ESME_UBD)
+	    throw new BadCommandIDException(SMPPPacket.ESME_UBD,
+		    getCommandId());
     }
 
     /** Return the number of bytes this packet would be encoded as to an

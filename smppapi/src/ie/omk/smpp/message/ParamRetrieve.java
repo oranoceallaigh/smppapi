@@ -24,6 +24,8 @@ package ie.omk.smpp.message;
 
 import java.io.*;
 import ie.omk.smpp.SMPPException;
+import ie.omk.smpp.BadCommandIDException;
+import ie.omk.smpp.StringTooLongException;
 import ie.omk.smpp.util.SMPPIO;
 import ie.omk.debug.Debug;
 
@@ -58,7 +60,11 @@ public class ParamRetrieve
     {
 	super(in);
 
-	if(commandStatus != 0)
+	if (getCommandId() != SMPPPacket.ESME_PARAM_RETRIEVE)
+	    throw new BadCommandIDException(SMPPPacket.ESME_PARAM_RETRIEVE,
+		    getCommandId());
+
+	if (getCommandStatus() != 0)
 	    return;
 
 	paramName = SMPPIO.readCString(in);
@@ -66,7 +72,8 @@ public class ParamRetrieve
 
     /** Set the name of the parameter to retrieve
       * @param paramName Parameter name, up to 31 characters
-      * @exception ie.omk.smpp.SMPPException If the param name is invalid
+      * @exception ie.omk.smpp.StringTooLongException if the parameter name is
+      * too long.
       */
     public void setParamName(String paramName)
 	throws ie.omk.smpp.SMPPException
@@ -79,7 +86,7 @@ public class ParamRetrieve
 	if(paramName.length() < 32) {
 	    this.paramName = paramName;
 	} else {
-	    throw new SMPPException("Parameter name must be < 32 chars");
+	    throw new StringTooLongException(31);
 	}
     }
 

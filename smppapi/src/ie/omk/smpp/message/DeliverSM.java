@@ -24,6 +24,8 @@ package ie.omk.smpp.message;
 
 import java.io.*;
 import ie.omk.smpp.SMPPException;
+import ie.omk.smpp.BadCommandIDException;
+import ie.omk.smpp.util.GSMConstants;
 import ie.omk.smpp.util.SMPPIO;
 import ie.omk.debug.Debug;
 
@@ -57,7 +59,11 @@ public class DeliverSM
     {
 	super(in);
 
-	if(commandStatus != 0)
+	if (getCommandId() != SMPPPacket.SMSC_DELIVER_SM)
+	    throw new BadCommandIDException(SMPPPacket.SMSC_DELIVER_SM,
+		    getCommandId());
+
+	if (getCommandStatus() != 0)
 	    return;
 
 	int smLength = 0;
@@ -97,7 +103,7 @@ public class DeliverSM
       */
     public int getCommandLen()
     {
-	int len = (getHeaderLen() + 13
+	int len = (getHeaderLen()
 		+ ((serviceType != null) ? serviceType.length() : 0)
 		+ ((source != null) ? source.size() : 3)
 		+ ((destination != null) ? destination.size() : 3)
@@ -124,13 +130,17 @@ public class DeliverSM
 	if(source != null) {
 	    source.writeTo(out);
 	} else {
-	    SMPPIO.writeInt(0, 3, out);
+	    // Write ton=0(null), npi=0(null), address=\0(nul)
+	    new SmeAddress(GSMConstants.GSM_TON_UNKNOWN,
+		    GSMConstants.GSM_NPI_UNKNOWN, "").writeTo(out);
 	}
 
 	if(destination != null) {
 	    destination.writeTo(out);
 	} else {
-	    SMPPIO.writeInt(0, 3, out);
+	    // Write ton=0(null), npi=0(null), address=\0(nul)
+	    new SmeAddress(GSMConstants.GSM_TON_UNKNOWN,
+		    GSMConstants.GSM_NPI_UNKNOWN, "").writeTo(out);
 	}
 	SMPPIO.writeInt(flags.esm_class, 1, out);
 	SMPPIO.writeInt(flags.protocol, 1, out);

@@ -26,6 +26,8 @@ import java.io.*;
 import java.net.SocketException;
 
 import ie.omk.smpp.SMPPException;
+import ie.omk.smpp.InvalidMessageIDException;
+import ie.omk.smpp.StringTooLongException;
 import ie.omk.smpp.util.SMPPDate;
 import ie.omk.smpp.util.SMPPIO;
 import ie.omk.smpp.util.GSMConstants;
@@ -162,27 +164,27 @@ public abstract class SMPPPacket
      */
 
     /** Source address */
-    protected SmeAddress	source;
+    protected SmeAddress	source = null;
     /** Destination address */
-    protected SmeAddress	destination;
+    protected SmeAddress	destination = null;
     /** Set of message type flags */
-    protected MsgFlags		flags;
+    protected MsgFlags		flags = null;
     /** The text of a short message */
-    protected String		message;
+    protected String		message = null;
     /** Service type for this msg */
-    protected String		serviceType;
+    protected String		serviceType = null;
     /** Scheduled delivery time */
-    protected SMPPDate		deliveryTime;
+    protected SMPPDate		deliveryTime = null;
     /** Scheduled expiry time */
-    protected SMPPDate		expiryTime;
+    protected SMPPDate		expiryTime = null;
     /** Date of reaching final state */
-    protected SMPPDate		finalDate;
+    protected SMPPDate		finalDate = null;
     /** Smsc allocated message Id */
-    protected String		messageId;
+    protected String		messageId = null;
     /** Status of message */
-    protected int		messageStatus;
+    protected int		messageStatus = 0;
     /** Error associated with message */
-    protected int		errorCode;	
+    protected int		errorCode = 0;
 
 
     /** Create a new SMPPPacket with specified Id and sequence number.
@@ -452,7 +454,8 @@ public abstract class SMPPPacket
 
     /** Set the text of the message (max 160 characters).
       * @param text The short message text.
-      * @exception ie.omk.smpp.SMPPException if the message is too long.
+      * @exception ie.omk.smpp.StringTooLongException if the message is too
+      * long.
       */
     public void setMessageText(String text)
 	throws ie.omk.smpp.SMPPException
@@ -468,7 +471,7 @@ public abstract class SMPPPacket
 		Debug.d(this, "setMessageText", text, Debug.DBG_4);
 	} else {
 	    Debug.d(this, "setMessageText", "Message too long", Debug.DBG_1);
-	    throw new SMPPException("SM Text length must be < 160 characters");
+	    throw new StringTooLongException(160);
 	}
     }
 
@@ -487,7 +490,9 @@ public abstract class SMPPPacket
     }
 
     /** Set the service type.
-      * @exception ie.omk.smpp.SMPPException If the service type is invalid.
+      * @param type The service type.
+      * @exception ie.omk.smpp.StringTooLongException if the service type is too
+      * long.
       */
     public void setServiceType(String type)
 	throws ie.omk.smpp.SMPPException
@@ -504,7 +509,7 @@ public abstract class SMPPPacket
 	} else {
 	    Debug.d(this, "setServiceType", "Service type too long",
 		    Debug.DBG_1);
-	    throw new SMPPException("Service type must be < 6 characters");
+	    throw new StringTooLongException(5);
 	}
     }
 
@@ -584,7 +589,8 @@ public abstract class SMPPPacket
       * to uniquely identify it. SMPP v3.3 message Ids are hexadecimal numbers
       * up to 9 characters long. This gives them a range of 0x0 - 0xffffffff.
       * @param id The message's id.
-      * @exception ie.omk.smpp.SMPPException if the message id is invalid.
+      * @exception ie.omk.smpp.InvalidMessageIDException if the message id is
+      * invalid.
       */
     public void setMessageId(String id)
 	throws ie.omk.smpp.SMPPException
@@ -593,7 +599,7 @@ public abstract class SMPPPacket
 	    this.messageId = null;
 	} else {
 	    if (id.length() > 9)
-		throw new SMPPException("Message Id too long. Max 8 digits.");
+		throw new InvalidMessageIDException(id);
 	    else
 		this.messageId = id;
 	}

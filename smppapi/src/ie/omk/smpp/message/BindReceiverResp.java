@@ -24,6 +24,8 @@ package ie.omk.smpp.message;
 
 import java.io.*;
 import ie.omk.smpp.SMPPException;
+import ie.omk.smpp.BadCommandIDException;
+import ie.omk.smpp.StringTooLongException;
 import ie.omk.smpp.util.SMPPIO;
 import ie.omk.debug.Debug;
 
@@ -57,7 +59,11 @@ public class BindReceiverResp
     {
 	super(in);
 
-	if(getCommandStatus() != 0)
+	if (getCommandId() != SMPPPacket.ESME_BNDRCV_RESP)
+	    throw new BadCommandIDException(SMPPPacket.ESME_BNDRCV_RESP,
+		    getCommandId());
+
+	if (getCommandStatus() != 0)
 	    return;
 
 	sysId = SMPPIO.readCString(in);
@@ -78,7 +84,8 @@ public class BindReceiverResp
     /** Set the system Id. The System Id in a BindReceiverResp is the system id
       * of the SMSC.
       * @param sysId The new System Id string (Up to 15 characters)
-      * @exception ie.omk.smpp.SMPPException If the system Id is invalid
+      * @exception ie.omk.smpp.StringTooLongException if the system id is too
+      * long.
       */
     public void setSystemId(String sysId)
 	throws ie.omk.smpp.SMPPException
@@ -88,10 +95,10 @@ public class BindReceiverResp
 	    return;
 	}
 
-	if(sysId.length() > 15)
-	    throw new SMPPException("System ID must be < 16 chars.");
-	else
+	if(sysId.length() < 16)
 	    this.sysId = sysId;
+	else
+	    throw new StringTooLongException(15);
     }
 
     /** Get the system Id */

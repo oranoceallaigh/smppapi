@@ -25,6 +25,7 @@ package ie.omk.smpp.message;
 import java.io.*;
 import java.util.*;
 import ie.omk.smpp.SMPPException;
+import ie.omk.smpp.BadCommandIDException;
 import ie.omk.smpp.util.SMPPIO;
 import ie.omk.debug.Debug;
 
@@ -36,7 +37,7 @@ public class SubmitMultiResp
     extends ie.omk.smpp.message.SMPPResponse
 {
     /** Table of unsuccessful destinations */
-    private Vector unsuccessfulTable;
+    private Vector unsuccessfulTable = new Vector();
 
     /** Construct a new Unbind with specified sequence number.
       * @param seqNum The sequence number to use
@@ -44,8 +45,6 @@ public class SubmitMultiResp
     public SubmitMultiResp(int seqNum)
     {
 	super(ESME_SUB_MULTI_RESP, seqNum);
-
-	unsuccessfulTable = null;
     }
 
     /** Create a new SubmitMultiResp packet in response to a BindReceiver.
@@ -55,8 +54,6 @@ public class SubmitMultiResp
     public SubmitMultiResp(SubmitMulti r)
     {
 	super(r);
-
-	unsuccessfulTable = new Vector();
     }
 
     /** Read in a SubmitMultiResp from an InputStream.  A full packet,
@@ -70,7 +67,11 @@ public class SubmitMultiResp
     {
 	super(in);
 
-	if(commandStatus != 0)
+	if (getCommandId() != SMPPPacket.ESME_SUB_MULTI_RESP)
+	    throw new BadCommandIDException(SMPPPacket.ESME_SUB_MULTI_RESP,
+		    getCommandId());
+
+	if (getCommandStatus() != 0)
 	    return;
 
 	messageId = SMPPIO.readCString(in);
@@ -79,7 +80,6 @@ public class SubmitMultiResp
 	if(unsuccessfulCount < 1)
 	    return;
 
-	unsuccessfulTable = new Vector(unsuccessfulCount);
 	for(int loop=0; loop<unsuccessfulCount; loop++) {
 	    SmeAddress_e a = new SmeAddress_e(in);
 	    unsuccessfulTable.addElement(a);
@@ -89,7 +89,7 @@ public class SubmitMultiResp
     /** Get the number of unsuccessful destinations */
     public int getUnsuccessfulCount()
     {
-	return ((unsuccessfulTable != null) ? unsuccessfulTable.size() : 0);
+	return (unsuccessfulTable.size());
     }
 
     /** Add a destination address to the table of unsuccessful destinations.
@@ -99,16 +99,14 @@ public class SubmitMultiResp
       */
     public int addSmeToTable(SmeAddress_e a)
     {
-	if(unsuccessfulTable == null) {
-	    unsuccessfulTable = new Vector(5);
-	}
+	synchronized (unsuccessfulTable) {
+	    if(a != null) {
+		a.useFlag = false;
+		unsuccessfulTable.addElement(a);
+	    }
 
-	if(a != null) {
-	    a.useFlag = false;
-	    unsuccessfulTable.addElement(a);
+	    return unsuccessfulTable.size();
 	}
-
-	return unsuccessfulTable.size();
     }
 
     /** Set the destination address table.
@@ -125,15 +123,14 @@ public class SubmitMultiResp
 	    throw new NullPointerException("SubmitMultiResp: Destination "
 		    + "table cannot be null or empty");
 
-	if(unsuccessfulTable == null)
-	    unsuccessfulTable = new Vector(d.length);
+	synchronized (unsuccessfulTable) {
+	    unsuccessfulTable.removeAllElements();
+	    unsuccessfulTable.ensureCapacity(d.length);
 
-	unsuccessfulTable.removeAllElements();
-	unsuccessfulTable.ensureCapacity(d.length);
-
-	for(loop=0; loop<d.length; loop++) {
-	    d[loop].useFlag = false;
-	    unsuccessfulTable.addElement(d[loop]);
+	    for(loop=0; loop<d.length; loop++) {
+		d[loop].useFlag = false;
+		unsuccessfulTable.addElement(d[loop]);
+	    }
 	}
     }
 
@@ -144,15 +141,17 @@ public class SubmitMultiResp
     public SmeAddress_e[] getDestAddresses()
     {
 	SmeAddress_e sd[];
-	int loop, size;
+	int loop = 0;
 
-	if(unsuccessfulTable == null || unsuccessfulTable.size() == 0)
-	    return (new SmeAddress_e[0]);
+	synchronized (unsuccessfulTable) {
+	    if(unsuccessfulTable.size() == 0)
+		return (null);
 
-	size = unsuccessfulTable.size();
-	sd = new SmeAddress_e[size];
-	for(loop=0; loop<size; loop++)
-	    sd[loop] = (SmeAddress_e) unsuccessfulTable.elementAt(loop);
+	    sd = new SmeAddress_e[unsuccessfulTable.size()];
+	    Iterator i = unsuccessfulTable.iterator();
+	    while (i.hasNext())
+		sd[loop++] = (SmeAddress_e)i.next();
+	}
 
 	return sd;
     }
@@ -163,19 +162,15 @@ public class SubmitMultiResp
       */
     public int getCommandLen()
     {
-	SmeAddress_e sd[];
 	int loop;
 
 	int size = getHeaderLen()
 	    + ((messageId != null) ? messageId.length() : 0);
 
-	sd = getDestAddresses();
-	if(sd.length > 0) {
-	    for(loop=0; loop<sd.length; loop++)
-		size += sd[loop].size();
-	} else {
-	    // For the one null byte that will be included
-	    size += 1;
+	synchronized (unsuccessfulTable) {
+	    Iterator i = unsuccessfulTable.iterator();
+	    while (i.hasNext())
+		size += ((SmeAddress_e)i.next()).size();
 	}
 
 	// 1 1-byte integer, 1 c-string
@@ -191,19 +186,16 @@ public class SubmitMultiResp
     protected void encodeBody(OutputStream out)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
-	SmeAddress_e sd[];
 	int loop, size = 0;
 
-	size = (unsuccessfulTable != null) ? unsuccessfulTable.size() : 0;
-	SMPPIO.writeCString(getMessageId(), out);
-	SMPPIO.writeInt(size, 1, out);
+	synchronized (unsuccessfulTable) {
+	    size = unsuccessfulTable.size();
+	    SMPPIO.writeCString(getMessageId(), out);
+	    SMPPIO.writeInt(size, 1, out);
 
-	sd = getDestAddresses();
-	if(sd.length > 0) {
-	    for(loop=0; loop<sd.length; loop++)
-		sd[loop].writeTo(out);
-	} else {
-	    out.write(0);
+	    Iterator i = unsuccessfulTable.iterator();
+	    while (i.hasNext())
+		((SmeAddress_e)i.next()).writeTo(out);
 	}
     }
 

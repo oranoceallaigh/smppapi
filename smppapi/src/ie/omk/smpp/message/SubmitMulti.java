@@ -25,6 +25,8 @@ package ie.omk.smpp.message;
 import java.io.*;
 import java.util.*;
 import ie.omk.smpp.SMPPException;
+import ie.omk.smpp.BadCommandIDException;
+import ie.omk.smpp.util.GSMConstants;
 import ie.omk.smpp.util.SMPPIO;
 import ie.omk.smpp.util.SMPPDate;
 import ie.omk.debug.Debug;
@@ -37,7 +39,7 @@ public class SubmitMulti
     extends ie.omk.smpp.message.SMPPRequest
 {
     /** Table of destinations */
-    private Vector destinationTable;
+    private Vector destinationTable = new Vector();
 
     /** Construct a new SubmitMulti with specified sequence number.
       * @param seqNum The sequence number to use
@@ -45,7 +47,6 @@ public class SubmitMulti
     public SubmitMulti(int seqNum)
     {
 	super(ESME_SUB_MULTI, seqNum);
-	destinationTable = null;
     }
 
     /** Read in a SubmitMulti from an InputStream.  A full packet,
@@ -59,7 +60,11 @@ public class SubmitMulti
     {
 	super(in);
 
-	if(commandStatus != 0)
+	if (getCommandId() != SMPPPacket.ESME_SUB_MULTI)
+	    throw new BadCommandIDException(SMPPPacket.ESME_SUB_MULTI,
+		    getCommandId());
+
+	if (getCommandStatus() != 0)
 	    return;
 
 	int noOfDests = 0, smLength = 0;
@@ -68,13 +73,12 @@ public class SubmitMulti
 	// First the service type
 	serviceType = SMPPIO.readCString(in);
 
-	source = new SmeAddress(in, true);
+	source = new SmeAddress(in, false);
 
 	// Read in the number of destination structures to follow:
 	noOfDests = SMPPIO.readInt(in, 1);			
 
 	// Now read in noOfDests number of destination structs
-	destinationTable = new Vector(noOfDests);
 	for(int loop=0; loop<noOfDests; loop++) {
 	    SmeAddress d = new SmeAddress(in, true);
 	    destinationTable.addElement(d);
@@ -87,8 +91,10 @@ public class SubmitMulti
 
 	delivery = SMPPIO.readCString(in);
 	valid = SMPPIO.readCString(in);
-	deliveryTime = new SMPPDate(delivery);
-	expiryTime = new SMPPDate(valid);
+	if (delivery != null)
+	    deliveryTime = new SMPPDate(delivery);
+	if (valid != null)
+	    expiryTime = new SMPPDate(valid);
 
 	// Registered delivery, replace if present, data coding, default msg
 	// and message length
@@ -110,15 +116,14 @@ public class SubmitMulti
       */
     public int addDestination(SmeAddress d)
     {
-	if(destinationTable == null)
-	    destinationTable = new Vector(5);
+	synchronized (destinationTable) {
+	    if(d != null) {
+		d.useFlag = true;
+		destinationTable.addElement(d);
+	    }
 
-	if(d != null) {
-	    d.useFlag = true;
-	    destinationTable.addElement(d);
+	    return (destinationTable.size());
 	}
-
-	return (destinationTable.size());
     }
 
     /** Set the destination address table.
@@ -134,16 +139,15 @@ public class SubmitMulti
 	    throw new NullPointerException("SubmitMulti: Destination table "
 		    + "cannot be null or empty");
 
-	if(destinationTable == null)
-	    destinationTable = new Vector(d.length);
+	synchronized (destinationTable) {
+	    destinationTable.removeAllElements();
+	    destinationTable.ensureCapacity(d.length);
 
-	destinationTable.removeAllElements();
-	destinationTable.ensureCapacity(d.length);
-
-	for(loop=0; loop<d.length; loop++) {
-	    // Gotta make sure the SmeAddress uses the dest_flag
-	    d[loop].useFlag = true;
-	    destinationTable.addElement(d[loop]);
+	    for(loop=0; loop<d.length; loop++) {
+		// Gotta make sure the SmeAddress uses the dest_flag
+		d[loop].useFlag = true;
+		destinationTable.addElement(d[loop]);
+	    }
 	}
     }
 
@@ -168,15 +172,17 @@ public class SubmitMulti
     public SmeAddress[] getDestAddresses()
     {
 	SmeAddress sd[];
-	int loop, size;
+	int loop = 0;
 
-	if(destinationTable == null || destinationTable.size() == 0)
-	    return null;
+	synchronized (destinationTable) {
+	    if(destinationTable.size() == 0)
+		return null;
 
-	size = destinationTable.size();
-	sd = new SmeAddress[size];
-	for(loop=0; loop<size; loop++)
-	    sd[loop] = (SmeAddress) destinationTable.elementAt(loop);
+	    sd = new SmeAddress[destinationTable.size()];
+	    Iterator i = destinationTable.iterator();
+	    while (i.hasNext())
+		sd[loop++] = (SmeAddress)i.next();
+	}
 
 	return (sd);
     }
@@ -195,18 +201,14 @@ public class SubmitMulti
 		    expiryTime.toString().length() : 0)
 		+ ((message != null) ? message.length() : 0));
 
-	Enumeration e = destinationTable.elements();
-	if (e.hasMoreElements()) {
-	    while(e.hasMoreElements()) {
-		SmeAddress d = (SmeAddress) e.nextElement();
-		size += d.size();
-	    }
-	} else {
-	    size += 1;
+	synchronized (destinationTable) {
+	    Iterator i = destinationTable.iterator();
+	    while (i.hasNext())
+		size += ((SmeAddress)i.next()).size();
 	}
 
 	// 9 1-byte integers, 4 c-strings
-	return (size + 9 + 4);
+	return (size + 9 + 3);
     }
 
     /** Write a byte representation of this packet to an OutputStream
@@ -217,33 +219,29 @@ public class SubmitMulti
     protected void encodeBody(OutputStream out)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
-	int noOfDests = 0, smLength = 0;
-	if(destinationTable != null)
-	    noOfDests = destinationTable.size();
+	int smLength = 0;
 	if(message != null)
 	    smLength = message.length();
 
-	SMPPIO.writeCString(serviceType, out);
-	if(source != null) {
-	    source.writeTo(out);
-	} else {
-	    SMPPIO.writeInt(0, 3, out);
-	}
-	SMPPIO.writeInt(noOfDests, 1, out);
-
-	Enumeration e = destinationTable.elements();
-	if(e != null && e.hasMoreElements()) {
-	    while(e.hasMoreElements()) {
-		SmeAddress d = (SmeAddress) e.nextElement();
-		d.writeTo(out);
+	synchronized (destinationTable) {
+	    int noOfDests = destinationTable.size();
+	    SMPPIO.writeCString(serviceType, out);
+	    if(source != null) {
+		source.writeTo(out);
+	    } else {
+		// Write ton=0(null), npi=0(null), address=\0(nul)
+		new SmeAddress(GSMConstants.GSM_TON_UNKNOWN,
+			GSMConstants.GSM_NPI_UNKNOWN, "").writeTo(out);
 	    }
-	    e = null;
-	} else {
-	    out.write(0);
+	    SMPPIO.writeInt(noOfDests, 1, out);
+
+	    Iterator i = destinationTable.iterator();
+	    while (i.hasNext())
+		((SmeAddress)i.next()).writeTo(out);
 	}
 
-	String dt = (deliveryTime == null) ? "" : deliveryTime.toString();
-	String et = (expiryTime == null) ? "" : expiryTime.toString();
+	String dt = (deliveryTime == null) ? null : deliveryTime.toString();
+	String et = (expiryTime == null) ? null : expiryTime.toString();
 
 	SMPPIO.writeInt(flags.esm_class, 1, out);
 	SMPPIO.writeInt(flags.protocol, 1, out);
