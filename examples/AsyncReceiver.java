@@ -25,17 +25,22 @@ import java.io.IOException;
 import java.io.FileInputStream;
 import java.io.BufferedInputStream;
 
+import java.util.Date;
 import java.util.Properties;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.Vector;
 
 import ie.omk.smpp.SMPPException;
+import ie.omk.smpp.SmppConnectionDropPacket;
 import ie.omk.smpp.SmppReceiver;
 import ie.omk.smpp.SmppEvent;
 import ie.omk.smpp.net.TcpLink;
 import ie.omk.smpp.message.SMPPPacket;
 import ie.omk.smpp.message.DeliverSM;
 import ie.omk.smpp.message.SmeAddress;
+import ie.omk.smpp.message.Unbind;
+import ie.omk.smpp.message.UnbindResp;
 import ie.omk.smpp.util.GSMConstants;
 
 /** Example class to submit a message to a SMSC.
@@ -48,6 +53,14 @@ public class AsyncReceiver
     public static final String PROPS_FILE = "smpp.properties";
 
     private static Properties props = null;
+
+    private static int msgCount = 0;
+
+    // Start time (once successfully bound).
+    private long start = 0;
+
+    // End time (either send an unbind or an unbind received).
+    private long end = 0;
 
     // This is called when the connection receives a packet from the SMSC.
     public void update(Observable o, Object arg)
@@ -64,8 +77,10 @@ public class AsyncReceiver
 		System.out.println("Error binding to the SMSC. Error = "
 			+ pak.getCommandStatus());
 	    } else {
+		this.start = System.currentTimeMillis();
 		System.out.println("Successfully bound. Waiting for message"
-			+ "delivery..");
+			+ " delivery..");
+		System.out.println("(Each dot printed is 500 deliver_sm's!)");
 	    }
 	    break;
 
@@ -76,21 +91,54 @@ public class AsyncReceiver
 			+ pak.getCommandStatus());
 
 	    } else {
-		DeliverSM del = (DeliverSM)pak;
-		System.out.println("Message received:\n\""
-			+ del.getMessageText() + "\"");
+		++msgCount;
+		if ((msgCount % 500) == 0)
+		    System.out.print("."); // Give some feedback
+	    }
+	    break;
+
+	// Unbind request received from server..
+	case SMPPPacket.ESME_UBD:
+	    this.end = System.currentTimeMillis();
+	    System.out.println("\nSMSC has requested unbind! Responding..");
+	    try {
+		UnbindResp ubr = new UnbindResp((Unbind)pak);
+		trans.sendResponse(ubr);
+	    } catch (SMPPException x) {
+		x.printStackTrace(System.err);
+	    } catch (IOException x) {
+		x.printStackTrace(System.err);
+	    } finally {
+		endReport();
 	    }
 	    break;
 
 	// Unbind response..
 	case SMPPPacket.ESME_UBD_RESP:
-	    System.out.println("Unbound.");
+	    this.end = System.currentTimeMillis();
+	    System.out.println("\nUnbound.");
+	    endReport();
+	    break;
+
+	case SmppConnectionDropPacket.CONNECTION_DROP:
+	    this.end = System.currentTimeMillis();
+	    System.out.println("\nNetwork connection dropped!");
+	    endReport();
 	    break;
 
 	default:
-	    System.out.println("Unknown response received! Id = "
-		    + pak.getCommandId());
+	    System.out.println("\nUnexpected packet received! Id = "
+		    + Integer.toHexString(pak.getCommandId()));
 	}
+    }
+
+    // Print out a report
+    private void endReport()
+    {
+	System.out.println("deliver_sm's received: " + msgCount);
+	System.out.println("Start time: " + new Date(start).toString());
+	System.out.println("End time: " + new Date(end).toString());
+	System.out.println("Elapsed: " + (end - start) + " milliseconds.");
     }
 
     public static void main(String[] args)
@@ -132,12 +180,13 @@ public class AsyncReceiver
 	    // Bind to the SMSC (as a transmitter)
 	    recv.bind(sysID, password, sysType, source);
 
-	    Thread.sleep(500);
-
-	    System.out.println("Hit Enter to unbind...");
+	    System.out.println("Hit a key to issue an unbind..");
 	    System.in.read();
 
-	    recv.unbind();
+	    if (recv.getState() == recv.BOUND) {
+		System.out.println("Sending unbind request..");
+		recv.unbind();
+	    }
 	} catch (IOException x) {
 	    x.printStackTrace(System.err);
 	} catch (NumberFormatException x) {
@@ -145,8 +194,6 @@ public class AsyncReceiver
 	    x.printStackTrace(System.err);
 	} catch (SMPPException x) {
 	    System.err.println("SMPP exception: " + x.getMessage());
-	    x.printStackTrace(System.err);
-	} catch (InterruptedException x) {
 	    x.printStackTrace(System.err);
 	}
     }
