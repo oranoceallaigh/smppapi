@@ -20,6 +20,9 @@
  * Java SMPP API author: oran.kelly@ireland.com
  */
 
+import java.util.Properties;
+import java.io.FileInputStream;
+
 import ie.omk.smpp.SMPPException;
 import ie.omk.smpp.SmppTransmitter;
 import ie.omk.smpp.net.TcpLink;
@@ -34,10 +37,19 @@ public class SyncTransmitter
 	    TcpLink link = new TcpLink("localhost", 5432);
 	    SmppTransmitter trans = new SmppTransmitter(link);
 
-	    trans.setSystemId("myesme");
-	    trans.setSystemType("glab");
-	    trans.setPassword("mypass");
-	    BindTransmitterResp btr = (BindTransmitterResp)trans.bind();
+	    Properties props = new Properties();
+	    props.load(new FileInputStream("smpp.properties"));
+
+	    String sysType = props.getProperty("esme.system_type");
+	    String sysID = props.getProperty("esme.system_id");
+	    String password = props.getProperty("esme.password");
+
+	    SmeAddress source = new SmeAddress(
+		    GSMConstants.GSM_TON_UNKNOWN,
+		    GSMConstants.GSM_NPI_UNKNOWN,
+		    props.getProperty("esme.destination"));
+	    BindTransmitterResp btr = (BindTransmitterResp)trans.bind(sysID,
+		    password, sysType, source);
 
 	    if (btr.getCommandStatus() != 0) {
 		System.err.println("Failed to bind to SMSC.");

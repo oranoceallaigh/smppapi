@@ -152,12 +152,17 @@ public class AsyncTransmitter
 	    trans.autoAckLink(true);
 
 	    // Set our authorisation information
-	    trans.setSystemType(props.getProperty("esme.system_type"));
-	    trans.setSystemId(props.getProperty("esme.system_id"));
-	    trans.setPassword(props.getProperty("esme.password"));
+	    String sysType = props.getProperty("esme.system_type");
+	    String sysID = props.getProperty("esme.system_id");
+	    String password = props.getProperty("esme.password");
+
+	    SmeAddress source = new SmeAddress(
+		    GSMConstants.GSM_TON_UNKNOWN,
+		    GSMConstants.GSM_NPI_UNKNOWN,
+		    props.getProperty("esme.destination"));
 
 	    // Bind to the SMSC (as a transmitter)
-	    trans.bind();
+	    trans.bind(sysID, password, sysType, source);
 	} catch (IOException x) {
 	    x.printStackTrace(System.err);
 	} catch (NumberFormatException x) {
