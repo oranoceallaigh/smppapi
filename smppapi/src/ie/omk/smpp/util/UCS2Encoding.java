@@ -28,6 +28,14 @@ public class UCS2Encoding
 {
     private String encType = "UTF-16BE";
 
+    private static final int DCS = 8;
+
+
+    static {
+	// Register encoding type
+	registerEncoding(DCS, new UCS2Encoding());
+    }
+
     /** Construct a new UCS2 encoding that uses UTF-16BE.
      */
     public UCS2Encoding()
@@ -76,7 +84,7 @@ public class UCS2Encoding
      */
     public int getDataCoding()
     {
-	return (8);
+	return (DCS);
     }
 
     /** Get the maximum number of octets allowed for this encoding type.

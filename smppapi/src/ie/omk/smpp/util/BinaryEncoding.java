@@ -26,13 +26,16 @@ package ie.omk.smpp.util;
 public class BinaryEncoding
     extends ie.omk.smpp.util.MessageEncoding
 {
+    private static final int DCS = 4;
+
+
     /** Get the data_coding value for this message encoding type.
      * This method returns 4 (00000100b), in accordance with GSM 03.38. The
      * developer MAY have to set bits 4, [1..0] to indicate a message class.
      */
     public int getDataCoding()
     {
-	return (4);
+	return (DCS);
     }
 
     /** Get the maximum number of octets allowed for this encoding type.
