@@ -23,27 +23,32 @@
  */
 package ie.omk.smpp.examples;
 
-import java.io.IOException;
+import ie.omk.smpp.Address;
+import ie.omk.smpp.Connection;
+import ie.omk.smpp.SMPPException;
+import ie.omk.smpp.event.ConnectionObserver;
+import ie.omk.smpp.event.ReceiverExitEvent;
+import ie.omk.smpp.event.SMPPEvent;
+import ie.omk.smpp.message.BindResp;
+import ie.omk.smpp.message.BindTransmitterResp;
+import ie.omk.smpp.message.SMPPPacket;
+import ie.omk.smpp.message.SubmitSM;
+import ie.omk.smpp.message.SubmitSMResp;
+import ie.omk.smpp.util.GSMConstants;
 
+import java.io.IOException;
 import java.util.HashMap;
 
 import org.apache.log4j.Logger;
 
-import ie.omk.smpp.Address;
-import ie.omk.smpp.Connection;
-import ie.omk.smpp.SMPPException;
-
-import ie.omk.smpp.event.ConnectionObserver;
-import ie.omk.smpp.event.ReceiverExitEvent;
-import ie.omk.smpp.event.SMPPEvent;
-
-import ie.omk.smpp.message.*;
-
-import ie.omk.smpp.util.GSMConstants;
-
-/** Example class to submit a message to a SMSC.
-  * This class simply binds to the server, submits a message and then unbinds.
-  */
+/** Example class to submit a message to a SMSC using asynchronous
+ * communication.
+ * This class simply binds to the server, submits a message,
+ * waits for the submit response from the server and unbinds.
+ * 
+ * @see ie.omk.smpp.examples.ParseArgs ParseArgs class for details on running
+ * this class.
+ */
 public class AsyncTransmitter implements ConnectionObserver {
 
     private Object blocker = new Object();
@@ -181,7 +186,7 @@ public class AsyncTransmitter implements ConnectionObserver {
 
 	    // Bind to the SMSC (as a transmitter)
 	    logger.info("Binding to the SMSC..");
-	    BindResp resp = myConnection.bind(myConnection.TRANSMITTER,
+	    BindResp resp = myConnection.bind(Connection.TRANSMITTER,
 		    (String)myArgs.get(ParseArgs.SYSTEM_ID),
 		    (String)myArgs.get(ParseArgs.PASSWORD),
 		    (String)myArgs.get(ParseArgs.SYSTEM_TYPE),

@@ -31,7 +31,6 @@ public class BindTransceiver
     extends ie.omk.smpp.message.Bind
 {
     /** Construct a new BindTransceiver.
-      * @param seqNum The sequence number to use
       */
     public BindTransceiver()
     {

@@ -48,7 +48,7 @@ public abstract class SMPPResponse
 
     /** Create a new SMPPResponse packet in response to a BindReceiver.
       * This constructor will set the sequence number to it's expected value.
-      * @param r The Request packet the response is to
+      * @param q The Request packet the response is to
       */
     public SMPPResponse(SMPPRequest q)
     {

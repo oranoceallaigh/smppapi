@@ -22,19 +22,16 @@
  */
 package ie.omk.smpp.examples;
 
-import java.util.HashMap;
-
 import ie.omk.smpp.Address;
 import ie.omk.smpp.Connection;
-import ie.omk.smpp.SMPPException;
-
-import ie.omk.smpp.message.*;
-import ie.omk.smpp.util.BinaryEncoding;
-import ie.omk.smpp.util.DefaultAlphabetEncoding;
-import ie.omk.smpp.util.GSMConstants;
-import ie.omk.smpp.util.UCS2Encoding;
-
+import ie.omk.smpp.message.BindResp;
+import ie.omk.smpp.message.SMPPPacket;
+import ie.omk.smpp.message.SubmitSM;
+import ie.omk.smpp.message.SubmitSMResp;
+import ie.omk.smpp.message.UnbindResp;
 import ie.omk.smpp.version.SMPPVersion;
+
+import java.util.HashMap;
 
 import org.apache.log4j.Logger;
 
@@ -42,6 +39,9 @@ import org.apache.log4j.Logger;
  * or receiver connection is less useful than using async mode as your
  * application must now poll the connection continuously for incoming delivery
  * messages from the SMSC.
+ * 
+ * @see ie.omk.smpp.examples.ParseArgs ParseArgs class for details on running
+ * this class.
  */
 public class SyncTransceiver {
 
@@ -75,7 +75,7 @@ public class SyncTransceiver {
 	    logger.info("Binding to the SMSC");
 
 	    // Bind the short way:
-	    BindResp resp = myConnection.bind(myConnection.TRANSCEIVER,
+	    BindResp resp = myConnection.bind(Connection.TRANSCEIVER,
 		    (String)myArgs.get(ParseArgs.SYSTEM_ID),
 		    (String)myArgs.get(ParseArgs.PASSWORD),
 		    (String)myArgs.get(ParseArgs.SYSTEM_TYPE),
