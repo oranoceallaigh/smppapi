@@ -93,7 +93,6 @@
         <pathelement location="${api-build}"/>
       </classpath>
     </javac>
-    <copy file="${examples-src}/smppapi.properties" todir="${examples-build}/ie/omk/smpp/examples"/>
   </target>
 
   <target name="clean-examples" depends="init">
@@ -102,7 +101,7 @@
   </target>
 
   <!-- Build the examples jar -->
-  <target name="examples-jar" depends="init,compile-examples">
+  <target name="examples-jar" depends="init,compile-examples,api-jar">
     <jar jarfile="${lib}/${examples-jar}">
       <fileset dir="${examples-build}"/>
     </jar>
@@ -116,9 +115,9 @@
       <classpath>
         <pathelement location="${lib}/junit.jar"/>
         <pathelement location="${api-build}"/>
+        <pathelement location="${examples-build}"/>
       </classpath>
     </javac>
-    <copy file="${tests-src}/log4j.properties" todir="${tests-build}"/>
   </target>
 
   <target name="clean-tests" depends="init">
@@ -126,16 +125,17 @@
     <delete file="${lib}/${tests-jar}"/>
   </target>
 
-  <target name="tests-jar" depends="init,compile-tests">
+  <target name="tests-jar" depends="init,compile-tests,api-jar">
     <jar jarfile="${lib}/${tests-jar}">
       <fileset dir="${tests-build}"/>
     </jar>
   </target>
 
   <target name="tests" depends="init,api-jar,tests-jar">
-    <java classname="junit.textui.TestRunner">
+    <java classname="junit.textui.TestRunner" fork="true">
       <arg value="ie.omk.smpp.AllTests"/>
       <classpath>
+        <pathelement location="${resources}"/>
         <path refid="build.classpath"/>
         <pathelement location="${lib}/junit.jar"/>
         <pathelement location="${lib}/${tests-jar}"/>
@@ -144,22 +144,35 @@
     </java>
   </target>
 
+  <target name="gui-tests" depends="init,api-jar,tests-jar">
+    <java classname="junit.swingui.TestRunner" fork="true">
+      <arg value="ie.omk.smpp.AllTests"/>
+      <classpath>
+        <pathelement location="${resources}"/>
+        <path refid="build.classpath"/>
+        <pathelement location="${lib}/junit.jar"/>
+        <pathelement location="${lib}/${tests-jar}"/>
+        <pathelement location="${lib}/${api-jar}"/>
+      </classpath>
+    </java>
+  </target>
+
+
   <!-- Build the distribution. -->
-  <!--target name="dist" depends="all">
+  <target name="dist" depends="all" if="releaseNumber">
     <delete dir="${dist}"/>
     <mkdir dir="${dist}/smppapi"/>
     <copy todir="${dist}/smppapi">
       <fileset dir=".">
         <exclude name="${dist}"/>
         <exclude name="${build}"/>
-        <exclude name="tests/**/*.class"/>
       </fileset>
     </copy>
 
-    <tar tarfile="${dist}/smppapi.tar" basedir="${dist}"/>
-    <gzip src="${dist}/smppapi.tar" zipfile="${dist}/smppapi.tar.gz"/>
-    <delete file="${dist}/smppapi.tar"/>
-  </target-->
+    <tar tarfile="${dist}/smppapi-${releaseNumber}.tar" basedir="${dist}"/>
+    <gzip src="${dist}/smppapi-${releaseNumber}.tar" zipfile="${dist}/smppapi-${releaseNumber}.tar.gz"/>
+    <delete file="${dist}/smppapi-${releaseNumber}.tar"/>
+  </target>
 
   <target name="clean-dist" depends="init">
     <delete dir="${dist}"/>
