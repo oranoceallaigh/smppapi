@@ -703,7 +703,6 @@ public abstract class SMPPPacket
     public void setMessage(byte[] message, int start, int len,
 	    MessageEncoding encoding) throws InvalidParameterValueException {
 
-	int maxLen = 0;
 	int dcs = -1;
 
 	// encoding should never be null, but for resilience, we check it here
@@ -711,15 +710,13 @@ public abstract class SMPPPacket
 	if (encoding == null)
 	    encoding = BinaryEncoding.getInstance();
 
-	maxLen = (version.getMaxLength(version.MESSAGE_PAYLOAD) * 8) 
-		/ encoding.getEncodingLength();
 	dcs = encoding.getDataCoding();
 
 	if (message != null) {
 	    if ((start < 0) || (len < 0) || message.length < (start + len))
 		throw new ArrayIndexOutOfBoundsException("Not enough bytes in array");
 
-	    if (len > maxLen)
+	    if (len > version.getMaxLength(version.MESSAGE_PAYLOAD))
 		throw new InvalidParameterValueException("Message is too long", message);
 
 	    this.message = new byte[len];
