@@ -909,15 +909,15 @@ public class Connection
 		} catch (InterruptedException x) {
 		    logger.debug("Interrupted exception waiting on receiver to die", x);
 		}
-		if (rcvThread.isAlive())
+		if (rcvThread != null)
 		    logger.error("Listener thread has not died.");
 
 		rcvThread = null;
 	    }
 
 	    link.close();
-	} catch(IOException ix) {
-	    logger.warn("Forced unbind caused IO exception", ix);
+	} catch(Throwable t) {
+	    logger.warn("Exception when trying to force unbind", t);
 	}
 	return;
     }
