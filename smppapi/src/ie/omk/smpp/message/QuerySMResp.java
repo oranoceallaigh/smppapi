@@ -58,16 +58,10 @@ public class QuerySMResp
 	if(commandStatus != 0)
 	    return;
 
-	try {
-	    // XXX shouldn't fail on number format
-	    messageId = Integer.parseInt(SMPPIO.readCString(in), 16);
-	    finalDate = new SMPPDate(SMPPIO.readCString(in));
-	    messageStatus =  SMPPIO.readInt(in, 1);
-	    errorCode =  SMPPIO.readInt(in, 1);
-	} catch(NumberFormatException nx) {
-	    throw new SMPPException("Error reading message Id from the input "
-		    + "stream.");
-	}
+	messageId = SMPPIO.readCString(in);
+	finalDate = new SMPPDate(SMPPIO.readCString(in));
+	messageStatus =  SMPPIO.readInt(in, 1);
+	errorCode =  SMPPIO.readInt(in, 1);
     }
 
     /** Create a new QuerySMResp packet in response to a BindReceiver.
@@ -89,10 +83,8 @@ public class QuerySMResp
       */
     public int getCommandLen()
     {
-	String id = Integer.toHexString(getMessageId());
-
-	int len =(getHeaderLen()
-		+ ((id != null) ? id.length() : 0)
+	int len = (getHeaderLen()
+		+ ((messageId != null) ? messageId.length() : 0)
 		+ ((finalDate != null) ?
 		    finalDate.toString().length() : 0));
 
@@ -108,7 +100,7 @@ public class QuerySMResp
     protected void encodeBody(OutputStream out)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
-	SMPPIO.writeCString(Integer.toHexString(getMessageId()), out);
+	SMPPIO.writeCString(getMessageId(), out);
 	SMPPIO.writeCString(finalDate.toString(), out);
 	SMPPIO.writeInt(messageStatus, 1, out);
 	SMPPIO.writeInt(errorCode, 1, out);

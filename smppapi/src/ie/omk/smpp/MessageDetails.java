@@ -40,7 +40,7 @@ import ie.omk.debug.Debug;
 public class MessageDetails
 {
     /** Message Id assigned by the SMSC to the message */
-    public int 			messageId = 0;
+    public String		messageId = null;
 
     /** Date and time (SMSC local time) that message reached a final state */
     public SMPPDate		finalDate = null;

@@ -61,13 +61,9 @@ public class QueryMsgDetails
 	if(commandStatus != 0)
 	    return;
 
-	try {
-	    messageId = Integer.parseInt(SMPPIO.readCString(in), 16);
-	    source = new SmeAddress(in);
-	    smLength =  SMPPIO.readInt(in, 1);
-	} catch(NumberFormatException nx) {
-	    throw new SMPPException("Error reading message Id from the input stream");
-	}
+	messageId = SMPPIO.readCString(in);
+	source = new SmeAddress(in);
+	smLength =  SMPPIO.readInt(in, 1);
     }
 
     /** Set the number of bytes of the original message required.
@@ -97,10 +93,8 @@ public class QueryMsgDetails
       */
     public int getCommandLen()
     {
-	String id = Integer.toHexString(getMessageId());
-
 	int len = (getHeaderLen()
-		+ ((id != null) ? id.length() : 0)
+		+ ((messageId != null) ? messageId.length() : 0)
 		+ ((source != null) ? source.size() : 3));
 
 	// 1 1-byte integer, 1 c-string
@@ -115,7 +109,7 @@ public class QueryMsgDetails
     protected void encodeBody(OutputStream out)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
-	SMPPIO.writeCString(Integer.toHexString(getMessageId()), out);
+	SMPPIO.writeCString(getMessageId(), out);
 
 	if(source != null) {
 	    source.writeTo(out);

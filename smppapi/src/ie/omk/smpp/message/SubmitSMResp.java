@@ -56,14 +56,7 @@ public class SubmitSMResp
 	if(commandStatus != 0)
 	    return;
 
-	try {
-	    // XXX should not fail on number format.
-	    messageId = Integer.parseInt(SMPPIO.readCString(in), 16);
-	} catch(NumberFormatException nx) {
-	    throw new SMPPException("Error reading message Id from the "
-		    + "input stream.");
-	}
-
+	messageId = SMPPIO.readCString(in);
     }
 
     /** Create a new SubmitSMResp packet in response to a SubmitSM.
@@ -80,10 +73,8 @@ public class SubmitSMResp
       */
     public int getCommandLen()
     {
-	String id = Integer.toHexString(getMessageId());
-
 	int len = (getHeaderLen()
-		+ ((id != null) ? id.length() : 0));
+		+ ((messageId != null) ? messageId.length() : 0));
 
 	// 1 c-string
 	return (len + 1);
@@ -97,7 +88,7 @@ public class SubmitSMResp
     protected void encodeBody(OutputStream out)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
-	SMPPIO.writeCString(Integer.toHexString(getMessageId()), out);
+	SMPPIO.writeCString(getMessageId(), out);
     }
 
     /** Convert this packet to a String. Not to be interpreted programmatically,

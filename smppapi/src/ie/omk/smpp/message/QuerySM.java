@@ -56,7 +56,7 @@ public class QuerySM
 	if(commandStatus != 0)
 	    return;
 
-	messageId = Integer.parseInt(SMPPIO.readCString(in), 16);
+	messageId = SMPPIO.readCString(in);
 	source = new SmeAddress(in);
     }
 
@@ -65,10 +65,8 @@ public class QuerySM
       */
     public int getCommandLen()
     {
-	String id = Integer.toHexString(getMessageId());
-
 	int len = (getHeaderLen()
-		+ ((id != null) ? id.length() : 0)
+		+ ((messageId != null) ? messageId.length() : 0)
 		+ ((source != null) ? source.size() : 3));
 
 	// 1 c-string
@@ -83,7 +81,7 @@ public class QuerySM
     protected void encodeBody(OutputStream out)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
-	SMPPIO.writeCString(Integer.toHexString(getMessageId()), out);
+	SMPPIO.writeCString(getMessageId(), out);
 	if(source != null) {
 	    source.writeTo(out);
 	} else {

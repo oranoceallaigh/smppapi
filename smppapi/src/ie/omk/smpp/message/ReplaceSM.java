@@ -63,7 +63,7 @@ public class ReplaceSM
 	String delivery, valid;
 	flags = new MsgFlags();
 	try {
-	    messageId = Integer.parseInt(SMPPIO.readCString(in), 16);
+	    messageId = SMPPIO.readCString(in);
 	    source = new SmeAddress(in);
 
 	    delivery = SMPPIO.readCString(in);
@@ -86,10 +86,8 @@ public class ReplaceSM
       */
     public int getCommandLen()
     {
-	String id = Integer.toHexString(getMessageId());
-
 	int len = (getHeaderLen()
-		+ ((id != null) ? id.length() : 0)
+		+ ((messageId != null) ? messageId.length() : 0)
 		+ ((source != null) ? source.size() : 3)
 		+ ((deliveryTime != null) ?
 		    deliveryTime.toString().length() : 0)
@@ -113,7 +111,7 @@ public class ReplaceSM
 	if(message != null)
 	    smLength = message.length();
 
-	SMPPIO.writeCString(Integer.toHexString(getMessageId()), out);
+	SMPPIO.writeCString(getMessageId(), out);
 	if(source != null) {
 	    source.writeTo(out);
 	} else {
