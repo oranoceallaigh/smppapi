@@ -106,8 +106,11 @@ public class BindReceiverResp
       */
     public int getCommandLen()
     {
-	return (getHeaderLen()
-		+ ((sysId != null) ? sysId.length() : 1));
+	int len = (getHeaderLen()
+		+ ((sysId != null) ? sysId.length() : 0));
+
+	// 1 c-string
+	return (len + 1);
     }
 
     /** Write a byte representation of this packet to an OutputStream

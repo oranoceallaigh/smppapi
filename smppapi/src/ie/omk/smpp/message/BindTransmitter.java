@@ -251,14 +251,13 @@ public class BindTransmitter
 	// Calculated as the size of the header plus 3 1-byte ints and
 	// 4 null-terminators for the strings plus the length of the strings
 	int len = (getHeaderLen()
-		+ 3 // 3 1-byte ints
 		+ ((sysId != null) ? sysId.length() : 0)
 		+ ((password != null) ? password.length() : 0)
 		+ ((sysType != null) ? sysType.length() : 0)
 		+ ((addressRange != null) ? addressRange.length() : 0));
 
-	// Length plus CString nul terminators!
-	return (len + 4);
+	// 3 1-byte integers, 4 c-strings
+	return (len + 3 + 4);
     }
 
     /** Write the byte representation of this packet to an OutputStream.

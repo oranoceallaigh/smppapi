@@ -85,8 +85,11 @@ public class DeliverSMResp
     {
 	String id = Integer.toHexString(getMessageId());
 
-	return (getHeaderLen() + 1
+	int len = (getHeaderLen() + 1
 		+ ((id != null) ? id.length() : 0));
+
+	// 1 c-string
+	return (len + 1);
     }
 
     /** Write a byte representation of this packet to an OutputStream

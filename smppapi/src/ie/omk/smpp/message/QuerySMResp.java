@@ -91,10 +91,13 @@ public class QuerySMResp
     {
 	String id = Integer.toHexString(getMessageId());
 
-	return(getHeaderLen() + 4
+	int len =(getHeaderLen()
 		+ ((id != null) ? id.length() : 0)
 		+ ((finalDate != null) ?
 		    finalDate.toString().length() : 0));
+
+	// 2 1-byte integers, 2 c-strings
+	return (len + 2 + 2);
     }
 
     /** Write a byte representation of this packet to an OutputStream

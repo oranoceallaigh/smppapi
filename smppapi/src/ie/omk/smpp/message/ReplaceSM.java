@@ -88,15 +88,17 @@ public class ReplaceSM
     {
 	String id = Integer.toHexString(getMessageId());
 
-	return (getHeaderLen()
-		+ 2 // XXX describe integers
-		+ ((id != null) ? id.length() : 1)
+	int len = (getHeaderLen()
+		+ ((id != null) ? id.length() : 0)
 		+ ((source != null) ? source.size() : 3)
 		+ ((deliveryTime != null) ?
-		    deliveryTime.toString().length() : 1)
+		    deliveryTime.toString().length() : 0)
 		+ ((expiryTime != null) ?
-		    expiryTime.toString().length() : 1)
-		+ ((message != null) ? message.length() : 1));
+		    expiryTime.toString().length() : 0)
+		+ ((message != null) ? message.length() : 0));
+
+	// 2 1-byte integers, 3 c-strings
+	return (len + 2 + 3);
     }
 
     /** Write a byte representation of this packet to an OutputStream

@@ -67,9 +67,12 @@ public class QuerySM
     {
 	String id = Integer.toHexString(getMessageId());
 
-	return (getHeaderLen()
-		+ ((id != null) ? id.length() : 1)
+	int len = (getHeaderLen()
+		+ ((id != null) ? id.length() : 0)
 		+ ((source != null) ? source.size() : 3));
+
+	// 1 c-string
+	return (len + 1);
     }
 
     /** Write a byte representation of this packet to an OutputStream

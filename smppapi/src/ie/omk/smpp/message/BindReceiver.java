@@ -266,12 +266,14 @@ public class BindReceiver
       */
     public int getCommandLen()
     {
-	return (getHeaderLen()
-		+ 3                         // 3 1-byte ints
-		+ ((sysId != null) ? sysId.length() : 1)
-		+ ((password != null) ? password.length() : 1)
-		+ ((sysType != null) ? sysType.length() : 1)
-		+ ((addressRange != null) ? addressRange.length() : 1));
+	int len = (getHeaderLen()
+		+ ((sysId != null) ? sysId.length() : 0)
+		+ ((password != null) ? password.length() : 0)
+		+ ((sysType != null) ? sysType.length() : 0)
+		+ ((addressRange != null) ? addressRange.length() : 0));
+
+	// 3 1-byte integers, 4 c-strings.
+	return (len + 3 + 4);
     }
 
     /** Write the byte representation of this packet to an OutputStream.

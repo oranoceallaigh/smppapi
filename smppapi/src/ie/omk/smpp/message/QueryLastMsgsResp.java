@@ -140,11 +140,15 @@ public class QueryLastMsgsResp
     {
 	int id;
 	String s = null;
+
+	// 1 1-byte integer!
 	int size = getHeaderLen() + 1;
 	Enumeration e = messageTable.elements();
 	while(e.hasMoreElements()) {
 	    id = ((Integer)e.nextElement()).intValue();
 	    s = Integer.toHexString(id);
+
+	    // String length plus nul-terminator..
 	    size += s.length() + 1;
 	}
 	return (size);
