@@ -61,7 +61,7 @@ public abstract class SmppConnection
     public static final int	UNBINDING = 3;
 
     /** Packet listener thread for Asyncronous comms. */
-    protected Thread		rcvThread = null;
+    private Thread		rcvThread = null;
 
     /** Milliseconds to timeout while waiting on I/O in listener thread. */
     protected long		timeout = 100;
@@ -137,7 +137,7 @@ public abstract class SmppConnection
     /** Set the state of this ESME.
       * @see ie.omk.smpp.SmppConnection#getState
       */
-    protected synchronized void setState(int state)
+    private synchronized void setState(int state)
     {
 	this.state = state;
     }
@@ -550,7 +550,7 @@ public abstract class SmppConnection
 		    catch(IOException ix) { }
 		    SmppConnectionDropPacket p =
 			new SmppConnectionDropPacket(0xffffffff);
-		    p.setMessage(ex.getMessage());
+		    p.setErrorMessage(ex.getMessage());
 		    notifyObservers(p);
 
 		    return;
@@ -565,7 +565,7 @@ public abstract class SmppConnection
 		    }
 		    SmppConnectionDropPacket p =
 			new SmppConnectionDropPacket(0xffffffff);
-		    p.setMessage(ix.getMessage());
+		    p.setErrorMessage(ix.getMessage());
 		    notifyObservers(p);
 		}
 

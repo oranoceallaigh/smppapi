@@ -80,16 +80,6 @@ public class SmppTransmitter
 	// Open the network connection if necessary.
 	super.openLink();
 
-	// Make sure the listener thread is running
-	setState(BINDING);
-	if(asyncComms) {
-	    if (rcvThread == null)
-		rcvThread = new Thread(this);
-
-	    if (!rcvThread.isAlive())
-		rcvThread.start();
-	}
-
 	BindTransmitter t = new BindTransmitter();
 	t.setSystemId(systemID);
 	t.setPassword(password);
@@ -101,13 +91,7 @@ public class SmppTransmitter
 
 	Debug.d(this ,"bind", "bind_transmitter sent", 3);
 
-	SMPPResponse resp = sendRequest(t);
-	if (!asyncComms) {
-	    if (resp.getCommandId() == SMPPPacket.ESME_BNDTRN_RESP
-		    && resp.getCommandStatus() == 0)
-		setState(BOUND);
-	}
-	return ((SMPPResponse)resp);
+	return ((SMPPResponse)sendRequest(t));
     }
 
 

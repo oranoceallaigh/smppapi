@@ -89,25 +89,9 @@ public class SmppReceiver
 	t.setAddressNpi(sourceRange.getNPI());
 	t.setAddressRange(sourceRange.getAddress());
 
-	// Make sure the listener thread is running
-	setState(BINDING);
-	if(asyncComms) {
-	    if (rcvThread == null)
-		rcvThread = new Thread(this);
-
-	    if (!rcvThread.isAlive())
-		rcvThread.start();
-	}
-
 	Debug.d(this, "bind", "bind_receiver sent", 3);
 
-	SMPPResponse resp = sendRequest(t);
-	if (!asyncComms) {
-	    if (resp.getCommandId() == SMPPPacket.ESME_BNDRCV_RESP
-		    && resp.getCommandStatus() == 0)
-		setState(BOUND);
-	}
-	return ((SMPPResponse)resp);
+	return ((SMPPResponse)sendRequest(t));
     }
 
     // XXX Should ackDeliverSm be moved in here?
