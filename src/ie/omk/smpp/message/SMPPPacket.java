@@ -773,7 +773,7 @@ public abstract class SMPPPacket
 	byte b[] = new byte[4];
 
 	for (int loop = 0; loop < 4; loop++)
-	    b[loop] = new Integer(in.read()).byteValue();
+	    b[loop] = (byte)in.read();
 
 	int cmdLen = SMPPIO.bytesToInt(b, 0, 4);
 	byte[] buf = new byte[cmdLen];
