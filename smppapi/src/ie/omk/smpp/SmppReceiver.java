@@ -78,10 +78,9 @@ public class SmppReceiver
 	    throw new AlreadyBoundException();
 
 	// Open the network connection if necessary
-	if(!link.isConnected())
-	    link.open();
+	super.openLink();
 
-	BindReceiver t = new BindReceiver(1);
+	BindReceiver t = new BindReceiver();
 	t.setSystemId(systemID);
 	t.setPassword(password);
 	t.setSystemType(systemType);
