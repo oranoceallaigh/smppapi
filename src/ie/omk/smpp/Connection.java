@@ -32,6 +32,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import ie.omk.smpp.event.ConnectionObserver;
+import ie.omk.smpp.event.EventDispatcher;
+import ie.omk.smpp.event.SimpleEventDispatcher;
 import ie.omk.smpp.event.SMPPEvent;
 import ie.omk.smpp.event.ReceiverExceptionEvent;
 import ie.omk.smpp.event.ReceiverExitEvent;
@@ -80,6 +82,7 @@ import ie.omk.smpp.message.UnbindResp;
 import ie.omk.smpp.net.SmscLink;
 import ie.omk.smpp.net.TcpLink;
 
+import ie.omk.smpp.util.AlphabetEncoding;
 import ie.omk.smpp.util.APIConfig;
 import ie.omk.smpp.util.DefaultSequenceScheme;
 import ie.omk.smpp.util.PacketFactory;
@@ -148,9 +151,6 @@ public class Connection
     /** Packet listener thread for Asyncronous comms. */
     private Thread		rcvThread = null;
 
-    /** The first ConnectionObserver added to this object. */
-    private ConnectionObserver	singleObserver = null;
-
     /** Queue of incoming packets to deliver to application before reading from
      * the network. The queue is used only in syncrhonized mode. In the case
      * where an application has sent a request to the SMSC and is blocked
@@ -162,11 +162,9 @@ public class Connection
      */
     private ArrayList		packetQueue = null;
 
-    /** The list of ConnectionObservers on this object. This list does
-     * <b>NOT</b> include the first observer referenced by
-     * <code>singleObserver</code>.
+    /** Object used to notify observers of SMPP events.
      */
-    private ArrayList		observers = null;
+    private EventDispatcher eventDispatcher = null;
 
     /** Byte buffer used in readNextPacketInternal. */
     private byte[]		buf = new byte[300];
@@ -198,6 +196,10 @@ public class Connection
 
     /** Is the user using synchronous are async communication?. */
     protected boolean		asyncComms = false;
+
+    /** The default alphabet to use for this connection.
+     */
+    protected AlphabetEncoding defaultAlphabet = null;
 
 
     /** Initialise a new SMPP connection object. This is a convenience
@@ -247,11 +249,51 @@ public class Connection
 	this.asyncComms = async;
 
 	if (asyncComms) {
-	    this.observers = new ArrayList();
-	    createRecvThread();
+	    initAsyncComms();
 	} else {
-	    packetQueue = new ArrayList();
+	    initSyncComms();
 	}
+    }
+
+    private void initAsyncComms() {
+	String className = "";
+	try {
+	    className = APIConfig.getInstance().getProperty(APIConfig.EVENT_DISPATCHER_CLASS);
+	    if (className != null && !"".equals(className)) {
+		Class cl = Class.forName(className);
+		eventDispatcher = (EventDispatcher)cl.newInstance();
+	    } else {
+		logger.info("EventDispatcher property value is empty.");
+	    }
+	} catch (PropertyNotFoundException x) {
+	    logger.debug("No event dispatcher specified in properties. Using default.");
+	} catch (ClassNotFoundException x) {
+	    logger.error("Cannot locate event dispatcher class " + className, x);
+	} catch (Exception x) {
+	    // Something wrong with the implementation.
+	    StringBuffer errorMessage = new StringBuffer();
+	    errorMessage.append("Event dispatcher implementation is ")
+		.append("incorrect.\n")
+		.append(className)
+		.append(" should implement ie.omk.smpp.event.EventDispatcher ")
+		.append("and have a default constructor.\n")
+		.append("Falling back to default implementation after ")
+		.append("receiving exception.");
+	    logger.error(errorMessage.toString(), x);
+	} finally {
+	    if (eventDispatcher == null)
+		eventDispatcher = new SimpleEventDispatcher();
+	}
+
+	// Initialise the event dispatcher
+	eventDispatcher.init();
+
+	// Create the receiver daemon thread.
+	createRecvThread();
+    }
+
+    private void initSyncComms() {
+	packetQueue = new ArrayList();
     }
 
     /** Create the receiver thread if asynchronous communications is on, does
@@ -262,6 +304,31 @@ public class Connection
 	logger.info("Creating receiver thread");
 	rcvThread = new Thread(this, "ReceiverDaemon");
 	rcvThread.setDaemon(true);
+    }
+
+    /** Set the default alphabet of the SMSC this <code>Connection</code> is
+     * communicating with. Each SMSC has its own default alphabet it uses. When
+     * messages arrive and announce themselves with a data coding value of zero,
+     * that means the message is encoded in the SMSC's default alphabet. The
+     * smppapi assumes the GSM default alphabet as it's default alphabet.  By
+     * setting the default alphabet on the <code>Connection</code> all packets
+     * returned by {@link #newInstance(int)} will use the Connection's default
+     * alphabet plus any packets read from the wire with a data coding value of
+     * zero will have their default alphabet initialised appropriately.
+     * @param alphabet the alphabet to use as the default for this connection
+     * (may be <code>null</code> in which case the API falls back to using its
+     * own internal default).
+     */
+    public void setDefaultAlphabet(AlphabetEncoding alphabet) {
+	this.defaultAlphabet = alphabet;
+    }
+
+    /** Get the current alphabet this <code>Connection</code> is using as its
+     * default.
+     * @return the default alphabet for this <code>Connection</code>.
+     */
+    public AlphabetEncoding getDefaultAlphabet() {
+	return (defaultAlphabet);
     }
 
     /** Set the state of this ESME.
@@ -564,8 +631,14 @@ public class Connection
 			&& resp.getSequenceNum() == expectedSeq) {
 		    break;
 		} else {
-		    logger.info("Received out-of-sequence packet from SMSC."
-			    + " Queueing it.");
+		    logger.info("Queuing unexpected sequence numbered packet.");
+		    if (logger.isDebugEnabled()) {
+			StringBuffer b = new StringBuffer("Expected:")
+			    .append(Integer.toString(expectedSeq))
+			    .append(" but got ")
+			    .append(Integer.toString(resp.getSequenceNum()));
+			logger.debug(b.toString());
+		    }
 		    packetQueue.add(resp);
 		}
 	    }
@@ -979,14 +1052,21 @@ public class Connection
 
 	    this.buf = link.read(this.buf);
 	    id = SMPPIO.bytesToInt(this.buf, 4, 4);
-	    if (logger.isDebugEnabled())
-		logger.debug("Packet received: "
-			+ Integer.toHexString(id));
-
 	    pak = PacketFactory.newInstance(id);
 
 	    if (pak != null) {
 		pak.readFrom(this.buf, 0);
+		if (logger.isDebugEnabled()) {
+		    StringBuffer b = new StringBuffer("Packet Received: ");
+		    int l = pak.getLength();
+		    int s = pak.getCommandStatus();
+		    int n = pak.getSequenceNum();
+		    b.append("id:").append(Integer.toHexString(id));
+		    b.append(" len:").append(Integer.toString(l));
+		    b.append(" st:").append(Integer.toString(s));
+		    b.append(" sq:").append(Integer.toString(n));
+		    logger.debug(b.toString());
+		}
 
 		// Special case handling for certain packet types..
 		st = pak.getCommandStatus();
@@ -1004,6 +1084,15 @@ public class Connection
 		case SMPPPacket.UNBIND:
 		    handleUnbind((Unbind)pak);
 		    break;
+		}
+
+		if (st == 0) {
+		    // Fix up the alphabet for this connection type if the
+		    // packet needs it. DCS value 0 means the alphabet is in the
+		    // default encoding of the SMSC, which varies depending on
+		    // implementation.
+		    if (defaultAlphabet != null && pak.getDataCoding() == 0)
+			pak.setAlphabet(defaultAlphabet);
 		}
 	    }
 
@@ -1037,88 +1126,64 @@ public class Connection
 	}
     }
 
+    /** Set the event dispatcher for this connection object. Before using the
+     * new event dispatcher, this method will call
+     * {@link EventDispatcher#init} to initialise the dispatcher. It will then
+     * iterate through all the observers registered with the current event
+     * dispatcher and register them with the new one.
+     * <p>It is not a particularly good idea to set the event dispatcher after
+     * communications have begun. However, the observer copy is guarded against
+     * multi-threaded access to the current event dispatcher. During the copy,
+     * however, events will continue to be delievered via the current
+     * dispatcher. Only <b>after</b> the copy is complete will the new event
+     * dispatcher become the active one and events begin being delivered by
+     * it.</p>
+     * <p>The caller of this method can be sure that, once this method returns,
+     * all new events will be handled by the new event dispatcher. However,
+     * there may be events that occurred before, or during the operation of, the
+     * call to this method which will be delivered by the old dispatcher. Once
+     * the new event dispatcher is in place, the {@link EventDispatcher#destroy}
+     * method will be called on the old dispatcher.</p>
+     */
+    public void setEventDispatcher(EventDispatcher eventDispatcher) {
+	if (eventDispatcher == null)
+	    throw new NullPointerException("Event dispatcher cannot be null");
+
+	eventDispatcher.init();
+
+	// Copy all current observers to the new event dispatcher..
+	synchronized (this.eventDispatcher) {
+	    Iterator iter = this.eventDispatcher.observerIterator();
+	    while (iter.hasNext())
+		eventDispatcher.addObserver((ConnectionObserver)iter.next());
+	}
+
+	EventDispatcher old = this.eventDispatcher;
+
+	// ..and swap out the old dispatcher.
+	this.eventDispatcher = eventDispatcher;
+
+	// Clean up the old dispatcher.
+	old.destroy();
+    }
+
     /** Add a connection observer to receive SMPP events from this connection.
      * If this connection is not using asynchronous communication, this method
      * call has no effect.
      * @param ob the ConnectionObserver implementation to add.
      */
-    public void addObserver(ConnectionObserver ob)
-    {
-	if (!asyncComms)
-	    return;
-
-	synchronized (observers) {
-	    if (singleObserver == ob || observers.contains(ob))
-		return;
-
-	    if (singleObserver == null)
-		singleObserver = ob;
-	    else
-		observers.add(ob);
-	}
+    public void addObserver(ConnectionObserver ob) {
+	if (eventDispatcher != null)
+	    eventDispatcher.addObserver(ob);
     }
 
     /** Remove a connection observer from this Connection.
      */
-    public void removeObserver(ConnectionObserver ob)
-    {
-	if (!asyncComms)
-	    return;
-
-	synchronized (observers) {
-	    if (observers.contains(ob))
-		observers.remove(observers.indexOf(ob));
-	    else if (ob == singleObserver)
-		singleObserver = null;
-	}
+    public void removeObserver(ConnectionObserver ob) {
+	if (eventDispatcher != null)
+	    eventDispatcher.removeObserver(ob);
     }
 
-
-    /** Notify observers of a packet received.
-     * @param pak the received packet.
-     */
-    protected void notifyObservers(SMPPPacket pak)
-    {
-	// Due to multi-threading, singleObserver could be set to null (by
-	// removeObserver) after we've checked that it's not. No action is
-	// necessary if this happens...it just means the observer, which has
-	// been removed, will not get the event.
-	try {
-	    if (singleObserver != null)
-		singleObserver.packetReceived(this, pak);
-	} catch (NullPointerException x) {
-	    logger.debug("singleObserver was removed before packet notification");
-	}
-
-	if (!observers.isEmpty()) {
-	    Iterator i = observers.iterator();
-	    while (i.hasNext())
-		((ConnectionObserver)i.next()).packetReceived(this, pak);
-	}
-    }
-
-    /** Notify observers of an SMPP control event.
-     * @param event the control event to send notification of.
-     */
-    protected void notifyObservers(SMPPEvent event)
-    {
-	// Due to multi-threading, singleObserver could be set to null (by
-	// removeObserver) after we've checked that it's not. No action is
-	// necessary if this happens...it just means the observer, which has
-	// been removed, will not get the event.
-	try {
-	    if (singleObserver != null)
-		singleObserver.update(this, event);
-	} catch (NullPointerException x) {
-	    logger.debug("singleObserver was removed before packet notification");
-	}
-
-	if (!observers.isEmpty()) {
-	    Iterator i = observers.iterator();
-	    while (i.hasNext())
-		((ConnectionObserver)i.next()).update(this, event);
-	}
-    }
 
     /** Listener thread method for asynchronous communication.
       */
@@ -1140,7 +1205,7 @@ public class Connection
 		    + tooManyIOEx);
 	}
 
-	notifyObservers(new ReceiverStartEvent(this));
+	eventDispatcher.notifyObservers(this, new ReceiverStartEvent(this));
 	try {
 	    while (state != UNBOUND) {
 		try {
@@ -1165,7 +1230,7 @@ public class Connection
 		    logger.warn("I/O Exception caught", x);
 		    ReceiverExceptionEvent ev =
 			new ReceiverExceptionEvent(this, x, state);
-		    notifyObservers(ev);
+		    eventDispatcher.notifyObservers(this, ev);
 		    smppEx++;
 		    if (smppEx > tooManyIOEx) {
 			logger.warn("Too many IOExceptions in receiver thread", x);
@@ -1174,6 +1239,10 @@ public class Connection
 
 		    continue;
 		}
+
+		// Reset smppEx back to zero if we reach here, as packet
+		// reception was successful.
+		smppEx = 0;
 
 		id = pak.getCommandId();
 		st = pak.getCommandStatus();
@@ -1193,7 +1262,7 @@ public class Connection
 
 		// Tell all the observers about the new packet
 		logger.info("Notifying observers of packet received");
-		notifyObservers(pak);
+		eventDispatcher.notifyObservers(this, pak);
 	    } // end while
 
 	    // Notify observers that the thread is exiting with no error..
@@ -1208,7 +1277,11 @@ public class Connection
 	}
 
 	if (exitEvent != null)
-	    notifyObservers(exitEvent);
+	    eventDispatcher.notifyObservers(this, exitEvent);
+
+
+	// Clean up the event dispatcher.
+	eventDispatcher.destroy();
     }
 
     /**
@@ -1242,6 +1315,9 @@ public class Connection
 	response.setVersion(this.interfaceVersion);
 	if (this.seqNumScheme != null)
 	    response.setSequenceNum(this.seqNumScheme.nextNumber());
+
+	if (defaultAlphabet != null)
+	    response.setAlphabet(defaultAlphabet);
 
 	return (response);
     }
