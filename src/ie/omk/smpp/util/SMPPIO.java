@@ -166,21 +166,27 @@ public class SMPPIO
       */
     public static final byte[] intToBytes(int num, int len)
     {
-	return (SMPPIO.intToBytes(num, len, null, 0));
+	return (intToBytes(num, len, null, 0));
     }
 
-    /** Convert an integer to a byte array in MSB first order
-      * @param num The number to store
-      * @param len The length of the integer to convert (that is, the number of
-      * bytes to generate).
-      * @param b the byte array to write the integer to.
-      * @param offset the offset in <code>b</code> to write the integer to.
-      * @return An array of length len containing the byte representation of
-      * num.
-      */
-    public static final byte[] intToBytes(int num, int len,
-	    byte[] b, int offset)
-    {
+    /** Convert an integer to a byte array in MSB first order. This method
+     * exists as well as the <code>longToBytes</code> method for performance
+     * reasons. More often than not, a 4-byte value is the largest being
+     * converted...doing that using <code>ints</code> instead of
+     * <code>longs</code> will offer a slight performance increase. The code for
+     * the two methods is identical except for using ints instead of longs to
+     * hold mask, shiftwidth and number values.
+     * @param num The number to store
+     * @param len The length of the integer to convert (that is, the number of
+     * bytes to generate).
+     * @param b the byte array to write the integer to.
+     * @param offset the offset in <code>b</code> to write the integer to.
+     * @return An array of length len containing the byte representation of
+     * num.
+     */
+    public static final byte[] intToBytes(int num, int len, byte[] b,
+	    int offset) {
+
 	if (b == null) {
 	    b = new byte[len];
 	    offset = 0;
@@ -190,6 +196,47 @@ public class SMPPIO
 
 	for (int l = 0; l < len; l++) {
 	    b[offset + l] = (byte)((num & mask) >>> sw);
+
+	    sw -= 8;
+	    mask >>>= 8;
+	}
+
+	return (b);
+    }
+
+    /** Convert a long to a byte array in MSB first order.
+      * @param num The number to store
+      * @param len The length of the integer to convert (that is, the number of
+      * bytes to generate).
+      * @return An array of length len containing the byte representation of
+      * num.
+      */
+    public static final byte[] longToBytes(long num, int len) {
+	return (longToBytes(num, len, null, 0));
+    }
+
+    /** Convert a long to a byte array in MSB first order.
+      * @param num The number to store
+      * @param len The length of the integer to convert (that is, the number of
+      * bytes to generate).
+      * @param b the byte array to write the integer to.
+      * @param offset the offset in <code>b</code> to write the integer to.
+      * @return An array of length len containing the byte representation of
+      * num.
+      */
+    public static final byte[] longToBytes(long num, int len, byte[] b,
+	    int offset) {
+
+	if (b == null) {
+	    b = new byte[len];
+	    offset = 0;
+	}
+	long sw = ((len - 1) * 8);
+	long mask = (0xffL << sw);
+
+	for (int l = 0; l < len; l++) {
+	    b[offset + l] = (byte)((num & mask) >>> sw);
+
 	    sw -= 8;
 	    mask >>>= 8;
 	}
@@ -207,11 +254,24 @@ public class SMPPIO
       */
     public static final int bytesToInt(byte[] b, int offset, int size)
     {
-	int num = 0;
+	return ((int)bytesToLong(b, offset, size));
+    }
+
+    /** Convert a byte array (or part thereof) into a long.
+      * The byte array should be in big-endian form. That is, the byte at index
+      * 'offset' should be the MSB.
+      * @param b The array containing the bytes
+      * @param offset The array index of the MSB
+      * @param size The number of bytes to convert into the long
+      * @return An long value represented by the specified bytes.
+      */
+    public static final long bytesToLong(byte[] b, int offset, int size)
+    {
+	long num = 0;
 	int sw = 8 * (size - 1);
 
 	for (int loop = 0; loop < size; loop++) {
-	    num |= ((int)b[offset + loop] & 0x00ff) << sw;
+	    num |= ((long)b[offset + loop] & 0x00ff) << sw;
 	    sw -= 8;
 	}
 
