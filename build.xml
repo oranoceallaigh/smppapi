@@ -45,7 +45,8 @@
   <!-- Build the API -->
   <target name="compile-api" depends="init">
     <mkdir dir="${api-build}"/>
-    <javac srcdir="${api-src}" destdir="${api-build}" deprecation="true">
+    <javac srcdir="${api-src}" destdir="${api-build}" deprecation="true"
+      debug="${build.debug}">
       <classpath refid="build.classpath"/>
     </javac>
   </target>
@@ -111,7 +112,8 @@
   <!-- Build the tests -->
   <target name="compile-tests" depends="init,compile-api">
     <mkdir dir="${tests-build}"/>
-    <javac srcdir="${tests-src}" destdir="${tests-build}" deprecation="true">
+    <javac srcdir="${tests-src}" destdir="${tests-build}" deprecation="true"
+      debug="${build.debug}">
       <classpath>
         <pathelement location="${lib}/junit.jar"/>
         <pathelement location="${api-build}"/>
