@@ -52,8 +52,8 @@
   <target name="docs">
     <mkdir dir="${docs}/${apiDoc}"/>
     <javadoc sourcepath="src"
-      destdir="${docs}/${apiDoc}"
-             packagenames="ie.omk.smpp,ie.omk.smpp.message,ie.omk.smpp.net,ie.omk.smpp.util,ie.omk.debug"
+             destdir="${docs}/${apiDoc}"
+             packagenames="ie.omk.smpp,ie.omk.smpp.message,ie.omk.smpp.net,ie.omk.smpp.util,ie.omk.smpp.event"
              Overview="docs/overview.html"
              protected="true"
              version="true"
