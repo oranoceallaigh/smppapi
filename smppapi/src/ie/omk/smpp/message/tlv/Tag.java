@@ -220,7 +220,6 @@ public class Tag implements java.io.Serializable {
 	this (tag, type, null, minLength, maxLength);
     }
 
-    // XXX document that the TagDefinedException it thrown
     /** Create a new Tag.
      * @param tag The integer value of the tag.
      * @param type The allowed Java type for the value

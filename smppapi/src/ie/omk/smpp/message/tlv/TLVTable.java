@@ -158,7 +158,6 @@ public class TLVTable implements java.io.Serializable {
 	return (map.containsKey(tag));
     }
 
-    // XXX document the invalid size & type exception
     /** Set a value for an optional parameter.
      * @param tag The tag of the parameter to set.
      * @param value The value of the parameter to set.
