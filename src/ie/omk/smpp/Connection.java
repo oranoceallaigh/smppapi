@@ -94,11 +94,6 @@ public class Connection
     /** The network link (virtual circuit) to the SMSC */
     private SmscLink		link = null;
 
-    /** SMPP protocol version number. This may be negotiated by the bind
-     * operation.
-     */
-    //protected int		interfaceVersion = 0x33; // XXX remove
-
     /** SMPP protocol version number.
      */
     protected SMPPVersion	interfaceVersion = SMPPVersion.V33;
