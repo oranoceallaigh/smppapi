@@ -23,51 +23,43 @@
 
 <!--  $Id$                                                                 -->
 
-<project name="smppapi" basedir="." default="jar">
-  <!-- Set this to 'modern' to use Sun's JDK -->
-  <property name="build.compiler" value="jikes"/>
-  <!-- Set this to true for using Emacs or Vim quickfix mode -->
-  <property name="build.compiler.emacs" value="true"/>
+<project name="smppapi" basedir="." default="api-jar">
 
-  <property name="build" value="classes"/>
+  <!-- Load in the build properties -->
+  <property file="build.properties"/>
 
-  <property name="api-build" value="${build}/smppapi"/>
-  <property name="api-src" value="src"/>
-  <property name="dist" value="dist"/>
-  <property name="examples-build" value="${build}/examples"/>
-  <property name="examples-src" value="examples"/>
-  <property name="jar" value="smppapi.jar"/>
-  <property name="tests-build" value="${build}/tests"/>
-  <property name="tests-src" value="tests"/>
 
-  <property name="docs" value="docs"/>
-  <property name="apiDoc" value="${docs}/apiDocs"/>
+  <!-- Any libraries needed to build the base API go in here. -->
+  <path id="build.classpath">
+    <pathelement location="${lib}/log4j-1.2.5.jar"/>
+  </path>
 
-  <!-- Create the destination directory -->
+
   <target name="init">
     <tstamp/>
   </target>
 
   <!-- Build all -->
-  <target name="all" depends="init,compile-api,compile-examples,compile-tests,jar,docs"/>
+  <target name="all" depends="init,api-jar,examples-jar,docs,tests-jar,tests"/>
 
   <!-- Build the API -->
   <target name="compile-api" depends="init">
     <mkdir dir="${api-build}"/>
-    <javac srcdir="${api-src}" destdir="${api-build}" deprecation="true"/>
+    <javac srcdir="${api-src}" destdir="${api-build}" deprecation="true">
+      <classpath refid="build.classpath"/>
+    </javac>
   </target>
 
   <!-- Build the smppapi Jar file -->
-  <target name="jar" depends="init,compile-api,compile-examples">
-    <jar jarfile="${jar}">
+  <target name="api-jar" depends="init,compile-api">
+    <jar jarfile="${lib}/${api-jar}">
       <fileset dir="${api-build}"/>
-      <!-- When the examples get moved into their own package, include them in the jar. -->
-      <!-- fileset dir="${examples-build}"/ -->
     </jar>
   </target>
 
   <target name="clean-api" depends="init">
     <delete dir="${api-build}"/>
+    <delete file="${lib}/${api-jar}"/>
   </target>
 
   <!-- Build the javadoc files -->
@@ -82,9 +74,9 @@
              author="true"
              Windowtitle="Java SMPP API documentation"
              bottom="&lt;font size=-1&gt;&lt;i&gt;&amp;copy; Copyright 2002 by Oran Kelly&lt;/i&gt;&lt;/font&gt;"
-             header="&lt;b&gt;&lt;font size=-1&gt;SMPPAPI&lt;/font&gt;&lt;br&gt;documentation&lt;/b&gt;"/>
-
-
+             header="&lt;b&gt;&lt;font size=-1&gt;SMPPAPI&lt;/font&gt;&lt;br&gt;documentation&lt;/b&gt;">
+      <classpath refid="build.classpath"/>
+    </javadoc>
   </target>
 
   <target name="clean-docs" depends="init">
@@ -97,14 +89,23 @@
     <javac srcdir="${examples-src}" destdir="${examples-build}"
         deprecation="true">
       <classpath>
-        <pathelement path="${classpath}"/>
+        <path refid="build.classpath"/>
         <pathelement location="${api-build}"/>
       </classpath>
     </javac>
+    <copy file="${examples-src}/smppapi.properties" todir="${examples-build}/ie/omk/smpp/examples"/>
   </target>
 
   <target name="clean-examples" depends="init">
     <delete dir="${examples-build}"/>
+    <delete file="${lib}/${examples-jar}"/>
+  </target>
+
+  <!-- Build the examples jar -->
+  <target name="examples-jar" depends="init,compile-examples">
+    <jar jarfile="${lib}/${examples-jar}">
+      <fileset dir="${examples-build}"/>
+    </jar>
   </target>
 
 
@@ -113,22 +114,38 @@
     <mkdir dir="${tests-build}"/>
     <javac srcdir="${tests-src}" destdir="${tests-build}" deprecation="true">
       <classpath>
-        <pathelement path="${classpath}"/>
+        <pathelement location="${lib}/junit.jar"/>
         <pathelement location="${api-build}"/>
       </classpath>
     </javac>
+    <copy file="${tests-src}/log4j.properties" todir="${tests-build}"/>
   </target>
 
   <target name="clean-tests" depends="init">
     <delete dir="${tests-build}"/>
+    <delete file="${lib}/${tests-jar}"/>
   </target>
 
-  <target name="tests" depends="compile-tests,init">
-    <echo message="Automatic test running not done yet"/>
+  <target name="tests-jar" depends="init,compile-tests">
+    <jar jarfile="${lib}/${tests-jar}">
+      <fileset dir="${tests-build}"/>
+    </jar>
+  </target>
+
+  <target name="tests" depends="init,api-jar,tests-jar">
+    <java classname="junit.textui.TestRunner">
+      <arg value="ie.omk.smpp.AllTests"/>
+      <classpath>
+        <path refid="build.classpath"/>
+        <pathelement location="${lib}/junit.jar"/>
+        <pathelement location="${lib}/${tests-jar}"/>
+        <pathelement location="${lib}/${api-jar}"/>
+      </classpath>
+    </java>
   </target>
 
   <!-- Build the distribution. -->
-  <target name="dist" depends="all">
+  <!--target name="dist" depends="all">
     <delete dir="${dist}"/>
     <mkdir dir="${dist}/smppapi"/>
     <copy todir="${dist}/smppapi">
@@ -142,7 +159,7 @@
     <tar tarfile="${dist}/smppapi.tar" basedir="${dist}"/>
     <gzip src="${dist}/smppapi.tar" zipfile="${dist}/smppapi.tar.gz"/>
     <delete file="${dist}/smppapi.tar"/>
-  </target>
+  </target-->
 
   <target name="clean-dist" depends="init">
     <delete dir="${dist}"/>
@@ -150,7 +167,6 @@
 
   <!-- Clean up -->
   <target name="clean" depends="clean-dist,clean-docs,clean-tests,clean-examples,clean-api">
-    <delete file="${jar}"/>
     <delete dir="${build}"/>
   </target>
 </project>
