@@ -30,10 +30,10 @@ public class AllTests {
     public static Test suite() {
 	TestSuite suite = new TestSuite();
 
-	suite.addTest(ie.omk.smpp.PackageTests.suite());
 	suite.addTest(ie.omk.smpp.util.PackageTests.suite());
-	suite.addTest(ie.omk.smpp.message.PackageTests.suite());
 	suite.addTest(ie.omk.smpp.message.tlv.PackageTests.suite());
+	suite.addTest(ie.omk.smpp.message.PackageTests.suite());
+	suite.addTest(ie.omk.smpp.PackageTests.suite());
 
 	return (suite);
     }
