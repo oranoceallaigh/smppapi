@@ -4,10 +4,5 @@ Connection: Force binding to be done through the bind method. Do not allow
 sendRequest to be used for binding. Simplifies the "special case" handling...do
 the same thing for unbind.
 
-Tests on optional parameters: are they encoding to output stream properly. Any
-exceptions in 'em. Basically: test them!
-
-examples / tests cleanup. Args.java...where does it go?
-
 Code up Outbind and a simple outbind listener class!
 
