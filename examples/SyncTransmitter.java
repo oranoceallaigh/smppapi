@@ -61,7 +61,7 @@ public class SyncTransmitter
 		System.err.println("Error submitting message.");
 	    } else {
 		System.out.println("Message submitted. ID is \""
-			+ Integer.toHexString(smr.getMessageId()) + "\"");
+			+ smr.getMessageId() + "\"");
 	    }
 
 	    System.out.println("Unbinding from SMSC...");

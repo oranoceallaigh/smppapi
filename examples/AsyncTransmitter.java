@@ -58,6 +58,8 @@ public class AsyncTransmitter
 	SmppEvent ev = (SmppEvent)arg;
 	SMPPPacket pak = ev.getPacket();
 
+	System.out.println("Packet received: Id = "
+		+ Integer.toHexString(pak.getCommandId()));
 	switch (pak.getCommandId()) {
 
 	// Bind transmitter response. Check it's status for success...
@@ -66,9 +68,9 @@ public class AsyncTransmitter
 		System.out.println("Error binding to the SMSC. Error = "
 			+ pak.getCommandStatus());
 	    } else {
-		System.out.println("Successfully bound to SMSC "
+		System.out.println("\tSuccessfully bound to SMSC \""
 			+ ((BindTransmitterResp)pak).getSystemId()
-			+ ".\nSubmitting message...");
+			+ "\".\n\tSubmitting message...");
 		send(trans);
 	    }
 	    break;
@@ -76,19 +78,19 @@ public class AsyncTransmitter
 	// Submit message response...
 	case SMPPPacket.ESME_SUB_SM_RESP:
 	    if (pak.getCommandStatus() != 0) {
-		System.out.println("Message was not submitted. Error code: "
+		System.out.println("\tMessage was not submitted. Error code: "
 			+ pak.getCommandStatus());
 	    } else {
-		System.out.println("Message Submitted! Id = "
-			+ Integer.toHexString(
-			    ((SubmitSMResp)pak).getMessageId()));
+		System.out.println("\tMessage Submitted! Id = "
+			    + ((SubmitSMResp)pak).getMessageId());
 	    }
 
 	    // Unbind. The Connection's listener thread will stop itself..
 	    try {
 		trans.unbind();
 	    } catch (IOException x) {
-		System.err.println("Unbind error. Closing network connection.");
+		System.err.println("\tUnbind error. Closing network "
+			+ "connection.");
 		x.printStackTrace(System.err);
 	    } catch (SMPPException x) {
 		x.printStackTrace(System.err);
@@ -97,11 +99,11 @@ public class AsyncTransmitter
 
 	// Unbind response..
 	case SMPPPacket.ESME_UBD_RESP:
-	    System.out.println("Unbound.");
+	    System.out.println("\tUnbound.");
 	    break;
 
 	default:
-	    System.out.println("Unknown response received! Id = "
+	    System.out.println("\tUnknown response received! Id = "
 		    + pak.getCommandId());
 	}
     }
