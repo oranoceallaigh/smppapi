@@ -21,6 +21,7 @@
  * Java SMPP API Homepage: http://smppapi.sourceforge.net/
  * $Id$
  */
+package ie.omk.smpp.examples;
 
 import java.io.IOException;
 
@@ -44,7 +45,7 @@ import ie.omk.smpp.util.GSMConstants;
 /** Example class to submit a message to a SMSC.
   * This class simply binds to the server, submits a message and then unbinds.
   */
-public class AsyncTransmitter
+public class AsyncTransmitter extends SMPPExample
     implements ConnectionObserver
 {
     private Object blocker = new Object();
@@ -61,21 +62,21 @@ public class AsyncTransmitter
 
     public void packetReceived(Connection trans, SMPPPacket pak)
     {
-	System.out.println("Packet received: Id = "
+	logger.info("Packet received: Id = "
 		+ Integer.toHexString(pak.getCommandId()));
 	switch (pak.getCommandId()) {
 
 	// Bind transmitter response. Check it's status for success...
 	case SMPPPacket.BIND_TRANSMITTER_RESP:
 	    if (pak.getCommandStatus() != 0) {
-		System.out.println("Error binding to the SMSC. Error = "
+		logger.info("Error binding to the SMSC. Error = "
 			+ pak.getCommandStatus());
 
 		synchronized (blocker) {
 		    blocker.notify();
 		}
 	    } else {
-		System.out.println("\tSuccessfully bound to SMSC \""
+		logger.info("\tSuccessfully bound to SMSC \""
 			+ ((BindTransmitterResp)pak).getSystemId()
 			+ "\".\n\tSubmitting message...");
 		send(trans);
@@ -85,10 +86,10 @@ public class AsyncTransmitter
 	// Submit message response...
 	case SMPPPacket.SUBMIT_SM_RESP:
 	    if (pak.getCommandStatus() != 0) {
-		System.out.println("\tMessage was not submitted. Error code: "
+		logger.info("\tMessage was not submitted. Error code: "
 			+ pak.getCommandStatus());
 	    } else {
-		System.out.println("\tMessage Submitted! Id = "
+		logger.info("\tMessage Submitted! Id = "
 			    + ((SubmitSMResp)pak).getMessageId());
 	    }
 
@@ -96,9 +97,9 @@ public class AsyncTransmitter
 	    try {
 		trans.unbind();
 	    } catch (IOException x) {
-		System.err.println("\tUnbind error. Closing network "
+		logger.info("\tUnbind error. Closing network "
 			+ "connection.");
-		x.printStackTrace(System.err);
+		logger.warn("Exception", x);
 		synchronized (blocker) {
 		    blocker.notify();
 		}
@@ -107,11 +108,11 @@ public class AsyncTransmitter
 
 	// Unbind response..
 	case SMPPPacket.UNBIND_RESP:
-	    System.out.println("\tUnbound.");
+	    logger.info("\tUnbound.");
 	    break;
 
 	default:
-	    System.out.println("\tUnknown response received! Id = "
+	    logger.info("\tUnknown response received! Id = "
 		    + pak.getCommandId());
 	}
     }
@@ -119,11 +120,11 @@ public class AsyncTransmitter
     private void receiverExit(Connection trans, ReceiverExitEvent ev)
     {
 	if (!ev.isException()) {
-	    System.out.println("Receiver thread has exited normally.");
+	    logger.info("Receiver thread has exited normally.");
 	} else {
 	    Throwable t = ev.getException();
-	    System.out.println("Receiver thread died due to exception:");
-	    t.printStackTrace(System.out);
+	    logger.info("Receiver thread died due to exception:");
+	    logger.warn("Exception", t);
 	}
 
 	synchronized (blocker) {
@@ -145,19 +146,19 @@ public class AsyncTransmitter
 	    sm.setMessageText(message);
 	    trans.sendRequest(sm);
 	} catch (IOException x) {
-	    x.printStackTrace(System.err);
+	    logger.warn("I/O Exception", x);
 	} catch (SMPPException x) {
-	    x.printStackTrace(System.err);
+	    logger.warn("SMPP Exception", x);
 	}
     }
 
     private void doit(String[] clargs)
     {
 	try {
-	    Args args = new Args(clargs);
+	    parseArgs(clargs);
 
 	    // Open a network link to the SMSC..
-	    TcpLink link = new TcpLink(args.hostName, args.port);
+	    TcpLink link = new TcpLink(hostName, port);
 
 	    // Create a Connection object (we won't bind just yet..)
 	    Connection trans = new Connection(link, true);
@@ -169,26 +170,25 @@ public class AsyncTransmitter
 	    trans.autoAckLink(true);
 
 	    Address range = null;
-	    if (args.sourceRange != null)
-		range = new Address(args.ton, args.npi, args.sourceRange);
+	    if (sourceRange != null)
+		range = new Address(ton, npi, sourceRange);
 
 	    // Bind to the SMSC (as a transmitter)
-	    System.out.println("Binding to the SMSC..");
+	    logger.info("Binding to the SMSC..");
 	    trans.bind(Connection.TRANSMITTER,
-		    args.sysID,
-		    args.password,
-		    args.sysType);
+		    sysID,
+		    password,
+		    sysType);
 
 	    synchronized (blocker) {
 		blocker.wait();
 	    }
 	} catch (IOException x) {
-	    x.printStackTrace(System.err);
+	    logger.warn("I/O Exception", x);
 	} catch (SMPPException x) {
-	    System.err.println("SMPP exception: " + x.getMessage());
-	    x.printStackTrace(System.err);
+	    logger.warn("SMPP exception", x);
 	} catch (InterruptedException x) {
-	    x.printStackTrace(System.err);
+	    logger.warn("Interrupted exception", x);
 	}
     }
 
