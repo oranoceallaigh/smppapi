@@ -166,7 +166,8 @@ public class Test_Sizes
 
 	System.out.println("\n\n========= Filled in field check ==========");
 	try {
-	    BindReceiver br = new BindReceiver(6);
+	    BindReceiver br = new BindReceiver();
+	    br.setSequenceNum(5);
 	    n = br.getClass().getName();
 	    obj[loop++] = br;
 	    br.setSystemId("sysId");
@@ -178,12 +179,14 @@ public class Test_Sizes
 			GSMConstants.GSM_NPI_UNKNOWN,
 			"65534[1-3]"));
 
-	    BindReceiverResp brr = new BindReceiverResp(6);
+	    BindReceiverResp brr = new BindReceiverResp();
+	    brr.setSequenceNum(5);
 	    n = brr.getClass().getName();
 	    obj[loop++] = brr;
 	    brr.setSystemId("smscId");
 
-	    BindTransmitter bt = new BindTransmitter(6);
+	    BindTransmitter bt = new BindTransmitter();
+	    bt.setSequenceNum(5);
 	    n = bt.getClass().getName();
 	    bt.setSystemId("sysId");
 	    bt.setSystemType("sysType");
@@ -195,12 +198,14 @@ public class Test_Sizes
 			"65534[1-3]"));
 	    obj[loop++] = bt;
 
-	    BindTransmitterResp btr = new BindTransmitterResp(6);
+	    BindTransmitterResp btr = new BindTransmitterResp();
+	    btr.setSequenceNum(5);
 	    n = btr.getClass().getName();
 	    obj[loop++] = btr;
 	    btr.setSystemId("smscId");
 
-	    CancelSM cm = new CancelSM(6);
+	    CancelSM cm = new CancelSM();
+	    cm.setSequenceNum(5);
 	    n = cm.getClass().getName();
 	    obj[loop++] = cm;
 	    cm.setServiceType("svcTp");
@@ -214,11 +219,13 @@ public class Test_Sizes
 			GSMConstants.GSM_NPI_UNKNOWN,
 			"65534111"));
 
-	    CancelSMResp cmr = new CancelSMResp(6);
+	    CancelSMResp cmr = new CancelSMResp();
+	    cmr.setSequenceNum(5);
 	    n = cmr.getClass().getName();
 	    obj[loop++] = cmr;
 
-	    DeliverSM dm = new DeliverSM(6);
+	    DeliverSM dm = new DeliverSM();
+	    dm.setSequenceNum(5);
 	    n = dm.getClass().getName();
 	    obj[loop++] = dm;
 	    dm.setServiceType("svcTp");
@@ -239,34 +246,41 @@ public class Test_Sizes
 	    //dm.setDataCoding();
 	    dm.setMessageText("This is a short message");
 
-	    DeliverSMResp dmr = new DeliverSMResp(6);
+	    DeliverSMResp dmr = new DeliverSMResp();
+	    dmr.setSequenceNum(5);
 	    n = dmr.getClass().getName();
 	    obj[loop++] = dmr;
 	    //dmr.setMessageId("82233213"); XXX?
 
-	    EnquireLink el= new EnquireLink(6);
+	    EnquireLink el = new EnquireLink();
+	    el.setSequenceNum(5);
 	    n = el.getClass().getName();
 	    obj[loop++] = el;
 
-	    EnquireLinkResp elr = new EnquireLinkResp(6);
+	    EnquireLinkResp elr = new EnquireLinkResp();
+	    elr.setSequenceNum(5);
 	    n = elr.getClass().getName();
 	    obj[loop++] = elr;
 
-	    GenericNack gn = new GenericNack(6);
+	    GenericNack gn = new GenericNack();
+	    gn.setSequenceNum(5);
 	    n = gn.getClass().getName();
 	    obj[loop++] = gn;
 
-	    ParamRetrieve pr = new ParamRetrieve(6);
+	    ParamRetrieve pr = new ParamRetrieve();
+	    pr.setSequenceNum(5);
 	    n = pr.getClass().getName();
 	    obj[loop++] = pr;
 	    pr.setParamName("getParam");
 
-	    ParamRetrieveResp prr = new ParamRetrieveResp(6);
+	    ParamRetrieveResp prr = new ParamRetrieveResp();
+	    prr.setSequenceNum(5);
 	    n = prr.getClass().getName();
 	    obj[loop++] = prr;
 	    prr.setParamValue("paramValueCanBeQuiteLong");
 
-	    QueryLastMsgs qlm = new QueryLastMsgs(6);
+	    QueryLastMsgs qlm = new QueryLastMsgs();
+	    qlm.setSequenceNum(5);
 	    n = qlm.getClass().getName();
 	    obj[loop++] = qlm;
 	    qlm.setSource(new SmeAddress(
@@ -275,7 +289,8 @@ public class Test_Sizes
 			"65534111"));
 	    qlm.setMsgCount(45);
 
-	    QueryLastMsgsResp qlmr = new QueryLastMsgsResp(6);
+	    QueryLastMsgsResp qlmr = new QueryLastMsgsResp();
+	    qlmr.setSequenceNum(5);
 	    n = qlmr.getClass().getName();
 	    obj[loop++] = qlmr;
 	    qlmr.addMessageId("23423423");
@@ -287,7 +302,8 @@ public class Test_Sizes
 	    qlmr.addMessageId("33323232");
 	    qlmr.addMessageId("33323452");
 
-	    QueryMsgDetails qmd = new QueryMsgDetails(6);
+	    QueryMsgDetails qmd = new QueryMsgDetails();
+	    qmd.setSequenceNum(5);
 	    n = qmd.getClass().getName();
 	    obj[loop++] = qmd;
 	    qmd.setSource(new SmeAddress(
@@ -298,7 +314,8 @@ public class Test_Sizes
 	    qmd.setSmLength(155);
 
 
-	    QueryMsgDetailsResp qmdr = new QueryMsgDetailsResp(6);
+	    QueryMsgDetailsResp qmdr = new QueryMsgDetailsResp();
+	    qmdr.setSequenceNum(5);
 	    n = qmdr.getClass().getName();
 	    obj[loop++] = qmdr;
 	    qmdr.setServiceType("svcTp");
@@ -322,7 +339,8 @@ public class Test_Sizes
 	    qmdr.setMessageStatus(9);
 	    qmdr.setErrorCode(2);
 
-	    QuerySM qm = new QuerySM(6);
+	    QuerySM qm = new QuerySM();
+	    qm.setSequenceNum(5);
 	    n = qm.getClass().getName();
 	    obj[loop++] = qm;
 	    qm.setMessageId("aaaaaaab");
@@ -331,7 +349,8 @@ public class Test_Sizes
 			GSMConstants.GSM_NPI_UNKNOWN,
 			"65534111"));
 
-	    QuerySMResp qmr = new QuerySMResp(6);
+	    QuerySMResp qmr = new QuerySMResp();
+	    qmr.setSequenceNum(5);
 	    n = qmr.getClass().getName();
 	    obj[loop++] = qmr;
 	    qmr.setMessageId("aaaaabba");
@@ -339,7 +358,8 @@ public class Test_Sizes
 	    qmr.setMessageStatus(1);
 	    qmr.setErrorCode(4);
 
-	    ReplaceSM rm = new ReplaceSM(6);
+	    ReplaceSM rm = new ReplaceSM();
+	    rm.setSequenceNum(5);
 	    n = rm.getClass().getName();
 	    obj[loop++] = rm;
 	    rm.setMessageId("cafecafe");
@@ -353,11 +373,13 @@ public class Test_Sizes
 	    rm.setRegistered(true);
 	    rm.setMessageText("This is a short message");
 
-	    ReplaceSMResp rmr = new ReplaceSMResp(6);
+	    ReplaceSMResp rmr = new ReplaceSMResp();
+	    rmr.setSequenceNum(5);
 	    n = rmr.getClass().getName();
 	    obj[loop++] = rmr;
 
-	    SubmitMulti sml = new SubmitMulti(6);
+	    SubmitMulti sml = new SubmitMulti();
+	    sml.setSequenceNum(5);
 	    n = sml.getClass().getName();
 	    obj[loop++] = sml;
 	    sml.setServiceType("svcTp");
@@ -386,7 +408,8 @@ public class Test_Sizes
 	    //sml.setDataCoding();
 	    sml.setMessageText("This is a short message, multi destinations");
 
-	    SubmitMultiResp smlr = new SubmitMultiResp(6);
+	    SubmitMultiResp smlr = new SubmitMultiResp();
+	    smlr.setSequenceNum(5);
 	    n = smlr.getClass().getName();
 	    obj[loop++] = smlr;
 	    smlr.setMessageId("213ffeaa");
@@ -408,7 +431,8 @@ public class Test_Sizes
 			"991293213", 5));
 
 
-	    SubmitSM sm = new SubmitSM(6);
+	    SubmitSM sm = new SubmitSM();
+	    sm.setSequenceNum(5);
 	    n = sm.getClass().getName();
 	    obj[loop++] = sm;
 	    sm.setServiceType("svcTp");
@@ -429,16 +453,19 @@ public class Test_Sizes
 	    //sm.setDataCoding();
 	    sm.setMessageText("This is a short message");
 
-	    SubmitSMResp smr = new SubmitSMResp(6);
+	    SubmitSMResp smr = new SubmitSMResp();
+	    smr.setSequenceNum(5);
 	    n = smr.getClass().getName();
 	    obj[loop++] = smr;
 	    smr.setMessageId("12e53af");
 
-	    Unbind ub = new Unbind(6);
+	    Unbind ub = new Unbind();
+	    ub.setSequenceNum(5);
 	    n = ub.getClass().getName();
 	    obj[loop++] = ub;
 
-	    UnbindResp ubr = new UnbindResp(6);
+	    UnbindResp ubr = new UnbindResp();
+	    ubr.setSequenceNum(5);
 	    n = ubr.getClass().getName();
 	    obj[loop++] = ubr;
 	} catch (Exception x) {
