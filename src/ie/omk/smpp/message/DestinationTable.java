@@ -34,6 +34,7 @@ import ie.omk.smpp.Address;
 
 import ie.omk.smpp.util.SMPPIO;
 
+import org.apache.log4j.Logger;
 
 public class DestinationTable
 {
@@ -131,8 +132,8 @@ public class DestinationTable
 		offset += d.length() + 1;
 		dests.add(d);
 	    } else {
-		// XXX proper exception?
-		throw new RuntimeException("Unidentified destination type.");
+		Logger.getLogger("ie.omk.smpp.message")
+		    .warn("Unidentified destination type on input.");
 	    }
 	}
 
