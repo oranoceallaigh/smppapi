@@ -1,6 +1,6 @@
 /*
- * Java implementation of the SMPP v3.3 API
- * Copyright (C) 1998 - 2000 by Oran Kelly
+ * Java SMPP API
+ * Copyright (C) 1998 - 2001 by Oran Kelly
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,14 +18,16 @@
  * 
  * A copy of the LGPL can be viewed at http://www.gnu.org/copyleft/lesser.html
  * Java SMPP API author: oran.kelly@ireland.com
+ * Java SMPP API Homepage: http://smppapi.sourceforge.net/
  */
 package ie.omk.smpp.message;
 
 import java.io.*;
+import ie.omk.smpp.util.SMPPIO;
 import ie.omk.debug.Debug;
 
 
-/** SMSC response to a cancel int message request
+/** SMSC response to a cancel message request
   * @author Oran Kelly
   * @version 1.0
   */
@@ -33,32 +35,37 @@ public class CancelSMResp
     extends ie.omk.smpp.message.SMPPResponse
 {
     /** Construct a new CancelSMResp with specified sequence number.
-     * @param seqNo The sequence number to use
-     */
-    public CancelSMResp(int seqNo)
+      * @param seqNum The sequence number to use
+      */
+    public CancelSMResp(int seqNum)
     {
-	super(ESME_CANCEL_SM_RESP, seqNo);
+	super(ESME_CANCEL_SM_RESP, seqNum);
     }
 
     /** Read in a CancelSMResp from an InputStream.  A full packet,
-     * including the header fields must exist in the stream.
-     * @param in The InputStream to read from
-     * @exception ie.omk.smpp.SMPPException If the stream does not
-     * contain a CancelSMResp packet.
-     * @see java.io.InputStream
-     */
+      * including the header fields must exist in the stream.
+      * @param in The InputStream to read from
+      * @exception ie.omk.smpp.SMPPException If the stream does not
+      * contain a CancelSMResp packet.
+      * @see java.io.InputStream
+      */
     public CancelSMResp(InputStream in)
     {
 	super(in);
     }
 
     /** Create a new CancelSMResp packet in response to a CancelSM.
-     * This constructor will set the sequence number to it's expected value.
-     * @param r The Request packet the response is to
-     */
+      * This constructor will set the sequence number to it's expected value.
+      * @param r The Request packet the response is to
+      */
     public CancelSMResp(CancelSM r)
     {
 	super(r);
+    }
+
+    public int getCommandLen()
+    {
+	return (getHeaderLen());
     }
 
     public String toString()

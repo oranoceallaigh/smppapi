@@ -1,6 +1,6 @@
 /*
- * Java implementation of the SMPP v3.3 API
- * Copyright (C) 1998 - 2000 by Oran Kelly
+ * Java SMPP API
+ * Copyright (C) 1998 - 2001 by Oran Kelly
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,11 +18,13 @@
  * 
  * A copy of the LGPL can be viewed at http://www.gnu.org/copyleft/lesser.html
  * Java SMPP API author: oran.kelly@ireland.com
+ * Java SMPP API Homepage: http://smppapi.sourceforge.net/
  */
 package ie.omk.smpp.message;
 
 import java.io.*;
 import ie.omk.smpp.SMPPException;
+import ie.omk.smpp.util.SMPPIO;
 import ie.omk.debug.Debug;
 
 /** SMSC Response to a bind transmitter request
@@ -36,30 +38,30 @@ public class BindTransmitterResp
     String 		sysId;
 
     /** Construct a new BindTransmitterResp with specified sequence number.
-     * @param seqNo The sequence number to use
-     */
-    public BindTransmitterResp(int seqNo)
+      * @param seqNum The sequence number to use
+      */
+    public BindTransmitterResp(int seqNum)
     {
-	super(ESME_BNDTRN_RESP, seqNo);
+	super(ESME_BNDTRN_RESP, seqNum);
 	sysId = null;
     }
 
     /** Read in a BindTransmitterResp from an InputStream.  A full packet,
-     * including the header fields must exist in the stream.
-     * @param in The InputStream to read from
-     * @exception ie.omk.smpp.SMPPException If the stream does not
-     * contain a BindReceiverResp packet.
-     * @see java.io.InputStream
-     */
+      * including the header fields must exist in the stream.
+      * @param in The InputStream to read from
+      * @exception ie.omk.smpp.SMPPException If the stream does not
+      * contain a BindReceiverResp packet.
+      * @see java.io.InputStream
+      */
     public BindTransmitterResp(InputStream in)
     {
 	super(in);
 
-	if(cmdStatus != 0)
+	if(commandStatus != 0)
 	    return;
 
 	try {
-	    sysId = readCString(in);
+	    sysId = SMPPIO.readCString(in);
 	} catch(IOException iox) {
 	    throw new SMPPException("Input stream does not contain a "
 		    + "bind_transmitter packet");
@@ -68,10 +70,10 @@ public class BindTransmitterResp
 
 
     /** Create a new BindTransmitterResp packet in response to a BindTransmitter
-     * This constructor will set the sequence number and system Id
-     * to their expected values.
-     * @param r The Request packet the response is to
-     */
+      * This constructor will set the sequence number and system Id
+      * to their expected values.
+      * @param r The Request packet the response is to
+      */
     public BindTransmitterResp(BindTransmitter r)
     {
 	super(r);
@@ -80,13 +82,15 @@ public class BindTransmitterResp
     }
 
     /** Set the system Id
-     * @param sysId The new System Id string (Up to 15 characters)
-     * @exception ie.omk.smpp.SMPPException If the system Id is invalid
-     */
+      * @param sysId The new System Id string (Up to 15 characters)
+      * @exception ie.omk.smpp.SMPPException If the system Id is invalid
+      */
     public void setSystemId(String sysId)
     {
-	if(sysId == null)
-	{ sysId = null; return; }
+	if(sysId == null) {
+	    sysId = null;
+	    return;
+	}
 
 	if(sysId.length() > 15)
 	    throw new SMPPException("System ID must be < 16 chars.");
@@ -96,36 +100,29 @@ public class BindTransmitterResp
 
     /** Get the system Id */
     public String getSystemId()
-    { return (sysId == null) ? null : new String(sysId); }
+    {
+	return (sysId == null) ? null : new String(sysId);
+    }
 
 
     /** Get the size in bytes of this packet */
-    public int size()
+    public int getCommandLen()
     {
 	// Calculated as the size of the header plus 1 null-terminator
 	// for the string plus the length of the string
-	return (super.size() + 1
+	return (getHeaderLen() + 1
 		+ ((sysId != null) ? sysId.length() : 0));
     }
 
     /** Write a byte representation of this packet to an OutputStream
-     * @param out The OutputStream to write to
-     * @exception ie.omk.smpp.SMPPException If an I/O error occurs
-     * @see java.io.OutputStream
-     */
-    public void writeTo(OutputStream out)
+      * @param out The OutputStream to write to
+      * @exception ie.omk.smpp.SMPPException If an I/O error occurs
+      * @see java.io.OutputStream
+      */
+    protected void encodeBody(OutputStream out)
+	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
-	try {
-	    ByteArrayOutputStream b = new ByteArrayOutputStream();
-	    super.writeTo(b);
-
-	    writeCString(sysId, b);
-
-	    b.writeTo(out);
-	} catch(IOException x) {
-	    throw new SMPPException("Error writing bind_receiver packet to "
-		    + "output stream");
-	}
+	SMPPIO.writeCString(sysId, out);
     }
 
     public String toString()

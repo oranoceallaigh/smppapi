@@ -1,6 +1,6 @@
 /*
- * Java implementation of the SMPP v3.3 API
- * Copyright (C) 1998 - 2000 by Oran Kelly
+ * Java SMPP API
+ * Copyright (C) 1998 - 2001 by Oran Kelly
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,6 +18,7 @@
  * 
  * A copy of the LGPL can be viewed at http://www.gnu.org/copyleft/lesser.html
  * Java SMPP API author: oran.kelly@ireland.com
+ * Java SMPP API Homepage: http://smppapi.sourceforge.net/
  */
 package ie.omk.smpp.message;
 
@@ -34,34 +35,34 @@ public abstract class SMPPRequest
     protected boolean			isAckd = false;
 
     /** Construct a new SMPPRequest with specified sequence number.
-     * @param seqNo The sequence number to use
-     */
-    public SMPPRequest(int id, int seqNo)
+      * @param seqNum The sequence number to use
+      */
+    public SMPPRequest(int id, int seqNum)
     {
-	super(id, seqNo);
+	super(id, seqNum);
     }
 
     /** Read in a SMPPRequest from an InputStream.  A full packet,
-     * including the header fields must exist in the stream.
-     * @param in The InputStream to read from
-     * @exception ie.omk.smpp.SMPPException If the stream does not
-     * contain a SMPPRequest packet.
-     * @see java.io.InputStream
-     */
+      * including the header fields must exist in the stream.
+      * @param in The InputStream to read from
+      * @exception ie.omk.smpp.SMPPException If the stream does not
+      * contain a SMPPRequest packet.
+      * @see java.io.InputStream
+      */
     public SMPPRequest(InputStream in)
     {
 	super(in);
     }
 
     /** Check has this request been acknowledged or not.
-     */
+      */
     public final boolean isAckd()
     {
 	return isAckd;
     }
 
     /** Set this request packet to acknowledged.
-     */
+      */
     public final void ack()
     {
 	isAckd = true;

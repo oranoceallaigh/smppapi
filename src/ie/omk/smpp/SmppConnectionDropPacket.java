@@ -1,6 +1,6 @@
 /*
- * Java implementation of the SMPP v3.3 API
- * Copyright (C) 1998 - 2000 by Oran Kelly
+ * Java SMPP API
+ * Copyright (C) 1998 - 2001 by Oran Kelly
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,6 +18,7 @@
  * 
  * A copy of the LGPL can be viewed at http://www.gnu.org/copyleft/lesser.html
  * Java SMPP API author: oran.kelly@ireland.com
+ * Java SMPP API Homepage: http://smppapi.sourceforge.net/
  */
 package ie.omk.smpp;
 
@@ -47,10 +48,9 @@ public class SmppConnectionDropPacket
 	this.message = "";
 
 	// Command Id should not be anything near any valid Smpp message...
-	cmdId = CONNECTION_DROP;
+	commandId = CONNECTION_DROP;
 
-	cmdStatus = 0;
-	cmdLen = 16;
+	commandStatus = 0;
     }
 
     public SmppConnectionDropPacket(int seq, String msg)
@@ -60,10 +60,8 @@ public class SmppConnectionDropPacket
 	this.message = msg;
 
 	// Command Id should not be anything near any valid Smpp message...
-	cmdId = CONNECTION_DROP;
-
-	cmdStatus = 0;
-	cmdLen = 16;
+	commandId = CONNECTION_DROP;
+	commandStatus = 0;
     }
 
     public void setMessage(String s)
@@ -73,6 +71,11 @@ public class SmppConnectionDropPacket
 
     public String getMessage()
     {
-	return message;
+	return (message);
+    }
+
+    public int getCommandLen()
+    {
+	return (getHeaderLen());
     }
 }

@@ -1,6 +1,6 @@
 /*
- * Java implementation of the SMPP v3.3 API
- * Copyright (C) 1998 - 2000 by Oran Kelly
+ * Java SMPP API
+ * Copyright (C) 1998 - 2001 by Oran Kelly
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,11 +18,13 @@
  * 
  * A copy of the LGPL can be viewed at http://www.gnu.org/copyleft/lesser.html
  * Java SMPP API author: oran.kelly@ireland.com
+ * Java SMPP API Homepage: http://smppapi.sourceforge.net/
  */
 package ie.omk.smpp;
 
 import java.io.*;
 import java.util.*;
+import ie.omk.smpp.util.SMPPDate;
 import ie.omk.smpp.message.*;
 import ie.omk.debug.Debug;
 
@@ -42,7 +44,7 @@ public class MessageDetails
     public int 			messageId = 0;
 
     /** Date and time (SMSC local time) that message reached a final state */
-    public Date			finalDate = null;
+    public SMPPDate		finalDate = null;
 
     /** Current status of the message */
     public int			status =  0;
@@ -60,29 +62,29 @@ public class MessageDetails
     public Vector		destinationTable = new Vector();
 
     /** Message flags structure.
-     * @see MsgFlags
-     */
+      * @see MsgFlags
+      */
     public MsgFlags		flags = new MsgFlags();
 
     /** Date and time this message is scheduled to be delivered on */
-    public Date			deliveryTime = null;
+    public SMPPDate		deliveryTime = null;
 
     /** Date and time this message will expire on */
-    public Date			expiryTime = null;
+    public SMPPDate		expiryTime = null;
 
     /** Text of the message */
     public String		message = null;
 
 
     /** Create a new Details object with all null values.
-     */
+      */
     public MessageDetails()
     {
     }
 
     /** Create a new an Objects with details from a QueryMessageDetailsResp.
-     * This type of packet will fill in all the available fields.
-     */
+      * This type of packet will fill in all the available fields.
+      */
     public MessageDetails(QueryMsgDetailsResp r)
     {
 	messageId = r.getMessageId();
@@ -104,8 +106,8 @@ public class MessageDetails
     }
 
     /** Create a new Details object from a QuerySM Response.  Fields filled
-     * in: messageId, finalDate, status and error code
-     */
+      * in: messageId, finalDate, status and error code
+      */
     public MessageDetails(QuerySMResp r)
     {
 	messageId = r.getMessageId();
@@ -115,9 +117,9 @@ public class MessageDetails
     }
 
     /** Create a new Details object from a DeliverSM packet.  Fields filled
-     * in: serviceType, sourceAddr, destinationTable (1 element),
-     * flags.protocol, flags.data_coding, flags.esm_class and message.
-     */
+      * in: serviceType, sourceAddr, destinationTable (1 element),
+      * flags.protocol, flags.data_coding, flags.esm_class and message.
+      */
     public MessageDetails(DeliverSM r)
     {
 	serviceType = r.getServiceType();
@@ -130,9 +132,9 @@ public class MessageDetails
     }
 
     /** Take any Smpp packet and fill in as many fields as are available.
-     * Any fields that cannot be read from the packet will default to
-     * null (ints will equal 0, Strings will equal null)
-     */
+      * Any fields that cannot be read from the packet will default to
+      * null (ints will equal 0, Strings will equal null)
+      */
     public MessageDetails(SMPPPacket p)
     {
 	int loop=0;

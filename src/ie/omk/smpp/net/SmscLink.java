@@ -1,6 +1,6 @@
 /*
- * Java implementation of the SMPP v3.3 API
- * Copyright (C) 1998 - 2000 by Oran Kelly
+ * Java SMPP API
+ * Copyright (C) 1998 - 2001 by Oran Kelly
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,6 +18,7 @@
  * 
  * A copy of the LGPL can be viewed at http://www.gnu.org/copyleft/lesser.html
  * Java SMPP API author: oran.kelly@ireland.com
+ * Java SMPP API Homepage: http://smppapi.sourceforge.net/
  */
 package ie.omk.smpp.net;
 
@@ -38,31 +39,31 @@ public abstract class SmscLink
     protected boolean connected = false;
 
     /** Open the connection to the SMSC.
-     * @exception java.io.IOException If a communication error occurs
-     */
+      * @exception java.io.IOException If a communication error occurs
+      */
     public abstract void open()
 	throws IOException;
 
     /** Close the connection to the SMSC.
-     * @exception java.io.IOException If a communication error occurs
-     */
+      * @exception java.io.IOException If a communication error occurs
+      */
     public abstract void close()
 	throws IOException;
 
     /** Get the output stream of the virtual circuit.
-     * @exception java.io.IOException If a communication error occurs
-     */
+      * @exception java.io.IOException If a communication error occurs
+      */
     public abstract OutputStream getOutputStream()
 	throws IOException;
 
     /** Get the input stream of the virtual circuit
-     * @exception java.io.IOException If a communication error occurs
-     */
+      * @exception java.io.IOException If a communication error occurs
+      */
     public abstract InputStream getInputStream()
 	throws IOException;
 
     /** Check whether or not the connection to the SMSC is open
-     */
+      */
     public boolean isConnected()
     {
 	return connected;

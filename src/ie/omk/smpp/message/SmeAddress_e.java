@@ -1,6 +1,6 @@
 /*
- * Java implementation of the SMPP v3.3 API
- * Copyright (C) 1998 - 2000 by Oran Kelly
+ * Java SMPP API
+ * Copyright (C) 1998 - 2001 by Oran Kelly
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,11 +18,13 @@
  * 
  * A copy of the LGPL can be viewed at http://www.gnu.org/copyleft/lesser.html
  * Java SMPP API author: oran.kelly@ireland.com
+ * Java SMPP API Homepage: http://smppapi.sourceforge.net/
  */
 package ie.omk.smpp.message;
 
 import java.io.*;
 import ie.omk.smpp.message.SmeAddress;
+import ie.omk.smpp.util.SMPPIO;
 import ie.omk.smpp.SMPPException;
 
 /** This class used in the submit_multi_resp packet to indicate which
@@ -45,15 +47,15 @@ public class SmeAddress_e
     }
 
     /** Read in an SmeAddress_e from an InputStream
-     * @param in InputStream to read from
-     * @exception java.io.IOException If an I/O error occurs
-     * @see java.io.InputStream
-     */
+      * @param in InputStream to read from
+      * @exception java.io.IOException If an I/O error occurs
+      * @see java.io.InputStream
+      */
     public SmeAddress_e(InputStream in)
 	throws IOException
     {
 	super(in);
-	errorStatus = SMPPPacket.readInt(in, 4);
+	errorStatus = SMPPIO.readInt(in, 4);
     }
 
     /** Get the size in bytes of this packet */
@@ -63,22 +65,14 @@ public class SmeAddress_e
     }
 
     /** Write a byte representation of this packet to an OutputStream
-     * @param out The OutputStream to write to
-     * @exception java.io.IOException If an I/O error occurs
-     * @see java.io.OutputStream
-     */
+      * @param out The OutputStream to write to
+      * @exception java.io.IOException If an I/O error occurs
+      * @see java.io.OutputStream
+      */
     public void writeTo(OutputStream out)
+	throws java.io.IOException
     {
-	try {
-	    ByteArrayOutputStream b = new ByteArrayOutputStream();
-
-	    super.writeTo(b);
-	    SMPPPacket.writeInt(errorStatus, 4, b);
-
-	    b.writeTo(out);
-	} catch(IOException x) {
-	    throw new SMPPException("Error writing SmeAddress_e packet to "
-		    + "output stream");
-	}
+	super.writeTo(out);
+	SMPPIO.writeInt(errorStatus, 4, out);
     }
 }

@@ -1,6 +1,6 @@
 /*
- * Java implementation of the SMPP v3.3 API
- * Copyright (C) 1998 - 2000 by Oran Kelly
+ * Java SMPP API
+ * Copyright (C) 1998 - 2001 by Oran Kelly
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,6 +18,7 @@
  * 
  * A copy of the LGPL can be viewed at http://www.gnu.org/copyleft/lesser.html
  * Java SMPP API author: oran.kelly@ireland.com
+ * Java SMPP API Homepage: http://smppapi.sourceforge.net/
  */
 package ie.omk.smpp;
 
@@ -42,13 +43,29 @@ public abstract class SmppConnection
     /** Minor version number of the protocol implemented */
     public static final int	MINOR_VERSION = 0x03;
 
+    /** Connection state: not bound to the SMSC. */
+    public static final int	UNBOUND = 0;
+
+    /** Connection state: waiting for successful acknowledgement to bind
+      * request.
+      */
+    public static final int	BINDING = 1;
+
+    /** Connection state: bound to the SMSC. */
+    public static final int	BOUND = 2;
+
+    /** Connection state: waiting for successful acknowledgement to unbind
+      * request.
+      */
+    public static final int	UNBINDING = 3;
+
     /** Listening occurs in a separate thread. */
     Thread			rcvThread = null;
 
-    /** Need this in the run() method to know if the thread should exit */
-    boolean			unbinding = false;
+    /** Milliseconds to timeout while waiting on I/O in listener thread. */
+    private long		timeout = 100;
 
-    /** Address range used for routing int messages */
+    /** Address range used for routing messages */
     String			addrRange = null;
 
     /** ESME System Id, used to authenticate to the SMSC */
@@ -67,7 +84,7 @@ public abstract class SmppConnection
     int				addrNpi = 0;
 
     /** Sequence number */
-    int				seqNo = 1;
+    int				seqNum = 1;
 
     /** The network link (virtual circuit) to the SMSC */
     SmscLink			link = null;
@@ -82,34 +99,33 @@ public abstract class SmppConnection
     SMPPPacket			lastOutward = null;
 
     /** For each request sent, 1 is added, for each proper ack got,
-     * 1 comes off.
-     */
+      * 1 comes off.
+      */
     int				waitingAck = 0;
 
-    /** Input stream of the virtual circuit */
-    InputStream			in = null;
-
-    /** Output stream of the virtual circuit */
-    OutputStream		out = null;
-
-    /** Identify if this ESME is currently bound to the SMSC */
-    boolean			bound = false;
+    /** Current state of the SMPP connection.
+      * Possible states are UNBOUND, BINDING, BOUND and UNBINDING.
+      */
+    private int			state = UNBOUND;
 
     /** Specify whether the listener thread will automatically ack
-     * enquire_link primitives received from the Smsc
-     */
+      * enquire_link primitives received from the Smsc
+      */
     boolean			ackQryLinks = true;
 
     /** Should the listener thread automatically ack incoming messages?
-     * Only valid for the Receiver
-     */
+      * Only valid for the Receiver
+      */
     boolean			ackDeliverSm = false;
 
+    /** Is the user using synchronous are async communication?. */
+    protected boolean		asyncComms = false;
+
     /** Create a new Smpp connection.
-     * @param link The network link object to the Smsc (cannot be null)
-     * @exception java.lang.NullPointerException If the link is null
-     */
-    public SmppConnection(SmscLink link)
+      * @param link The network link object to the Smsc (cannot be null)
+      * @exception java.lang.NullPointerException If the link is null
+      */
+    protected SmppConnection(SmscLink link)
     {
 	if(link == null)
 	    throw new NullPointerException("Smsc Link cannot be null.");
@@ -121,17 +137,40 @@ public abstract class SmppConnection
 	// again.
 	outTable = new Hashtable(150);
 	inTable = new Hashtable(150);
+    }
 
-	// Create a new listener...won't do anything till start() is called
-	rcvThread = new Thread(this);
+    /** Create a new Smpp connection specifying the type of communications
+      * desired.
+      * @param link The network link object to the Smsc (cannot be null)
+      * @param async true for asyncronous communication, false for synchronous.
+      * @exception java.lang.NullPointerException If the link is null
+      */
+    protected SmppConnection(SmscLink link, boolean async)
+    {
+	this(link);
+	asyncComms = async;
+
+	if (asyncComms)
+	    rcvThread = new Thread(this);
+    }
+
+
+    protected synchronized void setState(int state)
+    {
+	this.state = state;
+    }
+
+    protected synchronized int getState()
+    {
+	return (this.state);
     }
 
     /** Set the routing information for this ESME
-     * @param ton The Type of Number
-     * @param npi The Numbering plan indicator
-     * @param range The address routing expression (Up to 40 characters)
-     * @exception SMPPException If the routing expression is invalid
-     */
+      * @param ton The Type of Number
+      * @param npi The Numbering plan indicator
+      * @param range The address routing expression (Up to 40 characters)
+      * @exception SMPPException If the routing expression is invalid
+      */
     public void setSourceAddress(int ton, int npi, String range)
     {
 	addrTon = ton;
@@ -149,9 +188,9 @@ public abstract class SmppConnection
     }
 
     /** Set the system Id for this Esme
-     * @param name System Id (Up to 15 characters)
-     * @exception SMPPException If the system Id is invalid
-     */
+      * @param name System Id (Up to 15 characters)
+      * @exception SMPPException If the system Id is invalid
+      */
     public void setSystemId(String name)
     {
 	if(name == null) {
@@ -166,9 +205,9 @@ public abstract class SmppConnection
     }
 
     /** Set the authentication password
-     * @param pass The password to use (Up to 8 characters)
-     * @exception SMPPException If the password is invalid
-     */
+      * @param pass The password to use (Up to 8 characters)
+      * @exception SMPPException If the password is invalid
+      */
     public void setPassword(String pass)
     {
 	if(pass == null) {
@@ -183,9 +222,9 @@ public abstract class SmppConnection
     }
 
     /** Set the system type for this connection
-     * @param type The System type (Up to 12 characters)
-     * @exception SMPPException If the system type is invalid
-     */
+      * @param type The System type (Up to 12 characters)
+      * @exception SMPPException If the system type is invalid
+      */
     public void setSystemType(String type)
     {
 	if(type == null) {
@@ -200,175 +239,200 @@ public abstract class SmppConnection
     }
 
     /** Set the behaviour of automatically acking QRYLINK's from the SMSC.
-     * By default, the listener thread will automatically ack an enquire_link
-     * message from the Smsc so as not to lose the connection.  This
-     * can be turned off with this method.
-     * @param true to activate automatic acknowledgment, false to disable
-     */
+      * By default, the listener thread will automatically ack an enquire_link
+      * message from the Smsc so as not to lose the connection.  This
+      * can be turned off with this method.
+      * @param true to activate automatic acknowledgment, false to disable
+      */
     public synchronized void autoAckLink(boolean b)
     {
 	this.ackQryLinks = b;
     }
 
     /** Set the behaviour of automatically acking Deliver_Sm's from the Smsc.
-     * By default the listener thread will <b>not</b> acknowledge a message.
-     * @param true to activate this function, false to deactivate.
-     */
+      * By default the listener thread will <b>not</b> acknowledge a message.
+      * @param true to activate this function, false to deactivate.
+      */
     public synchronized void autoAckMessages(boolean b)
     {
 	this.ackDeliverSm = b;
     }
 
     /** Check is this connection automatically acking Enquire link requests.
-     */
+      */
     public boolean isAckingLinks()
     {
-	return ackQryLinks;
+	return (ackQryLinks);
     }
 
     /** Check is this connection automatically acking delivered messages
-     */
+      */
     public boolean isAckingMessages()
     {
-	return ackDeliverSm;
+	return (ackDeliverSm);
     }
 
     /** Get the System Id of this transmitter
-     */
+      */
     public String getSystemId()
     {
-	return sysId;
+	return (sysId);
     }
 
     /** Get the password being used by this transmitter.
-     */
+      */
     public String getPassword()
     {
-	return password;
+	return (password);
     }
 
     /** Get the system type of this transmitter.
-     */
+      */
     public String getSystemType()
     {
-	return sysType;
+	return (sysType);
     }
 
     /** Send an smpp request to the SMSC.
-     * @param r The request packet to send to the SMSC
-     * @return The response packet returned by the SMSC
-     * @exception SMPPException If an invalid response packet is returned
-     * @exception java.io.IOException If a network error occurs
-     */
-    public void sendRequest(SMPPRequest r)
-	throws IOException
+      * @param r The request packet to send to the SMSC
+      * @return The response packet returned by the SMSC, or null if asynchronous
+      * communication is being used.
+      * @exception SMPPException If an invalid response packet is returned
+      * @exception java.io.IOException If a network error occurs
+      */
+    public SMPPResponse sendRequest(SMPPRequest r)
+	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
-	if(out == null || in == null)
+	if (link == null)
 	    throw new IOException("Connection to the SMSC is not open.");
 
-	if(r.getSeqNo() < seqNo-1) {
+	if(r.getSequenceNum() < seqNum - 1) {
 	    throw new SMPPException("Sequence numbering invalid.  Current="
-		    + String.valueOf(seqNo-1)
+		    + String.valueOf(seqNum-1)
 		    + ", Packet value="
-		    + r.getSeqNo());
+		    + r.getSequenceNum());
 	}
 
-	waitingAck++;
-	r.writeTo(out);
-	outTable.put(new Integer(r.getSeqNo()), r);
-	lastOutward = r;
+	SMPPPacket resp = null;
+	OutputStream out = link.getOutputStream();
+	InputStream in = link.getInputStream();
 
-	/* Take out the reading of response...listener thread should
-	   notify any listeners of responses (Transmitter) and requests
-	   (Receiver)
+	synchronized (link) {
+	    r.writeTo(out);
+	    waitingAck++;
+	    outTable.put(new Integer(r.getSequenceNum()), r);
+	    lastOutward = r;
 
-	   SMPPPacket rsp = SMPPPacket.readPacket(in);
-	   if(rsp instanceof SMPPResponse)
-	   {
-	   this.inTable = (SMPPResponse)rsp;
-	   return (SMPPResponse)rsp;
-	   }
-	   else
-	   throw new SMPPException("No response packet on input stream.");
-	 */
+	    if (!asyncComms) {
+		resp = SMPPPacket.readPacket(in);
+		if(resp instanceof SMPPResponse) {
+		    waitingAck--;
+		    inTable.put(new Integer(resp.getSequenceNum()), resp);
+		} else {
+		    throw new SMPPException("Invalid response from SMSC. Id is "
+			    + resp.getCommandId());
+		}
+	    }
+	}
+
+	return ((SMPPResponse)resp);
     }
 
     /** Send an smpp response packet to the SMSC
-     * @param r The response packet to send to the SMSC
-     * @exception SMPPException If the sequence numbering is incorrect
-     * @exception java.io.IOException If a network error occurs
-     * @see SmppConnection#nextPacket
-     */
-    public synchronized void sendResponse(SMPPResponse rsp)
+      * @param r The response packet to send to the SMSC
+      * @exception SMPPException If the sequence numbering is incorrect
+      * @exception java.io.IOException If a network error occurs
+      * @see SmppConnection#nextPacket
+      */
+    public void sendResponse(SMPPResponse resp)
 	throws IOException
     {
 	Integer key = null;
 	SMPPRequest rq = null;
 
-	if(out == null || in == null)
-	    throw new IOException("Connections to SMSC are not valid.");
+	if (link == null)
+	    throw new IOException("Connection to SMSC is not valid.");
 
 	// Make sure we got a request for the packet we're trying to ack...
-	key = new Integer(rsp.getSeqNo());
+	key = new Integer(resp.getSequenceNum());
 	try {
 	    rq = (SMPPRequest)inTable.get(key);
 	} catch(ClassCastException cx) {
 	    rq = null;
 	}
-	if(rq == null) {
+
+	if (rq == null) {
 	    throw new SMPPException("There was no request with sequence no. "
 		    + key);
-	} else if(rq.isAckd()) {
+	} else if (rq.isAckd()) {
 	    throw new SMPPException("The packet with sequence "
 		    + key + " is already acknowledged.");
 	}
 
-	rq.ack();
-	outTable.put(key, rsp);
-	lastOutward = rsp;
-	rsp.writeTo(out);
+	Object lock = null;
+	OutputStream out = link.getOutputStream();
+	if (asyncComms)
+	    lock = out;
+	else
+	    lock = link;
+
+	synchronized (lock) {
+		rq.ack();
+		outTable.put(key, resp);
+		lastOutward = resp;
+		resp.writeTo(out);
+	}
     }
 
     /** bind this connection to the SMSC.
-     * Sub classes of SmppConnection must provide an implementation of this.
-     * @return true if the connection bound successfully, false otherwise
-     * @see SmppTransmitter#bind
-     * @see SmppReceiver#bind
-     */
-    public abstract boolean bind() throws java.io.IOException;
+      * Sub classes of SmppConnection must provide an implementation of this.
+      * @return The bind transmitter or bind receiver response or null if
+      * asynchronous communications is in use.
+      * @see ie.omk.smpp.SmppTransmitter#bind
+      * @see ie.omk.smpp.SmppReceiver#bind
+      */
+    public abstract SMPPResponse bind()
+	throws java.io.IOException, ie.omk.smpp.SMPPException;
 
     /** Unbind from the SMSC and close the network connections.
-     * @return true if the packet was sent successfully
-     * @exception SMPPException If already bound or a Nack arrives.
-     * @exception java.io.IOException If a network error occurs.
-     * @see SmppReceiver#bind
-     */
-    public boolean unbind()
-	throws java.io.IOException
+      * @return The Unbind response packet, or null if asynchronous communication
+      * is being used.
+      * @exception SMPPException If already bound or a Nack arrives.
+      * @exception java.io.IOException If a network error occurs.
+      * @see ie.omk.smpp.SmppReceiver#bind
+      */
+    public UnbindResp unbind()
+	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
-	if(!bound || !link.isConnected())
+	if((state != BOUND) || !(link.isConnected()))
 	    throw new SMPPException("Not bound to SMSC yet.");
 
 	/* If this is set, the run() method will return when an
 	 * unbind response packet arrives, stopping the listener
 	 * thread. (after all observers have been notified of the packet)
 	 */
-	unbinding = true;
+	setState(UNBINDING);
 
 	Unbind u = new Unbind(nextPacket());
-	sendRequest(u);
-	return true;
+	SMPPResponse resp = sendRequest(u);
+	if (!asyncComms) {
+	    if (resp.getCommandId() == SMPPPacket.ESME_UBD_RESP
+		    && resp.getCommandStatus() == 0)
+		setState(UNBOUND);
+	}
+	return ((UnbindResp)resp);
     }
 
     /** Use of this <b><i>highly</i></b> discouraged.
-     * This is in case of emergency and stuff.
-     * Closing the connection to the Smsc without unbinding
-     * first can cause horrific trouble with runaway processes.  Don't
-     * do it!
-     */
+      * This is in case of emergency and stuff.
+      * Closing the connection to the Smsc without unbinding
+      * first can cause horrific trouble with runaway processes.  Don't
+      * do it!
+      */
     public void force_unbind()
+	throws ie.omk.smpp.SMPPException
     {
-	if(!unbinding) {
+	if(state != UNBINDING) {
 	    Debug.d(this, "force_close", "Force tried before normal unbind.",
 		    Debug.DBG_2);
 	    throw new SMPPException("Please Try a normal unbind before "
@@ -379,91 +443,96 @@ public abstract class SmppConnection
 		"Attempting to force the connection shut.", Debug.DBG_4);
 	try {
 	    // The thread must DIE!!!!
-	    if(rcvThread.isAlive())
-		rcvThread.stop();
+	    if(rcvThread != null && rcvThread.isAlive()) {
+		setState(UNBOUND);
+		try {
+		    Thread.sleep(timeout * 2);
+		} catch (InterruptedException x) {
+		}
+		if (rcvThread.isAlive())
+		    System.err.println("ERROR! Listener thread has not died.");
+	    }
 
 	    link.close();
 	} catch(IOException ix) {
 	}
-
-	bound = false;
 	return;
     }
 
 
     /** Acknowledge an EnquireLink received from the Smsc */
     public void ackEnquireLink(EnquireLink rq)
-	throws java.io.IOException
+	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
-	EnquireLinkResp rsp = new EnquireLinkResp(rq);
-	sendResponse(rsp);
+	EnquireLinkResp resp = new EnquireLinkResp(rq);
+	sendResponse(resp);
 	Debug.d(this, "ackEnquireLink", "Response sent", Debug.DBG_3);
     }
 
     /** Do a confidence check on the SMPP link to the SMSC.
-     * @return true if the packet was sent successfully
-     * @exception java.io.IOException If a network error occurs
-     */
-    public boolean enquireLink()
-	throws java.io.IOException
+      * @return true if the packet was sent successfully
+      * @exception java.io.IOException If a network error occurs
+      */
+    public EnquireLinkResp enquireLink()
+	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	EnquireLink s = new EnquireLink(nextPacket());
 
-	sendRequest(s);
+	SMPPResponse resp = sendRequest(s);
 	Debug.d(this, "enquireLink", "Request sent", Debug.DBG_3);
-	return true;
+	return ((EnquireLinkResp)resp);
     }
 
     /** Get the response packet associated with the request packet rq.
-     * @param rq The request packet to get the reponse for.
-     */
+      * @param rq The request packet to get the reponse for.
+      */
     public synchronized SMPPResponse getResponsePacket(SMPPRequest rq)
     {
 	Integer key = null;
 	SMPPPacket p1, p2;
 
-	key = new Integer(rq.getSeqNo());
+	key = new Integer(rq.getSequenceNum());
 	p1 = (SMPPPacket)inTable.get(key);
 	p2 = (SMPPPacket)outTable.get(key);
 
 	if(p1 == null || p2 == null)
-	    return null;
+	    return (null);
 
 	if(p1.equals(rq) && (p2 instanceof SMPPResponse))
 	    return (SMPPResponse)p2;
 	else if(p2.equals(rq) && (p1 instanceof SMPPResponse))
 	    return (SMPPResponse)p1;
 	else
-	    return null;
+	    return (null);
     }
 
-    /** Get the request packet associated with the response packet rsp.
-     * @param rsp The response packet to get the request for.
-     */
-    public synchronized SMPPRequest getRequestPacket(SMPPResponse rsp)
+    /** Get the request packet associated with the response packet resp.
+      * @param resp The response packet to get the request for.
+      */
+    public synchronized SMPPRequest getRequestPacket(SMPPResponse resp)
     {
 	Integer key = null;
 	SMPPPacket p1, p2;
 
-	key = new Integer(rsp.getSeqNo());
+	key = new Integer(resp.getSequenceNum());
 	p1 = (SMPPPacket)inTable.get(key);
 	p2 = (SMPPPacket)outTable.get(key);
 
 	if(p1 == null || p2 == null)
-	    return null;
+	    return (null);
 
-	if(p1.equals(rsp) && (p2 instanceof SMPPRequest))
+	if(p1.equals(resp) && (p2 instanceof SMPPRequest))
 	    return (SMPPRequest)p2;
-	else if(p2.equals(rsp) && (p1 instanceof SMPPRequest))
+	else if(p2.equals(resp) && (p1 instanceof SMPPRequest))
 	    return (SMPPRequest)p1;
 	else
-	    return null;
+	    return (null);
     }
 
     /** Get the Smsc-originated packet numbered seq.
-     * @param The sequence number of the packet to get
-     * @return null if there is no such packet
-     */
+      * @param The sequence number of the packet to get
+      * @return null if there is no such packet
+      */
     public synchronized SMPPPacket getInwardPacket(int seq)
     {
 	Integer key = new Integer(seq);
@@ -471,9 +540,9 @@ public abstract class SmppConnection
     }
 
     /** Get the Esme-originated (ie locally) packet numbered seq.
-     * @param The sequence number of the packet to get
-     * @return null if there is no such packet
-     */
+      * @param The sequence number of the packet to get
+      * @return null if there is no such packet
+      */
     public synchronized SMPPPacket getOutwardPacket(int seq)
     {
 	Integer key = new Integer(seq);
@@ -481,35 +550,35 @@ public abstract class SmppConnection
     }
 
     /** Returns the last packet sent to the Smsc.
-     */
+      */
     public synchronized SMPPPacket getLastOutwardPacket()
     {
-	return lastOutward;
+	return (lastOutward);
     }
 
     /** Report whether the connection is bound or not.
-     * @return true if the connection is bound
-     */
-    public boolean isbound()
+      * @return true if the connection is bound
+      */
+    public boolean isBound()
     {
-	return bound;
+	return (state == BOUND);
     }
 
     /** Reset's this connection as if before binding.
-     * This loses all packets currently stored and reset's the
-     * sequence numbering to the start.
-     */
+      * This loses all packets currently stored and reset's the
+      * sequence numbering to the start.
+      */
     public void reset()
     {
-	if(bound || link.isConnected()) {
-	    Debug.d(this, "reset", "Reset failed. bound="
-		    + bound
+	if((state == BOUND) || link.isConnected()) {
+	    Debug.d(this, "reset", "Reset failed. state="
+		    + state
 		    + ", link="
 		    + link.isConnected(), Debug.DBG_3);
 	    throw new SMPPException("Cannot reset connection while bound or "
 		    + "connected.");
 	}
-	if(rcvThread.isAlive()) {
+	if (rcvThread != null && rcvThread.isAlive()) {
 	    Debug.d(this, "reset", "listener thread stopped.", Debug.DBG_2);
 	    rcvThread.stop();
 	}
@@ -517,46 +586,94 @@ public abstract class SmppConnection
 	Debug.d(this, "reset", "SmppConnection reset", Debug.DBG_1);
 	inTable.clear();
 	outTable.clear();
-	seqNo = 1;
+	seqNum = 1;
     }
 
     /** Get the next sequence number for the next SMPP packet.
-     * The local side needs to keep track of the sequence numbers
-     * of the SMPP packets. As a result this function should always
-     * be used to number any newly created Smpp packets.  Otherwise
-     * the SMSC will become confused and return Generic Nacks.
-     * And it's inaccessible outside the smpp package for obvious reasons.
-     * If an application want's a sequence number, use currentPacket()
-     * to get that the next valid sequence number is without affecting
-     * it's value
-     * @return The next valid sequence number.
-     */
-    int nextPacket()
+      * The local side needs to keep track of the sequence numbers
+      * of the SMPP packets. As a result this function should always
+      * be used to number any newly created Smpp packets.  Otherwise
+      * the SMSC will become confused and return Generic Nacks.
+      * And it's inaccessible outside the smpp package for obvious reasons.
+      * If an application want's a sequence number, use currentPacket()
+      * to get that the next valid sequence number is without affecting
+      * it's value
+      * @return The next valid sequence number.
+      */
+    synchronized int nextPacket()
     {
 	// Gonna return x in a second...
-	int x = seqNo;
+	int x = seqNum;
 
-	if(seqNo == 0x7fffffff)
-	    seqNo = 0x01;
+	if(seqNum == 0x7fffffff)
+	    seqNum = 0x01;
 	else
-	    seqNo++;
+	    seqNum++;
 
-	return x;
+	return (x);
     }
 
     /** Get the next valid Smpp packet sequence number.
-     * This method will not affect the current value of the sequence
-     * number, just allow applications read what the next value will be.
-     */
-    public int currentPacket()
+      * This method will not affect the current value of the sequence
+      * number, just allow applications read what the next value will be.
+      */
+    public synchronized int currentPacket()
     {
-	return seqNo;
+	return (seqNum);
     }
 
 
+    /** Read in the next packet from the SMSC link.
+      * If asynchronous communications is in use, calling this method results in
+      * an SMPPException as the listener thread will be hogging the input stream
+      * of the socket connection.
+      * @param timeout Milliseconds to wait for a packet before returning.
+      * @return The next SMPP packet from the SMSC. null if no packet arrives
+      * within timeout milliseconds.
+      * @exception java.io.IOException If an I/O error occurs.
+      * @exception ie.omk.smpp.SMPPException If asynchronous comms is in use.
+      */
+    public SMPPPacket readNextPacket(long timeout)
+	throws java.io.IOException, ie.omk.smpp.SMPPException
+    {
+	if (asyncComms)
+	    throw new SMPPException("Asynchronous communication in use.");
+
+	Date start = new Date();
+	InputStream in = link.getInputStream();
+	SMPPPacket pak = null;
+
+	synchronized (link) {
+	    while ((new Date().getTime() - start.getTime()) < timeout) {
+		if (in.available() < 16) {
+		    try {
+			Thread.sleep(5);
+		    continue;
+		    } catch (InterruptedException x) {
+			break;
+		    }
+		}
+
+		pak = SMPPPacket.readPacket(in);
+	    }
+	}
+
+	return (pak);
+    }
+
+    /** Add an observer to receive SmppEvents from this connection.
+      * If asynchronous communication is not turned on, this method call has no
+      * effect.
+      */
+    public void addObserver(Observer ob)
+    {
+	if (asyncComms)
+	    super.addObserver(ob);
+    }
+
     /** Notify all observers that a new packet has arrived.
-     * @param b The packet that just arrived.
-     */
+      * @param b The packet that just arrived.
+      */
     public void notifyObservers(Object b)
     {
 	if(! (b instanceof SMPPPacket)) {
@@ -566,7 +683,7 @@ public abstract class SmppConnection
 
 	// Create a new SmppEvent and notify observers of it....
 	Object details = SmppEvent.detailFactory((SMPPPacket)b);
-	SmppEvent ev = new SmppEvent(this, details, (SMPPPacket)b);
+	SmppEvent ev = new SmppEvent(this, (SMPPPacket)b, details);
 
 	this.setChanged();
 	super.notifyObservers(ev);
@@ -577,13 +694,14 @@ public abstract class SmppConnection
 	Integer key = null;
 	SMPPRequest rq = null;
 	SMPPPacket pak = null;
-	int id = 0;
 
 	Debug.d(this, "run", "Listener thread is up and running", Debug.DBG_4);
-	while(true) {
+	while (state != UNBOUND) {
 	    try {
 		try {
-		    pak = SMPPPacket.readPacket(in);
+		    pak = SMPPPacket.readPacket(link.getInputStream());
+		    if (pak == null)
+			continue;
 		} catch(SMPPException ix) {
 		    /* Don't mind this.  Just try and read another one.. */
 		    Debug.d(this,
@@ -599,7 +717,7 @@ public abstract class SmppConnection
 			    "run",
 			    "EOFException in thread. " + ex.getMessage(),
 			    Debug.DBG_3);
-		    bound = false;
+		    setState(UNBOUND);
 		    try { link.close(); }
 		    catch(IOException ix) { }
 		    SmppConnectionDropPacket p =
@@ -614,7 +732,7 @@ public abstract class SmppConnection
 			    "run",
 			    "IOException in thread" + ix.getMessage(),
 			    Debug.DBG_3);
-		    bound = false;
+		    setState(UNBOUND);
 		    try {
 			link.close();
 		    } catch(IOException ex) {
@@ -634,7 +752,7 @@ public abstract class SmppConnection
 		// Add the received packet to the table
 		if(inTable.size() == 150)
 		    inTable.clear();
-		key = new Integer(pak.getSeqNo());
+		key = new Integer(pak.getSequenceNum());
 		inTable.put(key, pak);
 
 		// Set the request message to ackd if it's there...
@@ -646,35 +764,45 @@ public abstract class SmppConnection
 		    }
 		}
 
-		id = pak.getCommandId();
-		if(!bound && ((id == SMPPPacket.ESME_BNDTRN_RESP)
-			    || (id == SMPPPacket.ESME_BNDRCV_RESP)))
-		    bound = true;
+		int id = pak.getCommandId();
+		int st = pak.getCommandStatus();
 
-		// Check is it's an unbind response.  If it is, and
-		// unbinding is set to true, it's time to exit!
-		if(unbinding && id == SMPPPacket.ESME_UBD_RESP) {
-		    Debug.d(this, "run", "Successfully unbound.", Debug.DBG_3);
-		    bound = false;
-		    notifyObservers(pak);
+		// Special case packets...
+		switch (id) {
+		case SMPPPacket.ESME_BNDTRN_RESP:
+		case SMPPPacket.ESME_BNDRCV_RESP:
+		    if (state == BINDING && st == 0)
+			setState(BOUND);
 		    break;
-		}
 
-		// Ack a deliver_sm if appropriate
-		if(ackDeliverSm && id == SMPPPacket.SMSC_DELIVER_SM) {
-		    DeliverSMResp dr = new DeliverSMResp((DeliverSM)pak);
-		    sendResponse(dr);
-		    Debug.d(this, "run", "Ack'd deliver_sm #" + dr.getSeqNo(),
-			    Debug.DBG_3);
-		}
+		case SMPPPacket.ESME_UBD_RESP:
+		    if (state == UNBINDING && st == 0) {
+			Debug.d(this, "run", "Successfully unbound.",
+				Debug.DBG_3);
+			setState(UNBOUND);
+		    }
+		    break;
 
-		// Automatically ack EnquireLink packets from the Smsc.
-		// Prevents timeout problems
-		if(ackQryLinks && id == SMPPPacket.ESME_QRYLINK) {
-		    EnquireLinkResp el = new EnquireLinkResp((EnquireLink)pak);
-		    sendResponse(el);
-		    Debug.d(this, "run", "Ack'd enquire_link #" + el.getSeqNo(),
-			    Debug.DBG_3);
+		case SMPPPacket.SMSC_DELIVER_SM:
+		    if (ackDeliverSm) {
+			DeliverSMResp dr = new DeliverSMResp((DeliverSM)pak);
+			sendResponse(dr);
+			Debug.d(this, "run", "Ack'd deliver_sm #"
+				+ dr.getSequenceNum(),
+				Debug.DBG_3);
+		    }
+		    break;
+
+		case SMPPPacket.ESME_QRYLINK:
+		    if(ackQryLinks) {
+			EnquireLinkResp el =
+			    new EnquireLinkResp((EnquireLink)pak);
+			sendResponse(el);
+			Debug.d(this, "run", "Ack'd enquire_link #"
+				+ el.getSequenceNum(),
+				Debug.DBG_3);
+		    }
+		    break;
 		}
 
 		// Tell all the observers about the new packet

@@ -1,6 +1,6 @@
 /*
- * Java implementation of the SMPP v3.3 API
- * Copyright (C) 1998 - 2000 by Oran Kelly
+ * Java SMPP API
+ * Copyright (C) 1998 - 2001 by Oran Kelly
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,12 +18,13 @@
  * 
  * A copy of the LGPL can be viewed at http://www.gnu.org/copyleft/lesser.html
  * Java SMPP API author: oran.kelly@ireland.com
+ * Java SMPP API Homepage: http://smppapi.sourceforge.net/
  */
 package ie.omk.smpp.message;
 
 import java.io.*;
-import java.util.*;
 import ie.omk.smpp.SMPPException;
+import ie.omk.smpp.util.SMPPIO;
 import ie.omk.debug.Debug;
 
 /** Query the last number of messages sent from a certain ESME
@@ -34,113 +35,78 @@ public class QueryLastMsgs
     extends ie.omk.smpp.message.SMPPRequest
 {
     /** No of messages to look up */
-    int			noOfMsgs;
+    int			msgCount;
 
     /** Construct a new QueryLastMsgs with specified sequence number.
-     * @param seqNo The sequence number to use
-     */
-    public QueryLastMsgs(int seqNo)
+      * @param seqNum The sequence number to use
+      */
+    public QueryLastMsgs(int seqNum)
     {
-	super(ESME_QUERY_LAST_MSGS, seqNo);
-	noOfMsgs = 0;
+	super(ESME_QUERY_LAST_MSGS, seqNum);
+	msgCount = 0;
     }
 
     /** Read in a QueryLastMsgs from an InputStream.  A full packet,
-     * including the header fields must exist in the stream.
-     * @param in The InputStream to read from
-     * @exception ie.omk.smpp.SMPPException If the stream does not
-     * contain a QueryLastMsgs packet.
-     * @see java.io.InputStream
-     */
+      * including the header fields must exist in the stream.
+      * @param in The InputStream to read from
+      * @exception ie.omk.smpp.SMPPException If the stream does not
+      * contain a QueryLastMsgs packet.
+      * @see java.io.InputStream
+      */
     public QueryLastMsgs(InputStream in)
     {
 	super(in);
 
-	if(cmdStatus != 0)
+	if(commandStatus != 0)
 	    return;
 
 	try {
 	    source = new SmeAddress(in);
-	    noOfMsgs = readInt(in, 1);
+	    msgCount = SMPPIO.readInt(in, 1);
 	} catch(IOException iox) {
 	    throw new SMPPException("Input stream does not contain a "
 		    + "query_last_msgs packet.");
 	}
     }
 
-    /** Set the source address
-     * @param ton Source address Type of number
-     * @param npi Source address Numbering plan indicator
-     * @param addr Source address (Up to 20 characters)
-     * @exception ie.omk.smpp.SMPPException If the Source address is invalid
-     */
-    public void setSource(int ton, int npi, String addr)
-    {
-	super.setSource(new SmeAddress(ton, npi, addr));
-    }
-
-    /** Set the source address
-     * @see SmeAddress
-     */
-    public void setSource(SmeAddress d)
-    {
-	super.setSource(d);
-    }
-
     /** Set the number of messages to look up */
     public void setMsgCount(int s)
     {
 	if(s > 0 && s <= 100) {
-	    noOfMsgs = s;
+	    msgCount = s;
 	} else {
 	    throw new SMPPException("Number of messages to query must be > 0 "
 		    + "and <= 100");
 	}
     }
 
-    /** Get the source address */
-    public SmeAddress getSource()
-    {
-	return super.getSource();
-    }
-
     /** Get the count of the number of messages being requested */
     public int getMsgCount()
     {
-	return noOfMsgs;
+	return (msgCount);
     }
 
     /** Get the size in bytes of this packet */
-    public int size()
+    public int getCommandLen()
     {
-	return (super.size() + 1
+	return (getHeaderLen() + 1
 		+ ((source != null) ? source.size() : 3));
     }
 
     /** Write a byte representation of this packet to an OutputStream
-     * @param out The OutputStream to write to
-     * @exception ie.omk.smpp.SMPPException If an I/O error occurs
-     * @see java.io.OutputStream
-     */
-    public void writeTo(OutputStream out)
+      * @param out The OutputStream to write to
+      * @exception ie.omk.smpp.SMPPException If an I/O error occurs
+      * @see java.io.OutputStream
+      */
+    protected void encodeBody(OutputStream out)
+	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
-	try {
-	    ByteArrayOutputStream b = new ByteArrayOutputStream();
-	    super.writeTo(b);
-
-	    if(source != null) {
-		source.writeTo(b);
-	    } else {
-		writeInt(0, 2, b);
-		writeCString(null, b);
-	    }
-	    writeInt(noOfMsgs, 1, b);
-
-	    b.writeTo(out);
-	} catch(IOException x) {
-	    throw new SMPPException("Error writing query_last_msgs packet to "
-		    + "output stream");
+	if(source != null) {
+	    source.writeTo(out);
+	} else {
+	    SMPPIO.writeInt(0, 3, out);
 	}
+	SMPPIO.writeInt(msgCount, 1, out);
     }
 
     public String toString()

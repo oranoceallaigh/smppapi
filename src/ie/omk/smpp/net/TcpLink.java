@@ -1,6 +1,6 @@
 /*
- * Java implementation of the SMPP v3.3 API
- * Copyright (C) 1998 - 2000 by Oran Kelly
+ * Java SMPP API
+ * Copyright (C) 1998 - 2001 by Oran Kelly
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,6 +18,7 @@
  * 
  * A copy of the LGPL can be viewed at http://www.gnu.org/copyleft/lesser.html
  * Java SMPP API author: oran.kelly@ireland.com
+ * Java SMPP API Homepage: http://smppapi.sourceforge.net/
  */
 package ie.omk.smpp.net;
 
@@ -45,9 +46,9 @@ public class TcpLink
     Socket	sock = null;
 
     /** Create a new TcpLink
-     * @param address IP address or hostname of SMSC
-     * @exception java.net.UnknownHostException If the host is not found.
-     */
+      * @param address IP address or hostname of SMSC
+      * @exception java.net.UnknownHostException If the host is not found.
+      */
     public TcpLink(String address)
 	throws UnknownHostException
     {
@@ -55,10 +56,10 @@ public class TcpLink
     }
 
     /** Create a new TcpLink
-     * @param address IP address or hostname of SMSC
-     * @param port The port number to connect to
-     * @exception java.net.UnknownHostException If the host is not found.
-     */
+      * @param address IP address or hostname of SMSC
+      * @param port The port number to connect to
+      * @exception java.net.UnknownHostException If the host is not found.
+      */
     public TcpLink(String address, int port)
 	throws UnknownHostException
     {
@@ -67,19 +68,19 @@ public class TcpLink
     }
 
     /** Create a new TcpLink
-     * @param address IP address SMSC
-     * @exception java.net.UnknownHostException If the host is not found.
-     */
+      * @param address IP address SMSC
+      * @exception java.net.UnknownHostException If the host is not found.
+      */
     public TcpLink(InetAddress address)
     {
 	this(address, defaultPort);
     }
 
     /** Create a new TcpLink
-     * @param address IP address of SMSC
-     * @param port The port number to connect to
-     * @exception java.net.UnknownHostException If the host is not found.
-     */
+      * @param address IP address of SMSC
+      * @param port The port number to connect to
+      * @exception java.net.UnknownHostException If the host is not found.
+      */
     public TcpLink(InetAddress address, int port)
     {
 	this.addr = address;
@@ -87,9 +88,9 @@ public class TcpLink
     }
 
     /** Connect the input and output sockets to the SMSC to create the
-     * virtual circuit.
-     * @exception java.io.IOException If an error occurs connecting to the SMSC
-     */
+      * virtual circuit.
+      * @exception java.io.IOException If an error occurs connecting to the SMSC
+      */
     public void open()
 	throws IOException
     {
@@ -98,8 +99,8 @@ public class TcpLink
     }
 
     /** Close the virtual circuit to the SMSC
-     * @exception java.io.IOException If a network error occurs closing the connection
-     */
+      * @exception java.io.IOException If a network error occurs closing the connection
+      */
     public void close()
 	throws IOException
     {
@@ -116,10 +117,10 @@ public class TcpLink
     }
 
     /** Get the output stream of the output socket of the virtual connection.
-     * @exception java.io.IOException If the socket connections are not open
-     * @see java.io.OutputStream
-     * @see java.net.Socket#getOutputStream
-     */
+      * @exception java.io.IOException If the socket connections are not open
+      * @see java.io.OutputStream
+      * @see java.net.Socket#getOutputStream
+      */
     public OutputStream getOutputStream()
 	throws IOException
     {
@@ -130,10 +131,10 @@ public class TcpLink
     }
 
     /** Get the input stream of the input socket of the virtual connection.
-     * @exception java.io.IOException If the socket connections are not open
-     * @see java.io.InputStream
-     * @see java.net.Socket#getInputStream
-     */
+      * @exception java.io.IOException If the socket connections are not open
+      * @see java.io.InputStream
+      * @see java.net.Socket#getInputStream
+      */
     public InputStream getInputStream()
 	throws IOException
     {

@@ -1,6 +1,6 @@
 /*
- * Java implementation of the SMPP v3.3 API
- * Copyright (C) 1998 - 2000 by Oran Kelly
+ * Java SMPP API
+ * Copyright (C) 1998 - 2001 by Oran Kelly
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,12 +18,14 @@
  * 
  * A copy of the LGPL can be viewed at http://www.gnu.org/copyleft/lesser.html
  * Java SMPP API author: oran.kelly@ireland.com
+ * Java SMPP API Homepage: http://smppapi.sourceforge.net/
  */
 package ie.omk.smpp.message;
 
 import java.io.*;
 import java.util.*;
 import ie.omk.smpp.SMPPException;
+import ie.omk.smpp.util.SMPPIO;
 import ie.omk.debug.Debug;
 
 /** Response to query last messages request
@@ -37,41 +39,42 @@ public class QueryLastMsgsResp
     Vector			messageTable;
 
     /** Construct a new QueryLastMsgsResp with specified sequence number.
-     * @param seqNo The sequence number to use
-     */
-    public QueryLastMsgsResp(int seqNo)
+      * @param seqNum The sequence number to use
+      */
+    public QueryLastMsgsResp(int seqNum)
     {
-	super(ESME_QUERY_LAST_MSGS_RESP, seqNo);
+	super(ESME_QUERY_LAST_MSGS_RESP, seqNum);
 	messageTable = null;
     }
 
     /** Read in a QueryLastMsgsResp from an InputStream.  A full packet,
-     * including the header fields must exist in the stream.
-     * @param in The InputStream to read from
-     * @exception ie.omk.smpp.SMPPException If the stream does not
-     * contain a QueryLastMsgsResp packet.
-     * @see java.io.InputStream
-     */
+      * including the header fields must exist in the stream.
+      * @param in The InputStream to read from
+      * @exception ie.omk.smpp.SMPPException If the stream does not
+      * contain a QueryLastMsgsResp packet.
+      * @see java.io.InputStream
+      */
     public QueryLastMsgsResp(InputStream in)
     {
 	super(in);
 
-	if(cmdStatus != 0)
+	if(commandStatus != 0)
 	    return;
 
-	int noOfMsgs = 0;
+	int msgCount = 0;
 	long id = 0;
 	try {
-	    noOfMsgs = readInt(in, 1);
+	    msgCount = SMPPIO.readInt(in, 1);
 
-	    messageTable = new Vector(noOfMsgs);
+	    messageTable = new Vector(msgCount);
 
-	    for(int loop=0; loop<noOfMsgs; loop++) {
-		String s = readCString(in);
+	    for(int loop = 0; loop < msgCount; loop++) {
+		String s = SMPPIO.readCString(in);
 		try {
 		    id = Long.parseLong(s, 16);
 		    messageTable.addElement(new Integer((int)id));
-		    Debug.d(this, "<init>", "Adding "+id+" to destinations", Debug.DBG_3);
+		    Debug.d(this, "<init>", "Adding " + id
+			    + " to destinations", Debug.DBG_3);
 		} catch(NumberFormatException nx) {
 		    /* Just don't add it to the table! */
 		    Debug.d(this, "<init>", "Not added: " + id, Debug.DBG_2);
@@ -86,19 +89,19 @@ public class QueryLastMsgsResp
     }
 
     /** Create a new QueryLastMsgsResp packet in response to a BindReceiver.
-     * This constructor will set the sequence number to it's expected value.
-     * @param r The Request packet the response is to
-     */
+      * This constructor will set the sequence number to it's expected value.
+      * @param r The Request packet the response is to
+      */
     public QueryLastMsgsResp(QueryLastMsgs r)
     {
 	super(r);
     }
 
     /** Add a message Id to the message table.
-     * @param id The message Id to add to the table (0h - ffffffffh)
-     * @return The current number of message Ids in the message table
-     * @exception ie.omk.smpp.SMPPException If the message Id is invalid
-     */
+      * @param id The message Id to add to the table (0h - ffffffffh)
+      * @return The current number of message Ids in the message table
+      * @exception ie.omk.smpp.SMPPException If the message Id is invalid
+      */
     public int addMessageId(int id)
     {
 	if(messageTable == null)
@@ -119,8 +122,8 @@ public class QueryLastMsgsResp
     }
 
     /** Get an enumeration to interate through the message table
-     * @return An int array of all the message Ids
-     */
+      * @return An int array of all the message Ids
+      */
     public int[] getMessageIds()
     {
 	int ids[];
@@ -137,11 +140,11 @@ public class QueryLastMsgsResp
     }
 
     /** Get the size in bytes of this packet */
-    public int size()
+    public int getCommandLen()
     {
 	int id;
 	String s = null;
-	int size = super.size() + 1;
+	int size = getHeaderLen() + 1;
 	Enumeration e = messageTable.elements();
 	while(e.hasMoreElements()) {
 	    id = ((Integer)e.nextElement()).intValue();
@@ -152,30 +155,19 @@ public class QueryLastMsgsResp
     }
 
     /** Write a byte representation of this packet to an OutputStream
-     * @param out The OutputStream to write to
-     * @exception ie.omk.smpp.SMPPException If an I/O error occurs
-     * @see java.io.OutputStream
-     */
-    public void writeTo(OutputStream out)
+      * @param out The OutputStream to write to
+      * @exception ie.omk.smpp.SMPPException If an I/O error occurs
+      * @see java.io.OutputStream
+      */
+    protected void encodeBody(OutputStream out)
+	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	String s = null;
-	try {
-	    ByteArrayOutputStream b = new ByteArrayOutputStream();
-	    super.writeTo(b);
-
-	    writeInt(messageTable.size(), 1, b);
-	    Enumeration e = messageTable.elements();
-	    while(e.hasMoreElements()) {
-		s = Integer.toHexString(((Integer)e.nextElement()).intValue());
-		writeCString(s, b);
-	    }
-
-	    b.writeTo(out);
-	} catch(IOException x) {
-	    Debug.d(this, "writeTo", "Error writing packet to output",
-		    Debug.DBG_1);
-	    throw new SMPPException("Error writing query_last_msgs_resp "
-		    + "packet to output stream");
+	SMPPIO.writeInt(messageTable.size(), 1, out);
+	Enumeration e = messageTable.elements();
+	while(e.hasMoreElements()) {
+	    s = Integer.toHexString(((Integer)e.nextElement()).intValue());
+	    SMPPIO.writeCString(s, out);
 	}
     }
 
