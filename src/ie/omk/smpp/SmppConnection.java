@@ -60,7 +60,7 @@ public abstract class SmppConnection
       */
     public static final int	UNBINDING = 3;
 
-    /** Listening occurs in a separate thread. */
+    /** Packet listener thread for Asyncronous comms. */
     protected Thread		rcvThread = null;
 
     /** Milliseconds to timeout while waiting on I/O in listener thread. */
@@ -85,7 +85,10 @@ public abstract class SmppConnection
     protected int		addrNpi = 0;
 
     /** Sequence number */
-    protected int		seqNum = 1;
+    private int			seqNum = 1;
+
+    /** Sequence numbering lock object. */
+    private Object		seqNumLock = new Object();
 
     /** The network link (virtual circuit) to the SMSC */
     protected SmscLink		link = null;
@@ -309,9 +312,14 @@ public abstract class SmppConnection
     }
 
     /** Send an smpp request to the SMSC.
+      * No fields in the SMPPRequest packet will be altered except for the
+      * sequence number. The sequence number of the packet will be set by this
+      * method according to the numbering maintained by this SmppConnection
+      * object. The numbering policy is to start at 1 and increment by 1 for
+      * each packet sent.
       * @param r The request packet to send to the SMSC
-      * @return The response packet returned by the SMSC, or null if asynchronous
-      * communication is being used.
+      * @return The response packet returned by the SMSC, or null if
+      * asynchronous communication is being used.
       * @exception java.io.IOException If a network error occurs
       */
     public SMPPResponse sendRequest(SMPPRequest r)
@@ -323,6 +331,8 @@ public abstract class SmppConnection
 	SMPPPacket resp = null;
 	OutputStream out = link.getOutputStream();
 	InputStream in = link.getInputStream();
+
+	r.setSequenceNum(nextPacket());
 
 	synchronized (link) {
 	    r.writeTo(out);
@@ -350,7 +360,6 @@ public abstract class SmppConnection
       * @exception ie.omk.smpp.NoSuchRequestException if the response contains a
       * sequence number of a request this connection has not seen.
       * @exception java.io.IOException If a network error occurs
-      * @see SmppConnection#nextPacket
       */
     public void sendResponse(SMPPResponse resp)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
@@ -405,7 +414,7 @@ public abstract class SmppConnection
       * @exception ie.omk.smpp.NotBoundException if the connection is not yet
       * bound.
       * @exception java.io.IOException If a network error occurs.
-      * @see ie.omk.smpp.SmppTrasnmitter#bind
+      * @see ie.omk.smpp.SmppTransmitter#bind
       * @see ie.omk.smpp.SmppReceiver#bind
       */
     public UnbindResp unbind()
@@ -420,7 +429,7 @@ public abstract class SmppConnection
 	 */
 	setState(UNBINDING);
 
-	Unbind u = new Unbind(nextPacket());
+	Unbind u = new Unbind(1);
 	SMPPResponse resp = sendRequest(u);
 	if (!asyncComms) {
 	    if (resp.getCommandId() == SMPPPacket.ESME_UBD_RESP
@@ -479,14 +488,15 @@ public abstract class SmppConnection
     }
 
     /** Do a confidence check on the SMPP link to the SMSC.
-      * @return true if the packet was sent successfully
+      * @return The Enquire link response packet or null if asynchronous
+      * communication is in use.
       * @exception java.io.IOException If a network error occurs
       * @exception ie.omk.smpp.SMPPExceptione XXX when?
       */
     public EnquireLinkResp enquireLink()
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
-	EnquireLink s = new EnquireLink(nextPacket());
+	EnquireLink s = new EnquireLink(1);
 
 	SMPPResponse resp = sendRequest(s);
 	Debug.d(this, "enquireLink", "Request sent", Debug.DBG_3);
@@ -495,6 +505,7 @@ public abstract class SmppConnection
 
     /** Get the response packet associated with the request packet rq.
       * @param rq The request packet to get the reponse for.
+      * @return The associated response packet, or null if there isn't one.
       */
     public synchronized SMPPResponse getResponsePacket(SMPPRequest rq)
     {
@@ -518,6 +529,7 @@ public abstract class SmppConnection
 
     /** Get the request packet associated with the response packet resp.
       * @param resp The response packet to get the request for.
+      * @return The associated request packet or null if there isn't one.
       */
     public synchronized SMPPRequest getRequestPacket(SMPPResponse resp)
     {
@@ -539,9 +551,9 @@ public abstract class SmppConnection
 	    return (null);
     }
 
-    /** Get the Smsc-originated packet numbered seq.
+    /** Get the Smsc-originated packet with the specified sequence number.
       * @param The sequence number of the packet to get
-      * @return null if there is no such packet
+      * @return The packet or null if there is no such packet
       */
     public synchronized SMPPPacket getInwardPacket(int seq)
     {
@@ -549,9 +561,10 @@ public abstract class SmppConnection
 	return (SMPPPacket)inTable.get(key);
     }
 
-    /** Get the Esme-originated (ie locally) packet numbered seq.
+    /** Get the Esme-originated (ie locally) packet with the specified sequence
+      * number.
       * @param The sequence number of the packet to get
-      * @return null if there is no such packet
+      * @return The packet or null if there is no such packet
       */
     public synchronized SMPPPacket getOutwardPacket(int seq)
     {
@@ -563,6 +576,8 @@ public abstract class SmppConnection
       */
     public synchronized SMPPPacket getLastOutwardPacket()
     {
+	// XXX Means nothing anymore to be syncrhonized on this. Outward table
+	// is being removed anyway!
 	return (lastOutward);
     }
 
@@ -595,38 +610,29 @@ public abstract class SmppConnection
 	Debug.d(this, "reset", "SmppConnection reset", Debug.DBG_1);
 	inTable.clear();
 	outTable.clear();
-	seqNum = 1;
+	synchronized (seqNumLock) {
+	    seqNum = 1;
+	}
     }
 
     /** Get the next sequence number for the next SMPP packet.
-      * The local side needs to keep track of the sequence numbers
-      * of the SMPP packets. As a result this function should always
-      * be used to number any newly created Smpp packets.  Otherwise
-      * the SMSC will become confused and return Generic Nacks.
-      * And it's inaccessible outside the smpp package for obvious reasons.
-      * If an application want's a sequence number, use currentPacket()
-      * to get that the next valid sequence number is without affecting
-      * it's value
-      * @return The next valid sequence number.
+      * @return The next valid sequence number for this connection.
       */
-    protected synchronized int nextPacket()
+    private int nextPacket()
     {
-	// Gonna return x in a second...
-	int x = seqNum;
+	synchronized (seqNumLock) {
+	    if (seqNum == 0x7fffffff)
+		seqNum = 1;
 
-	if(seqNum == 0x7fffffff)
-	    seqNum = 0x01;
-	else
-	    seqNum++;
-
-	return (x);
+	    return (seqNum++);
+	}
     }
 
-    /** Get the next valid Smpp packet sequence number.
+    /** Get the current packet sequence number.
       * This method will not affect the current value of the sequence
-      * number, just allow applications read what the next value will be.
+      * number, just allow applications read what the current value is.
       */
-    public synchronized int currentPacket()
+    public int getSeqNum()
     {
 	return (seqNum);
     }
@@ -731,7 +737,7 @@ public abstract class SmppConnection
 		    try { link.close(); }
 		    catch(IOException ix) { }
 		    SmppConnectionDropPacket p =
-			new SmppConnectionDropPacket(nextPacket());
+			new SmppConnectionDropPacket(0xffffffff);
 		    p.setMessage(ex.getMessage());
 		    notifyObservers(p);
 
@@ -748,7 +754,7 @@ public abstract class SmppConnection
 		    } catch(IOException ex) {
 		    }
 		    SmppConnectionDropPacket p =
-			new SmppConnectionDropPacket(nextPacket());
+			new SmppConnectionDropPacket(0xffffffff);
 		    p.setMessage(ix.getMessage());
 		    notifyObservers(p);
 		}
