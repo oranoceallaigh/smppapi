@@ -73,7 +73,7 @@ public class AlertNotification extends SMPPRequest
 	    new Address().writeTo(out);
     }
 
-    public void readBodyFrom(byte[] body, int offset)
+    public void readBodyFrom(byte[] body, int offset) throws java.lang.ArrayIndexOutOfBoundsException
     {
 	source = new Address();
 	source.readFrom(body, offset);

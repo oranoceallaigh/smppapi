@@ -23,7 +23,7 @@
  */
 package ie.omk.smpp.message;
 
-import java.io.*;
+import java.io.IOException;
 import ie.omk.smpp.BadCommandIDException;
 import ie.omk.debug.Debug;
 
@@ -58,10 +58,10 @@ public class EnquireLink
     /** Read in a EnquireLink from an InputStream.  A full packet,
       * including the header fields must exist in the stream.
       * @param in The InputStream to read from
-      * @exception java.io.IOException if there's an error reading from the
+      * @throws java.io.IOException if there's an error reading from the
       * input stream.
       */
-    public EnquireLink(InputStream in)
+    /*public EnquireLink(InputStream in)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super(in);
@@ -69,7 +69,7 @@ public class EnquireLink
 	if (getCommandId() != SMPPPacket.ENQUIRE_LINK)
 	    throw new BadCommandIDException(SMPPPacket.ENQUIRE_LINK,
 		    getCommandId());
-    }
+    }*/
 
     public int getBodyLength()
     {

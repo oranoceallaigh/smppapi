@@ -56,10 +56,10 @@ public class Unbind
     /** Read in a Unbind from an InputStream.  A full packet,
       * including the header fields must exist in the stream.
       * @param in The InputStream to read from
-      * @exception java.io.IOException If an error occurs writing to the input
+      * @throws java.io.IOException If an error occurs writing to the input
       * stream.
       */
-    public Unbind(InputStream in)
+    /*public Unbind(InputStream in)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super(in);
@@ -67,7 +67,7 @@ public class Unbind
 	if (getCommandId() != SMPPPacket.UNBIND)
 	    throw new BadCommandIDException(SMPPPacket.UNBIND,
 		    getCommandId());
-    }
+    }*/
 
     public int getBodyLength()
     {

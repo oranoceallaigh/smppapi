@@ -23,9 +23,12 @@
  */
 package ie.omk.smpp;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
+import java.io.IOException;
+
+import java.net.SocketTimeoutException;
+
+import java.util.ArrayList;
+import java.util.Iterator;
 
 import ie.omk.smpp.event.ConnectionObserver;
 import ie.omk.smpp.event.SMPPEvent;
@@ -33,9 +36,53 @@ import ie.omk.smpp.event.ReceiverExceptionEvent;
 import ie.omk.smpp.event.ReceiverExitEvent;
 import ie.omk.smpp.event.ReceiverStartEvent;
 
-import ie.omk.smpp.message.*;
-import ie.omk.smpp.net.*;
-import ie.omk.smpp.util.*;
+import ie.omk.smpp.message.AlertNotification;
+import ie.omk.smpp.message.Bind;
+import ie.omk.smpp.message.BindReceiver;
+import ie.omk.smpp.message.BindReceiverResp;
+import ie.omk.smpp.message.BindResp;
+import ie.omk.smpp.message.BindTransceiver;
+import ie.omk.smpp.message.BindTransceiverResp;
+import ie.omk.smpp.message.BindTransmitter;
+import ie.omk.smpp.message.BindTransmitterResp;
+import ie.omk.smpp.message.CancelSM;
+import ie.omk.smpp.message.CancelSMResp;
+import ie.omk.smpp.message.DataSM;
+import ie.omk.smpp.message.DataSMResp;
+import ie.omk.smpp.message.DeliverSM;
+import ie.omk.smpp.message.DeliverSMResp;
+import ie.omk.smpp.message.EnquireLink;
+import ie.omk.smpp.message.EnquireLinkResp;
+import ie.omk.smpp.message.GenericNack;
+import ie.omk.smpp.message.ParamRetrieve;
+import ie.omk.smpp.message.ParamRetrieveResp;
+import ie.omk.smpp.message.QueryLastMsgs;
+import ie.omk.smpp.message.QueryLastMsgsResp;
+import ie.omk.smpp.message.QueryMsgDetails;
+import ie.omk.smpp.message.QueryMsgDetailsResp;
+import ie.omk.smpp.message.QuerySM;
+import ie.omk.smpp.message.QuerySMResp;
+import ie.omk.smpp.message.ReplaceSM;
+import ie.omk.smpp.message.ReplaceSMResp;
+import ie.omk.smpp.message.SMPPPacket;
+import ie.omk.smpp.message.SMPPRequest;
+import ie.omk.smpp.message.SMPPResponse;
+import ie.omk.smpp.message.SubmitMulti;
+import ie.omk.smpp.message.SubmitMultiResp;
+import ie.omk.smpp.message.SubmitSM;
+import ie.omk.smpp.message.SubmitSMResp;
+import ie.omk.smpp.message.Unbind;
+import ie.omk.smpp.message.UnbindResp;
+
+import ie.omk.smpp.net.SmscLink;
+import ie.omk.smpp.net.TcpLink;
+
+import ie.omk.smpp.util.DefaultSequenceScheme;
+import ie.omk.smpp.util.PacketFactory;
+import ie.omk.smpp.util.SequenceNumberScheme;
+import ie.omk.smpp.util.SMPPDate;
+import ie.omk.smpp.util.SMPPIO;
+
 import ie.omk.debug.Debug;
 
 /** SMPP client connection (ESME).
@@ -136,7 +183,7 @@ public class Connection
 
     /** Initialise a new SMPP connection object.
       * @param link The network link object to the Smsc (cannot be null)
-      * @exception java.lang.NullPointerException If the link is null
+      * @throws java.lang.NullPointerException If the link is null
       */
     public Connection(SmscLink link)
     {
@@ -150,7 +197,7 @@ public class Connection
      * communication desired.
      * @param link The network link object to the Smsc (cannot be null)
      * @param async true for asyncronous communication, false for synchronous.
-     * @exception java.lang.NullPointerException If the link is null
+     * @throws java.lang.NullPointerException If the link is null
      */
     public Connection(SmscLink link, boolean async)
     {
@@ -188,9 +235,12 @@ public class Connection
 	return (this.state);
     }
 
-    /** Method to open the link to the SMSC.
-      * @exception java.io.IOException if an i/o error occurs.
-      */
+    /** Method to open the link to the SMSC. This method will connect the
+     * underlying SmscLink object if necessary and reset the sequence numbering
+     * scheme to the beginning.
+     * @throws java.io.IOException if an i/o error occurs while opening the
+     * connection.
+     */
     protected void openLink()
 	throws java.io.IOException
     {
@@ -224,11 +274,8 @@ public class Connection
      *     <td colspan="2" align="center"><i>All other values reserved.</i></td>
      *   </tr>
      * </table>
-     * @exception UnsupportedSMPPVersionException if <code>version</code> is
-     * unsupported by this implementation.
      */
     public void setInterfaceVersion(SMPPVersion interfaceVersion)
-	throws ie.omk.smpp.UnsupportedSMPPVersionException
     {
 	this.interfaceVersion = interfaceVersion;
     }
@@ -268,9 +315,13 @@ public class Connection
 	return (ackDeliverSm);
     }
 
-    /** Acknowledge a DeliverSM command received from the Smsc. */
+    /** Acknowledge a DeliverSM command received from the Smsc.
+     * @param rq The deliver_sm request to respond to.
+     * @throws java.io.IOException If an I/O error occurs writing the response
+     * packet to the network connection.
+     */
     public void ackDeliverSm(DeliverSM rq)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
+	throws java.io.IOException
     {
 	DeliverSMResp rsp = new DeliverSMResp(rq);
 	sendResponse(rsp);
@@ -286,11 +337,19 @@ public class Connection
       * @param r The request packet to send to the SMSC
       * @return The response packet returned by the SMSC, or null if
       * asynchronous communication is being used.
-      * @exception java.io.IOException If a network error occurs
-      * @exception java.lang.NullPointerException if <code>r</code> is null.
+      * @throws java.lang.NullPointerException if <code>r</code> is null.
+      * @throws java.net.SocketTimeoutException If a socket timeout occurs while
+      * waiting for a response packet. (Only in synchronized mode).
+      * @throws java.io.IOException If an I/O error occurs while writing the
+      * request packet to the network connection.
+      * @throws ie.omk.smpp.UnsupportedOperationException if the negotiated
+      * version of the SMPP link does not support the request type
+      * <code>r</code>.
+      * @throws ie.omk.smpp.AlreadyBoundException If the request type is a bind
+      * packet and this connection is already bound.
       */
     public SMPPResponse sendRequest(SMPPRequest r)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
+	throws java.net.SocketTimeoutException, java.io.IOException, UnsupportedOperationException, AlreadyBoundException
     {
 	if (link == null)
 	    throw new IOException("Connection to the SMSC is not open.");
@@ -368,12 +427,13 @@ public class Connection
 
     /** Send an smpp response packet to the SMSC
       * @param r The response packet to send to the SMSC
-      * @exception ie.omk.smpp.NoSuchRequestException if the response contains a
+      * @throws ie.omk.smpp.NoSuchRequestException if the response contains a
       * sequence number of a request this connection has not seen.
-      * @exception java.io.IOException If a network error occurs
+      * @throws java.io.IOException If an I/O error occurs while writing the
+      * response packet to the output stream.
       */
     public void sendResponse(SMPPResponse resp)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
+	throws java.io.IOException
     {
 	Integer key = null;
 
@@ -392,20 +452,51 @@ public class Connection
 	    setState(UNBOUND);
     }
 
-
-    /** Bind this connection to the SMSC. See
-     * {@link #bind(int, String, String, String, int, int, String)} for a
-     * comprehensive description of this method. This overloaded version is for
-     * convenience to bind to the SMSC using the default address range
-     * configured at the SMSC for the binding system ID.
+    /** Bind this connection to the SMSC. An application must bind to an SMSC as
+     * one of transmitter, receiver or transceiver. Binding as transmitter
+     * allows general manipulation of messages at the SMSC including submitting
+     * messages for delivery, cancelling, replacing and querying the state of
+     * previously submitted messages. Binding as a receiver allows an
+     * application to receive all messages previously queued for delivery to
+     * it's address. The transceiver mode, which was added in version 3.4 of the
+     * SMPP protocol, combines the functionality of both transmitter and
+     * receiver into one connection type.
+     * <p>Note that it is only necessary to supply values for
+     * <code>type, systemID</code> and <code>password</code>. The other
+     * arguments may be left at null (or zero, as applicable).</p>
+     * @param type connection type to use, either {@link #TRANSMITTER},
+     * {@link #RECEIVER} or {@link #TRANSCEIVER}.
+     * @param systemID the system ID to identify as to the SMSC.
+     * @param password password to use to authenticate to the SMSC.
+     * @param systemType the system type to bind as.
+     * @return the bind response packet.
+     * @throws java.lang.IllegalArgumentException if a bad <code>type</code>
+     * value is supplied.
+     * @throws ie.omk.smpp.UnsupportedOperationException if an attempt is made
+     * to bind as transceiver while using SMPP version 3.3.
+     * @throws ie.omk.smpp.StringTooLongException If any of systemID, password,
+     * system type or address range are outside allowed bounds.
+     * @throws ie.omk.smpp.InvalidTONException If the TON is invalid.
+     * @throws ie.omk.smpp.InvalidNPIException If the NPI is invalid.
+     * @throws java.io.IOException If an I/O error occurs while writing the bind
+     * packet to the output stream.
+     * @throws ie.omk.smpp.AlreadyBoundException If the Connection is already
+     * bound.
      */
     public BindResp bind(int type,
 	    String systemID,
 	    String password,
 	    String systemType)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
+	throws java.io.IOException, UnsupportedOperationException, StringTooLongException, InvalidTONException, InvalidNPIException, IllegalArgumentException, AlreadyBoundException
     {
-	return (this.bind(type, systemID, password, systemType, 0, 0, null));
+	try {
+	    return (this.bind(type, systemID, password, systemType, 
+			0, 0, null));
+	} catch (InvalidTONException x) {
+	    return (null);
+	} catch (InvalidNPIException x) {
+	    return (null);
+	}
     }
 
     /** Bind this connection to the SMSC. An application must bind to an SMSC as
@@ -429,10 +520,18 @@ public class Connection
      * @param numberPlan the NPI of the address to bind as.
      * @param addrRange the address range regular expression to bind as.
      * @return the bind response packet.
-     * @exception java.lang.IllegalArgumentException if a bad <code>type</code>
+     * @throws java.lang.IllegalArgumentException if a bad <code>type</code>
      * value is supplied.
-     * @exception java.lang.IllegalStateException if an attempt is made to bind
-     * as transceiver while using SMPP version 3.3.
+     * @throws ie.omk.smpp.UnsupportedOperationException if an attempt is made
+     * to bind as transceiver while using SMPP version 3.3.
+     * @throws ie.omk.smpp.StringTooLongException If any of systemID, password,
+     * system type or address range are outside allowed bounds.
+     * @throws ie.omk.smpp.InvalidTONException If the TON is invalid.
+     * @throws ie.omk.smpp.InvalidNPIException If the NPI is invalid.
+     * @throws java.io.IOException If an I/O error occurs while writing the bind
+     * packet to the output stream.
+     * @throws ie.omk.smpp.AlreadyBoundException If the Connection is already
+     * bound.
      */
     public BindResp bind(int type,
 	    String systemID,
@@ -441,7 +540,7 @@ public class Connection
 	    int typeOfNum,
 	    int numberPlan,
 	    String addrRange)
-	throws java.io.IOException, ie.omk.smpp.SMPPException // XXX specifics!
+	throws java.io.IOException, UnsupportedOperationException, StringTooLongException, InvalidTONException, InvalidNPIException, IllegalArgumentException, AlreadyBoundException
     {
 	Bind bindReq = null;
 
@@ -456,8 +555,8 @@ public class Connection
 
 	case TRANSCEIVER:
 	    if (this.interfaceVersion.isOlder(SMPPVersion.V34)) {
-		throw new IllegalStateException("Cannot bind as transceiver"
-			+ " in SMPP "
+		throw new UnsupportedOperationException("Cannot bind as "
+			+ "transceiver in SMPP "
 			+ interfaceVersion);
 	    }
 	    bindReq = new BindTransceiver();
@@ -473,7 +572,14 @@ public class Connection
 	bindReq.setAddressTon(typeOfNum);
 	bindReq.setAddressNpi(numberPlan);
 	bindReq.setAddressRange(addrRange);
-	bindReq.setInterfaceVersion(this.interfaceVersion.getVersionID());
+	try {
+	    bindReq.setInterfaceVersion(this.interfaceVersion.getVersionID());
+	} catch (BadInterfaceVersionException x) {
+	    // This cannot be...we're using our own enumeration!!
+	    throw new RuntimeException("Please notify project admin that "
+		    + "there's a coding error in Connection.java!"
+		    + "\nAnd attach this stack trace.");
+	}
 
 	return ((BindResp)sendRequest(bindReq));
     }
@@ -485,14 +591,13 @@ public class Connection
      * that this method will <b>not</b> close the underlying network connection.
      * @return The Unbind response packet, or null if asynchronous
      * communication is being used.
-     * @exception ie.omk.smpp.NotBoundException if the connection is not yet
+     * @throws ie.omk.smpp.NotBoundException if the connection is not yet
      * bound.
-     * @exception java.io.IOException If a network error occurs.
-     * @see ie.omk.smpp.SmppTransmitter#bind
-     * @see ie.omk.smpp.SmppReceiver#bind
+     * @throws java.io.IOException If an I/O error occurs while writing the
+     * unbind request or reading the unbind response.
      */
     public UnbindResp unbind()
-	throws java.io.IOException, ie.omk.smpp.SMPPException
+	throws java.io.IOException, NotBoundException
     {
 	if((state != BOUND) || !(link.isConnected()))
 	    throw new NotBoundException();
@@ -513,15 +618,14 @@ public class Connection
 	return ((UnbindResp)resp);
     }
 
-    /** Unbind from the SMSC. This method can be used to acknowledge an unbind
+    /** Unbind from the SMSC. This method is used to acknowledge an unbind
       * request from the SMSC.
-      * @exception ie.omk.smpp.NotBoundException if the link is currently not
-      * connected.
-      * @exception ie.omk.smpp.AlreadyBoundException if no unbind request has
+      * @throws ie.omk.smpp.NotBoundException if the connection is not currently
+      * bound.
+      * @throws ie.omk.smpp.AlreadyBoundException if no unbind request has
       * been received from the SMSC.
-      * @exception java.io.IOException If a network error occurs.
-      * @see ie.omk.smpp.SmppTransmitter#bind
-      * @see ie.omk.smpp.SmppReceiver#bind
+      * @throws java.io.IOException If an I/O error occurs while writing the
+      * response packet to the network connection.
       */
     public void unbind(UnbindResp ubr)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
@@ -535,34 +639,36 @@ public class Connection
 	sendResponse(ubr);
     }
 
-    /** Use of this <b><i>highly</i></b> discouraged.
-      * This is in case of emergency and stuff.
-      * Closing the connection to the Smsc without unbinding
-      * first can cause horrific trouble with runaway processes.  Don't
-      * do it!
-      */
+    /** Force the SMPP connection down.
+     * Only use this method once it's full sure that graceful unbinding and
+     * disconnection isn't going to work. This method cleans up it's internal
+     * state, forcing the network connection closed and terminating the receiver
+     * thread if necessary.
+     * <p>If you end up having to use this method to terminate a Connection, it
+     * is advisable not to attempt to reuse the connection at all. Create a new
+     * object and start from scratch. Use of this method indicates something
+     * seriously wrong!</p>
+     */
     public void force_unbind()
-	throws ie.omk.smpp.SMPPException
     {
-	if(state != UNBINDING) {
-	    Debug.warn(this, "force_close",
-		    "Force tried before normal unbind.");
-	    throw new AlreadyBoundException("Try a normal unbind first.");
-	}
-
 	Debug.d(this, "force_unbind",
 		"Attempting to force the connection shut.", 4);
 	try {
+	    setState(UNBOUND);
+
 	    // The thread must DIE!!!!
 	    if(rcvThread != null && rcvThread.isAlive()) {
-		setState(UNBOUND);
 		try {
+		    // Wait to see if the thread will terminate due to the state
+		    // becoming UNBOUND.
 		    Thread.sleep(1000);
 		} catch (InterruptedException x) {
 		}
 		if (rcvThread.isAlive())
 		    Debug.warn(this, "force_unbind",
 			    "ERROR! Listener thread has not died.");
+
+		rcvThread = null;
 	    }
 
 	    link.close();
@@ -571,13 +677,12 @@ public class Connection
 	return;
     }
 
-
     /** Acknowledge an EnquireLink received from the Smsc
-      * @exception java.io.IOException If a communications error occurs.
-      * @exception ie.omk.smpp.SMPPExceptione XXX when?
+      * @throws java.io.IOException If an I/O error occurs while writing to the
+      * network connection.
       */
     public void ackEnquireLink(EnquireLink rq)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
+	throws java.io.IOException
     {
 	EnquireLinkResp resp = new EnquireLinkResp(rq);
 	sendResponse(resp);
@@ -587,22 +692,22 @@ public class Connection
     /** Do a confidence check on the SMPP link to the SMSC.
       * @return The Enquire link response packet or null if asynchronous
       * communication is in use.
-      * @exception java.io.IOException If a network error occurs
-      * @exception ie.omk.smpp.SMPPExceptione XXX when?
+      * @throws java.io.IOException If an I/O error occurs while writing to the
+      * network connection.
       */
     public EnquireLinkResp enquireLink()
-	throws java.io.IOException, ie.omk.smpp.SMPPException
+	throws java.io.IOException
     {
 	EnquireLink s = new EnquireLink();
 	SMPPResponse resp = sendRequest(s);
 	Debug.d(this, "enquireLink", "sent enquire_link", 3);
 	if (resp != null)
 	    Debug.d(this, "enquireLink", "response received", 3);
-
 	return ((EnquireLinkResp)resp);
     }
 
-    /** Get the type of this SMPP connection.
+    /** Get the type of this SMPP connection. The connection type is one of
+     * TRANSMITTER, RECEIVER or TRANSCEIVER.
      */
     public int getConnectionType()
     {
@@ -610,19 +715,21 @@ public class Connection
     }
 
     /** Report whether the connection is bound or not.
-      * @return true if the connection is bound
+      * @return true if the connection is bound.
       */
     public boolean isBound()
     {
 	return (state == BOUND);
     }
 
-    /** Reset this connection's sequence numbering to 1.
-      * @exception ie.omk.smpp.AlreadyBoundException if the connection is
-      * currently bound to the SMSC.
-      */
+    /** Reset this connection's sequence numbering to the beginning. The
+     * underlying SequenceNumberScheme's reset method is called to start from
+     * that sequence's 'beginning'.
+     * @throws ie.omk.smpp.AlreadyBoundException if the connection is
+     * currently bound to the SMSC.
+     */
     public void reset()
-	throws ie.omk.smpp.SMPPException
+	throws AlreadyBoundException
     {
 	if(state == BOUND) {
 	    Debug.warn(this, "reset", "Attempt to reset a bound connection.");
@@ -663,12 +770,13 @@ public class Connection
       * an SMPPException as the listener thread will be hogging the input stream
       * of the socket connection.
       * @return The next SMPP packet from the SMSC.
-      * @exception java.io.IOException If an I/O error occurs.
-      * @exception ie.omk.smpp.InvalidOperationException If asynchronous comms
+      * @throws java.io.IOException If an I/O error occurs while reading from
+      * the network connection.
+      * @throws ie.omk.smpp.InvalidOperationException If asynchronous comms
       * is in use.
       */
     public SMPPPacket readNextPacket()
-	throws java.io.IOException, ie.omk.smpp.SMPPException
+	throws java.io.IOException, InvalidOperationException
     {
 	if (asyncComms)
 	    throw new InvalidOperationException("Asynchronous comms in use.");
@@ -681,9 +789,11 @@ public class Connection
       * special case packets like bind responses and unbind request and
       * responses.
       * @return The read SMPP packet, or null if the connection timed out.
+      * @throws java.io.IOException If an I/O error occurs while reading from
+      * the network connection.
       */
     private SMPPPacket readNextPacketInternal()
-	throws java.io.IOException, ie.omk.smpp.SMPPException
+	throws java.io.IOException
     {
 	SMPPPacket pak = null;
 	int id = -1, st = -1;
@@ -826,12 +936,15 @@ public class Connection
 			// XXX Send an event to the application??
 			continue;
 		    }
-		} catch (SMPPException x) {
+		} catch (SocketTimeoutException x) {
+		    // is it okay to ignore this ??
+		} catch (IOException x) {
+		    // catch EOFException before this
 		    ReceiverExceptionEvent ev =
 			new ReceiverExceptionEvent(this, x, state);
 		    smppEx++;
-		    if (smppEx > 10) {
-			Debug.d(this, "run", "Too many SMPP exceptions in "
+		    if (smppEx > 5) {
+			Debug.d(this, "run", "Too many IO exceptions in "
 				+ "receiver thread. Terminating.", 2);
 			throw x;
 		    }
@@ -844,7 +957,7 @@ public class Connection
 		switch (id) {
 		case SMPPPacket.DELIVER_SM:
 		    if (ackDeliverSm)
-			ackDelivery((DeliverSM)pak);
+			ackDeliverSm((DeliverSM)pak);
 		    break;
 
 		case SMPPPacket.ENQUIRE_LINK:
@@ -873,35 +986,12 @@ public class Connection
 	    notifyObservers(exitEvent);
     }
 
-    private void ackDelivery(DeliverSM dm)
+    /**
+     * @deprecated #ackEnquireLink
+     */
+    public void ackLinkQuery(EnquireLink el)
+	throws java.io.IOException
     {
-	try {
-	    Debug.d(this, "ackDelivery", "Auto acking deliver_sm "
-		    + dm.getSequenceNum(), 4);
-	    DeliverSMResp dmr = new DeliverSMResp(dm);
-	    sendResponse(dmr);
-	} catch (SMPPException x) {
-	    Debug.d(this, "ackDelivery", "SMPP exception acking deliver_sm "
-		    + dm.getSequenceNum(), 3);
-	} catch (IOException x) {
-	    Debug.d(this, "ackDelivery", "IO exception acking deliver_sm "
-		    + dm.getSequenceNum(), 3);
-	}
-    }
-
-    private void ackLinkQuery(EnquireLink el)
-    {
-	try {
-	    Debug.d(this, "ackLinkEnquire", "Auto acking enquire_link "
-		    + el.getSequenceNum(), 4);
-	    EnquireLinkResp elr = new EnquireLinkResp(el);
-	    sendResponse(elr);
-	} catch (SMPPException x) {
-	    Debug.d(this, "ackLinkEnquire", "SMPP exception acking "
-		    + "enquire_link " + el.getSequenceNum(), 3);
-	} catch (IOException x) {
-	    Debug.d(this, "ackLinkEnquire", "IO exception acking enquire_link "
-		    + el.getSequenceNum(), 3);
-	}
+	ackEnquireLink(el);
     }
 }

@@ -23,7 +23,8 @@
  */
 package ie.omk.smpp.message;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.OutputStream;
 
 import ie.omk.smpp.Address;
 import ie.omk.smpp.BadCommandIDException;
@@ -70,7 +71,7 @@ public class QueryLastMsgs
     /** Read in a QueryLastMsgs from an InputStream.  A full packet,
       * including the header fields must exist in the stream.
       * @param in The InputStream to read from
-      * @exception java.io.IOException if there's an error reading from the
+      * @throws java.io.IOException if there's an error reading from the
       * input stream.
       */
     /*public QueryLastMsgs(InputStream in)
@@ -91,11 +92,11 @@ public class QueryLastMsgs
 
     /** Set the number of messages to look up.
       * @param n The message count (1 &lt;= n &lt;= 100)
-      * @exception ie.omk.smpp.NumberOutOfRangeException if the count is set
+      * @throws ie.omk.smpp.NumberOutOfRangeException if the count is set
       * outside the valid range.
       */
     public void setMsgCount(int n)
-	throws ie.omk.smpp.SMPPException
+	throws NumberOutOfRangeException
     {
 	if(n > 0 && n <= 100) {
 	    this.msgCount = n;
@@ -120,11 +121,11 @@ public class QueryLastMsgs
 
     /** Write a byte representation of this packet to an OutputStream
       * @param out The OutputStream to write to
-      * @exception java.io.IOException if there's an error writing to the
+      * @throws java.io.IOException if there's an error writing to the
       * output stream.
       */
     protected void encodeBody(OutputStream out)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
+	throws java.io.IOException
     {
 	if(source != null) {
 	    source.writeTo(out);

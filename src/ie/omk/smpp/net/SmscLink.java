@@ -77,7 +77,7 @@ public abstract class SmscLink
     /** Open the connection to the SMSC. Calling this method will cause the
      * network link to the SMSC to be established. Once this method returns an
      * application may bind to the SMSC to begin it's SMPP session.
-     * @exception java.io.IOException If an error occurs while opening the
+     * @throws java.io.IOException If an exception occurs while opening the
      * connection.
      */
     public final void open()
@@ -94,6 +94,8 @@ public abstract class SmscLink
      * underlying network connection to the remote SMSC system. For example, The
      * TCP/IP implementation would create and connect a new
      * <code>java.io.Socket</code> to the SMSC host.
+     * @throws java.io.IOException If an exception occurs while opening the
+     * connection.
      */
     protected abstract void implOpen()
 	throws java.io.IOException;
@@ -104,7 +106,7 @@ public abstract class SmscLink
      * from the SMPP link (using {@link ie.omk.smpp.Connection#unbind})
      * before closing the underlying network link. The connection may be
      * reestablished using {@link #open}.
-     * @exception java.io.IOException If an error occurs while closing the
+     * @throws java.io.IOException If an exception occurs while closing the
      * connection.
      */
     public final void close()
@@ -124,7 +126,7 @@ public abstract class SmscLink
      * implementation should completely close the underlying network link to the
      * remote SMSC system but it should not free any resources that will
      * preclude the {@link #open} method from reconnecting.
-     * @exception java.io.IOException if an exception occurs during close.
+     * @throws java.io.IOException if an exception occurs during close.
      * @see #getInputStream
      * @see #getOutputStream
      * @see #close
@@ -135,10 +137,11 @@ public abstract class SmscLink
 
     /** Send a packet to the SMSC.
       * @param pak the SMPP packet to send.
-      * @exception java.io.IOException if an I/O error occurs.
+      * @throws java.io.IOException if an exception occurs during writing or if
+      * the connection is not open.
       */
     public void write(SMPPPacket pak)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
+	throws java.io.IOException
     {
 	if (out == null)
 	    throw new IOException("Link not established.");
@@ -153,7 +156,9 @@ public abstract class SmscLink
     }
 
     /** Flush the output stream of the SMSC link.
-      */
+     * @throws java.io.IOException If an exception occurs while flushing the
+     * output stream.
+     */
     public void flush()
 	throws java.io.IOException
     {
@@ -169,12 +174,13 @@ public abstract class SmscLink
       * small, a new one will be allocated and returned to the caller.
       * @param buf a byte array buffer to read the packet into.
       * @return the handle to the passed in buffer or the reallocated one.
-      * @exception java.io.IOException if an I/O error occurs.
-      * @exception ie.omk.smpp.SMPPException if an SMPP packet cannot be
-      * extracted from the incoming data.
+      * @throws java.io.EOFException If the end of stream is reached before a
+      * full packet can be read.
+      * @throws java.io.IOException If an exception occurs when reading the
+      * packet from the input stream.
       */
     public byte[] read(byte[] buf)
-	throws java.io.IOException
+	throws java.io.EOFException, java.io.IOException
     {
 	int ptr = 0,
 	    c = 0,
@@ -242,13 +248,15 @@ public abstract class SmscLink
     }
 
     /** Get the output stream of the virtual circuit.
-      * @exception java.io.IOException If a communication error occurs
+      * @throws java.io.IOException If the output stream cannot be retrieved or
+      * the connection is not open.
       */
     protected abstract OutputStream getOutputStream()
 	throws java.io.IOException;
 
     /** Get the input stream of the virtual circuit.
-      * @exception java.io.IOException If a communication error occurs
+      * @throws java.io.IOException If the input stream cannot be retrieved or
+      * the connection is not open.
       */
     protected abstract InputStream getInputStream()
 	throws java.io.IOException;

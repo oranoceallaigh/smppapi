@@ -102,8 +102,6 @@ public class AsyncTransmitter
 		synchronized (blocker) {
 		    blocker.notify();
 		}
-	    } catch (SMPPException x) {
-		x.printStackTrace(System.err);
 	    }
 	    break;
 

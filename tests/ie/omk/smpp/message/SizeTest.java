@@ -100,10 +100,6 @@ public class SizeTest extends TestCase {
 	    fail(n + " serialization caused I/O Exception:\n"
 		    + x.toString());
 	    return;
-	} catch (SMPPException x) {
-	    fail(n + " serialization caused SMPP Exception:\n"
-		    + x.toString());
-	    return;
 	}
 
 	byte[] array = out.toByteArray();

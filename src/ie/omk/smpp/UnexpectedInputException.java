@@ -28,7 +28,7 @@ package ie.omk.smpp;
   * @version 1.0
   */
 public class UnexpectedInputException
-    extends ie.omk.smpp.SMPPException
+    extends ie.omk.smpp.SMPPRuntimeException
 {
     private int c;
 

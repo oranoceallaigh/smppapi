@@ -23,8 +23,12 @@
  */
 package ie.omk.smpp.message;
 
-import java.io.*;
-import java.util.*;
+import java.io.IOException;
+import java.io.OutputStream;
+
+import java.util.Iterator;
+import java.util.Vector;
+
 import ie.omk.smpp.SMPPException;
 import ie.omk.smpp.BadCommandIDException;
 import ie.omk.smpp.InvalidMessageIDException;
@@ -60,7 +64,7 @@ public class QueryLastMsgsResp
     /** Read in a QueryLastMsgsResp from an InputStream.  A full packet,
       * including the header fields must exist in the stream.
       * @param in The InputStream to read from
-      * @exception java.io.IOException if there's an error reading from the
+      * @throws java.io.IOException if there's an error reading from the
       * input stream.
       */
     /*public QueryLastMsgsResp(InputStream in)
@@ -98,10 +102,10 @@ public class QueryLastMsgsResp
     /** Add a message Id to the response packet.
       * @param id The message Id to add to the packet.
       * @return The current number of message Ids (including the new one).
-      * @exception ie.omk.smpp.InvalidMessageIDException if the id is invalid.
+      * @throws ie.omk.smpp.InvalidMessageIDException if the id is invalid.
       */
     public int addMessageId(String id)
-	throws ie.omk.smpp.SMPPException
+	throws InvalidMessageIDException
     {
 	if(id.length() > 8)
 	    throw new InvalidMessageIDException(id);
@@ -156,11 +160,11 @@ public class QueryLastMsgsResp
 
     /** Write a byte representation of this packet to an OutputStream
       * @param out The OutputStream to write to
-      * @exception java.io.IOException if there's an error writing to the
+      * @throws java.io.IOException if there's an error writing to the
       * output stream.
       */
     protected void encodeBody(OutputStream out)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
+	throws java.io.IOException
     {
 	String s = null;
 	synchronized (messageTable) {

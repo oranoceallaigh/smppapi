@@ -28,7 +28,7 @@ package ie.omk.smpp;
   * @version 1.0
   */
 public class AlreadyBoundException
-    extends ie.omk.smpp.SMPPException
+    extends ie.omk.smpp.SMPPRuntimeException
 {
     public AlreadyBoundException()
     {

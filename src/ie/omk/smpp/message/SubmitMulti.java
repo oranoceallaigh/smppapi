@@ -23,8 +23,8 @@
  */
 package ie.omk.smpp.message;
 
-import java.io.*;
-import java.util.*;
+import java.io.IOException;
+import java.io.OutputStream;
 
 import ie.omk.smpp.Address;
 import ie.omk.smpp.BadCommandIDException;
@@ -80,7 +80,7 @@ public class SubmitMulti
     /** Read in a SubmitMulti from an InputStream.  A full packet,
       * including the header fields must exist in the stream.
       * @param in The InputStream to read from
-      * @exception java.io.IOException if there's an error reading from the
+      * @throws java.io.IOException if there's an error reading from the
       * input stream.
       */
     /*public SubmitMulti(InputStream in)
@@ -166,7 +166,7 @@ public class SubmitMulti
     /** Add a distribution list to the destination table.
      * @param d the distribution list name.
      * @return The current number of destination addresses (including the new
-     * @exception ie.omk.smpp.StringTooLongException if the distribution list
+     * @throws ie.omk.smpp.StringTooLongException if the distribution list
      * name is too long.
      */
     public int addDestination(String d)
@@ -180,7 +180,7 @@ public class SubmitMulti
 
     /** Set the destination address table.
       * @param d The array of Addresses to submit the message to
-      * @exception java.lang.NullPointerException if the array is null
+      * @throws java.lang.NullPointerException if the array is null
       * or 0 length
       */
     /*public void setDestAddresses(Address d[])
@@ -261,11 +261,11 @@ public class SubmitMulti
 
     /** Write a byte representation of this packet to an OutputStream
       * @param out The OutputStream to write to
-      * @exception java.io.IOException if there's an error writing to the
+      * @throws java.io.IOException if there's an error writing to the
       * output stream.
       */
     protected void encodeBody(OutputStream out)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
+	throws java.io.IOException
     {
 	int smLength = 0;
 	if(message != null)

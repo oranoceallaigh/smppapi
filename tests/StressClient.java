@@ -115,8 +115,6 @@ public class StressClient
 	    try {
 		UnbindResp ubr = new UnbindResp((Unbind)pak);
 		recv.sendResponse(ubr);
-	    } catch (SMPPException x) {
-		x.printStackTrace(System.err);
 	    } catch (IOException x) {
 		x.printStackTrace(System.err);
 	    } finally {

@@ -23,7 +23,9 @@
  */
 package ie.omk.smpp.message;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.OutputStream;
+
 import ie.omk.smpp.SMPPException;
 import ie.omk.smpp.BadCommandIDException;
 import ie.omk.smpp.util.SMPPIO;
@@ -55,7 +57,7 @@ public class SubmitSMResp
     /** Read in a SubmitSMResp from an InputStream.  A full packet,
       * including the header fields must exist in the stream.
       * @param in The InputStream to read from
-      * @exception java.io.IOException If an error occurs writing to the input
+      * @throws java.io.IOException If an error occurs writing to the input
       * stream.
       */
     /*public SubmitSMResp(InputStream in)
@@ -89,11 +91,11 @@ public class SubmitSMResp
 
     /** Write a byte representation of this packet to an OutputStream
       * @param out The OutputStream to write to
-      * @exception java.io.IOException If an error occurs writing to the output
+      * @throws java.io.IOException If an error occurs writing to the output
       * stream.
       */
     protected void encodeBody(OutputStream out)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
+	throws java.io.IOException
     {
 	SMPPIO.writeCString(getMessageId(), out);
     }

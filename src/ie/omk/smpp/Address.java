@@ -27,18 +27,33 @@ import java.io.OutputStream;
 import ie.omk.smpp.util.GSMConstants;
 import ie.omk.smpp.util.SMPPIO;
 
+/** Object representing a Short Message Entity's address. An address consists of
+ * a Type Of Number, a Numbering Plan Indicator and an address.
+ * @see ie.omk.smpp.util.GSMConstants
+ */
 public class Address implements java.io.Serializable
 {
+    /** Type of number. */
     private int ton = GSMConstants.GSM_TON_UNKNOWN;
 
+    /** Numbering plan indicator. */
     private int npi = GSMConstants.GSM_NPI_UNKNOWN;
 
+    /** The address. */
     private String address = "";
 
+    /** Create a new Address with all nul values. TON will be 0, NPI will be 0
+     * and the address field will be blank.
+     */
     public Address()
     {
     }
 
+    /** Create a new Address.
+     * @param ton The Type Of Number.
+     * @param npi The Numbering Plan Indicator.
+     * @param address The address.
+     */
     public Address(int ton, int npi, String address)
     {
 	this.ton = ton;
@@ -47,48 +62,64 @@ public class Address implements java.io.Serializable
     }
 
     
+    /** Get the Type Of Number.
+     */
     public int getTON()
     {
 	return (ton);
     }
 
+    /** Set the Type of Number.
+     */
     public void setTON(int ton)
     {
 	this.ton = ton;
     }
 
+    /** Get the Numbering Plan Indicator.
+     */
     public int getNPI()
     {
 	return (npi);
     }
 
+    /** Set the Numbering Plan Indicator.
+     */
     public void setNPI(int npi)
     {
 	this.npi = npi;
     }
 
+    /** Get the address.
+     */
     public String getAddress()
     {
 	return (address);
     }
 
+    /** Set the address.
+     */
     public void setAddress(String address)
     {
 	this.address = (address != null) ? address : "";
     }
 
+    /** Get a unique hash code for this address.
+     */
     public int hashCode()
     {
-	// XXX Okay, I had an algorithm for combining hash codes but I've
-	// forgotten it...so the below crap is made up until I find that
-	// algorithm again..
-	int hc1 = new Integer(ton).hashCode();
-	int hc2 = new Integer(npi).hashCode();
-	int hc3 = address.hashCode();
+	StringBuffer buf = new StringBuffer();
+	buf.append(Integer.toString(ton)).append(':');
+	buf.append(Integer.toString(npi)).append(':');
+	if (address != null)
+	    buf.append(address);
 
-	return (new Integer(hc1 * hc2 * hc3).hashCode());
+	return (buf.hashCode());
     }
 
+    /** Test for equality. Two address objects are equal if their TON, NPI and
+     * address fields are equal.
+     */
     public boolean equals(Object obj)
     {
 	if (obj instanceof Address) {
@@ -101,11 +132,20 @@ public class Address implements java.io.Serializable
 	}
     }
 
+    /** Get the number of bytes this object would encode to.
+     */
     public int getLength()
     {
 	return (3 + address.length());
     }
 
+    /** Encode this object as bytes to the output stream. An address encodes as
+     * a single byte for the TON, a single byte for the NPI and a nul-terminated
+     * ASCII character string.
+     * @param out The output stream to encode the address to.
+     * @throws java.io.IOException If an I/O error occurs while writing to the
+     * output stream.
+     */
     public void writeTo(OutputStream out)
 	throws java.io.IOException
     {
@@ -114,6 +154,12 @@ public class Address implements java.io.Serializable
 	SMPPIO.writeCString(address, out);
     }
 
+    /** Decode this address from a byte array.
+     * @param addr The byte array to read the address from.
+     * @param offset The offset within the byte array to begin decoding from.
+     * @throws java.lang.ArrayIndexOutOfBoundsException If the byte array does
+     * not contain enough bytes to decode an address.
+     */
     public void readFrom(byte[] addr, int offset)
     {
 	ton = SMPPIO.bytesToInt(addr, offset++, 1);

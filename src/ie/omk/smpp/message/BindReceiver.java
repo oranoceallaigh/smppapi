@@ -23,7 +23,7 @@
  */
 package ie.omk.smpp.message;
 
-import java.io.*;
+import java.io.IOException;
 import ie.omk.smpp.SMPPException;
 import ie.omk.smpp.BadCommandIDException;
 import ie.omk.smpp.StringTooLongException;
@@ -49,7 +49,7 @@ public class BindReceiver
     /** Read a BindReceiver packet from an InputStream.  An entire packet
       * must exist in the stream, including the header information.
       * @param in The InputStream to read from
-      * @exception java.io.IOException if there's a read error.
+      * @throws java.io.IOException if there's a read error.
       */
     /*public BindReceiver(InputStream in)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
