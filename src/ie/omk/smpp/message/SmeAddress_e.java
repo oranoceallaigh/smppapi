@@ -32,59 +32,53 @@ import ie.omk.smpp.SMPPException;
   * @version 1.0
   */
 public class SmeAddress_e
-	extends SmeAddress
+    extends SmeAddress
 {
-// File identifier string: used for debug output
-	private static String FILE = "SmeAddress_e";
+    /** Error status */
+    public int			errorStatus;
 
-	/** Error status */
-	public int			errorStatus;
+    /** Construct a new SmeAddress_e */
+    public SmeAddress_e()
+    {
+	super();
+	errorStatus = 0;
+    }
 
-	/** Construct a new SmeAddress_e */
-	public SmeAddress_e()
-	{
-		super();
-		errorStatus = 0;
+    /** Read in an SmeAddress_e from an InputStream
+     * @param in InputStream to read from
+     * @exception java.io.IOException If an I/O error occurs
+     * @see java.io.InputStream
+     */
+    public SmeAddress_e(InputStream in)
+	throws IOException
+    {
+	super(in);
+	errorStatus = SMPPPacket.readInt(in, 4);
+    }
+
+    /** Get the size in bytes of this packet */
+    public int size()
+    {
+	return (super.size() + 4);
+    }
+
+    /** Write a byte representation of this packet to an OutputStream
+     * @param out The OutputStream to write to
+     * @exception java.io.IOException If an I/O error occurs
+     * @see java.io.OutputStream
+     */
+    public void writeTo(OutputStream out)
+    {
+	try {
+	    ByteArrayOutputStream b = new ByteArrayOutputStream();
+
+	    super.writeTo(b);
+	    SMPPPacket.writeInt(errorStatus, 4, b);
+
+	    b.writeTo(out);
+	} catch(IOException x) {
+	    throw new SMPPException("Error writing SmeAddress_e packet to "
+		    + "output stream");
 	}
-
-	/** Read in an SmeAddress_e from an InputStream
-	  * @param in InputStream to read from
-	  * @exception java.io.IOException If an I/O error occurs
-	  * @see java.io.InputStream
-	  */
-	public SmeAddress_e(InputStream in)
-		throws IOException
-	{
-		super(in);
-		errorStatus = SMPPPacket.readInt(in, 4);
-	}
-
-	/** Get the size in bytes of this packet */
-	public int size()
-	{
-		return (super.size() + 4);
-	}
-
-	/** Write a byte representation of this packet to an OutputStream
-	  * @param out The OutputStream to write to
-	  * @exception java.io.IOException If an I/O error occurs
-	  * @see java.io.OutputStream
-	  */
-	public void writeTo(OutputStream out)
-	{
-		try
-		{
-			ByteArrayOutputStream b = new ByteArrayOutputStream();
-
-			super.writeTo(b);
-			SMPPPacket.writeInt(errorStatus, 4, b);
-
-			b.writeTo(out);
-		}
-		catch(IOException x)
-		{
-			throw new SMPPException("Error writing SmeAddress_e packet to output stream");
-		}
-	}
+    }
 }
-

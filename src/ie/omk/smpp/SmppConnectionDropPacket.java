@@ -34,47 +34,45 @@ import ie.omk.debug.Debug;
   * @version 1.0
   */
 public class SmppConnectionDropPacket
-	extends SMPPPacket
+    extends SMPPPacket
 {
-// File identifier string: used for debug output
-	private static String FILE = "SmppConnectionDropPacket";
+    protected String message = null;
 
-	protected String message = null;
-	public static final int CONNECTION_DROP		= 0xefffffff;
+    /** Invented command id for a connection drop */
+    public static final int CONNECTION_DROP = 0xefffffff;
 
-	public SmppConnectionDropPacket(int seq)
-	{
-		super(SMPPPacket.ESME_NACK, seq);
-		this.message = "";
+    public SmppConnectionDropPacket(int seq)
+    {
+	super(SMPPPacket.ESME_NACK, seq);
+	this.message = "";
 
-		// Command Id should not be anything near any valid Smpp message...
-		cmdId = CONNECTION_DROP;
+	// Command Id should not be anything near any valid Smpp message...
+	cmdId = CONNECTION_DROP;
 
-		cmdStatus = 0;
-		cmdLen = 16;
-	}
+	cmdStatus = 0;
+	cmdLen = 16;
+    }
 
-	public SmppConnectionDropPacket(int seq, String msg)
-	{
-		super(ESME_NACK, seq);
+    public SmppConnectionDropPacket(int seq, String msg)
+    {
+	super(ESME_NACK, seq);
 
-		this.message = msg;
+	this.message = msg;
 
-		// Command Id should not be anything near any valid Smpp message...
-		cmdId = CONNECTION_DROP;
+	// Command Id should not be anything near any valid Smpp message...
+	cmdId = CONNECTION_DROP;
 
-		cmdStatus = 0;
-		cmdLen = 16;
-	}
+	cmdStatus = 0;
+	cmdLen = 16;
+    }
 
-	public void setMessage(String s)
-	{
-		this.message = s;
-	}
+    public void setMessage(String s)
+    {
+	this.message = s;
+    }
 
-	public String getMessage()
-	{
-		return message;
-	}
+    public String getMessage()
+    {
+	return message;
+    }
 }
-

@@ -30,43 +30,39 @@ import ie.omk.debug.Debug;
   * @version 1.0
   */
 public class EnquireLinkResp
-	extends ie.omk.smpp.message.SMPPResponse
+    extends ie.omk.smpp.message.SMPPResponse
 {
-// File identifier string: used for debug output
-	private static String FILE = "EnquireLinkResp";
+    /** Construct a new EnquireLinkResp with specified sequence number.
+     * @param seqNo The sequence number to use
+     */
+    public EnquireLinkResp(int seqNo)
+    {
+	super(ESME_QRYLINK_RESP, seqNo);
+    }
 
-	/** Construct a new EnquireLinkResp with specified sequence number.
-	  * @param seqNo The sequence number to use
-	  */
-	public EnquireLinkResp(int seqNo)
-	{
-		super(ESME_QRYLINK_RESP, seqNo);
-	}
+    /** Read in a EnquireLinkResp from an InputStream.  A full packet,
+     * including the header fields must exist in the stream.
+     * @param in The InputStream to read from
+     * @exception ie.omk.smpp.SMPPException If the stream does not
+     * contain a EnquireLinkResp packet.
+     * @see java.io.InputStream
+     */
+    public EnquireLinkResp(InputStream in)
+    {
+	super(in);
+    }
 
-	/** Read in a EnquireLinkResp from an InputStream.  A full packet,
-	  * including the header fields must exist in the stream.
-	  * @param in The InputStream to read from
-	  * @exception ie.omk.smpp.SMPPException If the stream does not
-	  * contain a EnquireLinkResp packet.
-	  * @see java.io.InputStream
-	  */
-	public EnquireLinkResp(InputStream in)
-	{
-		super(in);
-	}
+    /** Create a new BindReceiverResp packet in response to a BindReceiver.
+     * This constructor will set the sequence number to it's expected value.
+     * @param r The Request packet the response is to
+     */
+    public EnquireLinkResp(EnquireLink r)
+    {
+	super(r);
+    }
 
-	/** Create a new BindReceiverResp packet in response to a BindReceiver.
-	  * This constructor will set the sequence number to it's expected value.
-	  * @param r The Request packet the response is to
-	  */
-	public EnquireLinkResp(EnquireLink r)
-	{
-		super(r);
-	}
-
-	public String toString()
-	{
-		return new String("enquire_link_resp");
-	}
+    public String toString()
+    {
+	return new String("enquire_link_resp");
+    }
 }
-

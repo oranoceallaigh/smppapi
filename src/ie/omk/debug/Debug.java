@@ -23,59 +23,77 @@ package ie.omk.debug;
 
 public class Debug
 {
-	private static int			debugLevel = 0;
-	public static int			DBG_0 = 0;
-	public static int			DBG_1 = 1;
-	public static int			DBG_2 = 2;
-	public static int			DBG_3 = 3;
-	public static int			DBG_4 = 4;
-	public static int			DBG_5 = 5;
-//	private static String		tabs = "\t\t\t\t\t\t\t\t\t\t\t";
-	private static String		tabs = "|---------------------";
+    private static int			debugLevel = 0;
+    public static int			DBG_0 = 0;
+    public static int			DBG_1 = 1;
+    public static int			DBG_2 = 2;
+    public static int			DBG_3 = 3;
+    public static int			DBG_4 = 4;
+    public static int			DBG_5 = 5;
+    //	private static String		tabs = "\t\t\t\t\t\t\t\t\t\t\t";
+    private static String		tabs = "|---------------------";
 
-	public static boolean		dbg = false;
+    public static boolean		dbg = false;
 
-	private Debug() { }
-	public static void setDebugLevel(int l)
-	{ 
-		if(l <= 0)			{ debugLevel = DBG_0; dbg = false; }
-		else if(l > DBG_5)	{ debugLevel = DBG_5; dbg = true; }
-		else 				{ debugLevel = l; dbg = true; }
-
-		System.out.println("Debugger@setDebugLevel: Debug level set to "+debugLevel);
+    private Debug() { }
+    public static void setDebugLevel(int l)
+    { 
+	if(l <= 0) {
+	    debugLevel = DBG_0;
+	    dbg = false;
+	} else if(l > DBG_5) {
+	    debugLevel = DBG_5;
+	    dbg = true;
+	} else {
+	    debugLevel = l;
+	    dbg = true;
 	}
 
-	public static void d(Object classt, String method, String s, int level)
-	{
-		String classFile = null;
+	System.out.println("Debugger@setDebugLevel: Debug level set to "
+		+ debugLevel);
+    }
 
-		if(debugLevel == 0 || level < debugLevel) return;
-		if(classt == null)
-			classFile = "<null>";
-		else
-			classFile = classt.getClass().getName();
+    public static void d(Object classt, String method, String s, int level)
+    {
+	String classFile = null;
 
-		System.out.print("#"+debugLevel+tabs.substring(0, debugLevel));
-		System.out.println(classFile
-				+ "@"
-				+ method
-				+ ": "
-				+ s);
-	}
-/*
-	public static void d(String classFile, String method, String s, int level)
-	{
-		if(debugLevel == 0 || level < debugLevel) return;
+	if(debugLevel == 0 || level < debugLevel)
+	    return;
 
-		System.out.print("#"+debugLevel+tabs.substring(0, debugLevel));
-		System.out.println(classFile + "@" + method + ": " +s);
-	}
-*/
-	public static void d(String cf, String met, boolean b, int level)
-		{ d(cf, met, String.valueOf(b), level); }
-	public static void d(String cf, String met, int b, int level)
-		{ d(cf, met, String.valueOf(b), level); }
-	public static void d(String cf, String met, double b, int level)
-		{ d(cf, met, String.valueOf(b), level); }
+	if(classt == null)
+	    classFile = "<null>";
+	else if (classt instanceof java.lang.Class)
+	    classFile = ((java.lang.Class)classt).getName();
+	else
+	    classFile = classt.getClass().getName();
+
+	System.out.print("#"+debugLevel+tabs.substring(0, debugLevel));
+	System.out.println(classFile
+		+ "@"
+		+ method
+		+ ": "
+		+ s);
+    }
+    /*
+       public static void d(String classFile, String method, String s, int level)
+       {
+       if(debugLevel == 0 || level < debugLevel) return;
+
+       System.out.print("#"+debugLevel+tabs.substring(0, debugLevel));
+       System.out.println(classFile + "@" + method + ": " +s);
+       }
+     */
+    public static void d(Object cf, String met, boolean b, int level)
+    {
+	d(cf, met, String.valueOf(b), level);
+    }
+    public static void d(Object cf, String met, int b, int level)
+    {
+	d(cf, met, String.valueOf(b), level);
+    }
+    public static void d(Object cf, String met, double b, int level)
+    {
+	d(cf, met, String.valueOf(b), level);
+    }
 }
 

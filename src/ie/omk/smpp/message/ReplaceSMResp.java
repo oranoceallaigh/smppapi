@@ -30,41 +30,37 @@ import ie.omk.debug.Debug;
   * @version 1.0
   */
 public class ReplaceSMResp
-	extends ie.omk.smpp.message.SMPPResponse
+    extends ie.omk.smpp.message.SMPPResponse
 {
-// File identifier string: used for debug output
-	private static String FILE = "ReplaceSMResp";
+    /** Construct a new ReplaceSMResp with specified sequence number.
+     * @param seqNo The sequence number to use
+     */
+    public ReplaceSMResp(int seqNo)
+    {
+	super(ESME_REPLACE_SM_RESP, seqNo);
+    }
 
-	/** Construct a new ReplaceSMResp with specified sequence number.
-	  * @param seqNo The sequence number to use
-	  */
-	public ReplaceSMResp(int seqNo)
-	{
-		super(ESME_REPLACE_SM_RESP, seqNo);
-	}
+    /** Read in a ReplaceSMResp from an InputStream.  A full packet,
+     * including the header fields must exist in the stream.
+     * @param in The InputStream to read from
+     * @see java.io.InputStream
+     */
+    public ReplaceSMResp(InputStream in)
+    {
+	super(in);
+    }
 
-	/** Read in a ReplaceSMResp from an InputStream.  A full packet,
-	  * including the header fields must exist in the stream.
-	  * @param in The InputStream to read from
-	  * @see java.io.InputStream
-	  */
-	public ReplaceSMResp(InputStream in)
-	{
-		super(in);
-	}
+    /** Create a new ReplaceSMResp packet in response to a BindReceiver.
+     * This constructor will set the sequence number to it's expected value.
+     * @param r The Request packet the response is to
+     */
+    public ReplaceSMResp(ReplaceSM r)
+    {
+	super(r);
+    }
 
-	/** Create a new ReplaceSMResp packet in response to a BindReceiver.
-	  * This constructor will set the sequence number to it's expected value.
-	  * @param r The Request packet the response is to
-	  */
-	public ReplaceSMResp(ReplaceSM r)
-	{
-		super(r);
-	}
-
-	public String toString()
-	{
-		return new String("replace_sm_resp");
-	}
+    public String toString()
+    {
+	return new String("replace_sm_resp");
+    }
 }
-

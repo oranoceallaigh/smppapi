@@ -31,223 +31,215 @@ import ie.omk.debug.Debug;
   * @version 1.0
   */
 public class SubmitMultiResp
-	extends ie.omk.smpp.message.SMPPResponse
+    extends ie.omk.smpp.message.SMPPResponse
 {
-// File identifier string: used for debug output
-	private static String FILE = "SubmitMultiResp";
+    /** No of destinations unsuccessfully submitted to */
+    int				unSuccessfulCount;
+    /** Table of unsuccessful destinations */
+    Vector			unSuccessfulTable;
 
-	/** No of destinations unsuccessfully submitted to */
-	int				unSuccessfulCount;
-	/** Table of unsuccessful destinations */
-	Vector				unSuccessfulTable;
+    /** Construct a new Unbind with specified sequence number.
+     * @param seqNo The sequence number to use
+     */
+    public SubmitMultiResp(int seqNo)
+    {
+	super(ESME_SUB_MULTI_RESP, seqNo);
 
-	/** Construct a new Unbind with specified sequence number.
-	  * @param seqNo The sequence number to use
-	  */
-	public SubmitMultiResp(int seqNo)
-	{
-		super(ESME_SUB_MULTI_RESP, seqNo);
+	unSuccessfulCount = 0;
+	unSuccessfulTable = null;
+    }
 
-		unSuccessfulCount = 0;
-		unSuccessfulTable = null;
+    /** Create a new SubmitMultiResp packet in response to a BindReceiver.
+     * This constructor will set the sequence number to it's expected value.
+     * @param r The Request packet the response is to
+     */
+    public SubmitMultiResp(SubmitMulti r)
+    {
+	super(r);
+
+	unSuccessfulCount = 0;
+	unSuccessfulTable = null;
+    }
+
+    /** Read in a SubmitMultiResp from an InputStream.  A full packet,
+     * including the header fields must exist in the stream.
+     * @param in The InputStream to read from
+     * @exception ie.omk.smpp.SMPPException If the stream does not
+     * contain a SubmitMultiResp packet.
+     * @see java.io.InputStream
+     */
+    public SubmitMultiResp(InputStream in)
+    {
+	super(in);
+
+	if(cmdStatus != 0)
+	    return;
+
+	try {
+	    messageId = Integer.parseInt(readCString(in), 16);
+	    unSuccessfulCount =  readInt(in, 1);
+
+	    if(unSuccessfulCount < 1)
+		return;
+
+	    unSuccessfulTable = new Vector(unSuccessfulCount);
+	    for(int loop=0; loop<unSuccessfulCount; loop++) {
+		SmeAddress_e a = new SmeAddress_e(in);
+		unSuccessfulTable.addElement(a);
+	    }
+	} catch(IOException x) {
+	    throw new SMPPException("Input stream does not contain a "
+		    + "submit_multi_resp packet");
+	} catch(NumberFormatException nx) {
+	    throw new SMPPException("Error reading message Id from the "
+		    + "input stream.");
+	}
+    }
+
+    /** Set the message Id
+     * @param messageId The new message Id (Up to 8 characters)
+     * @exception ie.omk.smpp.SMPPException If the Id is invalid
+     */
+    public void setMessageId(int id)
+    {
+	super.setMessageId(id);
+    }
+
+    /** Get the message Id */
+    public int getMessageId()
+    {
+	return super.getMessageId();
+    }
+
+    /** Get the number of unsuccessful destinations */
+    public int getUnsuccessfulCount()
+    {
+	return unSuccessfulCount;
+    }
+
+    /** Add a destination address to the table of unsuccessful destinations
+     * @param a SmeAddress_e structure representing the failed destination
+     * @return The current count of unsuccessful destinations (including the new one)
+     */
+    public int addSmeToTable(SmeAddress_e a)
+    {
+	if(unSuccessfulTable == null) {
+	    unSuccessfulTable = new Vector(5);
+	    unSuccessfulCount = 0;
 	}
 
-	/** Create a new SubmitMultiResp packet in response to a BindReceiver.
-	  * This constructor will set the sequence number to it's expected value.
-	  * @param r The Request packet the response is to
-	  */
-	public SubmitMultiResp(SubmitMulti r)
-	{
-		super(r);
-
-		unSuccessfulCount = 0;
-		unSuccessfulTable = null;
+	if(a != null) {
+	    a.useFlag = false;
+	    unSuccessfulTable.addElement(a);
+	    unSuccessfulCount =  unSuccessfulTable.size();
 	}
 
-	/** Read in a SubmitMultiResp from an InputStream.  A full packet,
-	  * including the header fields must exist in the stream.
-	  * @param in The InputStream to read from
-	  * @exception ie.omk.smpp.SMPPException If the stream does not
-	  * contain a SubmitMultiResp packet.
-	  * @see java.io.InputStream
-	  */
-	public SubmitMultiResp(InputStream in)
-	{
-		super(in);
+	return unSuccessfulTable.size();
+    }
 
-		if(cmdStatus != 0)
-			return;
+    /** Set the destination address table.
+     * @param d The array of SmeAddresses the message was unsuccessfully
+     * submitted to.
+     * @exception java.lang.NullPointerException if the array is null
+     * or 0 length
+     */
+    public void setDestAddresses(SmeAddress_e d[])
+    {
+	int loop=0;
 
-		try
-		{
-			messageId = Integer.parseInt(readCString(in), 16);
-			unSuccessfulCount =  readInt(in, 1);
+	if(d == null || d.length < 1)
+	    throw new NullPointerException("SubmitMultiResp: Destination "
+		    + "table cannot be null or empty");
 
-			if(unSuccessfulCount < 1)
-				return;
+	if(unSuccessfulTable == null)
+	    unSuccessfulTable = new Vector(d.length);
 
-			unSuccessfulTable = new Vector(unSuccessfulCount);
-			for(int loop=0; loop<unSuccessfulCount; loop++)
-			{
-				SmeAddress_e a = new SmeAddress_e(in);
-				unSuccessfulTable.addElement(a);
-			}
-		}
-		catch(IOException x)
-		{
-			throw new SMPPException("Input stream does not contain a submit_multi_resp packet");
-		}
-		catch(NumberFormatException nx)
-		{
-			throw new SMPPException("Error reading message Id from the input stream.");
-		}
+	unSuccessfulTable.removeAllElements();
+	unSuccessfulTable.ensureCapacity(d.length);
+
+	for(loop=0; loop<d.length; loop++) {
+	    d[loop].useFlag = false;
+	    unSuccessfulTable.addElement(d[loop]);
+	}
+    }
+
+    /** Get the SmeAddress_e(s) that are in the 'unsuccessful' table.
+     * @return Array of SmeAddress_e(s) that were unsuccessfully submitted
+     * to, or null if there are none
+     */
+    public SmeAddress_e[] getDestAddresses()
+    {
+	SmeAddress_e sd[];
+	int loop, size;
+
+	if(unSuccessfulTable == null || unSuccessfulTable.size() == 0)
+	    return null;
+
+	size = unSuccessfulTable.size();
+	sd = new SmeAddress_e[size];
+	for(loop=0; loop<size; loop++)
+	    sd[loop] = (SmeAddress_e) unSuccessfulTable.elementAt(loop);
+
+	return sd;
+    }
+
+
+    /** Get the size in bytes of this packet */
+    public int size()
+    {
+	String id = Integer.toHexString(getMessageId());
+	SmeAddress_e sd[];
+	int loop;
+
+	int size = super.size() + 2
+	    + ((id != null) ? id.length() : 0);
+
+	sd = getDestAddresses();
+	if(sd != null) {
+	    for(loop=0; loop<sd.length; loop++)
+		size += sd[loop].size();
+	} else {
+	    // For the one null byte that will be included
+	    size += 1;
 	}
 
-	/** Set the message Id
-	  * @param messageId The new message Id (Up to 8 characters)
-	  * @exception ie.omk.smpp.SMPPException If the Id is invalid
-	  */
-	public void setMessageId(int id)
-		{ super.setMessageId(id); }
+	return size;
+    }
 
-	/** Get the message Id */
-	public int getMessageId()
-		{ return super.getMessageId(); }
 
-	/** Get the number of unsuccessful destinations */
-	public int getUnsuccessfulCount()
-		{ return unSuccessfulCount; }
+    /** Write a byte representation of this packet to an OutputStream
+     * @param out The OutputStream to write to
+     * @exception ie.omk.smpp.SMPPException If an I/O error occurs
+     * @see java.io.OutputStream
+     */
+    public void writeTo(OutputStream out)
+    {
+	SmeAddress_e sd[];
+	int loop;
+	try {
+	    ByteArrayOutputStream b = new ByteArrayOutputStream();
+	    super.writeTo(b);
 
-	/** Add a destination address to the table of unsuccessful destinations
-	  * @param a SmeAddress_e structure representing the failed destination
-	  * @return The current count of unsuccessful destinations (including the new one)
-	  */
-	public int addSmeToTable(SmeAddress_e a)
-	{
-		if(unSuccessfulTable == null)
-		{
-			unSuccessfulTable = new Vector(5);
-			unSuccessfulCount = 0;
-		}
-		
-		if(a != null)
-		{
-			a.useFlag = false;
-			unSuccessfulTable.addElement(a);
-			unSuccessfulCount =  unSuccessfulTable.size();
-		}
+	    writeCString(Integer.toHexString(getMessageId()), b);
+	    writeInt((int)unSuccessfulCount, 1, b);
 
-		return unSuccessfulTable.size();
+	    sd = getDestAddresses();
+	    if(sd != null) {
+		for(loop=0; loop<sd.length; loop++)
+		    sd[loop].writeTo(b);
+	    } else {
+		b.write(0);
+	    }
+
+	    b.writeTo(out);
+	} catch(IOException x) {
+	    throw new SMPPException("Error writing bind_receiver packet to "
+		    + "output stream");
 	}
+    }
 
-	/** Set the destination address table.
-	  * @param d The array of SmeAddresses the message was unsuccessfully
-	  * submitted to.
-	  * @exception java.lang.NullPointerException if the array is null
-	  * or 0 length
-	  */
-	public void setDestAddresses(SmeAddress_e d[])
-	{
-		int loop=0;
-
-		if(d == null || d.length < 1)
-			throw new NullPointerException("SubmitMultiResp: Destination table cannot be null or empty");
-
-		if(unSuccessfulTable == null)
-			unSuccessfulTable = new Vector(d.length);
-
-		unSuccessfulTable.removeAllElements();
-		unSuccessfulTable.ensureCapacity(d.length);
-
-		for(loop=0; loop<d.length; loop++)
-		{
-			d[loop].useFlag = false;
-			unSuccessfulTable.addElement(d[loop]);
-		}
-	}
-
-	/** Get the SmeAddress_e(s) that are in the 'unsuccessful' table.
-	  * @return Array of SmeAddress_e(s) that were unsuccessfully submitted
-	  * to, or null if there are none
-	  */
-	public SmeAddress_e[] getDestAddresses()
-	{
-		SmeAddress_e sd[];
-		int loop, size;
-
-		if(unSuccessfulTable == null || unSuccessfulTable.size() == 0)
-			return null;
-
-		size = unSuccessfulTable.size();
-		sd = new SmeAddress_e[size];
-		for(loop=0; loop<size; loop++)
-			sd[loop] = (SmeAddress_e) unSuccessfulTable.elementAt(loop);
-		
-		return sd;
-	}
-
-
-	/** Get the size in bytes of this packet */
-	public int size()
-	{
-		String id = Integer.toHexString(getMessageId());
-		SmeAddress_e sd[];
-		int loop;
-
-		int size = super.size() + 2
-			+ ((id != null) ? id.length() : 0);
-
-		sd = getDestAddresses();
-		if(sd != null)
-		{
-			for(loop=0; loop<sd.length; loop++)
-				size += sd[loop].size();
-		}
-		else
-			// For the one null byte that will be included
-			size += 1;
-
-		return size;
-	}
-	
-
-	/** Write a byte representation of this packet to an OutputStream
-	  * @param out The OutputStream to write to
-	  * @exception ie.omk.smpp.SMPPException If an I/O error occurs
-	  * @see java.io.OutputStream
-	  */
-	public void writeTo(OutputStream out)
-	{
-		SmeAddress_e sd[];
-		int loop;
-		try
-		{
-			ByteArrayOutputStream b = new ByteArrayOutputStream();
-			super.writeTo(b);
-
-			writeCString(Integer.toHexString(getMessageId()), b);
-			writeInt((int)unSuccessfulCount, 1, b);
-
-			sd = getDestAddresses();
-			if(sd != null)
-			{
-				for(loop=0; loop<sd.length; loop++)
-					sd[loop].writeTo(b);
-			}
-			else
-				b.write(0);
-			
-			b.writeTo(out);
-		}
-		catch(IOException x)
-		{
-			throw new SMPPException("Error writing bind_receiver packet to output stream");
-		}
-	}
-
-	public String toString()
-	{
-		return new String("submit_multi_resp");
-	}
+    public String toString()
+    {
+	return new String("submit_multi_resp");
+    }
 }
-

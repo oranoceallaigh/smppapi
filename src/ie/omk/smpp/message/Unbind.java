@@ -30,34 +30,30 @@ import ie.omk.debug.Debug;
   * @version 1.0
   */
 public class Unbind
-	extends ie.omk.smpp.message.SMPPRequest
+    extends ie.omk.smpp.message.SMPPRequest
 {
-// File identifier string: used for debug output
-	private static String FILE = "Unbind";
+    /** Construct a new Unbind with specified sequence number.
+     * @param seqNo The sequence number to use
+     */
+    public Unbind(int seqNo)
+    {
+	super(ESME_UBD, seqNo);
+    }
 
-	/** Construct a new Unbind with specified sequence number.
-	  * @param seqNo The sequence number to use
-	  */
-	public Unbind(int seqNo)
-	{
-		super(ESME_UBD, seqNo);
-	}
+    /** Read in a Unbind from an InputStream.  A full packet,
+     * including the header fields must exist in the stream.
+     * @param in The InputStream to read from
+     * @exception ie.omk.smpp.SMPPException If the stream does not
+     * contain a Unbind packet.
+     * @see java.io.InputStream
+     */
+    public Unbind(InputStream in)
+    {
+	super(in);
+    }
 
-	/** Read in a Unbind from an InputStream.  A full packet,
-	  * including the header fields must exist in the stream.
-	  * @param in The InputStream to read from
-	  * @exception ie.omk.smpp.SMPPException If the stream does not
-	  * contain a Unbind packet.
-	  * @see java.io.InputStream
-	  */
-	public Unbind(InputStream in)
-	{
-		super(in);
-	}
-
-	public String toString()
-	{
-		return new String("unbind");
-	}
+    public String toString()
+    {
+	return new String("unbind");
+    }
 }
-

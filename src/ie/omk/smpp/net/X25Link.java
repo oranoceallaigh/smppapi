@@ -32,53 +32,49 @@ import ie.omk.debug.Debug;
   * @version 0.0
   */
 public class X25Link
-	extends ie.omk.smpp.net.SmscLink
+    extends ie.omk.smpp.net.SmscLink
 {
-// File identifier string: used for debug output
-	private static String FILE = "X25Link";
+    public X25Link(String address)
+    {
+	throw new SMPPException("No x.25 networking module implemented yet!");
+    }
 
-	public X25Link(String address)
-	{
-		throw new SMPPException("No x.25 networking module implemented yet!");
-	}
+    public X25Link(String address, int port)
+    {
+	throw new SMPPException("No x.25 networking module implemented yet!");
+    }
 
-	public X25Link(String address, int port)
-	{
-		throw new SMPPException("No x.25 networking module implemented yet!");
-	}
+    /** Does nothing */
+    public void open()
+	throws IOException
+    {
+	throw new SMPPException("No x.25 networking module implemented yet!");
+    }
 
-	/** Does nothing */
-	public void open()
-		throws IOException
-	{
-		throw new SMPPException("No x.25 networking module implemented yet!");
-	}
+    /** Does nothing */
+    public void close()
+	throws IOException
+    {
+	throw new SMPPException("No x.25 networking module implemented yet!");
+    }
 
-	/** Does nothing */
-	public void close()
-		throws IOException
-	{
-		throw new SMPPException("No x.25 networking module implemented yet!");
-	}
+    /** Does nothing */
+    public OutputStream getOutputStream()
+	throws IOException
+    {
+	throw new SMPPException("No x.25 networking module implemented yet!");
+    }
 
-	/** Does nothing */
-	public OutputStream getOutputStream()
-		throws IOException
-	{
-		throw new SMPPException("No x.25 networking module implemented yet!");
-	}
-	
-	/** Does nothing */
-	public InputStream getInputStream()
-		throws IOException
-	{
-		throw new SMPPException("No x.25 networking module implemented yet!");
-	}
+    /** Does nothing */
+    public InputStream getInputStream()
+	throws IOException
+    {
+	throw new SMPPException("No x.25 networking module implemented yet!");
+    }
 
-	/** Does nothing */
-	public boolean isConnected()
-	{
-		return false;
-	}
+    /** Does nothing */
+    public boolean isConnected()
+    {
+	return false;
+    }
 }
-

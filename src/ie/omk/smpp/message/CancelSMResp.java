@@ -30,43 +30,39 @@ import ie.omk.debug.Debug;
   * @version 1.0
   */
 public class CancelSMResp
-	extends ie.omk.smpp.message.SMPPResponse
+    extends ie.omk.smpp.message.SMPPResponse
 {
-// File identifier string: used for debug output
-	private static String FILE = "CancelSMResp";
+    /** Construct a new CancelSMResp with specified sequence number.
+     * @param seqNo The sequence number to use
+     */
+    public CancelSMResp(int seqNo)
+    {
+	super(ESME_CANCEL_SM_RESP, seqNo);
+    }
 
-	/** Construct a new CancelSMResp with specified sequence number.
-	  * @param seqNo The sequence number to use
-	  */
-	public CancelSMResp(int seqNo)
-	{
-		super(ESME_CANCEL_SM_RESP, seqNo);
-	}
+    /** Read in a CancelSMResp from an InputStream.  A full packet,
+     * including the header fields must exist in the stream.
+     * @param in The InputStream to read from
+     * @exception ie.omk.smpp.SMPPException If the stream does not
+     * contain a CancelSMResp packet.
+     * @see java.io.InputStream
+     */
+    public CancelSMResp(InputStream in)
+    {
+	super(in);
+    }
 
-	/** Read in a CancelSMResp from an InputStream.  A full packet,
-	  * including the header fields must exist in the stream.
-	  * @param in The InputStream to read from
-	  * @exception ie.omk.smpp.SMPPException If the stream does not
-	  * contain a CancelSMResp packet.
-	  * @see java.io.InputStream
-	  */
-	public CancelSMResp(InputStream in)
-	{
-		super(in);
-	}
+    /** Create a new CancelSMResp packet in response to a CancelSM.
+     * This constructor will set the sequence number to it's expected value.
+     * @param r The Request packet the response is to
+     */
+    public CancelSMResp(CancelSM r)
+    {
+	super(r);
+    }
 
-	/** Create a new CancelSMResp packet in response to a CancelSM.
-	  * This constructor will set the sequence number to it's expected value.
-	  * @param r The Request packet the response is to
-	  */
-	public CancelSMResp(CancelSM r)
-	{
-		super(r);
-	}
-
-	public String toString()
-	{
-		return new String("cancel_sm_resp");
-	}
+    public String toString()
+    {
+	return new String("cancel_sm_resp");
+    }
 }
-

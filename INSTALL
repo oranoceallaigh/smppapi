@@ -1,0 +1,13 @@
+
+How to build
+------------
+
+To build you'll need a version of Jakarta Ant installed, version 1.3 or
+better. You can get Ant from http://jakarta.apache.org/
+
+Build the API by issuing the command
+ant dist
+
+This should create a subdirectory called 'dist' which contains the smppapi.jar
+file. That's all there is to it.
+

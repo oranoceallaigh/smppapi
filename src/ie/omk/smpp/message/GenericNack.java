@@ -28,34 +28,30 @@ import java.io.*;
   * @version 1.0
   */
 public class GenericNack
-	extends ie.omk.smpp.message.SMPPResponse
+    extends ie.omk.smpp.message.SMPPResponse
 {
-// File identifier string: used for debug output
-	private static String FILE = "GenericNack";
+    /** Construct a new GenericNack with specified sequence number.
+     * @param seqNo The sequence number to use
+     */
+    public GenericNack(int seqNo)
+    {
+	super(ESME_NACK, seqNo);
+    }
 
-	/** Construct a new GenericNack with specified sequence number.
-	  * @param seqNo The sequence number to use
-	  */
-	public GenericNack(int seqNo)
-	{
-		super(ESME_NACK, seqNo);
-	}
+    /** Read in a GenericNack from an InputStream.  A full packet,
+     * including the header fields must exist in the stream.
+     * @param in The InputStream to read from
+     * @exception ie.omk.smpp.SMPPException If the stream does not
+     * contain a GenericNack packet.
+     * @see java.io.InputStream
+     */
+    public GenericNack(InputStream in)
+    {
+	super(in);
+    }
 
-	/** Read in a GenericNack from an InputStream.  A full packet,
-	  * including the header fields must exist in the stream.
-	  * @param in The InputStream to read from
-	  * @exception ie.omk.smpp.SMPPException If the stream does not
-	  * contain a GenericNack packet.
-	  * @see java.io.InputStream
-	  */
-	public GenericNack(InputStream in)
-	{
-		super(in);
-	}
-
-	public String toString()
-	{
-		return new String("generic_nack");
-	}
+    public String toString()
+    {
+	return new String("generic_nack");
+    }
 }
-

@@ -28,42 +28,42 @@ import java.io.InputStream;
   * @version 1.0
   */
 public abstract class SMPPRequest
-	extends SMPPPacket
+    extends SMPPPacket
 {
-// File identifier string: used for debug output
-	private static String FILE = "SMPPRequest";
+    /** false if this packet has been ack'd, true if it has */
+    protected boolean			isAckd = false;
 
-	/** false if this packet has been ack'd, true if it has */
-	protected boolean			isAckd = false;
+    /** Construct a new SMPPRequest with specified sequence number.
+     * @param seqNo The sequence number to use
+     */
+    public SMPPRequest(int id, int seqNo)
+    {
+	super(id, seqNo);
+    }
 
-	/** Construct a new SMPPRequest with specified sequence number.
-	  * @param seqNo The sequence number to use
-	  */
-	public SMPPRequest(int id, int seqNo)
-	{
-		super(id, seqNo);
-	}
+    /** Read in a SMPPRequest from an InputStream.  A full packet,
+     * including the header fields must exist in the stream.
+     * @param in The InputStream to read from
+     * @exception ie.omk.smpp.SMPPException If the stream does not
+     * contain a SMPPRequest packet.
+     * @see java.io.InputStream
+     */
+    public SMPPRequest(InputStream in)
+    {
+	super(in);
+    }
 
-	/** Read in a SMPPRequest from an InputStream.  A full packet,
-	  * including the header fields must exist in the stream.
-	  * @param in The InputStream to read from
-	  * @exception ie.omk.smpp.SMPPException If the stream does not
-	  * contain a SMPPRequest packet.
-	  * @see java.io.InputStream
-	  */
-	public SMPPRequest(InputStream in)
-	{
-		super(in);
-	}
+    /** Check has this request been acknowledged or not.
+     */
+    public final boolean isAckd()
+    {
+	return isAckd;
+    }
 
-	/** Check has this request been acknowledged or not.
-	  */
-	public final boolean isAckd()
-		{ return isAckd; }
-
-	/** Set this request packet to acknowledged.
-	  */
-	public final void ack()
-		{ isAckd = true; }
+    /** Set this request packet to acknowledged.
+     */
+    public final void ack()
+    {
+	isAckd = true;
+    }
 }
-

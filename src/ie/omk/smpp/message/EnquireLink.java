@@ -30,34 +30,30 @@ import ie.omk.debug.Debug;
   * @version 1.0
   */
 public class EnquireLink
-	extends ie.omk.smpp.message.SMPPRequest
+    extends ie.omk.smpp.message.SMPPRequest
 {
-// File identifier string: used for debug output
-	private static String FILE = "EnquireLink";
+    /** Construct a new EnquireLink with specified sequence number.
+     * @param seqNo The sequence number to use
+     */
+    public EnquireLink(int seqNo)
+    {
+	super(ESME_QRYLINK, seqNo);
+    }
 
-	/** Construct a new EnquireLink with specified sequence number.
-	  * @param seqNo The sequence number to use
-	  */
-	public EnquireLink(int seqNo)
-	{
-		super(ESME_QRYLINK, seqNo);
-	}
+    /** Read in a EnquireLink from an InputStream.  A full packet,
+     * including the header fields must exist in the stream.
+     * @param in The InputStream to read from
+     * @exception ie.omk.smpp.SMPPException If the stream does not
+     * contain a EnquireLink packet.
+     * @see java.io.InputStream
+     */
+    public EnquireLink(InputStream in)
+    {
+	super(in);
+    }
 
-	/** Read in a EnquireLink from an InputStream.  A full packet,
-	  * including the header fields must exist in the stream.
-	  * @param in The InputStream to read from
-	  * @exception ie.omk.smpp.SMPPException If the stream does not
-	  * contain a EnquireLink packet.
-	  * @see java.io.InputStream
-	  */
-	public EnquireLink(InputStream in)
-	{
-		super(in);
-	}
-
-	public String toString()
-	{
-		return new String("enquire_link");
-	}
+    public String toString()
+    {
+	return new String("enquire_link");
+    }
 }
-

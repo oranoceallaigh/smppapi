@@ -29,43 +29,39 @@ import ie.omk.debug.Debug;
   * @version 1.0
   */
 public class UnbindResp
-	extends ie.omk.smpp.message.SMPPResponse
+    extends ie.omk.smpp.message.SMPPResponse
 {
-// File identifier string: used for debug output
-	private static String FILE = "UnbindResp";
+    /** Construct a new UnbindResp with specified sequence number.
+     * @param seqNo The sequence number to use
+     */
+    public UnbindResp(int seqNo)
+    {
+	super(ESME_UBD_RESP, seqNo);
+    }
 
-	/** Construct a new UnbindResp with specified sequence number.
-	  * @param seqNo The sequence number to use
-	  */
-	public UnbindResp(int seqNo)
-	{
-		super(ESME_UBD_RESP, seqNo);
-	}
+    /** Read in a UnbindResp from an InputStream.  A full packet,
+     * including the header fields must exist in the stream.
+     * @param in The InputStream to read from
+     * @exception ie.omk.smpp.SMPPException If the stream does not
+     * contain a UnbindResp packet.
+     * @see java.io.InputStream
+     */
+    public UnbindResp(InputStream in)
+    {
+	super(in);
+    }
 
-	/** Read in a UnbindResp from an InputStream.  A full packet,
-	  * including the header fields must exist in the stream.
-	  * @param in The InputStream to read from
-	  * @exception ie.omk.smpp.SMPPException If the stream does not
-	  * contain a UnbindResp packet.
-	  * @see java.io.InputStream
-	  */
-	public UnbindResp(InputStream in)
-	{
-		super(in);
-	}
+    /** Create a new UnbindResp packet in response to a BindReceiver.
+     * This constructor will set the sequence number to it's expected value.
+     * @param r The Request packet the response is to
+     */
+    public UnbindResp(Unbind r)
+    {
+	super(r);
+    }
 
-	/** Create a new UnbindResp packet in response to a BindReceiver.
-	  * This constructor will set the sequence number to it's expected value.
-	  * @param r The Request packet the response is to
-	  */
-	public UnbindResp(Unbind r)
-	{
-		super(r);
-	}
-
-	public String toString()
-	{
-		return new String("unbind_resp");
-	}
+    public String toString()
+    {
+	return new String("unbind_resp");
+    }
 }
-

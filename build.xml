@@ -1,5 +1,5 @@
 <project name="smppapi" basedir="." default="dist">
-  <!-- property name="build.compiler" value="jikes"/-->
+  <property name="build.compiler" value="jikes"/>
 
   <property name="src" value="src"/>
   <property name="build" value="classes"/>
@@ -17,7 +17,7 @@
 
   <target name="dist" depends="api">
     <mkdir dir="${dist}"/>
-    <jar jarfile="${dist}/smpp.jar" basedir="${build}"/>
+    <jar jarfile="${dist}/smppapi.jar" basedir="${build}"/>
   </target>
 
   <!-- Clean up -->

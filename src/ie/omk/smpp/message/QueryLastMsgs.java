@@ -31,121 +31,120 @@ import ie.omk.debug.Debug;
   * @version 1.0
   */
 public class QueryLastMsgs
-	extends ie.omk.smpp.message.SMPPRequest
+    extends ie.omk.smpp.message.SMPPRequest
 {
-// File identifier string: used for debug output
-	private static String FILE = "QueryLastMsgs";
+    /** No of messages to look up */
+    int			noOfMsgs;
 
-	/** No of messages to look up */
-	int			noOfMsgs;
+    /** Construct a new QueryLastMsgs with specified sequence number.
+     * @param seqNo The sequence number to use
+     */
+    public QueryLastMsgs(int seqNo)
+    {
+	super(ESME_QUERY_LAST_MSGS, seqNo);
+	noOfMsgs = 0;
+    }
 
-	/** Construct a new QueryLastMsgs with specified sequence number.
-	  * @param seqNo The sequence number to use
-	  */
-	public QueryLastMsgs(int seqNo)
-	{
-		super(ESME_QUERY_LAST_MSGS, seqNo);
+    /** Read in a QueryLastMsgs from an InputStream.  A full packet,
+     * including the header fields must exist in the stream.
+     * @param in The InputStream to read from
+     * @exception ie.omk.smpp.SMPPException If the stream does not
+     * contain a QueryLastMsgs packet.
+     * @see java.io.InputStream
+     */
+    public QueryLastMsgs(InputStream in)
+    {
+	super(in);
 
-		noOfMsgs = 0;
+	if(cmdStatus != 0)
+	    return;
+
+	try {
+	    source = new SmeAddress(in);
+	    noOfMsgs = readInt(in, 1);
+	} catch(IOException iox) {
+	    throw new SMPPException("Input stream does not contain a "
+		    + "query_last_msgs packet.");
 	}
+    }
 
-	/** Read in a QueryLastMsgs from an InputStream.  A full packet,
-	  * including the header fields must exist in the stream.
-	  * @param in The InputStream to read from
-	  * @exception ie.omk.smpp.SMPPException If the stream does not
-	  * contain a QueryLastMsgs packet.
-	  * @see java.io.InputStream
-	  */
-	public QueryLastMsgs(InputStream in)
-	{
-		super(in);
+    /** Set the source address
+     * @param ton Source address Type of number
+     * @param npi Source address Numbering plan indicator
+     * @param addr Source address (Up to 20 characters)
+     * @exception ie.omk.smpp.SMPPException If the Source address is invalid
+     */
+    public void setSource(int ton, int npi, String addr)
+    {
+	super.setSource(new SmeAddress(ton, npi, addr));
+    }
 
-		if(cmdStatus != 0)
-			return;
+    /** Set the source address
+     * @see SmeAddress
+     */
+    public void setSource(SmeAddress d)
+    {
+	super.setSource(d);
+    }
 
-		try
-		{
-			source = new SmeAddress(in);
-			noOfMsgs = readInt(in, 1);
-		}
-		catch(IOException iox)
-		{
-			throw new SMPPException("Input stream does not contain a query_last_msgs packet.");
-		}
+    /** Set the number of messages to look up */
+    public void setMsgCount(int s)
+    {
+	if(s > 0 && s <= 100) {
+	    noOfMsgs = s;
+	} else {
+	    throw new SMPPException("Number of messages to query must be > 0 "
+		    + "and <= 100");
 	}
+    }
 
-	/** Set the source address
-	  * @param ton Source address Type of number
-	  * @param npi Source address Numbering plan indicator
-	  * @param addr Source address (Up to 20 characters)
-	  * @exception ie.omk.smpp.SMPPException If the Source address is invalid
-	  */
-	public void setSource(int ton, int npi, String addr)
-		{ super.setSource(new SmeAddress(ton, npi, addr)); }
+    /** Get the source address */
+    public SmeAddress getSource()
+    {
+	return super.getSource();
+    }
 
-	/** Set the source address
-	  * @see SmeAddress
-	  */
-	public void setSource(SmeAddress d)
-		{ super.setSource(d); }
+    /** Get the count of the number of messages being requested */
+    public int getMsgCount()
+    {
+	return noOfMsgs;
+    }
 
-	/** Set the number of messages to look up */
-	public void setMsgCount(int s)
-	{
-		if(s > 0 && s <= 100)
-			noOfMsgs = s;
-		else
-			throw new SMPPException("Number of messages to query must be > 0 and <= 100");
+    /** Get the size in bytes of this packet */
+    public int size()
+    {
+	return (super.size() + 1
+		+ ((source != null) ? source.size() : 3));
+    }
+
+    /** Write a byte representation of this packet to an OutputStream
+     * @param out The OutputStream to write to
+     * @exception ie.omk.smpp.SMPPException If an I/O error occurs
+     * @see java.io.OutputStream
+     */
+    public void writeTo(OutputStream out)
+    {
+	try {
+	    ByteArrayOutputStream b = new ByteArrayOutputStream();
+	    super.writeTo(b);
+
+	    if(source != null) {
+		source.writeTo(b);
+	    } else {
+		writeInt(0, 2, b);
+		writeCString(null, b);
+	    }
+	    writeInt(noOfMsgs, 1, b);
+
+	    b.writeTo(out);
+	} catch(IOException x) {
+	    throw new SMPPException("Error writing query_last_msgs packet to "
+		    + "output stream");
 	}
+    }
 
-	/** Get the source address */
-	public SmeAddress getSource()
-		{ return super.getSource(); }
-	
-	/** Get the count of the number of messages being requested */
-	public int getMsgCount()
-		{ return noOfMsgs; }
-
-	/** Get the size in bytes of this packet */
-	public int size()
-	{
-		return (super.size() + 1
-			+ ((source != null) ? source.size() : 3));
-	}
-	
-	/** Write a byte representation of this packet to an OutputStream
-	  * @param out The OutputStream to write to
-	  * @exception ie.omk.smpp.SMPPException If an I/O error occurs
-	  * @see java.io.OutputStream
-	  */
-	public void writeTo(OutputStream out)
-	{
-		try
-		{
-			ByteArrayOutputStream b = new ByteArrayOutputStream();
-			super.writeTo(b);
-
-			if(source != null)
-				source.writeTo(b);
-			else
-			{
-				writeInt(0, 2, b);
-				writeCString(null, b);
-			}
-			writeInt(noOfMsgs, 1, b);
-
-			b.writeTo(out);
-		}
-		catch(IOException x)
-		{
-			throw new SMPPException("Error writing query_last_msgs packet to output stream");
-		}
-	}
-
-	public String toString()
-	{
-		return new String("query_last_msgs");
-	}
-	
+    public String toString()
+    {
+	return new String("query_last_msgs");
+    }
 }
-

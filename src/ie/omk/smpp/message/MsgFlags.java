@@ -28,31 +28,24 @@ package ie.omk.smpp.message;
   */
 public class MsgFlags
 {
-// File identifier string: used for debug output
-	private static String FILE = "MsgFlags";
+    /** Message priority */
+    public boolean priority = false;
 
-	/** Message priority */
-	public boolean priority = false;
+    /** Registered delivery */
+    public boolean registered = false;
 
-	/** Registered delivery */
-	public boolean registered = false;
+    /** Replace message if already present */
+    public boolean replace_if_present = false;
 
-	/** Replace message if already present */
-	public boolean replace_if_present = false;
+    /** Esm class */
+    public int esm_class = 0;
 
-	/** Esm class */
-	public int esm_class = 0;
+    /** GSM protocol Id */
+    public int protocol = 0;
 
-	/** GSM protocol Id */
-	public int protocol = 0;
+    /** GSM data encoding */
+    public int data_coding = 0;
 
-	/** GSM data encoding */
-	public int data_coding = 0;
-
-	/** Default message number to send */
-	public int default_msg = 0;
-
-
-	public MsgFlags() {}
+    /** Default message number to send */
+    public int default_msg = 0;
 }
-

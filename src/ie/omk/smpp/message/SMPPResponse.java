@@ -28,49 +28,45 @@ import java.io.InputStream;
   * @version 1.0
   */
 public abstract class SMPPResponse
-	extends SMPPPacket
+    extends SMPPPacket
 {
-// File identifier string: used for debug output
-	private static String FILE = "SMPPResponse";
+    /** Construct a new SMPPResponse with specified sequence number.
+     * @param seqNo The sequence number to use
+     */
+    public SMPPResponse(int id, int seqNo)
+    {
+	super(id, seqNo);
+    }
 
-	/** Construct a new SMPPResponse with specified sequence number.
-	  * @param seqNo The sequence number to use
-	  */
-	public SMPPResponse(int id, int seqNo)
-	{
-		super(id, seqNo);
-	}
+    /** Read in a SMPPResponse from an InputStream.  A full packet,
+     * including the header fields must exist in the stream.
+     * @param in The InputStream to read from
+     * @exception ie.omk.smpp.SMPPException If the stream does not
+     * contain a SMPPResponse packet.
+     * @see java.io.InputStream
+     */
+    public SMPPResponse(InputStream in)
+    {
+	super(in);
+    }
 
-	/** Read in a SMPPResponse from an InputStream.  A full packet,
-	  * including the header fields must exist in the stream.
-	  * @param in The InputStream to read from
-	  * @exception ie.omk.smpp.SMPPException If the stream does not
-	  * contain a SMPPResponse packet.
-	  * @see java.io.InputStream
-	  */
-	public SMPPResponse(InputStream in)
-	{
-		super(in);
-	}
+    /** Create a new SMPPResponse packet in response to a BindReceiver.
+     * This constructor will set the sequence number to it's expected value.
+     * @param r The Request packet the response is to
+     */
+    public SMPPResponse(SMPPRequest q)
+    {
+	// Response value is Command ID with Msb set, sequence no. must match
+	super(q.getCommandId() | 0x80000000, q.getSeqNo());
+    }
 
-	/** Create a new SMPPResponse packet in response to a BindReceiver.
-	  * This constructor will set the sequence number to it's expected value.
-	  * @param r The Request packet the response is to
-	  */
-	public SMPPResponse(SMPPRequest q)
-	{
-		// Response value is Command ID with Msb set, sequence no. must match
-		super(q.getCommandId() | 0x80000000, q.getSeqNo());
-	}
-
-	/** Set the status of this command (header field)
-	  * @param s The value for the status
-	  * @see SMPPPacket#DELIVERED
-	  */
-	public void setCommandStatus(int s)
-	{
-		if(s >= 0)
-			cmdStatus = s;
-	}
+    /** Set the status of this command (header field)
+     * @param s The value for the status
+     * @see SMPPPacket#DELIVERED
+     */
+    public void setCommandStatus(int s)
+    {
+	if(s >= 0)
+	    cmdStatus = s;
+    }
 }
-
