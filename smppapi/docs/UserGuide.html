@@ -32,8 +32,37 @@
 
   <head>
     <style type="text/css">
-      BODY { background-color: white; color: black; }
-      .codeblock { border-style:solid; border-width:1; background-color: #efefef;}
+      BODY {
+        background-color: white;
+        color: black;
+        font-family: sans-serif;
+      }
+
+      H1 {
+        text-align: center;
+        border-style: dotted;
+        border-width: 6px 0px 6px 0px;
+        border-color: navy;
+        font-family: serif;
+      }
+
+      H2 {
+        font-family: serif;
+      }
+
+      H3 {
+        font-family: serif;
+      }
+
+      DIV.codeblock {
+        border-style:solid;
+        border-width:1;
+        /*background-color: #efefef;*/
+        background-color: lightgrey;
+        white-space: pre;
+        font-family: monospace;
+        font-size: 10pt;
+      }
     </style>
     <title>Java SMPP API User's Guide</title>
   <head>
@@ -70,8 +99,7 @@
 
     <h2>2. Interface version</h2>
     <p>
-    The API supports all the features of the SMPP version 3.3 API. Support for version 3.4
-    is in it's early stages but is available.
+    The API supports versions 3.3 and 3.4 of the SMPP specification.
     </p>
 
     <h2>3. Packages</h2>
@@ -112,7 +140,7 @@
 
     <p>
     <u>Case 1</u>:
-    <pre class="codeblock">
+    <div class="codeblock">
       try {
           // First get the java.net.InetAddress for the SMSC:
           InetAddress smscAddr = InetAddress.getByName("smsc.domain.com");
@@ -125,12 +153,12 @@
       } catch(java.net.UnknownHostException ux) {
           System.err.println("SMPPAPI: " + ux.getMessage());
       }
-    </pre>
+    </div>
     </p>
 
     <p>
     <u>Case 2</u>:
-    <pre class="codeblock">
+    <div class="codeblock">
       try {
           // Open the socket..
           Socket s = new Socket("smsc.domain.com", 5432);
@@ -142,7 +170,7 @@
       } catch (java.io.IOException x) {
           ...
       }
-    </pre>
+    </div>
     </p>
 
     <h3>4.2 Using <code>StreamLink</code></h3>
@@ -152,7 +180,7 @@
     is possible to pass any Java <code>InputStream</code> and <code>OutputStream</code>
     to the <code>StreamLink</code> constructor. For instance, if a file 'responses.bin' exists that contains
     a set of response messages that a developer wishes to test against, she may do so like this:
-    <pre class="codeblock">
+    <div class="codeblock">
       FileInputStream fin = new FileInputStream("responses.bin");
       FileOutputStream fout = new FileOutputStream("/dev/null");
 
@@ -162,7 +190,7 @@
       link.bind(Connection.TRANSMITTER, ...);
 
       // run tests...
-    </pre>
+    </div>
     Obviously, the responses should match whatever requests are sent.
     </p>
 
@@ -212,7 +240,7 @@
     <p>
     As synchronous communication is the default, no special action needs to be taken when using
     the <code>Connection</code> class. Its use is simply:
-    <pre class="codeblock">
+    <div class="codeblock">
       try {
           Connection trans = new Connection(smscLink);
           .
@@ -224,7 +252,7 @@
       } catch (SMPPException x) {
           ...
       }
-    </pre>
+    </div>
     </p>
 
     <p>
@@ -232,7 +260,7 @@
     communication, an implementation of the <code>ie.omk.smpp.event.ConnectionObserver</code>
     interface is needed. The connection observer will receive updates from the API for various
     internal API events, including packet reception.
-    <pre class="codeblock">
+    <div class="codeblock">
       public class MyListener implements ie.omk.smpp.event.ConnectionObserver {
 
           public void packetReceived(Connection source, SMPPPacket packet) {
@@ -246,13 +274,13 @@
               ...
           }
       }
-    </pre>
+    </div>
     </p>
 
     <p>
     This observer object must now be registered with the <code>Connection</code> object so
     that it can receive updates.
-    <pre class="codeblock">
+    <div class="codeblock">
       // Create a listener object
       MyListener myListener = new MyListener();
 
@@ -261,7 +289,7 @@
 
       // Register the listener..
       trans.addObserver(myListener);
-    </pre>
+    </div>
     </p>
 
     <h2>7. Synchronous communication as a receiver</h2>
@@ -288,7 +316,7 @@
 
     <p>
     <u>Binding to the SMSC as a transmitter</u>:
-    <pre class="codeblock">
+    <div class="codeblock">
       Connection c = new Connection(smscLink);
 
       /*
@@ -301,7 +329,7 @@
       }
 
       ...
-    </pre>
+    </div>
     </p>
 
     <h2>9. Handling an SMPPEvent</h2>
@@ -312,7 +340,7 @@
       to keep thread-safety in mind when writing your event handler methods</u>
     as the smppapi makes no guarantees that it will dispatch only one event at
     a time.  An example SMPP event handler follows:
-    <pre class="codeblock">
+    <div class="codeblock">
       public class MyListener implements ie.omk.smpp.event.ConnectionObserver {
           public void packetReceived(Connection source, SMPPPacket pak) {
               try {
@@ -353,7 +381,7 @@
               }
           }
       }
-    </pre>
+    </div>
     </p>
 
     <h2>10. Automatic responses.</h2>
@@ -384,6 +412,6 @@
     </table>
 
     <hr>
-    &copy; Copyright 1998 - 2002 by <a href="mailto:orank@users.sf.net">Oran Kelly</a>
+    &copy; Copyright 1998 - 2004 by Oran Kelly [orank AT users.sf.net]</a>
   </body>
 </html>
