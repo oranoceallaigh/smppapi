@@ -66,24 +66,6 @@ public abstract class SmppConnection
     /** Milliseconds to timeout while waiting on I/O in listener thread. */
     protected long		timeout = 100;
 
-    /** Address range used for routing messages */
-    protected String		addrRange = null;
-
-    /** ESME System Id, used to authenticate to the SMSC */
-    protected String		sysId = null;
-
-    /** Password, used to authenticate to the SMSC */
-    protected String		password = null;
-
-    /** Identify the system type of this ESME to the SMSC */
-    protected String		sysType = null;
-
-    /** Address routing type of number */
-    protected int		addrTon = 0;
-
-    /** Address routing numbering plan indicator */
-    protected int		addrNpi = 0;
-
     /** Sequence number */
     private int			seqNum = 1;
 
@@ -92,20 +74,6 @@ public abstract class SmppConnection
 
     /** The network link (virtual circuit) to the SMSC */
     protected SmscLink		link = null;
-
-    /** Last Request packet sent to the SMSC */
-    protected Hashtable		outTable = null;
-
-    /** Last Response packet received from the SMSC */
-    protected Hashtable		inTable = null;
-
-    /** Points to the last packet sent to the Smsc */
-    protected SMPPPacket	lastOutward = null;
-
-    /** For each request sent, 1 is added, for each proper ack got,
-      * 1 comes off.
-      */
-    protected int		waitingAck = 0;
 
     /** Current state of the SMPP connection.
       * Possible states are UNBOUND, BINDING, BOUND and UNBINDING.
@@ -135,12 +103,6 @@ public abstract class SmppConnection
 	    throw new NullPointerException("Smsc Link cannot be null.");
 
 	this.link = link;
-
-	// Table of last requests and responses.  Max 150 each.
-	// once the limit is reached, the tables are purged and it begins
-	// again.
-	outTable = new Hashtable(150);
-	inTable = new Hashtable(150);
     }
 
     /** Create a new Smpp connection specifying the type of communications
@@ -174,87 +136,6 @@ public abstract class SmppConnection
 	return (this.state);
     }
 
-    /** Set the routing information for this ESME
-      * @param ton The Type of Number
-      * @param npi The Numbering plan indicator
-      * @param range The address routing expression (Up to 40 characters)
-      * @exception ie.omk.smpp.StringTooLongException if the source routing
-      * expression is too long.
-      * @see ie.omk.smpp.util.GSMConstants
-      */
-    public void setSourceAddress(int ton, int npi, String range)
-	throws ie.omk.smpp.SMPPException
-    {
-	this.addrTon = ton;
-	this.addrNpi = npi;
-
-	if(range == null) {
-	    this.addrRange = null;
-	    return;
-	}
-
-	if(range.length() < 41)
-	    this.addrRange = range;
-	else
-	    throw new StringTooLongException(40);
-    }
-
-    /** Set the system Id for this Esme
-      * @param name System Id (Up to 15 characters)
-      * @exception ie.omk.smpp.StringTooLongException if the system id is too
-      * long.
-      */
-    public void setSystemId(String name)
-	throws ie.omk.smpp.SMPPException
-    {
-	if(name == null) {
-	    this.sysId = null;
-	    return;
-	}
-
-	if(name.length() < 16)
-	    this.sysId = name;
-	else
-	    throw new StringTooLongException(15);
-    }
-
-    /** Set the authentication password
-      * @param pass The password to use (Up to 8 characters)
-      * @exception ie.omk.smpp.StringTooLongException if the password is too
-      * long.
-      */
-    public void setPassword(String pass)
-	throws ie.omk.smpp.SMPPException
-    {
-	if(pass == null) {
-	    this.password = null;
-	    return;
-	}
-
-	if(pass.length() < 9)
-	    this.password = pass;
-	else
-	    throw new StringTooLongException(8);
-    }
-
-    /** Set the system type for this connection
-      * @param type The System type (Up to 12 characters)
-      * @exception ie.omk.smpp.StringTooLongException if the system type is too
-      * long.
-      */
-    public void setSystemType(String type)
-	throws ie.omk.smpp.SMPPException
-    {
-	if(type == null) {
-	    this.sysType = null;
-	    return;
-	}
-
-	if(type.length() < 13)
-	    this.sysType = type;
-	else
-	    throw new StringTooLongException(12);
-    }
 
     /** Set the behaviour of automatically acking QRYLINK's from the SMSC.
       * By default, the listener thread will automatically ack an enquire_link
@@ -290,27 +171,6 @@ public abstract class SmppConnection
 	return (ackDeliverSm);
     }
 
-    /** Get the System Id of this transmitter
-      */
-    public String getSystemId()
-    {
-	return (sysId);
-    }
-
-    /** Get the password being used by this transmitter.
-      */
-    public String getPassword()
-    {
-	return (password);
-    }
-
-    /** Get the system type of this transmitter.
-      */
-    public String getSystemType()
-    {
-	return (sysType);
-    }
-
     /** Send an smpp request to the SMSC.
       * No fields in the SMPPRequest packet will be altered except for the
       * sequence number. The sequence number of the packet will be set by this
@@ -336,16 +196,10 @@ public abstract class SmppConnection
 
 	synchronized (link) {
 	    r.writeTo(out);
-	    waitingAck++;
-	    outTable.put(new Integer(r.getSequenceNum()), r);
-	    lastOutward = r;
 
 	    if (!asyncComms) {
 		resp = SMPPPacket.readPacket(in);
-		if(resp instanceof SMPPResponse) {
-		    waitingAck--;
-		    inTable.put(new Integer(resp.getSequenceNum()), resp);
-		} else {
+		if(!(resp instanceof SMPPResponse)) {
 		    Debug.d(this, "sendRequest", "Response received from "
 			+ "SMSC is not an SMPPResponse!", Debug.DBG_1);
 		}
@@ -370,17 +224,6 @@ public abstract class SmppConnection
 	if (link == null)
 	    throw new IOException("Connection to SMSC is not valid.");
 
-	// Make sure we got a request for the packet we're trying to ack...
-	key = new Integer(resp.getSequenceNum());
-	try {
-	    rq = (SMPPRequest)inTable.get(key);
-	} catch(ClassCastException cx) {
-	    rq = null;
-	}
-
-	if (rq == null)
-	    throw new NoSuchRequestException();
-
 	Object lock = null;
 	OutputStream out = link.getOutputStream();
 	if (asyncComms)
@@ -390,14 +233,17 @@ public abstract class SmppConnection
 
 	synchronized (lock) {
 		rq.ack();
-		outTable.put(key, resp);
-		lastOutward = resp;
 		resp.writeTo(out);
 	}
     }
 
     /** bind this connection to the SMSC.
       * Sub classes of SmppConnection must provide an implementation of this.
+      * @param systemID The system ID of this ESME.
+      * @param password The password used to authenticate to the SMSC.
+      * @param systemType The system type of this ESME.
+      * @param sourceRange The source routing information. If null, the defaults
+      * at the SMSC will be used.
       * @return The bind transmitter or bind receiver response or null if
       * asynchronous communications is in use.
       * @exception java.io.IOException If a communications error occurs
@@ -405,7 +251,8 @@ public abstract class SmppConnection
       * @see ie.omk.smpp.SmppTransmitter#bind
       * @see ie.omk.smpp.SmppReceiver#bind
       */
-    public abstract SMPPResponse bind()
+    public abstract SMPPResponse bind(String systemID, String password,
+	    String systemType, SmeAddress sourceRange)
 	throws java.io.IOException, ie.omk.smpp.SMPPException;
 
     /** Unbind from the SMSC and close the network connections.
@@ -503,84 +350,6 @@ public abstract class SmppConnection
 	return ((EnquireLinkResp)resp);
     }
 
-    /** Get the response packet associated with the request packet rq.
-      * @param rq The request packet to get the reponse for.
-      * @return The associated response packet, or null if there isn't one.
-      */
-    public synchronized SMPPResponse getResponsePacket(SMPPRequest rq)
-    {
-	Integer key = null;
-	SMPPPacket p1, p2;
-
-	key = new Integer(rq.getSequenceNum());
-	p1 = (SMPPPacket)inTable.get(key);
-	p2 = (SMPPPacket)outTable.get(key);
-
-	if(p1 == null || p2 == null)
-	    return (null);
-
-	if(p1.equals(rq) && (p2 instanceof SMPPResponse))
-	    return (SMPPResponse)p2;
-	else if(p2.equals(rq) && (p1 instanceof SMPPResponse))
-	    return (SMPPResponse)p1;
-	else
-	    return (null);
-    }
-
-    /** Get the request packet associated with the response packet resp.
-      * @param resp The response packet to get the request for.
-      * @return The associated request packet or null if there isn't one.
-      */
-    public synchronized SMPPRequest getRequestPacket(SMPPResponse resp)
-    {
-	Integer key = null;
-	SMPPPacket p1, p2;
-
-	key = new Integer(resp.getSequenceNum());
-	p1 = (SMPPPacket)inTable.get(key);
-	p2 = (SMPPPacket)outTable.get(key);
-
-	if(p1 == null || p2 == null)
-	    return (null);
-
-	if(p1.equals(resp) && (p2 instanceof SMPPRequest))
-	    return (SMPPRequest)p2;
-	else if(p2.equals(resp) && (p1 instanceof SMPPRequest))
-	    return (SMPPRequest)p1;
-	else
-	    return (null);
-    }
-
-    /** Get the Smsc-originated packet with the specified sequence number.
-      * @param The sequence number of the packet to get
-      * @return The packet or null if there is no such packet
-      */
-    public synchronized SMPPPacket getInwardPacket(int seq)
-    {
-	Integer key = new Integer(seq);
-	return (SMPPPacket)inTable.get(key);
-    }
-
-    /** Get the Esme-originated (ie locally) packet with the specified sequence
-      * number.
-      * @param The sequence number of the packet to get
-      * @return The packet or null if there is no such packet
-      */
-    public synchronized SMPPPacket getOutwardPacket(int seq)
-    {
-	Integer key = new Integer(seq);
-	return (SMPPPacket)outTable.get(key);
-    }
-
-    /** Returns the last packet sent to the Smsc.
-      */
-    public synchronized SMPPPacket getLastOutwardPacket()
-    {
-	// XXX Means nothing anymore to be syncrhonized on this. Outward table
-	// is being removed anyway!
-	return (lastOutward);
-    }
-
     /** Report whether the connection is bound or not.
       * @return true if the connection is bound
       */
@@ -607,12 +376,10 @@ public abstract class SmppConnection
 		    + "while bound");
 	}
 
-	Debug.d(this, "reset", "SmppConnection reset", Debug.DBG_1);
-	inTable.clear();
-	outTable.clear();
 	synchronized (seqNumLock) {
 	    seqNum = 1;
 	}
+	Debug.d(this, "reset", "SmppConnection reset", Debug.DBG_1);
     }
 
     /** Get the next sequence number for the next SMPP packet.
@@ -764,21 +531,6 @@ public abstract class SmppConnection
 		    continue;
 		Debug.d(this, "run", "Packet recv:" + pak.getClass().getName(),
 			Debug.DBG_2);
-
-		// Add the received packet to the table
-		if(inTable.size() == 150)
-		    inTable.clear();
-		key = new Integer(pak.getSequenceNum());
-		inTable.put(key, pak);
-
-		// Set the request message to ackd if it's there...
-		if(waitingAck > 0) {
-		    rq = (SMPPRequest)outTable.get(key);
-		    if(rq != null) {
-			rq.ack();
-			waitingAck--;
-		    }
-		}
 
 		int id = pak.getCommandId();
 		int st = pak.getCommandStatus();
