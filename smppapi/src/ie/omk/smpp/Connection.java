@@ -79,6 +79,8 @@ import ie.omk.smpp.message.SubmitSMResp;
 import ie.omk.smpp.message.Unbind;
 import ie.omk.smpp.message.UnbindResp;
 
+import ie.omk.smpp.message.tlv.Tag;
+
 import ie.omk.smpp.net.SmscLink;
 import ie.omk.smpp.net.TcpLink;
 
@@ -429,10 +431,10 @@ public class Connection
     }
 
     /** Set the desired interface version for this connection. The default
-     * version is 3.3 (XXX soon to be 3.4). The bind operation may negotiate
-     * an eariler version of the protocol if the SC does not understand the
-     * version sent by the ESME. This API will not support any version eariler
-     * than SMPP v3.3. The interface version is encoded as follows:
+     * version is 3.4. The bind operation may negotiate an eariler version of
+     * the protocol if the SC does not understand the version sent by the ESME.
+     * This API will not support any version eariler than SMPP v3.3. The
+     * interface version is encoded as follows:
      * <table border="1" cellspacing="1" cellpadding="1">
      *   <tr><th>SMPP version</th><th>Version value</th></tr>
      *   <tr><td>v3.4</td><td>0x34</td></tr>
@@ -707,6 +709,20 @@ public class Connection
      * it's address. The transceiver mode, which was added in version 3.4 of the
      * SMPP protocol, combines the functionality of both transmitter and
      * receiver into one connection type.
+     * <p>The connection object will negotiate the appropriate version for the
+     * protocol link at bind time. If the SMSC returns the SC_INTERFACE_VERSION
+     * optional parameter in its bind response packet, the
+     * <code>Connection</code> will read it. If the version stated by the SMSC
+     * is older than the current version setting of the <code>Connection</code>
+     * then the <code>Connection</code>'s version will be downgraded to that of
+     * the SMSC's. Otherwise, the current version will be left alone. An SMSC
+     * supporting only version 3.3 of the API will never be able to return this
+     * optional parameter (as they were only introduced in version 3.4). The
+     * <code>Connection</code> will therefore assume the version to be 3.3 if it
+     * does not receive the SC_INTERFACE_VERSION in the bind response packet.
+     * If your SMSC does support a higher version but does not supply the
+     * SC_INTERFACE_VERSION in its bind response, you will need to use
+     * {@link #setInterfaceVersion} after the bind operation is complete.</p>
      * <p>Note that it is only necessary to supply values for
      * <code>type, systemID</code> and <code>password</code>. The other
      * arguments may be left at null (or zero, as applicable).</p>
@@ -1108,6 +1124,27 @@ public class Connection
     private void handleBindResp(BindResp resp) {
 	if (state == BINDING && resp.getCommandStatus() == 0)
 	    setState(BOUND);
+
+	// Read the version of the protocol supported at the SMSC.
+	Number n = (Number)resp.getOptionalParameter(Tag.SC_INTERFACE_VERSION);
+	if (n != null) {
+	    SMPPVersion smscVersion = SMPPVersion.getVersion(n.intValue());
+	    if (logger.isDebugEnabled()) {
+		logger.debug("SMSC reports its supported SMPP version as "
+			+ smscVersion.toString());
+	    }
+
+	    // Downgrade this connection's version if the SMSC's version is
+	    // lower.
+	    if (smscVersion.isOlder(this.interfaceVersion)) {
+		logger.info("Downgrading this connection's SMPP version to "
+			+ smscVersion.toString());
+		setInterfaceVersion(smscVersion);
+	    }
+	} else {
+	    // Assume a version 3.3 link
+	    setInterfaceVersion(SMPPVersion.V33);
+	}
     }
 
     /** Handle an incoming unbind packet.
