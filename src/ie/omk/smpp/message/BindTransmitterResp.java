@@ -23,11 +23,6 @@
  */
 package ie.omk.smpp.message;
 
-import java.io.IOException;
-import ie.omk.smpp.SMPPException;
-import ie.omk.smpp.BadCommandIDException;
-import ie.omk.smpp.util.SMPPIO;
-import org.apache.log4j.Logger;
 
 /** SMSC response to a BindTransmitter request.
   * @author Oran Kelly

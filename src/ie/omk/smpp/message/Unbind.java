@@ -23,9 +23,6 @@
  */
 package ie.omk.smpp.message;
 
-import ie.omk.smpp.SMPPException;
-import ie.omk.smpp.BadCommandIDException;
-import org.apache.log4j.Logger;
 
 /** Unbind from the SMSC. This operation does not close the network
   * connection...it is valid to issue a new bind command over the same network

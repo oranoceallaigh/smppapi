@@ -23,13 +23,8 @@
  */
 package ie.omk.smpp.message;
 
-import java.io.IOException;
+
 import java.io.OutputStream;
-
-import org.apache.log4j.Logger;
-
-import ie.omk.smpp.BadCommandIDException;
-import ie.omk.smpp.SMPPException;
 
 import ie.omk.smpp.util.SMPPIO;
 

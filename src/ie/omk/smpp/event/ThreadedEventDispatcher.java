@@ -71,8 +71,8 @@ public class ThreadedEventDispatcher implements EventDispatcher, Runnable {
 	int queueSize;
 	try {
 	    APIConfig cfg = APIConfig.getInstance();
-	    poolSize = cfg.getInt(cfg.EVENT_THREAD_POOL_SIZE);
-	    queueSize = cfg.getInt(cfg.EVENT_THREAD_FIFO_QUEUE_SIZE);
+	    poolSize = cfg.getInt(APIConfig.EVENT_THREAD_POOL_SIZE);
+	    queueSize = cfg.getInt(APIConfig.EVENT_THREAD_FIFO_QUEUE_SIZE);
 	} catch (PropertyNotFoundException x) {
 	    poolSize = 3;
 	    queueSize = 100;

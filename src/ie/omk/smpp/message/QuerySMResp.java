@@ -23,17 +23,11 @@
  */
 package ie.omk.smpp.message;
 
-import java.io.IOException;
-import java.io.OutputStream;
-
-import ie.omk.smpp.SMPPException;
-import ie.omk.smpp.BadCommandIDException;
-
 import ie.omk.smpp.util.InvalidDateFormatException;
-import ie.omk.smpp.util.SMPPIO;
 import ie.omk.smpp.util.SMPPDate;
+import ie.omk.smpp.util.SMPPIO;
 
-import org.apache.log4j.Logger;
+import java.io.OutputStream;
 
 /** SMSC response to a QuerySM request.
   * Contains the current state of a short message at the SMSC.

@@ -23,13 +23,9 @@
  */
 package ie.omk.smpp.message;
 
-import java.io.IOException;
-import java.io.OutputStream;
-
-import ie.omk.smpp.SMPPException;
-import ie.omk.smpp.BadCommandIDException;
 import ie.omk.smpp.util.SMPPIO;
-import org.apache.log4j.Logger;
+
+import java.io.OutputStream;
 
 /** SMSC response to a ParamRetrieve request.
   * Returns the value of the requested parameter.

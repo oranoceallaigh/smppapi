@@ -23,8 +23,6 @@
  */
 package ie.omk.smpp.message;
 
-import java.io.IOException;
-import ie.omk.smpp.BadCommandIDException;
 
 /** Generic negative acknowledgment.
   * Used if the short message entity, either ESME or SMSC, does not understand a

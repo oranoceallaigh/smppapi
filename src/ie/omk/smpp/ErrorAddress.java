@@ -23,8 +23,9 @@
  */
 package ie.omk.smpp;
 
-import java.io.OutputStream;
 import ie.omk.smpp.util.SMPPIO;
+
+import java.io.OutputStream;
 
 /** An address that message submission was unsuccessfully submitted to. This
  * class is used in the SubmitMultiResp packet type to return a list of SME

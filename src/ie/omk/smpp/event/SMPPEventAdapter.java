@@ -32,7 +32,6 @@ import ie.omk.smpp.message.DeliverSM;
 import ie.omk.smpp.message.EnquireLink;
 import ie.omk.smpp.message.EnquireLinkResp;
 import ie.omk.smpp.message.GenericNack;
-import ie.omk.smpp.message.ParamRetrieve;
 import ie.omk.smpp.message.ParamRetrieveResp;
 import ie.omk.smpp.message.ReplaceSMResp;
 import ie.omk.smpp.message.SMPPPacket;

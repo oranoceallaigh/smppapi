@@ -23,7 +23,6 @@
  */
 package ie.omk.smpp.message;
 
-import ie.omk.smpp.SMPPException;
 
 /** Abstract parent class of all SMPP Response packets.
   * @author Oran Kelly

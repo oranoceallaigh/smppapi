@@ -24,12 +24,10 @@
 
 package ie.omk.smpp.util;
 
+import java.text.MessageFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.SimpleTimeZone;
 import java.util.TimeZone;
-
-import java.text.MessageFormat;
 
 /** Object to represent a Date in SMPP format. SMPP dates take on a string form
  * of 'YYMMDDhhmmsstnnp' where

@@ -23,8 +23,6 @@
  */
 package ie.omk.smpp;
 
-import org.apache.log4j.Logger;
-
 /** SMPPException.
   * @author Oran Kelly
   * @version 1.0

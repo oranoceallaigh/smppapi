@@ -23,17 +23,14 @@
  */
 package ie.omk.smpp.net;
 
-import java.net.InetAddress;
-import java.net.Socket;
-
-import java.io.InputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-
 import ie.omk.smpp.util.APIConfig;
 import ie.omk.smpp.util.PropertyNotFoundException;
 
-import org.apache.log4j.Logger;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.InetAddress;
+import java.net.Socket;
 
 /** Implementation of an Smsc link over the tcp/ip protocol
   * @author Oran Kelly

@@ -23,9 +23,10 @@
  */
 package ie.omk.smpp;
 
-import java.io.OutputStream;
 import ie.omk.smpp.util.GSMConstants;
 import ie.omk.smpp.util.SMPPIO;
+
+import java.io.OutputStream;
 
 /** Object representing a Short Message Entity's address. An address consists of
  * a Type Of Number, a Numbering Plan Indicator and an address.
