@@ -74,9 +74,7 @@
 
   <!-- Build the tests -->
   <target name="tests" depends="init,api">
-    <javac srcdir="tests" destdir="tests" deprecation="true">
-      <classpath path="${build}"/>
-    </javac>
+    <javac srcdir="tests" destdir="${build}" deprecation="true"/>
   </target>
 
   <!-- Build the distribution. -->

@@ -23,11 +23,16 @@
 import java.util.Properties;
 import java.io.FileInputStream;
 
+import ie.omk.smpp.Address;
+import ie.omk.smpp.Connection;
 import ie.omk.smpp.SMPPException;
-import ie.omk.smpp.SmppTransmitter;
-import ie.omk.smpp.net.TcpLink;
+
 import ie.omk.smpp.message.*;
+
+import ie.omk.smpp.net.TcpLink;
+
 import ie.omk.smpp.util.*;
+
 
 public class SyncTransmitter
 {
@@ -36,14 +41,15 @@ public class SyncTransmitter
 	try {
 	    Args args = new Args(clargs);
 	    TcpLink link = new TcpLink(args.hostName, args.port);
-	    SmppTransmitter trans = new SmppTransmitter(link);
+	    Connection trans = new Connection(link);
 
-	    SmeAddress range = null;
-	    if (args.sourceRange != null)
-		range = new SmeAddress(args.ton, args.npi, args.sourceRange);
+	    Address range = null;
 
 	    BindTransmitterResp btr = (BindTransmitterResp)trans.bind(
-		    args.sysID, args.password, args.sysType, range);
+		    Connection.TRANSMITTER,
+		    args.sysID,
+		    args.password,
+		    args.sysType);
 
 	    if (btr.getCommandStatus() != 0) {
 		System.err.println("Failed to bind to SMSC.");
@@ -53,7 +59,7 @@ public class SyncTransmitter
 	    System.out.println("Successfully bound to SMSC \"" +
 		    btr.getSystemId() + "\"");
 
-	    SmeAddress destination = new SmeAddress(
+	    Address destination = new Address(
 		    GSMConstants.GSM_TON_UNKNOWN,
 		    GSMConstants.GSM_NPI_UNKNOWN,
 		    "353861234567");
@@ -72,7 +78,7 @@ public class SyncTransmitter
 
 	    // Send a UCS2 encoded message...
 	    sm = new SubmitSM();
-	    sm.setDestination(new SmeAddress(
+	    sm.setDestination(new Address(
 			GSMConstants.GSM_TON_UNKNOWN,
 			GSMConstants.GSM_NPI_UNKNOWN,
 			"434325425"));
@@ -88,7 +94,7 @@ public class SyncTransmitter
 
 	    // Send a Binary encoded message...
 	    sm = new SubmitSM();
-	    sm.setDestination(new SmeAddress(
+	    sm.setDestination(new Address(
 			GSMConstants.GSM_TON_UNKNOWN,
 			GSMConstants.GSM_NPI_UNKNOWN,
 			"434325425"));

@@ -40,7 +40,7 @@ public class BindTransmitterResp
       */
     public BindTransmitterResp()
     {
-	super(ESME_BNDTRN_RESP);
+	super(BIND_TRANSMITTER_RESP);
     }
 
     /** Read in a BindTransmitterResp from an InputStream.  A full packet,
@@ -49,15 +49,15 @@ public class BindTransmitterResp
       * @exception java.io.IOException if there's an error reading from the
       * input stream.
       */
-    public BindTransmitterResp(InputStream in)
+    /*public BindTransmitterResp(InputStream in)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super(in);
 
-	if (getCommandId() != SMPPPacket.ESME_BNDTRN_RESP)
-	    throw new BadCommandIDException(SMPPPacket.ESME_BNDTRN_RESP,
+	if (getCommandId() != SMPPPacket.BIND_TRANSMITTER_RESP)
+	    throw new BadCommandIDException(SMPPPacket.BIND_TRANSMITTER_RESP,
 		    getCommandId());
-    }
+    }*/
 
 
     /** Create a new BindTransmitterResp packet in response to a

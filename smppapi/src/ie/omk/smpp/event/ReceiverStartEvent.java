@@ -23,7 +23,7 @@
 
 package ie.omk.smpp.event;
 
-import ie.omk.smpp.SmppConnection;
+import ie.omk.smpp.Connection;
 
 /** Event generated when the receiver thread starts. Usually applications can
  * ignore this message as they don't need to do anything when the receiver
@@ -35,7 +35,7 @@ public class ReceiverStartEvent extends SMPPEvent
 {
     /** Create a new ReceiverStartEvent.
      */
-    public ReceiverStartEvent(SmppConnection source)
+    public ReceiverStartEvent(Connection source)
     {
 	super (RECEIVER_START, source);
     }

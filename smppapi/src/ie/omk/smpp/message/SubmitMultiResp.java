@@ -23,10 +23,18 @@
 package ie.omk.smpp.message;
 
 import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+
+import ie.omk.smpp.Address;
+import ie.omk.smpp.ErrorAddress;
 import ie.omk.smpp.SMPPException;
 import ie.omk.smpp.BadCommandIDException;
+
 import ie.omk.smpp.util.SMPPIO;
+
 import ie.omk.debug.Debug;
 
 /** Submit to multiple destinations response.
@@ -41,13 +49,14 @@ public class SubmitMultiResp
     extends ie.omk.smpp.message.SMPPResponse
 {
     /** Table of unsuccessful destinations */
-    private Vector unsuccessfulTable = new Vector();
+    private List unsuccessfulTable = null;
 
     /** Construct a new Unbind.
       */
     public SubmitMultiResp()
     {
-	super(ESME_SUB_MULTI_RESP);
+	super(SUBMIT_MULTI_RESP);
+	unsuccessfulTable = Collections.synchronizedList(new ArrayList());
     }
 
     /** Construct a new Unbind with specified sequence number.
@@ -56,7 +65,8 @@ public class SubmitMultiResp
       */
     public SubmitMultiResp(int seqNum)
     {
-	super(ESME_SUB_MULTI_RESP, seqNum);
+	super(SUBMIT_MULTI_RESP, seqNum);
+	unsuccessfulTable = Collections.synchronizedList(new ArrayList());
     }
 
     /** Create a new SubmitMultiResp packet in response to a BindReceiver.
@@ -74,13 +84,13 @@ public class SubmitMultiResp
       * @exception java.io.IOException If an error occurs writing to the input
       * stream.
       */
-    public SubmitMultiResp(InputStream in)
+    /*public SubmitMultiResp(InputStream in)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super(in);
 
-	if (getCommandId() != SMPPPacket.ESME_SUB_MULTI_RESP)
-	    throw new BadCommandIDException(SMPPPacket.ESME_SUB_MULTI_RESP,
+	if (getCommandId() != SMPPPacket.SUBMIT_MULTI_RESP)
+	    throw new BadCommandIDException(SMPPPacket.SUBMIT_MULTI_RESP,
 		    getCommandId());
 
 	if (getCommandStatus() != 0)
@@ -96,7 +106,7 @@ public class SubmitMultiResp
 	    SmeAddress_e a = new SmeAddress_e(in);
 	    unsuccessfulTable.addElement(a);
 	}
-    }
+    }*/
 
     /** Get the number of destinations the message was not delivered to. */
     public int getUnsuccessfulCount()
@@ -105,85 +115,53 @@ public class SubmitMultiResp
     }
 
     /** Add a destination address to the table of unsuccessful destinations.
-      * @param a SmeAddress_e structure representing the failed destination
+      * @param ea ErrorAddress object representing the failed destination
       * @return The current count of unsuccessful destinations (including the
       * new one)
       */
-    public int addSmeToTable(SmeAddress_e a)
+    public int add(ErrorAddress ea)
+    {
+	unsuccessfulTable.add(ea);
+	return (unsuccessfulTable.size());
+    }
+
+    /** Remove an address from the table of unsuccessful destinations.
+     * @param a the address to remove.
+     * @return the size of the table after removal.
+     */
+    public int remove(Address a)
     {
 	synchronized (unsuccessfulTable) {
-	    if(a != null) {
-		a.useFlag = false;
-		unsuccessfulTable.addElement(a);
-	    }
+	    int i = unsuccessfulTable.indexOf(a);
+	    if (i > -1)
+		unsuccessfulTable.remove(i);
 
-	    return unsuccessfulTable.size();
+	    return (unsuccessfulTable.size());
 	}
     }
 
-    /** Set the destination address table.
-      * @param d The array of SmeAddresses the message was unsuccessfully
-      * submitted to.
-      * @exception java.lang.NullPointerException if the array is null
-      * or 0 length
-      */
-    public void setDestAddresses(SmeAddress_e d[])
+    /** Get an iterator to iterate over the set of addresses in the unsuccessful
+     * destination table.
+     */
+    public java.util.ListIterator tableIterator()
     {
-	int loop=0;
-
-	if(d == null || d.length < 1)
-	    throw new NullPointerException("SubmitMultiResp: Destination "
-		    + "table cannot be null or empty");
-
-	synchronized (unsuccessfulTable) {
-	    unsuccessfulTable.removeAllElements();
-	    unsuccessfulTable.ensureCapacity(d.length);
-
-	    for(loop=0; loop<d.length; loop++) {
-		d[loop].useFlag = false;
-		unsuccessfulTable.addElement(d[loop]);
-	    }
-	}
+	return (unsuccessfulTable.listIterator());
     }
-
-    /** Get the SmeAddress_e(s) that are in the 'unsuccessful' table.
-      * @return Array of SmeAddress_e(s) that were unsuccessfully submitted
-      * to. If there are none, an array of length 0 is returned.
-      */
-    public SmeAddress_e[] getDestAddresses()
-    {
-	SmeAddress_e sd[];
-	int loop = 0;
-
-	synchronized (unsuccessfulTable) {
-	    if(unsuccessfulTable.size() == 0)
-		return (null);
-
-	    sd = new SmeAddress_e[unsuccessfulTable.size()];
-	    Iterator i = unsuccessfulTable.iterator();
-	    while (i.hasNext())
-		sd[loop++] = (SmeAddress_e)i.next();
-	}
-
-	return sd;
-    }
-
 
     /** Return the number of bytes this packet would be encoded as to an
       * OutputStream.
       * @return the number of bytes this packet would encode as.
       */
-    public int getCommandLen()
+    public int getBodyLength()
     {
 	int loop;
 
-	int size = getHeaderLen()
-	    + ((messageId != null) ? messageId.length() : 0);
+	int size = ((messageId != null) ? messageId.length() : 0);
 
 	synchronized (unsuccessfulTable) {
 	    Iterator i = unsuccessfulTable.iterator();
 	    while (i.hasNext())
-		size += ((SmeAddress_e)i.next()).size();
+		size += ((ErrorAddress)i.next()).getLength();
 	}
 
 	// 1 1-byte integer, 1 c-string
@@ -208,7 +186,25 @@ public class SubmitMultiResp
 
 	    Iterator i = unsuccessfulTable.iterator();
 	    while (i.hasNext())
-		((SmeAddress_e)i.next()).writeTo(out);
+		((ErrorAddress)i.next()).writeTo(out);
+	}
+    }
+
+    public void readBodyFrom(byte[] body, int offset)
+    {
+	messageId = SMPPIO.readCString(body, offset);
+	offset += messageId.length() + 1;
+
+	int unsuccessfulCount =  SMPPIO.bytesToInt(body, offset++, 1);
+
+	if(unsuccessfulCount < 1)
+	    return;
+
+	for (int loop = 0; loop < unsuccessfulCount; loop++) {
+	    ErrorAddress a = new ErrorAddress();
+	    a.readFrom(body, offset);
+	    offset += a.getLength();
+	    unsuccessfulTable.add(a);
 	}
     }
 

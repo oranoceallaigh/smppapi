@@ -41,7 +41,7 @@ import ie.omk.smpp.message.SubmitSMResp;
 import ie.omk.smpp.message.Unbind;
 import ie.omk.smpp.message.UnbindResp;
 
-import ie.omk.smpp.SmppConnection;
+import ie.omk.smpp.Connection;
 
 import ie.omk.debug.Debug;
 
@@ -61,7 +61,7 @@ public abstract class SMPPEventAdapter implements ConnectionObserver
     }
 
     
-    public final void update(SmppConnection source, SMPPEvent event)
+    public final void update(Connection source, SMPPEvent event)
     {
 	try {
 	    switch (event.getType()) {
@@ -90,62 +90,62 @@ public abstract class SMPPEventAdapter implements ConnectionObserver
 	}
     }
 
-    public final void packetReceived(SmppConnection source, SMPPPacket pak)
+    public final void packetReceived(Connection source, SMPPPacket pak)
     {
 	// Keep high-incidence packet types at the top of this switch.
 	switch (pak.getCommandId()) {
-	case SMPPPacket.SMSC_DELIVER_SM:
+	case SMPPPacket.DELIVER_SM:
 	    deliverSM(source, (DeliverSM)pak);
 	    break;
 
-	case SMPPPacket.ESME_SUB_SM_RESP:
+	case SMPPPacket.SUBMIT_SM_RESP:
 	    submitSMResponse(source, (SubmitSMResp)pak);
 	    break;
 
-	case SMPPPacket.ESME_SUB_MULTI_RESP:
+	case SMPPPacket.SUBMIT_MULTI_RESP:
 	    submitMultiResponse(source, (SubmitMultiResp)pak);
 	    break;
 
-	case SMPPPacket.ESME_CANCEL_SM_RESP:
+	case SMPPPacket.CANCEL_SM_RESP:
 	    cancelSMResponse(source, (CancelSMResp)pak);
 	    break;
 
-	case SMPPPacket.ESME_REPLACE_SM_RESP:
+	case SMPPPacket.REPLACE_SM_RESP:
 	    replaceSMResponse(source, (ReplaceSMResp)pak);
 	    break;
 
-	case SMPPPacket.ESME_PARAM_RETRIEVE_RESP:
+	case SMPPPacket.PARAM_RETRIEVE_RESP:
 	    paramRetrieveResponse(source, (ParamRetrieveResp)pak);
 	    break;
 
-	case SMPPPacket.ESME_QUERY_SM_RESP:
-	case SMPPPacket.ESME_QUERY_LAST_MSGS_RESP:
-	case SMPPPacket.ESME_QUERY_MSG_DETAILS_RESP:
+	case SMPPPacket.QUERY_SM_RESP:
+	case SMPPPacket.QUERY_LAST_MSGS_RESP:
+	case SMPPPacket.QUERY_MSG_DETAILS_RESP:
 	    queryResponse(source, (SMPPResponse)pak);
 	    break;
 
-	case SMPPPacket.ESME_QRYLINK:
+	case SMPPPacket.ENQUIRE_LINK:
 	    queryLink(source, (EnquireLink)pak);
 	    break;
 
-	case SMPPPacket.ESME_QRYLINK_RESP:
+	case SMPPPacket.ENQUIRE_LINK_RESP:
 	    queryLinkResponse(source, (EnquireLinkResp)pak);
 	    break;
 
-	case SMPPPacket.ESME_UBD:
+	case SMPPPacket.UNBIND:
 	    unbind(source, (Unbind)pak);
 	    break;
 
-	case SMPPPacket.ESME_UBD_RESP:
+	case SMPPPacket.UNBIND_RESP:
 	    unbindResponse(source, (UnbindResp)pak);
 	    break;
 
-	case SMPPPacket.ESME_BNDTRN_RESP:
-	case SMPPPacket.ESME_BNDRCV_RESP:
+	case SMPPPacket.BIND_TRANSMITTER_RESP:
+	case SMPPPacket.BIND_RECEIVER_RESP:
 	    bindResponse(source, (BindResp)pak);
 	    break;
 
-	case SMPPPacket.ESME_NACK:
+	case SMPPPacket.GENERIC_NACK:
 	    genericNack(source, (GenericNack)pak);
 	    break;
 
@@ -163,7 +163,7 @@ public abstract class SMPPEventAdapter implements ConnectionObserver
      * @param source the source connection of the event.
      * @param rev the receiver exit event object received from the API.
      */
-    public void receiverExit(SmppConnection source, ReceiverExitEvent rev)
+    public void receiverExit(Connection source, ReceiverExitEvent rev)
     {
 	// default: do nothing
     }
@@ -178,7 +178,7 @@ public abstract class SMPPEventAdapter implements ConnectionObserver
      * @param source the source connection of the event.
      * @param rev the receiver exit event object received from the API.
      */
-    public void receiverExitException(SmppConnection source,
+    public void receiverExitException(Connection source,
 	    ReceiverExitEvent rev)
     {
 	// default: do nothing
@@ -193,7 +193,7 @@ public abstract class SMPPEventAdapter implements ConnectionObserver
      * @param rev the receiver exception event received from the API, which
      * contains the caught exception.
      */
-    public void receiverException(SmppConnection source,
+    public void receiverException(Connection source,
 	    ReceiverExceptionEvent rev)
     {
 	// default: do nothing
@@ -205,14 +205,14 @@ public abstract class SMPPEventAdapter implements ConnectionObserver
      * @param source the source connection of the event.
      * @param rs the receiver start event received from the API.
      */
-    public void receiverStart(SmppConnection source, ReceiverStartEvent rs)
+    public void receiverStart(Connection source, ReceiverStartEvent rs)
     {
 	// default: do nothing
     }
 
     /** PLACEHOLDER. This method will currently never be called.
      */
-    public void userEvent(SmppConnection source, SMPPEvent ev)
+    public void userEvent(Connection source, SMPPEvent ev)
     {
 	// default: do nothing
     }
@@ -220,37 +220,37 @@ public abstract class SMPPEventAdapter implements ConnectionObserver
 
     /** DeliverSM packet received from the SMSC.
      */
-    public void deliverSM(SmppConnection source, DeliverSM dm)
+    public void deliverSM(Connection source, DeliverSM dm)
     {
     }
     
     /** SubmitSM response packet received from the SMSC.
      */
-    public void submitSMResponse(SmppConnection source, SubmitSMResp smr)
+    public void submitSMResponse(Connection source, SubmitSMResp smr)
     {
     }
 
     /** SubmitMulti response packet received from the SMSC.
      */
-    public void submitMultiResponse(SmppConnection source, SubmitMultiResp smr)
+    public void submitMultiResponse(Connection source, SubmitMultiResp smr)
     {
     }
     
     /** CancelSM response packet received from the SMSC.
      */
-    public void cancelSMResponse(SmppConnection source, CancelSMResp cmr)
+    public void cancelSMResponse(Connection source, CancelSMResp cmr)
     {
     }
     
     /** ReplaceSM response packet received from the SMSC.
      */
-    public void replaceSMResponse(SmppConnection source, ReplaceSMResp rmr)
+    public void replaceSMResponse(Connection source, ReplaceSMResp rmr)
     {
     }
 
     /** ParamRetrieve response packet received from the SMSC.
      */
-    public void paramRetrieveResponse(SmppConnection source,
+    public void paramRetrieveResponse(Connection source,
 	    ParamRetrieveResp prr)
     {
     }
@@ -258,49 +258,49 @@ public abstract class SMPPEventAdapter implements ConnectionObserver
     /** One of a QuerySM, QueryLastMsgs or QueryMsgDetails response packet has
      * been received from the SMSC.
      */
-    public void queryResponse(SmppConnection source, SMPPResponse qr)
+    public void queryResponse(Connection source, SMPPResponse qr)
     {
     }
     
     /** EnquireLink packet received from the SMSC.
      */
-    public void queryLink(SmppConnection source, EnquireLink el)
+    public void queryLink(Connection source, EnquireLink el)
     {
     }
     
     /** EnquireLink response packet received from the SMSC.
      */
-    public void queryLinkResponse(SmppConnection source, EnquireLinkResp elr)
+    public void queryLinkResponse(Connection source, EnquireLinkResp elr)
     {
     }
     
     /** Unbind packet received from the SMSC.
      */
-    public void unbind(SmppConnection source, Unbind ubd)
+    public void unbind(Connection source, Unbind ubd)
     {
     }
     
     /** Unbind response packet received from the SMSC.
      */
-    public void unbindResponse(SmppConnection source, UnbindResp ubr)
+    public void unbindResponse(Connection source, UnbindResp ubr)
     {
     }
     
     /** Bind response packet received from the SMSC.
      */
-    public void bindResponse(SmppConnection source, BindResp br)
+    public void bindResponse(Connection source, BindResp br)
     {
     }
     
     /** GenericNack packet received from the SMSC.
      */
-    public void genericNack(SmppConnection source, GenericNack nack)
+    public void genericNack(Connection source, GenericNack nack)
     {
     }
     
     /** An unidentified packet has been received from the SMSC.
      */
-    public void unidentified(SmppConnection source, SMPPPacket pak)
+    public void unidentified(Connection source, SMPPPacket pak)
     {
     }
 }

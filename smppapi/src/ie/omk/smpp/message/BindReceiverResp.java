@@ -40,7 +40,7 @@ public class BindReceiverResp
       */
     public BindReceiverResp()
     {
-	super(ESME_BNDRCV_RESP);
+	super(BIND_RECEIVER_RESP);
     }
 
     /** Read in a BindReceiverResp from an InputStream.  A full packet,
@@ -49,15 +49,15 @@ public class BindReceiverResp
       * @exception java.io.IOException if there's an error reading from the
       * stream.
       */
-    public BindReceiverResp(InputStream in)
+    /*public BindReceiverResp(InputStream in)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super(in);
 
-	if (getCommandId() != SMPPPacket.ESME_BNDRCV_RESP)
-	    throw new BadCommandIDException(SMPPPacket.ESME_BNDRCV_RESP,
+	if (getCommandId() != SMPPPacket.BIND_RECEIVER_RESP)
+	    throw new BadCommandIDException(SMPPPacket.BIND_RECEIVER_RESP,
 		    getCommandId());
-    }
+    }*/
 
     /** Create a new BindReceiverResp packet in response to a BindReceiver.
       * This constructor will set the sequence number to that of the

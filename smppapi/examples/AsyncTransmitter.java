@@ -23,19 +23,22 @@
 
 import java.io.IOException;
 
+import ie.omk.smpp.Address;
+import ie.omk.smpp.Connection;
 import ie.omk.smpp.SMPPException;
-import ie.omk.smpp.SmppConnection;
-import ie.omk.smpp.SmppTransmitter;
-import ie.omk.smpp.net.TcpLink;
+
+import ie.omk.smpp.event.ConnectionObserver;
+import ie.omk.smpp.event.ReceiverExitEvent;
+import ie.omk.smpp.event.SMPPEvent;
+
+import ie.omk.smpp.message.BindTransmitterResp;
 import ie.omk.smpp.message.SMPPPacket;
-import ie.omk.smpp.message.SmeAddress;
 import ie.omk.smpp.message.SubmitSM;
 import ie.omk.smpp.message.SubmitSMResp;
-import ie.omk.smpp.message.BindTransmitterResp;
+
+import ie.omk.smpp.net.TcpLink;
+
 import ie.omk.smpp.util.GSMConstants;
-import ie.omk.smpp.event.ConnectionObserver;
-import ie.omk.smpp.event.SMPPEvent;
-import ie.omk.smpp.event.ReceiverExitEvent;
 
 /** Example class to submit a message to a SMSC.
   * This class simply binds to the server, submits a message and then unbinds.
@@ -46,10 +49,8 @@ public class AsyncTransmitter
     private Object blocker = new Object();
 
     // This is called when the connection receives a packet from the SMSC.
-    public void update(SmppConnection source, SMPPEvent ev)
+    public void update(Connection t, SMPPEvent ev)
     {
-	SmppTransmitter t = (SmppTransmitter)source;
-
 	switch (ev.getType()) {
 	case SMPPEvent.RECEIVER_EXIT:
 	    receiverExit(t, (ReceiverExitEvent)ev);
@@ -57,16 +58,14 @@ public class AsyncTransmitter
 	}
     }
 
-    public void packetReceived(SmppConnection source, SMPPPacket pak)
+    public void packetReceived(Connection trans, SMPPPacket pak)
     {
-	SmppTransmitter trans = (SmppTransmitter)source;
-
 	System.out.println("Packet received: Id = "
 		+ Integer.toHexString(pak.getCommandId()));
 	switch (pak.getCommandId()) {
 
 	// Bind transmitter response. Check it's status for success...
-	case SMPPPacket.ESME_BNDTRN_RESP:
+	case SMPPPacket.BIND_TRANSMITTER_RESP:
 	    if (pak.getCommandStatus() != 0) {
 		System.out.println("Error binding to the SMSC. Error = "
 			+ pak.getCommandStatus());
@@ -83,7 +82,7 @@ public class AsyncTransmitter
 	    break;
 
 	// Submit message response...
-	case SMPPPacket.ESME_SUB_SM_RESP:
+	case SMPPPacket.SUBMIT_SM_RESP:
 	    if (pak.getCommandStatus() != 0) {
 		System.out.println("\tMessage was not submitted. Error code: "
 			+ pak.getCommandStatus());
@@ -108,7 +107,7 @@ public class AsyncTransmitter
 	    break;
 
 	// Unbind response..
-	case SMPPPacket.ESME_UBD_RESP:
+	case SMPPPacket.UNBIND_RESP:
 	    System.out.println("\tUnbound.");
 	    break;
 
@@ -118,7 +117,7 @@ public class AsyncTransmitter
 	}
     }
 
-    private void receiverExit(SmppTransmitter trans, ReceiverExitEvent ev)
+    private void receiverExit(Connection trans, ReceiverExitEvent ev)
     {
 	if (!ev.isException()) {
 	    System.out.println("Receiver thread has exited normally.");
@@ -134,11 +133,11 @@ public class AsyncTransmitter
     }
 
     // Send a short message to the SMSC
-    public void send(SmppTransmitter trans)
+    public void send(Connection trans)
     {
 	try {
 	    String message = new String("Test Short Message. :-)");
-	    SmeAddress destination = new SmeAddress(
+	    Address destination = new Address(
 		    GSMConstants.GSM_TON_UNKNOWN,
 		    GSMConstants.GSM_NPI_UNKNOWN,
 		    "87654321");
@@ -161,8 +160,8 @@ public class AsyncTransmitter
 	    // Open a network link to the SMSC..
 	    TcpLink link = new TcpLink(args.hostName, args.port);
 
-	    // Create an SmppTransmitter object (we won't bind just yet..)
-	    SmppTransmitter trans = new SmppTransmitter(link, true);
+	    // Create a Connection object (we won't bind just yet..)
+	    Connection trans = new Connection(link, true);
 
 	    // Need to add myself to the list of listeners for this connection
 	    trans.addObserver(this);
@@ -170,13 +169,16 @@ public class AsyncTransmitter
 	    // Automatically respond to ENQUIRE_LINK requests from the SMSC
 	    trans.autoAckLink(true);
 
-	    SmeAddress range = null;
+	    Address range = null;
 	    if (args.sourceRange != null)
-		range = new SmeAddress(args.ton, args.npi, args.sourceRange);
+		range = new Address(args.ton, args.npi, args.sourceRange);
 
 	    // Bind to the SMSC (as a transmitter)
 	    System.out.println("Binding to the SMSC..");
-	    trans.bind(args.sysID, args.password, args.sysType, range);
+	    trans.bind(Connection.TRANSMITTER,
+		    args.sysID,
+		    args.password,
+		    args.sysType);
 
 	    synchronized (blocker) {
 		blocker.wait();

@@ -23,74 +23,49 @@
 package ie.omk.smpp.message;
 
 import java.io.*;
+import ie.omk.smpp.SMPPException;
 import ie.omk.smpp.BadCommandIDException;
+import ie.omk.smpp.BadInterfaceVersionException;
+import ie.omk.smpp.StringTooLongException;
+import ie.omk.smpp.util.SMPPIO;
 import ie.omk.debug.Debug;
 
-
-/** ESME or SMSC response to an EnquireLink request.
-  * Used to positivly acknowledge that this entity is still alive and capable of
-  * submitting, or responding to, SMPP messages.
+/** Bind to the SMSC as a transceiver.
   * @author Oran Kelly
   * @version 1.0
   */
-public class EnquireLinkResp
-    extends ie.omk.smpp.message.SMPPResponse
+public class BindTransceiver
+    extends ie.omk.smpp.message.Bind
 {
-    /** Construct a new EnquireLinkResp.
-      */
-    public EnquireLinkResp()
-    {
-	super(ENQUIRE_LINK_RESP);
-    }
-
-    /** Construct a new EnquireLinkResp with specified sequence number.
+    /** Construct a new BindTransceiver.
       * @param seqNum The sequence number to use
-      * @deprecated
       */
-    public EnquireLinkResp(int seqNum)
+    public BindTransceiver()
     {
-	super(ENQUIRE_LINK_RESP, seqNum);
+	super(BIND_TRANSCEIVER);
     }
 
-    /** Read in a EnquireLinkResp from an InputStream.  A full packet,
+    /** Read in a BindTransceiver from an InputStream.  A full packet,
       * including the header fields must exist in the stream.
       * @param in The InputStream to read from
-      * @exception java.io.IOException if there's an error reading from the
+      * @exception java.io.IOException if there's a problem reading from the
       * input stream.
       */
-    public EnquireLinkResp(InputStream in)
+    /*public BindTransceiver(InputStream in)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super(in);
 
-	if (getCommandId() != SMPPPacket.ENQUIRE_LINK_RESP)
-	    throw new BadCommandIDException(SMPPPacket.ENQUIRE_LINK_RESP,
+	if (getCommandId() != BIND_TRANSCEIVER)
+	    throw new BadCommandIDException(BIND_TRANSCEIVER,
 		    getCommandId());
-    }
-
-    /** Create a new BindReceiverResp packet in response to a BindReceiver.
-      * This constructor will set the sequence number to it's expected value.
-      * @param r The Request packet the response is to
-      */
-    public EnquireLinkResp(EnquireLink r)
-    {
-	super(r);
-    }
-
-    public int getBodyLength()
-    {
-	return (0);
-    }
-
-    public void readBodyFrom(byte[] body, int offset)
-    {
-    }
+    }*/
 
     /** Convert this packet to a String. Not to be interpreted programmatically,
       * it's just dead handy for debugging!
       */
     public String toString()
     {
-	return new String("enquire_link_resp");
+	return new String("bind_transceiver");
     }
 }

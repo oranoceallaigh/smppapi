@@ -42,7 +42,7 @@ public class BindTransmitter
       */
     public BindTransmitter()
     {
-	super(ESME_BNDTRN);
+	super(BIND_TRANSMITTER);
     }
 
     /** Read in a BindTransmitter from an InputStream.  A full packet,
@@ -51,15 +51,15 @@ public class BindTransmitter
       * @exception java.io.IOException if there's a problem reading from the
       * input stream.
       */
-    public BindTransmitter(InputStream in)
+    /*public BindTransmitter(InputStream in)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super(in);
 
-	if (getCommandId() != SMPPPacket.ESME_BNDTRN)
-	    throw new BadCommandIDException(SMPPPacket.ESME_BNDTRN,
+	if (getCommandId() != SMPPPacket.BIND_TRANSMITTER)
+	    throw new BadCommandIDException(SMPPPacket.BIND_TRANSMITTER,
 		    getCommandId());
-    }
+    }*/
 
     /** Convert this packet to a String. Not to be interpreted programmatically,
       * it's just dead handy for debugging!

@@ -39,7 +39,7 @@ public class CancelSMResp
       */
     public CancelSMResp()
     {
-	super(ESME_CANCEL_SM_RESP);
+	super(CANCEL_SM_RESP);
     }
 
     /** Construct a new CancelSMResp with specified sequence number.
@@ -48,7 +48,7 @@ public class CancelSMResp
       */
     public CancelSMResp(int seqNum)
     {
-	super(ESME_CANCEL_SM_RESP, seqNum);
+	super(CANCEL_SM_RESP, seqNum);
     }
 
     /** Read in a CancelSMResp from an InputStream.  A full packet,
@@ -57,16 +57,16 @@ public class CancelSMResp
       * @exception java.io.IOException if there's an error reading from the
       * input stream.
       */
-    public CancelSMResp(InputStream in)
+    /*public CancelSMResp(InputStream in)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super(in);
 
-	if (getCommandId() != SMPPPacket.ESME_CANCEL_SM_RESP)
-	    throw new BadCommandIDException(SMPPPacket.ESME_CANCEL_SM_RESP,
+	if (getCommandId() != SMPPPacket.CANCEL_SM_RESP)
+	    throw new BadCommandIDException(SMPPPacket.CANCEL_SM_RESP,
 		    getCommandId());
 
-    }
+    }*/
 
     /** Create a new CancelSMResp packet in response to a CancelSM.
       * This constructor will set the sequence number to it's expected value.
@@ -77,13 +77,13 @@ public class CancelSMResp
 	super(r);
     }
 
-    /** Return the number of bytes this packet would be encoded as to an
-      * OutputStream.
-      * @return the number of bytes this packet would encode as.
-      */
-    public int getCommandLen()
+    public int getBodyLength()
     {
-	return (getHeaderLen());
+	return (0);
+    }
+
+    public void readBodyFrom(byte[] body, int offset)
+    {
     }
 
     /** Convert this packet to a String. Not to be interpreted programmatically,

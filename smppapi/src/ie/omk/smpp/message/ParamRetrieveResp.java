@@ -44,7 +44,7 @@ public class ParamRetrieveResp
       */
     public ParamRetrieveResp()
     {
-	super(ESME_PARAM_RETRIEVE_RESP);
+	super(PARAM_RETRIEVE_RESP);
 	paramValue = null;
     }
 
@@ -54,7 +54,7 @@ public class ParamRetrieveResp
       */
     public ParamRetrieveResp(int seqNum)
     {
-	super(ESME_PARAM_RETRIEVE_RESP, seqNum);
+	super(PARAM_RETRIEVE_RESP, seqNum);
 	paramValue = null;
     }
 
@@ -64,20 +64,20 @@ public class ParamRetrieveResp
       * @exception java.io.IOException if there's an error reading from the
       * input stream.
       */
-    public ParamRetrieveResp(InputStream in)
+    /*public ParamRetrieveResp(InputStream in)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super(in);
 
-	if (getCommandId() != SMPPPacket.ESME_PARAM_RETRIEVE_RESP)
-	    throw new BadCommandIDException(SMPPPacket.ESME_PARAM_RETRIEVE_RESP,
+	if (getCommandId() != SMPPPacket.PARAM_RETRIEVE_RESP)
+	    throw new BadCommandIDException(SMPPPacket.PARAM_RETRIEVE_RESP,
 		    getCommandId());
 
 	if (getCommandStatus() != 0)
 	    return;
 
 	paramValue = SMPPIO.readCString(in);
-    }
+    }*/
 
     /** Create a new ParamRetrieveResp packet in response to a BindReceiver.
       * This constructor will set the sequence number to it's expected value.
@@ -115,14 +115,9 @@ public class ParamRetrieveResp
     }
 
 
-    /** Return the number of bytes this packet would be encoded as to an
-      * OutputStream.
-      * @return the number of bytes this packet would encode as.
-      */
-    public int getCommandLen()
+    public int getBodyLength()
     {
-	int len = (getHeaderLen()
-		+ ((paramValue != null) ? paramValue.length() : 0));
+	int len = (((paramValue != null) ? paramValue.length() : 0));
 
 	// 1 c-string
 	return (len + 1);
@@ -137,6 +132,11 @@ public class ParamRetrieveResp
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	SMPPIO.writeCString(paramValue, out);
+    }
+
+    public void readBodyFrom(byte[] body, int offset)
+    {
+	paramValue = SMPPIO.readCString(body, offset);
     }
 
     /** Convert this packet to a String. Not to be interpreted programmatically,

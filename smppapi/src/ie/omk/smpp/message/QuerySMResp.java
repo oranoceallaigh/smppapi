@@ -41,7 +41,7 @@ public class QuerySMResp
       */
     public QuerySMResp()
     {
-	super(ESME_QUERY_SM_RESP);
+	super(QUERY_SM_RESP);
     }
 
     /** Construct a new QuerySMResp with specified sequence number.
@@ -50,7 +50,7 @@ public class QuerySMResp
       */
     public QuerySMResp(int seqNum)
     {
-	super(ESME_QUERY_SM_RESP, seqNum);
+	super(QUERY_SM_RESP, seqNum);
     }
 
     /** Read in a QuerySMResp from an InputStream.  A full packet,
@@ -59,13 +59,13 @@ public class QuerySMResp
       * @exception java.io.IOException if there's an error reading from the
       * input stream.
       */
-    public QuerySMResp(InputStream in)
+    /*public QuerySMResp(InputStream in)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super(in);
 
-	if (getCommandId() != SMPPPacket.ESME_QUERY_SM_RESP)
-	    throw new BadCommandIDException(SMPPPacket.ESME_QUERY_SM_RESP,
+	if (getCommandId() != SMPPPacket.QUERY_SM_RESP)
+	    throw new BadCommandIDException(SMPPPacket.QUERY_SM_RESP,
 		    getCommandId());
 
 	if (getCommandStatus() != 0)
@@ -77,7 +77,7 @@ public class QuerySMResp
 	    finalDate = new SMPPDate(finald);
 	messageStatus =  SMPPIO.readInt(in, 1);
 	errorCode =  SMPPIO.readInt(in, 1);
-    }
+    }*/
 
     /** Create a new QuerySMResp packet in response to a BindReceiver.
       * This constructor will set the sequence number to it's expected value.
@@ -97,10 +97,9 @@ public class QuerySMResp
       * OutputStream.
       * @return the number of bytes this packet would encode as.
       */
-    public int getCommandLen()
+    public int getBodyLength()
     {
-	int len = (getHeaderLen()
-		+ ((messageId != null) ? messageId.length() : 0)
+	int len = (((messageId != null) ? messageId.length() : 0)
 		+ ((finalDate != null) ?
 		    finalDate.toString().length() : 0));
 
@@ -121,6 +120,20 @@ public class QuerySMResp
 	SMPPIO.writeCString(fdate, out);
 	SMPPIO.writeInt(messageStatus, 1, out);
 	SMPPIO.writeInt(errorCode, 1, out);
+    }
+
+    public void readBodyFrom(byte[] body, int offset)
+    {
+	messageId = SMPPIO.readCString(body, offset);
+	offset += messageId.length() + 1;
+
+	String finald = SMPPIO.readCString(body, offset);
+	offset += finald.length() + 1;
+	if (finald.length() > 0)
+	    finalDate = new SMPPDate(finald);
+
+	messageStatus =  SMPPIO.bytesToInt(body, offset++, 1);
+	errorCode =  SMPPIO.bytesToInt(body, offset++, 1);
     }
 
     /** Convert this packet to a String. Not to be interpreted programmatically,

@@ -49,7 +49,14 @@ public class SMPPDate
       */
     public SMPPDate()
     {
-	date = new Date();
+	// The least 2 significant (decimal) digits of the time are no good tous
+	// because SMPP can only represent a date down to tenths of a second.
+	// This'll cause problems if we try to compare a created date versus a
+	// date parsed from a String. So turf out the digits that are
+	// meaningless to the SMPP protocol.
+	long l = new Date().getTime();
+	l -= (l % 100);
+	date = new Date(l);
     }
 
     /** Create a new SMPPDate.
@@ -61,7 +68,9 @@ public class SMPPDate
 	if (d == null)
 	    throw new NullPointerException();
 
-	date = d;
+	long l = d.getTime();
+	l -= (l % 100);
+	date = new Date(l);
     }
 
     /** Make a java.util.Date object from an Smpp time string.
@@ -93,6 +102,33 @@ public class SMPPDate
     {
 	return (this.date);
     }
+
+    /** Check for equality. This method will compare either another SMPPDate or
+     * a <code>java.util.Date</code> against this SMPPDate object and return
+     * <code>true</code> iff they represent the same point in time.
+     */
+    public boolean equals(Object obj)
+    {
+	if (obj instanceof SMPPDate) {
+	    return (this.date.equals(((SMPPDate)obj).date));
+	} else if (obj instanceof Date) {
+	    // get rid of the centi- and milli-seconds that too fine a precision
+	    // for SMPP!
+	    long l = ((Date)obj).getTime();
+	    l -= (l % 100);
+	    return (this.date.equals(new Date(l)));
+	} else {
+	    return (false);
+	}
+    }
+
+    /** Get a hashCode for this object. The hashCode for an SMPPDate is the same
+     * as that of the <code>java.util.Date</code> it encapsulates.
+     */
+    public int hashCode()
+    {
+	return (date.hashCode());
+    }
     
     /** Make an SMPP protocol string representing this Date object.
       * Note that the SMPP Protocol defines a string that contains information
@@ -107,4 +143,35 @@ public class SMPPDate
 	String t = this.tenths.format(date).substring(0, 1);
 	return (new String(s + t + "00+"));
     }
+
+    /** Test driver. Make sure the SMPPDate serializes and deserializes
+     * correctly.
+     */
+    /*public static final void main(String[] args)
+    {
+	Date td = new Date(); // test date!
+
+	SMPPDate d = new SMPPDate(td);
+	String s1 = d.toString();
+
+	if (s1.length() != 16)
+	    System.out.println("Date is not in correct format: \""
+		    + s1 + "\"");
+
+	SMPPDate d1 = new SMPPDate(s1);
+
+	if (d1.equals(d) && d1.equals(td)) {
+	    System.out.println("All tests passed.");
+	} else {
+	    System.out.println("Parsed date does not equal the created date.");
+	    System.out.println("Test date:    \"" + td.toString() + "\"");
+	    System.out.println("Created date: \"" + d.date.toString() + "\"");
+	    System.out.println("Parsed date:  \"" + d1.date.toString() + "\"");
+
+	    System.out.println("\n");
+	    System.out.println("Test date:    \"" + td.getTime() + "\"");
+	    System.out.println("Created date: \"" + d.date.getTime() + "\"");
+	    System.out.println("Parsed date:  \"" + d1.date.getTime() + "\"");
+	}
+    }*/
 }

@@ -40,7 +40,7 @@ public class Unbind
       */
     public Unbind()
     {
-	super(ESME_UBD);
+	super(UNBIND);
     }
 
     /** Construct a new Unbind with specified sequence number.
@@ -49,7 +49,7 @@ public class Unbind
       */
     public Unbind(int seqNum)
     {
-	super(ESME_UBD, seqNum);
+	super(UNBIND, seqNum);
     }
 
     /** Read in a Unbind from an InputStream.  A full packet,
@@ -63,18 +63,19 @@ public class Unbind
     {
 	super(in);
 
-	if (getCommandId() != SMPPPacket.ESME_UBD)
-	    throw new BadCommandIDException(SMPPPacket.ESME_UBD,
+	if (getCommandId() != SMPPPacket.UNBIND)
+	    throw new BadCommandIDException(SMPPPacket.UNBIND,
 		    getCommandId());
     }
 
-    /** Return the number of bytes this packet would be encoded as to an
-      * OutputStream.
-      * @return the number of bytes this packet would encode as.
-      */
-    public int getCommandLen()
+    public int getBodyLength()
     {
-	return (getHeaderLen());
+	return (0);
+    }
+
+    public void readBodyFrom(byte[] b, int offset)
+    {
+	return;
     }
 
     /** Convert this packet to a String. Not to be interpreted programmatically,
