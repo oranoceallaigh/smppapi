@@ -61,7 +61,11 @@ public class SmppTransmitter
       * send a bind_transmitter packet to the SMSC.  If the network
       * connection to the SMSC is not already open, it will be opened in
       * this method.
-      * See the description of bind in ie.omk.smpp.SmppConnection.bind.
+      * @param systemID The system ID of this ESME.
+      * @param password The password used to authenticate to the SMSC.
+      * @param systemType The system type of this ESME.
+      * @param sourceRange The source routing information. If null, the defaults
+      * at the SMSC will be used.
       * @return The bind response, or null if asynchronous communication is
       * used.
       * @exception ie.omk.smpp.AlreadyBoundException if the connection is
@@ -69,33 +73,12 @@ public class SmppTransmitter
       * @exception java.io.IOException If there is a network error
       * @see ie.omk.smpp.SmppConnection#bind
       */
-    public SMPPResponse bind(String systemID, String password,
+    public BindResp bind(String systemID, String password,
 	    String systemType, SmeAddress sourceRange)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
-	// Make sure we're not already bound
-	if(getState() != UNBOUND)
-	    throw new AlreadyBoundException();
-
-	// Open the network connection if necessary.
-	super.openLink();
-
-	BindTransmitter t = new BindTransmitter();
-	t.setSystemId(systemID);
-	t.setPassword(password);
-	t.setSystemType(systemType);
-	t.setInterfaceVersion(super.interfaceVersion);
-	if (sourceRange != null) {
-	    t.setAddressTon(sourceRange.getTON());
-	    t.setAddressNpi(sourceRange.getNPI());
-	    t.setAddressRange(sourceRange.getAddress());
-	}
-
-	Debug.d(this ,"bind", "bind_transmitter sent", 3);
-
-	return ((SMPPResponse)sendRequest(t));
+	return (super.bind(systemID, password, systemType, sourceRange, true));
     }
-
 
     /** Submit a message to an ESME
       * @param msg The text of the message.  Must be less than 161 characters

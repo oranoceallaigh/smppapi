@@ -21,9 +21,6 @@
  * Java SMPP API Homepage: http://smppapi.sourceforge.net/
  */
 
-/*
- * Receiver implementation of the SMPP API
- */
 package ie.omk.smpp;
 
 import java.io.*;
@@ -61,7 +58,11 @@ public class SmppReceiver
     /** Bind to the SMSC as a receiver. This method will send a bind_receiver
       * packet to the SMSC. If the network connection to the SMSC is not already
       * open, it will be opened in this method.
-      * See the description of bind in ie.omk.smpp.SmppConnection.bind.
+      * @param systemID The system ID of this ESME.
+      * @param password The password used to authenticate to the SMSC.
+      * @param systemType The system type of this ESME.
+      * @param sourceRange The source routing information. If null, the defaults
+      * at the SMSC will be used.
       * @return The bind receiver response or null if asynchronous
       * communication is used.
       * @exception ie.omk.smpp.AlreadyBoundException If the connection is
@@ -69,34 +70,12 @@ public class SmppReceiver
       * @exception java.io.IOException If a network error occurs.
       * @see ie.omk.smpp.SmppConnection#bind
       */
-    public SMPPResponse bind(String systemID, String password,
+    public BindResp bind(String systemID, String password,
 	    String systemType, SmeAddress sourceRange)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
-	// Make sure we're not already bound
-	if(getState() != UNBOUND)
-	    throw new AlreadyBoundException();
-
-	// Open the network connection if necessary
-	super.openLink();
-
-	BindReceiver t = new BindReceiver();
-	t.setSystemId(systemID);
-	t.setPassword(password);
-	t.setSystemType(systemType);
-	t.setInterfaceVersion(super.interfaceVersion);
-	if (sourceRange != null) {
-	    t.setAddressTon(sourceRange.getTON());
-	    t.setAddressNpi(sourceRange.getNPI());
-	    t.setAddressRange(sourceRange.getAddress());
-	}
-
-	Debug.d(this, "bind", "bind_receiver sent", 3);
-
-	return ((SMPPResponse)sendRequest(t));
+	return (super.bind(systemID, password, systemType, sourceRange, false));
     }
-
-    // XXX Should ackDeliverSm be moved in here?
 
     /** Acknowledge a DeliverSM command received from the Smsc. */
     public void ackDeliverSm(DeliverSM rq)
