@@ -26,6 +26,12 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
+import ie.omk.smpp.event.ConnectionObserver;
+import ie.omk.smpp.event.SMPPEvent;
+import ie.omk.smpp.event.ReceiverExceptionEvent;
+import ie.omk.smpp.event.ReceiverExitEvent;
+import ie.omk.smpp.event.ReceiverStartEvent;
+
 import ie.omk.smpp.message.*;
 import ie.omk.smpp.net.*;
 import ie.omk.smpp.util.*;
@@ -40,7 +46,6 @@ import ie.omk.debug.Debug;
   * @version 1.0
   */
 public abstract class SmppConnection
-    extends java.util.Observable
     implements java.lang.Runnable
 {
     /** Connection state: not bound to the SMSC. */
@@ -59,13 +64,17 @@ public abstract class SmppConnection
       */
     public static final int	UNBINDING = 3;
 
-    /** SMPP protocol version number. This may be negotiated by the bind
-     * operation.
-     */
-    protected int		interfaceVersion = 0x33;
-
     /** Packet listener thread for Asyncronous comms. */
     private Thread		rcvThread = null;
+
+    /** The first ConnectionObserver added to this object. */
+    private ConnectionObserver	singleObserver = null;
+
+    /** The list of ConnectionObservers on this object. This list does
+     * <b>NOT</b> include the first observer referenced by
+     * <code>singleObserver</code>.
+     */
+    private ArrayList		observers = null;
 
     /** Byte buffer used in readNextPacketInternal. */
     private byte[]		buf = new byte[300];
@@ -78,6 +87,11 @@ public abstract class SmppConnection
 
     /** The network link (virtual circuit) to the SMSC */
     private SmscLink		link = null;
+
+    /** SMPP protocol version number. This may be negotiated by the bind
+     * operation.
+     */
+    protected int		interfaceVersion = 0x33;
 
     /** Current state of the SMPP connection.
       * Possible states are UNBOUND, BINDING, BOUND and UNBINDING.
@@ -119,7 +133,11 @@ public abstract class SmppConnection
     {
 	this(link);
 	this.asyncComms = async;
-	createRecvThread();
+
+	if (asyncComms) {
+	    this.observers = new ArrayList();
+	    createRecvThread();
+	}
     }
 
     /** Create the receiver thread if asynchronous communications is on, does
@@ -127,10 +145,8 @@ public abstract class SmppConnection
      */
     private void createRecvThread()
     {
-	if (asyncComms) {
-	    rcvThread = new Thread(this);
-	    rcvThread.setDaemon(true);
-	}
+	rcvThread = new Thread(this);
+	rcvThread.setDaemon(true);
     }
 
     /** Set the state of this ESME.
@@ -273,12 +289,10 @@ public abstract class SmppConnection
 
 	id = -1;
 	link.write(r);
-	Debug.send(r);
 
 	if (!asyncComms) {
 	    resp = readNextPacketInternal();
 	    id = resp.getCommandId();
-	    Debug.recv(resp);
 	    if(!(resp instanceof SMPPResponse)) {
 		Debug.d(this, "sendRequest", "packet received from "
 		    + "SMSC is not an SMPPResponse!", 1);
@@ -310,7 +324,6 @@ public abstract class SmppConnection
 	    throw new IOException("Connection to SMSC is not valid.");
 
 	link.write(resp);
-	Debug.send(resp);
 
 	if (resp.getCommandId() == SMPPPacket.ESME_UBD_RESP
 		&& resp.getCommandStatus() == 0)
@@ -545,7 +558,8 @@ public abstract class SmppConnection
       * of the socket connection.
       * @return The next SMPP packet from the SMSC.
       * @exception java.io.IOException If an I/O error occurs.
-      * @exception ie.omk.smpp.SMPPException If asynchronous comms is in use.
+      * @exception ie.omk.smpp.InvalidOperationException If asynchronous comms
+      * is in use.
       */
     public SMPPPacket readNextPacket()
 	throws java.io.IOException, ie.omk.smpp.SMPPException
@@ -604,34 +618,86 @@ public abstract class SmppConnection
     }
 
 
-    /** Add an observer to receive SmppEvents from this connection.
-      * If asynchronous communication is not turned on, this method call has no
-      * effect.
-      */
-    public void addObserver(Observer ob)
+    /** Add a connection observer to receive SMPP events from this connection.
+     * If this connection is not using asynchronous communication, this method
+     * call has no effect.
+     * @param ob the ConnectionObserver implementation to add.
+     */
+    public void addObserver(ConnectionObserver ob)
     {
-	if (asyncComms)
-	    super.addObserver(ob);
+	if (!asyncComms)
+	    return;
+
+	synchronized (observers) {
+	    if (singleObserver == ob || observers.contains(ob))
+		return;
+
+	    if (singleObserver == null)
+		singleObserver = ob;
+	    else
+		observers.add(ob);
+	}
     }
 
-    /** Notify all observers that a new packet has arrived.
-      * @param b The packet that just arrived.
-      */
-    public void notifyObservers(Object b)
+    /** Remove a connection observer from this SmppConnection.
+     */
+    public void removeObserver(ConnectionObserver ob)
     {
-	if(! (b instanceof SMPPPacket)) {
-	    throw new IllegalArgumentException("Notify Observers needs an "
-		    + "SMPPPacket class.");
+	if (!asyncComms)
+	    return;
+
+	synchronized (observers) {
+	    if (observers.contains(ob))
+		observers.remove(observers.indexOf(ob));
+	    else if (ob == singleObserver)
+		singleObserver = null;
+	}
+    }
+
+
+    /** Notify observers of a packet received.
+     * @param pak the received packet.
+     */
+    protected void notifyObservers(SMPPPacket pak)
+    {
+	// Due to multi-threading, singleObserver could be set to null (by
+	// removeObserver) after we've checked that it's not. No action is
+	// necessary if this happens...it just means the observer, which has
+	// been removed, will not get the event.
+	try {
+	    if (singleObserver != null)
+		singleObserver.packetReceived(this, pak);
+	} catch (NullPointerException x) {
 	}
 
-	// Create a new SmppEvent and notify observers of it....
-	Object details = SmppEvent.detailFactory((SMPPPacket)b);
-	SmppEvent ev = new SmppEvent(this, (SMPPPacket)b, details);
-
-	this.setChanged();
-	super.notifyObservers(ev);
+	if (!observers.isEmpty()) {
+	    Iterator i = observers.iterator();
+	    while (i.hasNext())
+		((ConnectionObserver)i.next()).packetReceived(this, pak);
+	}
     }
 
+    /** Notify observers of an SMPP control event.
+     * @param event the control event to send notification of.
+     */
+    protected void notifyObservers(SMPPEvent event)
+    {
+	// Due to multi-threading, singleObserver could be set to null (by
+	// removeObserver) after we've checked that it's not. No action is
+	// necessary if this happens...it just means the observer, which has
+	// been removed, will not get the event.
+	try {
+	    if (singleObserver != null)
+		singleObserver.update(this, event);
+	} catch (NullPointerException x) {
+	}
+
+	if (!observers.isEmpty()) {
+	    Iterator i = observers.iterator();
+	    while (i.hasNext())
+		((ConnectionObserver)i.next()).update(this, event);
+	}
+    }
 
     /** Listener thread method for asynchronous communication.
       */
@@ -639,8 +705,10 @@ public abstract class SmppConnection
     {
 	SMPPPacket pak = null;
 	int smppEx = 0, id = 0, st = 0;
+	SMPPEvent exitEvent = null;
 
 	Debug.d(this, "run", "Listener thread started", 4);
+	notifyObservers(new ReceiverStartEvent(this));
 	try {
 	    while (state != UNBOUND) {
 		try {
@@ -650,52 +718,50 @@ public abstract class SmppConnection
 			continue;
 		    }
 		} catch (SMPPException x) {
+		    ReceiverExceptionEvent ev =
+			new ReceiverExceptionEvent(this, x, state);
 		    smppEx++;
-		    if (smppEx > 3) {
-			Debug.d(this, "run", "3 SMPP exceptions in receiver"
-				+ " thread. Terminating.", 2);
-
-			// XXX send an event to the application and stop the
-			// thread.
+		    if (smppEx > 10) {
+			Debug.d(this, "run", "Too many SMPP exceptions in "
+				+ "receiver thread. Terminating.", 2);
 			throw x;
 		    }
 		}
 
-	    id = pak.getCommandId();
-	    st = pak.getCommandStatus();
+		id = pak.getCommandId();
+		st = pak.getCommandStatus();
 
-	    // Handle special case packets..
-	    switch (id) {
-	    case SMPPPacket.SMSC_DELIVER_SM:
-		if (ackDeliverSm)
-		    ackDelivery((DeliverSM)pak);
-		break;
+		// Handle special case packets..
+		switch (id) {
+		case SMPPPacket.SMSC_DELIVER_SM:
+		    if (ackDeliverSm)
+			ackDelivery((DeliverSM)pak);
+		    break;
 
-	    case SMPPPacket.ESME_QRYLINK:
-		if (ackQryLinks)
-		    ackLinkQuery((EnquireLink)pak);
-		break;
-	    }
+		case SMPPPacket.ESME_QRYLINK:
+		    if (ackQryLinks)
+			ackLinkQuery((EnquireLink)pak);
+		    break;
+		}
 
-	    // Tell all the observers about the new packet
-	    Debug.d(this, "run", "Notifying observers..", 4);
-	    notifyObservers(pak);
-	    }
-	} catch (IOException x) {
-	    // This is fatal to the receiver thread.
-	    Debug.d(this, "run", "IOException: " + x.getMessage(), 2);
-	    setState(UNBOUND);
-	    SmppConnectionDropPacket p =
-		new SmppConnectionDropPacket(0xffffffff);
-	    p.setErrorMessage(x.getMessage());
-	    notifyObservers(p);
+		// Tell all the observers about the new packet
+		Debug.d(this, "run", "Notifying observers..", 4);
+		notifyObservers(pak);
+	    } // end while
+
+	    // Notify observers that the thread is exiting with no error..
+	    exitEvent = new ReceiverExitEvent(this, null, state);
 	} catch (Exception x) {
-	    x.printStackTrace(System.err);
-	    // XXX handle?
+	    Debug.d(this, "run", "Exception: " + x.getMessage(), 2);
+	    exitEvent = new ReceiverExitEvent(this, x, state);
+	    setState(UNBOUND);
 	} finally {
 	    // make sure other code doesn't try to restart the rcvThread..
 	    rcvThread = null;
 	}
+
+	if (exitEvent != null)
+	    notifyObservers(exitEvent);
     }
 
     private void ackDelivery(DeliverSM dm)
