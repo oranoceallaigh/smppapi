@@ -23,6 +23,7 @@
 package ie.omk.smpp.message;
 
 import java.io.*;
+import ie.omk.smpp.BadCommandIDException;
 import ie.omk.debug.Debug;
 
 /** SMSC response to an Unbind request.
@@ -50,6 +51,10 @@ public class UnbindResp
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super(in);
+
+	if (getCommandId() != SMPPPacket.ESME_UBD_RESP)
+	    throw new BadCommandIDException(SMPPPacket.ESME_UBD_RESP,
+		    getCommandId());
     }
 
     /** Create a new UnbindResp packet in response to a BindReceiver.

@@ -25,6 +25,8 @@ package ie.omk.smpp.message;
 import java.io.*;
 import java.util.*;
 import ie.omk.smpp.SMPPException;
+import ie.omk.smpp.BadCommandIDException;
+import ie.omk.smpp.util.GSMConstants;
 import ie.omk.smpp.util.SMPPIO;
 import ie.omk.smpp.util.SMPPDate;
 import ie.omk.debug.Debug;
@@ -38,15 +40,14 @@ public class QueryMsgDetailsResp
     extends ie.omk.smpp.message.SMPPResponse
 {
     /** Table of destinations the message was routed to */
-    private Vector destinationTable;
+    private Vector destinationTable = new Vector();
 
     /** Construct a new QueryMsgDetailsResp with specified sequence number.
       * @param seqNum The sequence number to use
       */
     public QueryMsgDetailsResp(int seqNum)
     {
-	super(ESME_QUERY_LAST_MSGS_RESP, seqNum);
-	destinationTable = null;
+	super(ESME_QUERY_MSG_DETAILS_RESP, seqNum);
     }
 
     /** Read in a QueryMsgDetailsResp from an InputStream.  A full packet,
@@ -60,7 +61,11 @@ public class QueryMsgDetailsResp
     {
 	super(in);
 
-	if(commandStatus != 0)
+	if (getCommandId() != SMPPPacket.ESME_QUERY_MSG_DETAILS_RESP)
+	    throw new BadCommandIDException(
+		    SMPPPacket.ESME_QUERY_MSG_DETAILS_RESP, getCommandId());
+
+	if (getCommandStatus() != 0)
 	    return;
 
 	int noOfDests = 0, smLength = 0;
@@ -70,7 +75,6 @@ public class QueryMsgDetailsResp
 	source = new SmeAddress(in);
 	noOfDests = SMPPIO.readInt(in, 1);
 
-	destinationTable = new Vector(noOfDests);
 	for(int loop=0; loop<noOfDests; loop++) {
 	    SmeAddress d = new SmeAddress(in, true);
 	    destinationTable.addElement(d);
@@ -81,8 +85,10 @@ public class QueryMsgDetailsResp
 
 	delivery = SMPPIO.readCString(in);
 	valid = SMPPIO.readCString(in);
-	deliveryTime = new SMPPDate(delivery);
-	expiryTime = new SMPPDate(valid);
+	if (delivery != null)
+	    deliveryTime = new SMPPDate(delivery);
+	if (valid != null)
+	    expiryTime = new SMPPDate(valid);
 
 	flags.registered = (SMPPIO.readInt(in, 1) == 0) ? false : true;
 	flags.data_coding = SMPPIO.readInt(in, 1);
@@ -92,7 +98,8 @@ public class QueryMsgDetailsResp
 	messageId = SMPPIO.readCString(in);
 
 	finalD = SMPPIO.readCString(in);
-	finalDate = new SMPPDate(finalD);
+	if (finalD != null)
+	    finalDate = new SMPPDate(finalD);
 
 	messageStatus = SMPPIO.readInt(in, 1);
 	errorCode = SMPPIO.readInt(in, 1);
@@ -118,15 +125,14 @@ public class QueryMsgDetailsResp
       */
     public int addDestination(SmeAddress d)
     {
-	if(destinationTable == null)
-	    destinationTable = new Vector(5);
+	synchronized (destinationTable) {
+	    if(d != null) {
+		d.useFlag = true;
+		destinationTable.addElement(d);
+	    }
 
-	if(d != null) {
-	    d.useFlag = true;
-	    destinationTable.addElement(d);
+	    return (destinationTable.size());
 	}
-
-	return (destinationTable.size());
     }
 
     /** Set the destination address table.
@@ -141,15 +147,14 @@ public class QueryMsgDetailsResp
 	    throw new NullPointerException("QueryMsgDetailsResp: Destination "
 		    + "table cannot be null or empty");
 
-	if(destinationTable == null)
-	    destinationTable = new Vector(d.length);
+	synchronized (destinationTable) {
+	    destinationTable.removeAllElements();
+	    destinationTable.ensureCapacity(d.length);
 
-	destinationTable.removeAllElements();
-	destinationTable.ensureCapacity(d.length);
-
-	for(loop = 0; loop < d.length; loop++) {
-	    d[loop].useFlag = true;
-	    destinationTable.addElement(d[loop]);
+	    for(loop = 0; loop < d.length; loop++) {
+		d[loop].useFlag = true;
+		destinationTable.addElement(d[loop]);
+	    }
 	}
     }
 
@@ -166,15 +171,17 @@ public class QueryMsgDetailsResp
     public SmeAddress[] getDestAddresses()
     {
 	SmeAddress sd[];
-	int loop, size;
+	int loop = 0;
 
-	if(destinationTable == null || destinationTable.size() == 0)
-	    return null;
+	synchronized (destinationTable) {
+	    if(destinationTable.size() == 0)
+		return null;
 
-	size = destinationTable.size();
-	sd = new SmeAddress[size];
-	for(loop=0; loop<size; loop++)
-	    sd[loop] = (SmeAddress) destinationTable.elementAt(loop);
+	    sd = new SmeAddress[destinationTable.size()];
+	    Iterator i = destinationTable.iterator();
+	    while (i.hasNext())
+		sd[loop++] = (SmeAddress)i.next();
+	}
 
 	return (sd);
     }
@@ -196,14 +203,10 @@ public class QueryMsgDetailsResp
 		+ ((finalDate != null) ? 
 		    finalDate.toString().length() : 0));
 
-	Enumeration e = destinationTable.elements();
-	if(e != null && e.hasMoreElements()) {
-	    while(e.hasMoreElements()) {
-		SmeAddress d = (SmeAddress) e.nextElement();
-		size += d.size();
-	    }
-	} else {
-	    size += 1;
+	synchronized (destinationTable) {
+	    Iterator i = destinationTable.iterator();
+	    while (i.hasNext())
+		size += ((SmeAddress)i.next()).size();
 	}
 
 	// 8 1-byte integers, 5 c-strings
@@ -218,33 +221,30 @@ public class QueryMsgDetailsResp
     protected void encodeBody(OutputStream out)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
-	int noOfDests = 0, smLength = 0;
-	if(destinationTable != null)
-	    noOfDests = destinationTable.size();
+	int smLength = 0;
 	if(message != null)
 	    smLength = message.length();
 
-	SMPPIO.writeCString(serviceType, out);
-	if(source != null) {
-	    source.writeTo(out);
-	} else {
-	    SMPPIO.writeInt(0, 3, out);
-	}
-	SMPPIO.writeInt(noOfDests, 1, out);
-
-	Enumeration e = destinationTable.elements();
-	if(e != null && e.hasMoreElements()) {
-	    while(e.hasMoreElements()) {
-		SmeAddress d = (SmeAddress) e.nextElement();
-		d.writeTo(out);
+	synchronized (destinationTable) {
+	    int noOfDests = destinationTable.size();
+	    SMPPIO.writeCString(serviceType, out);
+	    if(source != null) {
+		source.writeTo(out);
+	    } else {
+		// Write ton=0(null), npi=0(null), address=\0(nul)
+		new SmeAddress(GSMConstants.GSM_TON_UNKNOWN,
+			GSMConstants.GSM_NPI_UNKNOWN, "").writeTo(out);
 	    }
-	} else {
-	    out.write(0);
+	    SMPPIO.writeInt(noOfDests, 1, out);
+
+	    Iterator i = destinationTable.iterator();
+	    while(i.hasNext())
+		((SmeAddress)i.next()).writeTo(out);
 	}
 
-	String dt = (deliveryTime == null) ? "" : deliveryTime.toString();
-	String et = (expiryTime == null) ? "" : expiryTime.toString();
-	String fd = (finalDate == null) ? "" : finalDate.toString();
+	String dt = (deliveryTime == null) ? null : deliveryTime.toString();
+	String et = (expiryTime == null) ? null : expiryTime.toString();
+	String fd = (finalDate == null) ? null : finalDate.toString();
 
 	SMPPIO.writeInt(flags.protocol, 1, out);
 	SMPPIO.writeInt(flags.priority ? 1 : 0, 1, out);

@@ -23,6 +23,7 @@
 package ie.omk.smpp.message;
 
 import java.io.*;
+import ie.omk.smpp.BadCommandIDException;
 import ie.omk.smpp.util.SMPPIO;
 import ie.omk.debug.Debug;
 
@@ -52,6 +53,11 @@ public class CancelSMResp
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super(in);
+
+	if (getCommandId() != SMPPPacket.ESME_CANCEL_SM_RESP)
+	    throw new BadCommandIDException(SMPPPacket.ESME_CANCEL_SM_RESP,
+		    getCommandId());
+
     }
 
     /** Create a new CancelSMResp packet in response to a CancelSM.

@@ -24,6 +24,11 @@ package ie.omk.smpp.message;
 
 import java.io.*;
 import ie.omk.smpp.SMPPException;
+import ie.omk.smpp.UnexpectedInputException;
+import ie.omk.smpp.InvalidListNameException;
+import ie.omk.smpp.StringTooLongException;
+import ie.omk.smpp.InvalidAddressException;
+import ie.omk.smpp.util.GSMConstants;
 import ie.omk.smpp.util.SMPPIO;
 import ie.omk.debug.Debug;
 
@@ -47,18 +52,19 @@ public class SmeAddress
     protected boolean		useFlag = false;
 
     /** Destination address Ton */
-    public int			ton;
+    public int			ton = GSMConstants.GSM_TON_UNKNOWN;
     /** Destination address Npi */
-    public int			npi;
+    public int			npi = GSMConstants.GSM_NPI_UNKNOWN;;
     /** Destination address */
-    public String			addr;
+    public String		addr = null;
 
-    /** Construct a new Sme address */
+    /** Construct a new Sme address.
+      * The default address is TON_UNKNOWN, NPI_UNKNOWN and the address string
+      * will be null.
+      */
     public SmeAddress()
     {
 	isSme = true;
-	ton = npi = 0;
-	addr = null;
     }
 
     /** Construct a new Sme address
@@ -67,15 +73,17 @@ public class SmeAddress
     public SmeAddress(boolean flag)
     {
 	this();
-	useFlag = true;
+	useFlag = flag;
     }
 
     /** Construct a new Sme address with specified ISDN parameters
       * @param ton Destination address Ton
       * @param npi Destination address Npi
       * @param addr Destination address (Up to 20 characters)
-      * @exception ie.omk.smpp.SMPPException If destination address is
-      * null or is invalid
+      * @exception ie.omk.smpp.InvalidAddressException if the address is null or
+      * is invalid.
+      * @exception ie.omk.smpp.StringTooLongException if the address is too
+      * long.
       */
     public SmeAddress(int ton, int npi, String addr)
 	throws ie.omk.smpp.SMPPException
@@ -84,12 +92,12 @@ public class SmeAddress
 	this.ton = ton;
 	this.npi = npi;
 
-	if(addr == null || addr.length() > 20) {
-	    throw new SMPPException("Destination address cannot be null and "
-		    + "must be < 21 chars.");
-	} else {
-	    this.addr = addr;
-	}
+	if(addr == null)
+	    throw new InvalidAddressException("Address cannot be null.");
+	if (addr.length() > 20)
+	    throw new StringTooLongException(20);
+
+	this.addr = addr;
     }
 
     /** Construct a new Sme address with specified ISDN parameters
@@ -110,7 +118,10 @@ public class SmeAddress
     /** Construct a new Destination address for a distribution list.
       * The destination flag will be used by default.
       * @param addr Distribution list name (Up to 20 characters)
-      * @exception ie.omk.smpp.SMPPException If <i>addr</i> is null or invalid
+      * @exception ie.omk.smpp.InvalidListNameException if the distribution
+      * list name is null or invalid.
+      * @exception ie.omk.smpp.StringTooLongException if the distribution list
+      * name is too long.
       */
     public SmeAddress(String addr)
 	throws ie.omk.smpp.SMPPException
@@ -119,12 +130,12 @@ public class SmeAddress
 	useFlag = true;
 	ton = npi = -1;
 
-	if(addr == null || addr.length() > 20) {
-	    throw new SMPPException("Distribution list name cannot be null "
-		    + "and must be < 21 chars.");
-	} else {
-	    this.addr = new String(addr);
-	}
+	if(addr == null)
+	    throw new InvalidListNameException("List name cannot be null.");
+	if (addr.length() > 20)
+	    throw new StringTooLongException(20);
+
+	this.addr = new String(addr);
     }
 
 
@@ -145,6 +156,8 @@ public class SmeAddress
       * @param in The InputStream to read from
       * @param id If true then read an extra int to distinguish between
       * Sme addresses and distribution lists.
+      * @exception ie.omk.smpp.UnexpectedInputException if the dest_flag
+      * is a value other than 1 or 2.
       * @exception java.io.IOException if there's an error reading from the
       * input stream.
       */
@@ -164,8 +177,7 @@ public class SmeAddress
 	    else if(x == 2)
 		isSme = false;
 	    else
-		throw new SMPPException("Input stream does not contain a "
-			+ "SmeAddress struct.");
+		throw new UnexpectedInputException(x);
 	}
 
 	if(isSme) {
@@ -176,6 +188,29 @@ public class SmeAddress
 	    addr = SMPPIO.readCString(in);
 	    ton = npi = -1;
 	}
+    }
+
+    /** Get the Type Of Number.
+      */
+    public int getTON()
+    {
+	return (this.ton);
+    }
+
+    /** Get the Numbering Plan Indicator.
+      */
+    public int getNPI()
+    {
+	return (this.npi);
+    }
+
+    /** Get the address string of this SmeAddress.
+      * @return The address string. If the address is null, this method will
+      * return an empty String, it will never return null.
+      */
+    public String getAddress()
+    {
+	return ((this.addr == null) ? "" : this.addr);
     }
 
     /** Return the number of bytes this address would be encoded as to an

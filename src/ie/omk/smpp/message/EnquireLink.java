@@ -23,6 +23,7 @@
 package ie.omk.smpp.message;
 
 import java.io.*;
+import ie.omk.smpp.BadCommandIDException;
 import ie.omk.debug.Debug;
 
 
@@ -55,6 +56,10 @@ public class EnquireLink
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super(in);
+
+	if (getCommandId() != SMPPPacket.ESME_QRYLINK)
+	    throw new BadCommandIDException(SMPPPacket.ESME_QRYLINK,
+		    getCommandId());
     }
 
     /** Return the number of bytes this packet would be encoded as to an

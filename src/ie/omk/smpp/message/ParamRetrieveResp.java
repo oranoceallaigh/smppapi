@@ -24,6 +24,8 @@ package ie.omk.smpp.message;
 
 import java.io.*;
 import ie.omk.smpp.SMPPException;
+import ie.omk.smpp.BadCommandIDException;
+import ie.omk.smpp.StringTooLongException;
 import ie.omk.smpp.util.SMPPIO;
 import ie.omk.debug.Debug;
 
@@ -58,7 +60,11 @@ public class ParamRetrieveResp
     {
 	super(in);
 
-	if(commandStatus != 0)
+	if (getCommandId() != SMPPPacket.ESME_PARAM_RETRIEVE_RESP)
+	    throw new BadCommandIDException(SMPPPacket.ESME_PARAM_RETRIEVE_RESP,
+		    getCommandId());
+
+	if (getCommandStatus() != 0)
 	    return;
 
 	paramValue = SMPPIO.readCString(in);
@@ -76,7 +82,8 @@ public class ParamRetrieveResp
     /** Set the parameter value.
       * @param v Value to be returned for the requested parameter (Up to 100
       * characters)
-      * @exception ie.omk.smpp.SMPPException If the value is invalid
+      * @exception ie.omk.smpp.StringTooLongException if the parameter value is
+      * too long.
       */
     public void setParamValue(String v)
 	throws ie.omk.smpp.SMPPException
@@ -89,7 +96,7 @@ public class ParamRetrieveResp
 	if(v.length() < 101)
 	    this.paramValue = v;
 	else
-	    throw new SMPPException("Paramater value must be < 101 chars");
+	    throw new StringTooLongException(100);
     }
 
     /** Get the value of the parameter */

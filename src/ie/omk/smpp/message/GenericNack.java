@@ -23,6 +23,7 @@
 package ie.omk.smpp.message;
 
 import java.io.*;
+import ie.omk.smpp.BadCommandIDException;
 
 /** Generic negative acknowledgment.
   * Used if the short message entity, either ESME or SMSC, does not understand a
@@ -52,6 +53,10 @@ public class GenericNack
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super(in);
+
+	if (getCommandId() != SMPPPacket.ESME_NACK)
+	    throw new BadCommandIDException(SMPPPacket.ESME_NACK,
+		    getCommandId());
     }
 
     /** Return the number of bytes this packet would be encoded as to an

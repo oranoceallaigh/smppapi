@@ -24,6 +24,7 @@ package ie.omk.smpp.message;
 
 import java.io.InputStream;
 import ie.omk.smpp.util.SMPPIO;
+import ie.omk.smpp.BadCommandIDException;
 import ie.omk.debug.Debug;
 
 
@@ -51,6 +52,10 @@ public class ReplaceSMResp
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super(in);
+
+	if (getCommandId() != SMPPPacket.ESME_REPLACE_SM_RESP)
+	    throw new BadCommandIDException(SMPPPacket.ESME_REPLACE_SM_RESP,
+		    getCommandId());
     }
 
     /** Create a new ReplaceSMResp packet in response to a BindReceiver.

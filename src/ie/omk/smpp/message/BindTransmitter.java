@@ -24,6 +24,9 @@ package ie.omk.smpp.message;
 
 import java.io.*;
 import ie.omk.smpp.SMPPException;
+import ie.omk.smpp.BadCommandIDException;
+import ie.omk.smpp.BadInterfaceVersionException;
+import ie.omk.smpp.StringTooLongException;
 import ie.omk.smpp.util.SMPPIO;
 import ie.omk.debug.Debug;
 
@@ -79,7 +82,11 @@ public class BindTransmitter
     {
 	super(in);
 
-	if(commandStatus != 0)
+	if (getCommandId() != SMPPPacket.ESME_BNDTRN)
+	    throw new BadCommandIDException(SMPPPacket.ESME_BNDTRN,
+		    getCommandId());
+
+	if (getCommandStatus() != 0)
 	    return;
 
 	sysId = SMPPIO.readCString(in);
@@ -93,7 +100,8 @@ public class BindTransmitter
 
     /** Set the system Id
       * @param sysId The System Id to use (Up to 15 characters)
-      * @exception ie.omk.smpp.SMPPException If the System Id is invalid
+      * @exception ie.omk.smpp.StringTooLongException if the system id is too
+      * long.
       */
     public void setSystemId(String sysId)
 	throws ie.omk.smpp.SMPPException
@@ -106,12 +114,13 @@ public class BindTransmitter
 	if(sysId.length() < 16)
 	    this.sysId = sysId;
 	else
-	    throw new SMPPException("System Id must be < 16 chars");
+	    throw new StringTooLongException(15);
     }
 
     /** Set the password for this transmitter
       * @param password The new password to use (Up to 8 characters in length)
-      * @exception ie.omk.smpp.SMPPException If the password is invalid
+      * @exception ie.omk.smpp.StringTooLongException if the password is too
+      * long.
       */
     public void setPassword(String password)
 	throws ie.omk.smpp.SMPPException
@@ -124,12 +133,13 @@ public class BindTransmitter
 	if(password.length() < 9)
 	    this.password = password;
 	else
-	    throw new SMPPException("Password must be < 9 chars");
+	    throw new StringTooLongException(8);
     }
 
     /** Set the system type for this transmitter
       * @param sysType The new system type (Up to 12 characters in length)
-      * @exception ie.omk.smpp.SMPPException If the system type is invalid
+      * @exception ie.omk.smpp.StringTooLongException if the system type is too
+      * long.
       */
     public void setSystemType(String sysType)
 	throws ie.omk.smpp.SMPPException
@@ -142,27 +152,26 @@ public class BindTransmitter
 	if(sysType.length() < 13)
 	    this.sysType = sysType;
 	else
-	    throw new SMPPException("System Type must be < 13 chars");
+	    throw new StringTooLongException(12);
     }
 
     /** Set the interface version being used by this transmitter
-      * @param interfaceVer The interface version to report to the SMSC
-      * (major version number only)
-      * @exception ie.omk.smpp.SMPPException if the interface version is
-      * invalid.
+      * @param interfaceVer The interface version to report to the SMSC.
+      * @exception ie.omk.smpp.BadInterfaceVersionException if the interface
+      * version is invalid.
       */ 
     public void setInterfaceVersion(int interfaceVer)
 	throws ie.omk.smpp.SMPPException
     {
 	if (interfaceVer != 0x33)
-	    throw new SMPPException("Bad version number.");
+	    throw new BadInterfaceVersionException(interfaceVer);
 
 	this.interfaceVer = interfaceVer;
     }
 
     /** Set the message routing Ton for this transmitter
       * @param addrTon The new Type Of Number to use
-      * @exception ie.omk.smpp.SMPPException
+      * @exception ie.omk.smpp.InvalidTONException if the TON is invalid.
       */
     public void setAddressTon(int addrTon)
 	throws ie.omk.smpp.SMPPException
@@ -173,7 +182,7 @@ public class BindTransmitter
 
     /** Set the message routing Npi for this transmitter
       * @param addrNpi The new Numbering plan indicator to use
-      * @exception ie.omk.smpp.SMPPException if the NPI is invalid
+      * @exception ie.omk.smpp.InvalidNPIException if the NPI is invalid
       */
     public void setAddressNpi(int addrNpi)
 	throws ie.omk.smpp.SMPPException
@@ -184,7 +193,10 @@ public class BindTransmitter
 
     /** Set the message routing address range for this transmitter
       * @param addressRange The new address range to use (Up to 40 characters)
-      * @exception ie.omk.smpp.SMPPException If the address range is invalid
+      * @exception ie.omk.smpp.StringTooLongException if the address range is
+      * too long.
+      * @exception ie.omk.smpp.InvalidAddressRangeException if the address range
+      * is invalid.
       */
     public void setAddressRange(String addressRange)
 	throws ie.omk.smpp.SMPPException
@@ -197,7 +209,7 @@ public class BindTransmitter
 	if(addressRange.length() < 41)
 	    this.addressRange = addressRange;
 	else
-	    throw new SMPPException("Address Range invalid.");
+	    throw new StringTooLongException(40);
     }
 
     /** Get the system Id */

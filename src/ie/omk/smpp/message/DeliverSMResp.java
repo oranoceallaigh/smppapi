@@ -24,6 +24,7 @@ package ie.omk.smpp.message;
 
 import java.io.*;
 import ie.omk.smpp.SMPPException;
+import ie.omk.smpp.BadCommandIDException;
 import ie.omk.smpp.util.SMPPIO;
 import ie.omk.debug.Debug;
 
@@ -54,7 +55,11 @@ public class DeliverSMResp
     {
 	super(in);
 
-	if(commandStatus != 0)
+	if (getCommandId() != SMPPPacket.SMSC_DELIVER_SM_RESP)
+	    throw new BadCommandIDException(SMPPPacket.SMSC_DELIVER_SM_RESP,
+		    getCommandId());
+
+	if (getCommandStatus() != 0)
 	    return;
 
 	messageId = SMPPIO.readCString(in);
@@ -74,7 +79,7 @@ public class DeliverSMResp
       */
     public int getCommandLen()
     {
-	int len = (getHeaderLen() + 1
+	int len = (getHeaderLen()
 		+ ((messageId != null) ? messageId.length() : 0));
 
 	// 1 c-string
