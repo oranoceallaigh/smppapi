@@ -37,12 +37,12 @@ import ie.omk.debug.Debug;
   * <ul>
 	serviceType<br>
 	source<br>
-	flags.protocol<br>
-	flags.priority<br>
+	protocolID<br>
+	priority<br>
 	deliveryTime<br>
 	expiryTime<br>
-	flags.registered<br>
-	flags.data_coding<br>
+	registered<br>
+	dataCoding<br>
 	message<br>
 	messageId<br>
 	finalDate<br>
@@ -94,7 +94,7 @@ public class QueryMsgDetailsResp
 
 	int noOfDests = 0, smLength = 0;
 	String delivery, valid, finalD;
-	flags = new MsgFlags();
+
 	serviceType = SMPPIO.readCString(in);
 	source = new SmeAddress(in);
 	noOfDests = SMPPIO.readInt(in, 1);
@@ -104,8 +104,8 @@ public class QueryMsgDetailsResp
 	    destinationTable.addElement(d);
 	}
 
-	flags.protocol =  SMPPIO.readInt(in, 1);
-	flags.priority =  (SMPPIO.readInt(in, 1) == 0) ? false : true;
+	protocolID =  SMPPIO.readInt(in, 1);
+	priority =  SMPPIO.readInt(in, 1);
 
 	delivery = SMPPIO.readCString(in);
 	valid = SMPPIO.readCString(in);
@@ -114,8 +114,8 @@ public class QueryMsgDetailsResp
 	if (valid != null)
 	    expiryTime = new SMPPDate(valid);
 
-	flags.registered = (SMPPIO.readInt(in, 1) == 0) ? false : true;
-	flags.data_coding = SMPPIO.readInt(in, 1);
+	registered = (SMPPIO.readInt(in, 1) == 0) ? false : true;
+	dataCoding = SMPPIO.readInt(in, 1);
 	smLength = SMPPIO.readInt(in, 1);
 
 	if (smLength > 0) {
@@ -284,12 +284,12 @@ public class QueryMsgDetailsResp
 	String et = (expiryTime == null) ? null : expiryTime.toString();
 	String fd = (finalDate == null) ? null : finalDate.toString();
 
-	SMPPIO.writeInt(flags.protocol, 1, out);
-	SMPPIO.writeInt(flags.priority ? 1 : 0, 1, out);
+	SMPPIO.writeInt(protocolID, 1, out);
+	SMPPIO.writeInt(priority, 1, out);
 	SMPPIO.writeCString(dt, out);
 	SMPPIO.writeCString(et, out);
-	SMPPIO.writeInt(flags.registered ? 1 : 0, 1, out);
-	SMPPIO.writeInt(flags.data_coding, 1, out);
+	SMPPIO.writeInt(registered ? 1 : 0, 1, out);
+	SMPPIO.writeInt(dataCoding, 1, out);
 	SMPPIO.writeInt(smLength, 1, out);
 	if (message != null)
 	    out.write(message);

@@ -36,15 +36,15 @@ import ie.omk.debug.Debug;
   * <ul>
   *   serviceType<br>
   *   source<br>
-  *   flags.esm_class<br>
-  *   flags.protocol<br>
-  *   flags.priority<br>
+  *   esmClass<br>
+  *   protocolID<br>
+  *   priority<br>
   *   deliveryTime<br>
   *   expiryTime<br>
-  *   flags.registered<br>
-  *   flags.replace_if_present<br>
-  *   flags.data_coding<br>
-  *   flags.default_msg<br>
+  *   registered<br>
+  *   replaceIfPresent<br>
+  *   dataCoding<br>
+  *   defaultMsg<br>
   *   message<br>
   * </ul>
   * @author Oran Kelly
@@ -92,7 +92,7 @@ public class SubmitMulti
 
 	int numDests = 0, smLength = 0;
 	String delivery, valid;
-	flags = new MsgFlags();
+
 	// First the service type
 	serviceType = SMPPIO.readCString(in);
 
@@ -108,9 +108,9 @@ public class SubmitMulti
 	}
 
 	// ESM class, protocol Id, priorityFlag...
-	flags.esm_class =  SMPPIO.readInt(in, 1);
-	flags.protocol =  SMPPIO.readInt(in, 1);
-	flags.priority = (SMPPIO.readInt(in, 1) == 0) ? false : true;
+	esmClass =  SMPPIO.readInt(in, 1);
+	protocolID =  SMPPIO.readInt(in, 1);
+	priority = SMPPIO.readInt(in, 1);
 
 	delivery = SMPPIO.readCString(in);
 	valid = SMPPIO.readCString(in);
@@ -121,10 +121,10 @@ public class SubmitMulti
 
 	// Registered delivery, replace if present, data coding, default msg
 	// and message length
-	flags.registered = (SMPPIO.readInt(in, 1) == 0) ? false : true;
-	flags.replace_if_present = (SMPPIO.readInt(in, 1) == 0) ? false : true;
-	flags.data_coding = SMPPIO.readInt(in, 1);
-	flags.default_msg = SMPPIO.readInt(in, 1);
+	registered = (SMPPIO.readInt(in, 1) == 0) ? false : true;
+	replaceIfPresent = (SMPPIO.readInt(in, 1) == 0) ? false : true;
+	dataCoding = SMPPIO.readInt(in, 1);
+	defaultMsg = SMPPIO.readInt(in, 1);
 	smLength = SMPPIO.readInt(in, 1);
 
 	if (smLength > 0) {
@@ -272,15 +272,15 @@ public class SubmitMulti
 	String dt = (deliveryTime == null) ? null : deliveryTime.toString();
 	String et = (expiryTime == null) ? null : expiryTime.toString();
 
-	SMPPIO.writeInt(flags.esm_class, 1, out);
-	SMPPIO.writeInt(flags.protocol, 1, out);
-	SMPPIO.writeInt(flags.priority ? 1 : 0, 1, out);
+	SMPPIO.writeInt(esmClass, 1, out);
+	SMPPIO.writeInt(protocolID, 1, out);
+	SMPPIO.writeInt(priority, 1, out);
 	SMPPIO.writeCString(dt, out);
 	SMPPIO.writeCString(et, out);
-	SMPPIO.writeInt(flags.registered ? 1 : 0, 1, out);
-	SMPPIO.writeInt(flags.replace_if_present ? 1 : 0, 1, out);
-	SMPPIO.writeInt(flags.data_coding, 1, out);
-	SMPPIO.writeInt(flags.default_msg, 1, out);
+	SMPPIO.writeInt(registered ? 1 : 0, 1, out);
+	SMPPIO.writeInt(replaceIfPresent ? 1 : 0, 1, out);
+	SMPPIO.writeInt(dataCoding, 1, out);
+	SMPPIO.writeInt(defaultMsg, 1, out);
 	SMPPIO.writeInt(smLength, 1, out);
 	if (message != null)
 	    out.write(message);

@@ -61,10 +61,26 @@ public class MessageDetails
     /** Table of all destinations this message was successfully delivered to */
     public Vector		destinationTable = new Vector();
 
-    /** Message flags structure.
-      * @see MsgFlags
-      */
-    public MsgFlags		flags = new MsgFlags();
+    /** Priority of message. */
+    public boolean		priority = false;
+
+    /** Registered delivery. */
+    public boolean		registered = false;
+
+    /** Replace if present flag. */
+    public boolean		replaceIfPresent = false;
+
+    /** ESM class. */
+    protected int		esmClass = 0;
+
+    /** GSM protocol ID. */
+    protected int		protocolID = 0;
+
+    /** GSM data coding (see GSM 03.38). */
+    public int			dataCoding = 0;
+
+    /** Default message number. */
+    public int			defaultMsg = 0;
 
     /** Date and time this message is scheduled to be delivered on */
     public SMPPDate		deliveryTime = null;
@@ -100,11 +116,11 @@ public class MessageDetails
 	    sourceAddr = ((SubmitSM)p).getSource();
 	    destinationTable.addElement(((SubmitSM)p).getDestination());
 	    destinationTable.trimToSize();
-	    flags.priority = ((SubmitSM)p).isPriority();
-	    flags.registered = ((SubmitSM)p).isRegistered();
-	    flags.default_msg = ((SubmitSM)p).getDefaultMsgId();
-	    flags.protocol = ((SubmitSM)p).getProtocolId();
-	    flags.data_coding = ((SubmitSM)p).getDataCoding();
+	    priority = ((SubmitSM)p).isPriority();
+	    registered = ((SubmitSM)p).isRegistered();
+	    defaultMsg = ((SubmitSM)p).getDefaultMsgId();
+	    protocolID = ((SubmitSM)p).getProtocolID();
+	    dataCoding = ((SubmitSM)p).getDataCoding();
 	    deliveryTime = ((SubmitSM)p).getDeliveryTime();
 	    expiryTime = ((SubmitSM)p).getExpiryTime();
 	    message = ((SubmitSM)p).getMessageText();
@@ -112,9 +128,9 @@ public class MessageDetails
 	    serviceType = p.getServiceType();
 	    sourceAddr = p.getSource();
 	    destinationTable.addElement(p.getDestination());
-	    flags.protocol = p.getProtocolId();
-	    flags.data_coding = p.getDataCoding();
-	    flags.esm_class = p.getEsmClass();
+	    protocolID = p.getProtocolID();
+	    dataCoding = p.getDataCoding();
+	    esmClass = p.getEsmClass();
 	    message = p.getMessageText();
 	} else if(p instanceof SubmitMulti) {
 	    serviceType = ((SubmitMulti)p).getServiceType();
@@ -124,11 +140,11 @@ public class MessageDetails
 	    for(loop=0; loop<add.length; loop++)
 		destinationTable.addElement(add[loop]);
 
-	    flags.priority = ((SubmitMulti)p).isPriority();
-	    flags.registered = ((SubmitMulti)p).isRegistered();
-	    flags.default_msg = ((SubmitMulti)p).getDefaultMsgId();
-	    flags.protocol = ((SubmitMulti)p).getProtocolId();
-	    flags.data_coding = ((SubmitMulti)p).getDataCoding();
+	    priority = ((SubmitMulti)p).isPriority();
+	    registered = ((SubmitMulti)p).isRegistered();
+	    defaultMsg = ((SubmitMulti)p).getDefaultMsgId();
+	    protocolID = ((SubmitMulti)p).getProtocolID();
+	    dataCoding = ((SubmitMulti)p).getDataCoding();
 	    deliveryTime = ((SubmitMulti)p).getDeliveryTime();
 	    expiryTime = ((SubmitMulti)p).getExpiryTime();
 	    message = ((SubmitMulti)p).getMessageText();
@@ -143,10 +159,10 @@ public class MessageDetails
 	    expiryTime = p.getExpiryTime();
 	    message = p.getMessageText();
 
-	    flags.priority = p.isPriority();
-	    flags.registered = p.isRegistered();
-	    flags.data_coding = p.getDataCoding();
-	    flags.protocol = p.getProtocolId();
+	    priority = p.isPriority();
+	    registered = p.isRegistered();
+	    dataCoding = p.getDataCoding();
+	    protocolID = p.getProtocolID();
 	} else if (p instanceof QuerySMResp) {
 	    messageId = p.getMessageId();
 	    finalDate = p.getFinalDate();
@@ -157,8 +173,8 @@ public class MessageDetails
 	    sourceAddr = ((ReplaceSM)p).getSource();
 	    deliveryTime = ((ReplaceSM)p).getDeliveryTime();
 	    expiryTime = ((ReplaceSM)p).getExpiryTime();
-	    flags.registered = ((ReplaceSM)p).isRegistered();
-	    flags.default_msg = ((ReplaceSM)p).getDefaultMsgId();
+	    registered = ((ReplaceSM)p).isRegistered();
+	    defaultMsg = ((ReplaceSM)p).getDefaultMsgId();
 	    message = ((ReplaceSM)p).getMessageText();
 	} else if(p instanceof CancelSM) {
 	    serviceType = ((CancelSM)p).getServiceType();
@@ -177,13 +193,7 @@ public class MessageDetails
 	throws ie.omk.smpp.SMPPException
     {
 	SubmitSM p = new SubmitSM();
-	p.setServiceType(serviceType);
-	p.setSource(sourceAddr);
-	p.setDestination((SmeAddress)destinationTable.get(0));
-	p.setMessageFlags(flags);
-	p.setDeliveryTime(deliveryTime);
-	p.setExpiryTime(expiryTime);
-	p.setMessageText(message);
+	fillAllFields(p);
 	return (p);
     }
     
@@ -191,11 +201,7 @@ public class MessageDetails
 	throws ie.omk.smpp.SMPPException
     {
 	DeliverSM p = new DeliverSM();
-	p.setServiceType(serviceType);
-	p.setSource(sourceAddr);
-	p.setDestination((SmeAddress)destinationTable.get(0));
-	p.setMessageFlags(flags);
-	p.setMessageText(message);
+	fillAllFields(p);
 	return (p);
     }
 
@@ -203,17 +209,12 @@ public class MessageDetails
 	throws ie.omk.smpp.SMPPException
     {
 	SubmitMulti p = new SubmitMulti();
-	p.setServiceType(serviceType);
-	p.setSource(sourceAddr);
+	fillAllFields(p);
 
 	SmeAddress[] smes = new SmeAddress[destinationTable.size()];
 	System.arraycopy(destinationTable.toArray(), 0, smes, 0, smes.length);
 	p.setDestAddresses(smes);
 
-	p.setMessageFlags(flags);
-	p.setDeliveryTime(deliveryTime);
-	p.setExpiryTime(expiryTime);
-	p.setMessageText(message);
 	return (p);
     }
 
@@ -221,16 +222,7 @@ public class MessageDetails
 	throws ie.omk.smpp.SMPPException
     {
 	QueryMsgDetailsResp p = new QueryMsgDetailsResp();
-	p.setMessageId(messageId);
-	p.setFinalDate(finalDate);
-	p.setMessageStatus(status);
-	p.setErrorCode(error);
-	p.setServiceType(serviceType);
-	p.setSource(sourceAddr);
-	p.setDeliveryTime(deliveryTime);
-	p.setExpiryTime(expiryTime);
-	p.setMessageText(message);
-	p.setMessageFlags(flags);
+	fillAllFields(p);
 	return (p);
     }
 
@@ -238,10 +230,7 @@ public class MessageDetails
 	throws ie.omk.smpp.SMPPException
     {
 	QuerySMResp p = new QuerySMResp();
-	p.setMessageId(messageId);
-	p.setFinalDate(finalDate);
-	p.setMessageStatus(status);
-	p.setErrorCode(error);
+	fillAllFields(p);
 	return (p);
     }
 
@@ -249,12 +238,7 @@ public class MessageDetails
 	throws ie.omk.smpp.SMPPException
     {
 	ReplaceSM p = new ReplaceSM();
-	p.setMessageId(messageId);
-	p.setSource(sourceAddr);
-	p.setDeliveryTime(deliveryTime);
-	p.setExpiryTime(expiryTime);
-	p.setMessageFlags(flags);
-	p.setMessageText(message);
+	fillAllFields(p);
 	return (p);
     }
 
@@ -262,10 +246,7 @@ public class MessageDetails
 	throws ie.omk.smpp.SMPPException
     {
 	CancelSM p = new CancelSM();
-	p.setServiceType(serviceType);
-	p.setMessageId(messageId);
-	p.setSource(sourceAddr);
-	p.setDestination((SmeAddress)destinationTable.get(0));
+	fillAllFields(p);
 	return (p);
     }
 
@@ -283,5 +264,27 @@ public class MessageDetails
 	SubmitMultiResp p = new SubmitMultiResp();
 	p.setMessageId(messageId);
 	return (p);
+    }
+
+    private void fillAllFields(SMPPPacket p)
+	throws ie.omk.smpp.SMPPException
+    {
+	p.setMessageId(messageId);
+	p.setFinalDate(finalDate);
+	p.setMessageStatus(status);
+	p.setErrorCode(error);
+	p.setServiceType(serviceType);
+	p.setSource(sourceAddr);
+	p.setDestination((SmeAddress)destinationTable.get(0));
+	p.setDeliveryTime(deliveryTime);
+	p.setExpiryTime(expiryTime);
+	p.setMessageText(message);
+
+	p.setReplaceIfPresent(replaceIfPresent);
+	p.setPriority(priority);
+	p.setDataCoding(dataCoding);
+	p.setDefaultMsg(defaultMsg);
+	p.setProtocolID(protocolID);
+	p.setEsmClass(esmClass);
     }
 }
