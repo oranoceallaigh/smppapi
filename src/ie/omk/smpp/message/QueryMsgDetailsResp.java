@@ -118,7 +118,8 @@ public class QueryMsgDetailsResp
 	flags.data_coding = SMPPIO.readInt(in, 1);
 	smLength = SMPPIO.readInt(in, 1);
 
-	message = SMPPIO.readString(in, smLength);
+	for (int i = 0; i < smLength; i++)
+	    in.read(message, i, (smLength - i));
 	messageId = SMPPIO.readCString(in);
 
 	finalD = SMPPIO.readCString(in);
@@ -287,7 +288,10 @@ public class QueryMsgDetailsResp
 	SMPPIO.writeInt(flags.registered ? 1 : 0, 1, out);
 	SMPPIO.writeInt(flags.data_coding, 1, out);
 	SMPPIO.writeInt(smLength, 1, out);
-	SMPPIO.writeString(message, smLength, out);
+	if (message != null)
+	    out.write(message);
+	else
+	    out.write((byte)0);
 	SMPPIO.writeCString(getMessageId(), out);
 	SMPPIO.writeCString(fd, out);
 	SMPPIO.writeInt(messageStatus, 1, out);
