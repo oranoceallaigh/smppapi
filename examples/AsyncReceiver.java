@@ -62,6 +62,10 @@ public class AsyncReceiver
     // End time (either send an unbind or an unbind received).
     private long end = 0;
 
+    // Set to true to display each message received.
+    private boolean showMsgs = false;
+
+
     // This is called when the connection receives a packet from the SMSC.
     public void update(Observable o, Object arg)
     {
@@ -92,8 +96,13 @@ public class AsyncReceiver
 
 	    } else {
 		++msgCount;
-		if ((msgCount % 500) == 0)
+		if (showMsgs) {
+		    System.out.println(Integer.toString(pak.getSequenceNum())
+				+ ": \"" + ((DeliverSM)pak).getMessageText()
+				+ "\"");
+		} else if ((msgCount % 500) == 0) {
 		    System.out.print("."); // Give some feedback
+		}
 	    }
 	    break;
 
@@ -146,6 +155,9 @@ public class AsyncReceiver
 	try {
 	    AsyncReceiver ex = new AsyncReceiver();
 
+	    if (args.length > 0 && "-s".equals(args[0]))
+		ex.showMsgs = true;
+
 	    FileInputStream in = new FileInputStream(PROPS_FILE);
 	    ex.props = new Properties();
 	    ex.props.load(new BufferedInputStream(in));
@@ -177,7 +189,7 @@ public class AsyncReceiver
 		    GSMConstants.GSM_NPI_UNKNOWN,
 		    props.getProperty("esme.destination"));
 
-	    // Bind to the SMSC (as a transmitter)
+	    // Bind to the SMSC
 	    recv.bind(sysID, password, sysType, source);
 
 	    System.out.println("Hit a key to issue an unbind..");
