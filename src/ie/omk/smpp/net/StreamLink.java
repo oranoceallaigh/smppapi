@@ -39,6 +39,9 @@ public class StreamLink
     /** The output side of the link. */
     private OutputStream outStream = null;
 
+    /** Says if this connection is open or not.
+     */
+    private boolean connected = false;
 
     /** Create a new StreamLink object.
      * @param inStream the stream to read SMPP packets from.
@@ -58,6 +61,7 @@ public class StreamLink
     public void implOpen()
     {
 	logger.debug("Opening stream connection");
+	connected = true;
     }
 
     /** Does nothing. This object is not responsible for opening or closing the
@@ -66,6 +70,7 @@ public class StreamLink
     public void implClose()
     {
 	logger.debug("Closing stream connection");
+	connected = false;
     }
 
     /** Get the output stream of the output socket of the virtual connection.
@@ -87,6 +92,6 @@ public class StreamLink
       */
     public boolean isConnected()
     {
-	return (true);
+	return (connected);
     }
 }
