@@ -254,7 +254,15 @@ public class SMPPIO
       */
     public static final int bytesToInt(byte[] b, int offset, int size)
     {
-	return ((int)bytesToLong(b, offset, size));
+	int num = 0;
+	int sw = 8 * (size - 1);
+
+	for (int loop = 0; loop < size; loop++) {
+	    num |= ((int)b[offset + loop] & 0x00ff) << sw;
+	    sw -= 8;
+	}
+
+	return (num);
     }
 
     /** Convert a byte array (or part thereof) into a long.
@@ -268,7 +276,7 @@ public class SMPPIO
     public static final long bytesToLong(byte[] b, int offset, int size)
     {
 	long num = 0;
-	int sw = 8 * (size - 1);
+	long sw = 8L * ((long)size - 1L);
 
 	for (int loop = 0; loop < size; loop++) {
 	    num |= ((long)b[offset + loop] & 0x00ff) << sw;
