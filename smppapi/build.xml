@@ -23,39 +23,59 @@
 
 <!--  $Id$                                                                 -->
 
-<project name="smppapi" basedir="." default="api">
+<project name="smppapi" basedir="." default="jar">
   <!-- Set this to 'modern' to use Sun's JDK -->
   <property name="build.compiler" value="jikes"/>
   <!-- Set this to true for using Emacs or Vim quickfix mode -->
   <property name="build.compiler.emacs" value="true"/>
 
-  <property name="src" value="src"/>
   <property name="build" value="classes"/>
+
+  <property name="api-build" value="${build}/smppapi"/>
+  <property name="api-src" value="src"/>
   <property name="dist" value="dist"/>
+  <property name="examples-build" value="${build}/examples"/>
+  <property name="examples-src" value="examples"/>
+  <property name="jar" value="smppapi.jar"/>
+  <property name="tests-build" value="${build}/tests"/>
+  <property name="tests-src" value="tests"/>
+
   <property name="docs" value="docs"/>
-  <property name="apiDoc" value="apiDocs"/>
+  <property name="apiDoc" value="${docs}/apiDocs"/>
 
   <!-- Create the destination directory -->
   <target name="init">
     <tstamp/>
-    <mkdir dir="${build}"/>
   </target>
 
   <!-- Build all -->
-  <target name="all" depends="init,api,examples,docs"/>
+  <target name="all" depends="init,compile-api,compile-examples,compile-tests,jar,docs"/>
 
   <!-- Build the API -->
-  <target name="api" depends="init">
-    <javac srcdir="${src}" destdir="${build}" deprecation="true"/>
-    <jar jarfile="smppapi.jar" basedir="${build}"/>
+  <target name="compile-api" depends="init">
+    <mkdir dir="${api-build}"/>
+    <javac srcdir="${api-src}" destdir="${api-build}" deprecation="true"/>
+  </target>
+
+  <!-- Build the smppapi Jar file -->
+  <target name="jar" depends="init,compile-api,compile-examples">
+    <jar jarfile="${jar}">
+      <fileset dir="${api-build}"/>
+      <!-- When the examples get moved into their own package, include them in the jar. -->
+      <!-- fileset dir="${examples-build}"/ -->
+    </jar>
+  </target>
+
+  <target name="clean-api" depends="init">
+    <delete dir="${api-build}"/>
   </target>
 
   <!-- Build the javadoc files -->
-  <target name="docs">
-    <mkdir dir="${docs}/${apiDoc}"/>
+  <target name="docs" depends="init">
+    <mkdir dir="${apiDoc}"/>
     <javadoc sourcepath="src"
-             destdir="${docs}/${apiDoc}"
-             packagenames="ie.omk.smpp,ie.omk.smpp.message,ie.omk.smpp.net,ie.omk.smpp.util,ie.omk.smpp.event"
+             packagenames="ie.omk.smpp.*"
+             destdir="${apiDoc}"
              Overview="docs/overview.html"
              protected="true"
              version="true"
@@ -67,16 +87,44 @@
 
   </target>
 
+  <target name="clean-docs" depends="init">
+    <delete dir="${apiDoc}"/>
+  </target>
+
   <!-- Build the examples -->
-  <target name="examples" depends="init,api">
-    <javac srcdir="examples" destdir="examples" deprecation="true">
-      <classpath path="${build}"/>
+  <target name="compile-examples" depends="init,compile-api">
+    <mkdir dir="${examples-build}"/>
+    <javac srcdir="${examples-src}" destdir="${examples-build}"
+        deprecation="true">
+      <classpath>
+        <pathelement path="${classpath}"/>
+        <pathelement location="${api-build}"/>
+      </classpath>
     </javac>
   </target>
 
+  <target name="clean-examples" depends="init">
+    <delete dir="${examples-build}"/>
+  </target>
+
+
   <!-- Build the tests -->
-  <target name="tests" depends="init,api">
-    <javac srcdir="tests" destdir="${build}" deprecation="true"/>
+  <target name="compile-tests" depends="init,compile-api">
+    <mkdir dir="${tests-build}"/>
+    <javac srcdir="${tests-src}" destdir="${tests-build}" deprecation="true">
+      <classpath>
+        <pathelement path="${classpath}"/>
+        <pathelement location="${api-build}"/>
+      </classpath>
+    </javac>
+  </target>
+
+  <target name="clean-tests" depends="init">
+    <delete dir="${tests-build}"/>
+  </target>
+
+  <target name="tests" depends="compile-tests,init">
+    <echo message="Automatic test running not done yet"/>
   </target>
 
   <!-- Build the distribution. -->
@@ -96,15 +144,13 @@
     <delete file="${dist}/smppapi.tar"/>
   </target>
 
-  <!-- Clean up -->
-  <target name="clean">
+  <target name="clean-dist" depends="init">
     <delete dir="${dist}"/>
+  </target>
+
+  <!-- Clean up -->
+  <target name="clean" depends="clean-dist,clean-docs,clean-tests,clean-examples,clean-api">
+    <delete file="${jar}"/>
     <delete dir="${build}"/>
-    <delete dir="${docs}/${apiDocs}"/>
-    <delete file="smppapi.jar"/>
-    <delete>
-      <fileset dir="examples" includes="*.class"/>
-      <fileset dir="tests" includes="*.class"/>
-    </delete>
   </target>
 </project>
