@@ -71,7 +71,7 @@ public abstract class SMPPEventAdapter implements ConnectionObserver
 
 		case SMPPEvent.RECEIVER_EXIT:
 		    ReceiverExitEvent ree = (ReceiverExitEvent)event;
-		    if (ree.isException())
+		    if (ree.getReason() == ReceiverExitEvent.EXCEPTION)
 			receiverExitException(source, ree);
 		    else
 			receiverExit(source, ree);

@@ -23,9 +23,6 @@
  */
 package ie.omk.smpp.net;
 
-import ie.omk.smpp.util.APIConfig;
-import ie.omk.smpp.util.PropertyNotFoundException;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -118,17 +115,6 @@ public class TcpLink
 	logger.info("Opening TCP socket to " + addr + ":" + port);
 	sock = new Socket(addr, port);
 	connected = true;
-
-	try {
-	    int sockTimeout = APIConfig.getInstance().getInt(APIConfig.TCP_SOCKET_TIMEOUT);
-	    sock.setSoTimeout(sockTimeout);
-
-	    if (logger.isDebugEnabled())
-		logger.debug("Socket timeout set to " + sockTimeout + " milliseconds");
-	} catch (PropertyNotFoundException x) {
-	} catch (java.net.SocketException x) {
-	    logger.warn("Invalid socket timeout in properties", x);
-	}
     }
 
     /** Close the Socket connection to the SMSC.
@@ -231,5 +217,28 @@ public class TcpLink
     public boolean isConnected()
     {
 	return (connected);
+    }
+    
+    public void setTimeout(long timeout) {
+        try {
+            sock.setSoTimeout((int)timeout);
+        } catch (Throwable t) {
+            logger.error("Failed to set timeout on socket: " + t.getMessage());
+            if (logger.isDebugEnabled()) {
+                logger.debug("Stack trace:", t);
+            }
+        }
+    }
+    
+    public long getTimeout() {
+        try {
+            return ((long)sock.getSoTimeout());
+        } catch (Throwable t) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Stack trace:", t);
+            }
+        }
+        
+        return (-1L);
     }
 }

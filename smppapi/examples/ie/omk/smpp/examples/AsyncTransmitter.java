@@ -130,7 +130,10 @@ public class AsyncTransmitter implements ConnectionObserver {
 
     private void receiverExit(Connection myConnection, ReceiverExitEvent ev)
     {
-	if (!ev.isException()) {
+	if (ev.getReason() != ReceiverExitEvent.EXCEPTION) {
+        if (ev.getReason() == ReceiverExitEvent.BIND_TIMEOUT) {
+            logger.info("Bind timed out waiting for response.");
+        }
 	    logger.info("Receiver thread has exited normally.");
 	} else {
 	    Throwable t = ev.getException();

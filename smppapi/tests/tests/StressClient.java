@@ -129,7 +129,7 @@ public class StressClient
 
     private void receiverExit(Connection myConnection, ReceiverExitEvent ev)
     {
-	if (!ev.isException()) {
+	if (ev.getReason() != ReceiverExitEvent.EXCEPTION) {
 	    System.out.println("Receiver thread has exited normally.");
 	} else {
 	    Throwable t = ev.getException();
