@@ -77,9 +77,6 @@ import ie.omk.smpp.message.SMPPPacket;
   */
 public class Debug
 {
-    private static OutputStream indump = null;
-    private static OutputStream outdump = null;
-
     private static ByteArrayOutputStream inhelp = null;
     private static ByteArrayOutputStream outhelp = null;
 
@@ -197,41 +194,5 @@ public class Debug
 	cn = cn.substring(((Class)type).getPackage().getName().length() + 1);
 
 	out.println(s + ":" + cn + "." + method + ":" + msg);
-    }
-
-
-    public static void setDumpStreams(OutputStream in, OutputStream out)
-    {
-	indump = in;
-	outdump = out;
-
-	inhelp = new ByteArrayOutputStream();
-	outhelp = new ByteArrayOutputStream();
-    }
-
-    public static void recv(SMPPPacket pak)
-    {
-	dump(pak, indump, inhelp);
-    }
-
-    public static void send(SMPPPacket pak)
-    {
-	dump(pak, outdump, outhelp);
-    }
-
-    private static void dump(SMPPPacket pak, OutputStream out,
-	ByteArrayOutputStream helper)
-    {
-	if (out != null) {
-	    try {
-		synchronized (out) {
-		    helper.reset();
-		    pak.writeTo(helper);
-		    out.write(helper.toByteArray());
-		}
-	    } catch (Exception x) {
-		warn(Debug.class, "dump", "Exception: " + x.getMessage());
-	    }
-	}
     }
 }
