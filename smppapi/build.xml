@@ -210,4 +210,12 @@
       </fileset>
     </delete>
   </target>
+
+  <target name="update-changelog" depends="init">
+    <exec executable="cvs2cl.pl">
+      <arg value="--accum" />
+      <arg value="--chrono" />
+      <arg value="--tags" />
+    </exec>
+  </target>
 </project>
