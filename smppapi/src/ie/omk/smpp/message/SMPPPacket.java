@@ -660,13 +660,19 @@ public abstract class SMPPPacket
     }
 
     /** Get the text of the message.
-      * The message bytes are assumed to be in the default alphabet (as returned
-      * by AlphabetFactory.getDefaultAlphabet).
+      * The message will be decoded according to  the data_coding field. If the
+      * API has no registered encoding for a data_coding value, the default
+      * alphabet (as returned by AlphabetFactory.getDefaultAlphabet) will be
+      * used.
       * @see ie.omk.smpp.util.AlphabetFactory#getDefaultAlphabet
       */
     public String getMessageText()
     {
-	return (this.alphabet.decodeString(this.message));
+	AlphabetEncoding enc = AlphabetEncoding.getEncoding(this.dataCoding);
+	if (enc == null)
+	    enc = this.alphabet;
+
+	return (enc.decodeString(this.message));
     }
 
 
