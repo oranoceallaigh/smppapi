@@ -120,17 +120,17 @@ public class AsyncReceiver
 	    recv.autoAckMessages(true);
 
 	    // Set our authorisation information
-	    recv.setSystemType(props.getProperty("esme.system_type"));
-	    recv.setSystemId(props.getProperty("esme.system_id"));
-	    recv.setPassword(props.getProperty("esme.password"));
+	    String sysType = props.getProperty("esme.system_type");
+	    String sysID = props.getProperty("esme.system_id");
+	    String password = props.getProperty("esme.password");
 
-	    recv.setSourceAddress(
+	    SmeAddress source = new SmeAddress(
 		    GSMConstants.GSM_TON_UNKNOWN,
 		    GSMConstants.GSM_NPI_UNKNOWN,
 		    props.getProperty("esme.destination"));
 
 	    // Bind to the SMSC (as a transmitter)
-	    recv.bind();
+	    recv.bind(sysID, password, sysType, source);
 
 	    Thread.sleep(500);
 
