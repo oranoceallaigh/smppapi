@@ -138,6 +138,12 @@ public abstract class SMPPVersion {
      */
     public abstract boolean isSupported(int commandID);
 
+    /** Determine if this SMPP version supports optional parameters.
+     * @return true if optional parameters are supported, false if
+     * they are not.
+     */
+    public abstract boolean isSupportOptionalParams();
+    
     /** Validate and SMPP address for this SMPP version number.
      */
     public abstract boolean validateAddress(Address s);

@@ -149,6 +149,13 @@ public class Connection
      */
     protected SMPPVersion	interfaceVersion = SMPPVersion.getDefaultVersion();
 
+    /** Does the remote end support optional parameters?
+     * According to the SMPPv3.4 specification, if the SMSC does not return
+     * the sc_interface_version optional parameter in its bind response
+     * packet, then we must assume it does not support optional parameters.
+     */
+    protected boolean supportOptionalParams = true;
+    
     /** Current state of the SMPP connection.
       * Possible states are UNBOUND, BINDING, BOUND and UNBINDING.
       */
@@ -415,6 +422,7 @@ public class Connection
     {
 	logger.info("setInterfaceVersion " + interfaceVersion);
 	this.interfaceVersion = interfaceVersion;
+        this.supportOptionalParams = interfaceVersion.isSupportOptionalParams();
     }
 
 
@@ -588,7 +596,7 @@ public class Connection
 	if (r.getSequenceNum() == 0 && seqNumScheme != null)
 	    r.setSequenceNum(seqNumScheme.nextNumber());
 
-	link.write(r);
+	link.write(r, this.supportOptionalParams);
 	if (!asyncComms)
 	    resp = waitForResponsePacket(r);
 
@@ -678,7 +686,7 @@ public class Connection
 	    throw new IOException("Connection to SMSC is not valid.");
 
 	try {
-	    link.write(resp);
+	    link.write(resp, this.supportOptionalParams);
 	} catch (java.net.SocketTimeoutException x) {
 	    logger.warn("Got a socket timeout exception", x);
 	    setState(UNBOUND);
@@ -1136,8 +1144,10 @@ public class Connection
 		setInterfaceVersion(smscVersion);
 	    }
 	} else {
-	    // Assume a version 3.3 link
-	    setInterfaceVersion(SMPPVersion.V33);
+        // Spec requires us to assume the SMSC does not support optional
+        // parameters
+        this.supportOptionalParams = false;
+        logger.warn("Disabling optional parameter support as no sc_interface_version parameter was received");
 	}
 
         // Set the link timeout
