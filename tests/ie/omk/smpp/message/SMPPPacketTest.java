@@ -225,6 +225,10 @@ public class SMPPPacketTest extends TestCase {
 	    return (true);
 	}
 
+    public boolean isSupportOptionalParams() {
+        return (true);
+    }
+    
 	public boolean validateAddress(Address s) {
 	    return (true);
 	}

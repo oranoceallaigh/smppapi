@@ -223,10 +223,12 @@ public abstract class SmscLink
 
     /** Send a packet to the SMSC.
       * @param pak the SMPP packet to send.
+      * @param withOptional true to send the optional parameters over the link too, false
+      * to only send the mandatory parameters.
       * @throws java.io.IOException if an exception occurs during writing or if
       * the connection is not open.
       */
-    public void write(SMPPPacket pak)
+    public void write(SMPPPacket pak, boolean withOptional)
 	throws java.io.IOException
     {
 	if (out == null)

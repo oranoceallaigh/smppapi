@@ -53,6 +53,9 @@ public class SMPPVersion33 extends SMPPVersion {
 	}
     }
 
+    public boolean isSupportOptionalParams() {
+        return (false);
+    }
 
     public int getMaxLength(int field) {
 	switch (field) {

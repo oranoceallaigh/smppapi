@@ -1072,11 +1072,22 @@ public abstract class SMPPPacket
     }
 
     /** Write the byte representation of this SMPP packet to an OutputStream
+     * @param out The OutputStream to use
+     * @throws java.io.IOException if there's an error writing to the
+     * output stream.
+     */
+    public final void writeTo(OutputStream out) throws java.io.IOException {
+        this.writeTo(out, true);
+    }
+    
+    /** Write the byte representation of this SMPP packet to an OutputStream
       * @param out The OutputStream to use
+      * @param withOptional true to send optional parameters over the link,
+      * false to only write the mandatory parameters.
       * @throws java.io.IOException if there's an error writing to the
       * output stream.
       */
-    public final void writeTo(OutputStream out)
+    public final void writeTo(OutputStream out, boolean withOptional)
 	throws java.io.IOException
     {
 	int commandLen = getLength();
@@ -1087,7 +1098,9 @@ public abstract class SMPPPacket
 	SMPPIO.writeInt(sequenceNum, 4, out);
 
 	encodeBody(out);
-	tlvTable.writeTo(out);
+	    if (withOptional) {
+	        tlvTable.writeTo(out);
+        }
 
     }
 

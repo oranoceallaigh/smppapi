@@ -51,6 +51,11 @@ public class SMPPVersion34 extends SMPPVersion {
 	}
     }
 
+    public boolean isSupportOptionalParams() {
+        return (true);
+    }
+
+
     public int getMaxLength(int field) {
 	switch (field) {
 	    case MESSAGE_PAYLOAD:
