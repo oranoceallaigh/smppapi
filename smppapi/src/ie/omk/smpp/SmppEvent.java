@@ -86,9 +86,9 @@ public class SmppEvent
 	else if(p instanceof BindReceiverResp)
 	    return ((BindReceiverResp)p).getSystemId();
 	else if(p instanceof SubmitSMResp)
-	    return new Integer(((SubmitSMResp)p).getMessageId());
+	    return p.getMessageId();
 	else if(p instanceof SubmitMultiResp)
-	    return new Integer(((SubmitMultiResp)p).getMessageId());
+	    return p.getMessageId();
 	else if(p instanceof ParamRetrieveResp)
 	    return ((ParamRetrieveResp)p).getParamValue();
 	else
@@ -101,11 +101,11 @@ public class SmppEvent
       * class MessageDetails	QuerySMResp
      *				QueryMsgDetailsResp
      *				DeliverSM
-      * java.lang.String		BindTransmitterResp
+      * java.lang.String	BindTransmitterResp
      *				BindReceiverResp
      *				ParamRetrieveResp
-      * java.lang.Integer	SubmitSMResp
      *				SubmitMultiResp
+     *				SubmitSMResp
       * int[]			QueryLastMsgsResp
       * null			GenericNack
      *				UnbindResp
