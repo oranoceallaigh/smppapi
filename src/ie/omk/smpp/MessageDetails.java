@@ -38,6 +38,7 @@ import ie.omk.debug.Debug;
   * @version 1.0
   */
 public class MessageDetails
+    implements java.io.Serializable
 {
     /** Message Id assigned by the SMSC to the message */
     public String		messageId = null;
@@ -75,60 +76,12 @@ public class MessageDetails
     public String		message = null;
 
 
-    /** Create a new Details object with all null values.
+    /** Create a new Details object with all null (or default) values.
       */
     public MessageDetails()
     {
     }
 
-    /** Create a new an Objects with details from a QueryMessageDetailsResp.
-      * This type of packet will fill in all the available fields.
-      */
-    public MessageDetails(QueryMsgDetailsResp r)
-    {
-	messageId = r.getMessageId();
-	finalDate = r.getFinalDate();
-	status = r.getMessageStatus();
-	error = r.getErrorCode();
-	serviceType = r.getServiceType();
-	sourceAddr = r.getSource();
-	deliveryTime = r.getDeliveryTime();
-	expiryTime = r.getExpiryTime();
-	message = r.getMessageText();
-
-	flags.priority = r.isPriority();
-	flags.registered = r.isRegistered();
-	flags.data_coding = r.getDataCoding();
-	flags.protocol = r.getProtocolId();
-
-	// Haven't got the destination table yet...
-    }
-
-    /** Create a new Details object from a QuerySM Response.  Fields filled
-      * in: messageId, finalDate, status and error code
-      */
-    public MessageDetails(QuerySMResp r)
-    {
-	messageId = r.getMessageId();
-	finalDate = r.getFinalDate();
-	status = r.getMessageStatus();
-	error = r.getErrorCode();
-    }
-
-    /** Create a new Details object from a DeliverSM packet.  Fields filled
-      * in: serviceType, sourceAddr, destinationTable (1 element),
-      * flags.protocol, flags.data_coding, flags.esm_class and message.
-      */
-    public MessageDetails(DeliverSM r)
-    {
-	serviceType = r.getServiceType();
-	sourceAddr = r.getSource();
-	destinationTable.addElement(r.getDestination());
-	flags.protocol = r.getProtocolId();
-	flags.data_coding = r.getDataCoding();
-	flags.esm_class = r.getEsmClass();
-	message = r.getMessageText();
-    }
 
     /** Take any Smpp packet and fill in as many fields as are available.
       * Any fields that cannot be read from the packet will default to
@@ -155,6 +108,14 @@ public class MessageDetails
 	    deliveryTime = ((SubmitSM)p).getDeliveryTime();
 	    expiryTime = ((SubmitSM)p).getExpiryTime();
 	    message = ((SubmitSM)p).getMessageText();
+	} else if(p instanceof DeliverSM) {
+	    serviceType = p.getServiceType();
+	    sourceAddr = p.getSource();
+	    destinationTable.addElement(p.getDestination());
+	    flags.protocol = p.getProtocolId();
+	    flags.data_coding = p.getDataCoding();
+	    flags.esm_class = p.getEsmClass();
+	    message = p.getMessageText();
 	} else if(p instanceof SubmitMulti) {
 	    serviceType = ((SubmitMulti)p).getServiceType();
 	    sourceAddr = ((SubmitMulti)p).getSource();
@@ -171,6 +132,26 @@ public class MessageDetails
 	    deliveryTime = ((SubmitMulti)p).getDeliveryTime();
 	    expiryTime = ((SubmitMulti)p).getExpiryTime();
 	    message = ((SubmitMulti)p).getMessageText();
+	} else if (p instanceof QueryMsgDetailsResp) {
+	    messageId = p.getMessageId();
+	    finalDate = p.getFinalDate();
+	    status = p.getMessageStatus();
+	    error = p.getErrorCode();
+	    serviceType = p.getServiceType();
+	    sourceAddr = p.getSource();
+	    deliveryTime = p.getDeliveryTime();
+	    expiryTime = p.getExpiryTime();
+	    message = p.getMessageText();
+
+	    flags.priority = p.isPriority();
+	    flags.registered = p.isRegistered();
+	    flags.data_coding = p.getDataCoding();
+	    flags.protocol = p.getProtocolId();
+	} else if (p instanceof QuerySMResp) {
+	    messageId = p.getMessageId();
+	    finalDate = p.getFinalDate();
+	    status = p.getMessageStatus();
+	    error = p.getErrorCode();
 	} else if(p instanceof ReplaceSM) {
 	    messageId = ((ReplaceSM)p).getMessageId();
 	    sourceAddr = ((ReplaceSM)p).getSource();
@@ -190,8 +171,117 @@ public class MessageDetails
 	} else if(p instanceof SubmitMultiResp) {
 	    messageId = ((SubmitMultiResp)p).getMessageId();
 	}
+    }
 
-	// otherwise, just leave all the fields blank!
+    public SubmitSM getSubmitSM()
+	throws ie.omk.smpp.SMPPException
+    {
+	SubmitSM p = new SubmitSM();
+	p.setServiceType(serviceType);
+	p.setSource(sourceAddr);
+	p.setDestination((SmeAddress)destinationTable.get(0));
+	p.setMessageFlags(flags);
+	p.setDeliveryTime(deliveryTime);
+	p.setExpiryTime(expiryTime);
+	p.setMessageText(message);
+	return (p);
+    }
+    
+    public DeliverSM getDeliverSM()
+	throws ie.omk.smpp.SMPPException
+    {
+	DeliverSM p = new DeliverSM();
+	p.setServiceType(serviceType);
+	p.setSource(sourceAddr);
+	p.setDestination((SmeAddress)destinationTable.get(0));
+	p.setMessageFlags(flags);
+	p.setMessageText(message);
+	return (p);
+    }
+
+    public SubmitMulti getSubmitMulti()
+	throws ie.omk.smpp.SMPPException
+    {
+	SubmitMulti p = new SubmitMulti();
+	p.setServiceType(serviceType);
+	p.setSource(sourceAddr);
+
+	SmeAddress[] smes = new SmeAddress[destinationTable.size()];
+	System.arraycopy(destinationTable.toArray(), 0, smes, 0, smes.length);
+	p.setDestAddresses(smes);
+
+	p.setMessageFlags(flags);
+	p.setDeliveryTime(deliveryTime);
+	p.setExpiryTime(expiryTime);
+	p.setMessageText(message);
+	return (p);
+    }
+
+    public QueryMsgDetailsResp getQueryMsgDetailsResp()
+	throws ie.omk.smpp.SMPPException
+    {
+	QueryMsgDetailsResp p = new QueryMsgDetailsResp();
+	p.setMessageId(messageId);
+	p.setFinalDate(finalDate);
+	p.setMessageStatus(status);
+	p.setErrorCode(error);
+	p.setServiceType(serviceType);
+	p.setSource(sourceAddr);
+	p.setDeliveryTime(deliveryTime);
+	p.setExpiryTime(expiryTime);
+	p.setMessageText(message);
+	p.setMessageFlags(flags);
+	return (p);
+    }
+
+    public QuerySMResp getQuerySMResp()
+	throws ie.omk.smpp.SMPPException
+    {
+	QuerySMResp p = new QuerySMResp();
+	p.setMessageId(messageId);
+	p.setFinalDate(finalDate);
+	p.setMessageStatus(status);
+	p.setErrorCode(error);
+	return (p);
+    }
+
+    public ReplaceSM getReplaceSM()
+	throws ie.omk.smpp.SMPPException
+    {
+	ReplaceSM p = new ReplaceSM();
+	p.setMessageId(messageId);
+	p.setSource(sourceAddr);
+	p.setDeliveryTime(deliveryTime);
+	p.setExpiryTime(expiryTime);
+	p.setMessageFlags(flags);
+	p.setMessageText(message);
+	return (p);
+    }
+
+    public CancelSM getCancelSM()
+	throws ie.omk.smpp.SMPPException
+    {
+	CancelSM p = new CancelSM();
+	p.setServiceType(serviceType);
+	p.setMessageId(messageId);
+	p.setSource(sourceAddr);
+	p.setDestination((SmeAddress)destinationTable.get(0));
+	return (p);
+    }
+
+    public SubmitSMResp getSubmitSMResp()
+	throws ie.omk.smpp.SMPPException
+    {
+	SubmitSMResp p = new SubmitSMResp();
+	p.setMessageId(messageId);
+	return (p);
+    }
+
+    public SubmitMultiResp getSubmitMultiResp()
+	throws ie.omk.smpp.SMPPException
+    {
+	SubmitMultiResp p = new SubmitMultiResp();
+	p.setMessageId(messageId);
+	return (p);
     }
 }
-
