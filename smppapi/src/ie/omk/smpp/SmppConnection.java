@@ -196,12 +196,14 @@ public abstract class SmppConnection
 
 	synchronized (link) {
 	    r.writeTo(out);
+	    Debug.send(r);
 
 	    if (!asyncComms) {
 		resp = SMPPPacket.readPacket(in);
+		Debug.recv(resp);
 		if(!(resp instanceof SMPPResponse)) {
-		    Debug.d(this, "sendRequest", "Response received from "
-			+ "SMSC is not an SMPPResponse!", Debug.DBG_1);
+		    Debug.d(this, "sendRequest", "packet received from "
+			+ "SMSC is not an SMPPResponse!", 1);
 		}
 	    }
 	}
@@ -219,21 +221,15 @@ public abstract class SmppConnection
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	Integer key = null;
-	SMPPRequest rq = null;
 
 	if (link == null)
 	    throw new IOException("Connection to SMSC is not valid.");
 
-	Object lock = null;
 	OutputStream out = link.getOutputStream();
-	if (asyncComms)
-	    lock = out;
-	else
-	    lock = link;
 
-	synchronized (lock) {
-		rq.ack();
-		resp.writeTo(out);
+	synchronized (link) {
+	    resp.writeTo(out);
+	    Debug.send(resp);
 	}
     }
 
@@ -296,13 +292,13 @@ public abstract class SmppConnection
 	throws ie.omk.smpp.SMPPException
     {
 	if(state != UNBINDING) {
-	    Debug.d(this, "force_close", "Force tried before normal unbind.",
-		    Debug.DBG_2);
+	    Debug.warn(this, "force_close",
+		    "Force tried before normal unbind.");
 	    throw new AlreadyBoundException("Try a normal unbind first.");
 	}
 
 	Debug.d(this, "force_unbind",
-		"Attempting to force the connection shut.", Debug.DBG_4);
+		"Attempting to force the connection shut.", 4);
 	try {
 	    // The thread must DIE!!!!
 	    if(rcvThread != null && rcvThread.isAlive()) {
@@ -312,7 +308,8 @@ public abstract class SmppConnection
 		} catch (InterruptedException x) {
 		}
 		if (rcvThread.isAlive())
-		    System.err.println("ERROR! Listener thread has not died.");
+		    Debug.warn(this, "force_unbind",
+			    "ERROR! Listener thread has not died.");
 	    }
 
 	    link.close();
@@ -331,7 +328,7 @@ public abstract class SmppConnection
     {
 	EnquireLinkResp resp = new EnquireLinkResp(rq);
 	sendResponse(resp);
-	Debug.d(this, "ackEnquireLink", "Response sent", Debug.DBG_3);
+	Debug.d(this, "ackEnquireLink", "responding..", 3);
     }
 
     /** Do a confidence check on the SMPP link to the SMSC.
@@ -344,9 +341,11 @@ public abstract class SmppConnection
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	EnquireLink s = new EnquireLink(1);
-
 	SMPPResponse resp = sendRequest(s);
-	Debug.d(this, "enquireLink", "Request sent", Debug.DBG_3);
+	Debug.d(this, "enquireLink", "sent enquire_link", 3);
+	if (resp != null)
+	    Debug.d(this, "enquireLink", "response received", 3);
+
 	return ((EnquireLinkResp)resp);
     }
 
@@ -367,11 +366,8 @@ public abstract class SmppConnection
     public void reset()
 	throws ie.omk.smpp.SMPPException
     {
-	if((state == BOUND) || link.isConnected()) {
-	    Debug.d(this, "reset", "Reset failed. state="
-		    + state
-		    + ", link="
-		    + link.isConnected(), Debug.DBG_3);
+	if(state == BOUND) {
+	    Debug.warn(this, "reset", "Attempt to reset a bound connection.");
 	    throw new AlreadyBoundException("Cannot reset connection "
 		    + "while bound");
 	}
@@ -379,7 +375,7 @@ public abstract class SmppConnection
 	synchronized (seqNumLock) {
 	    seqNum = 1;
 	}
-	Debug.d(this, "reset", "SmppConnection reset", Debug.DBG_1);
+	Debug.d(this, "reset", "SmppConnection reset", 1);
     }
 
     /** Get the next sequence number for the next SMPP packet.
@@ -437,6 +433,8 @@ public abstract class SmppConnection
 		}
 
 		pak = SMPPPacket.readPacket(in);
+		if (pak != null)
+		    Debug.recv(pak);
 	    }
 	}
 
@@ -478,28 +476,25 @@ public abstract class SmppConnection
 	SMPPRequest rq = null;
 	SMPPPacket pak = null;
 
-	Debug.d(this, "run", "Listener thread is up and running", Debug.DBG_4);
+	Debug.d(this, "run", "Listener thread started", 4);
 	while (state != UNBOUND) {
 	    try {
 		try {
 		    pak = SMPPPacket.readPacket(link.getInputStream());
 		    if (pak == null)
 			continue;
+
+		    Debug.recv(pak);
 		} catch(SMPPException ix) {
 		    /* Don't mind this.  Just try and read another one.. */
-		    Debug.d(this,
-			    "run",
-			    "Smpp Exception trying to read a packet."
-				+ ix.getMessage(),
-			    Debug.DBG_3);
+		    Debug.d(this, "run",
+			    "Smpp Exception: " + ix.getMessage(), 3);
 		    pak = null;
 		    continue;
 		} catch(EOFException ex) { 
 		    /* This, on the other hand, is a Bad Thing */
-		    Debug.d(this,
-			    "run",
-			    "EOFException in thread. " + ex.getMessage(),
-			    Debug.DBG_3);
+		    Debug.d(this, "run",
+			    "EOFException: " + ex.getMessage(), 3);
 		    setState(UNBOUND);
 		    try { link.close(); }
 		    catch(IOException ix) { }
@@ -511,10 +506,8 @@ public abstract class SmppConnection
 		    return;
 		} catch(IOException ix) {
 		    /* And this too...tut tut */
-		    Debug.d(this,
-			    "run",
-			    "IOException in thread" + ix.getMessage(),
-			    Debug.DBG_3);
+		    Debug.d(this, "run",
+			    "IOException: " + ix.getMessage(), 3);
 		    setState(UNBOUND);
 		    try {
 			link.close();
@@ -529,8 +522,6 @@ public abstract class SmppConnection
 
 		if(pak == null)
 		    continue;
-		Debug.d(this, "run", "Packet recv:" + pak.getClass().getName(),
-			Debug.DBG_2);
 
 		int id = pak.getCommandId();
 		int st = pak.getCommandStatus();
@@ -546,8 +537,8 @@ public abstract class SmppConnection
 
 		    case SMPPPacket.ESME_UBD_RESP:
 			if (state == UNBINDING && st == 0) {
-			    Debug.d(this, "run", "Successfully unbound.",
-				    Debug.DBG_3);
+			    Debug.d(this, "run",
+				    "Successfully unbound.", 3);
 			    setState(UNBOUND);
 			}
 			break;
@@ -558,8 +549,7 @@ public abstract class SmppConnection
 				new DeliverSMResp((DeliverSM)pak);
 			    sendResponse(dr);
 			    Debug.d(this, "run", "Ack'd deliver_sm #"
-				    + dr.getSequenceNum(),
-				    Debug.DBG_3);
+				    + dr.getSequenceNum(), 3);
 			}
 			break;
 
@@ -569,8 +559,7 @@ public abstract class SmppConnection
 				new EnquireLinkResp((EnquireLink)pak);
 			    sendResponse(el);
 			    Debug.d(this, "run", "Ack'd enquire_link #"
-				    + el.getSequenceNum(),
-				    Debug.DBG_3);
+				    + el.getSequenceNum(), 3);
 			}
 			break;
 		    }
@@ -581,12 +570,10 @@ public abstract class SmppConnection
 		}
 
 		// Tell all the observers about the new packet
-		Debug.d(this, "run", "Notifying observers of new Packet",
-			Debug.DBG_4);
+		Debug.d(this, "run", "Notifying observers..", 4);
 		notifyObservers(pak);
 	    } catch(IOException x) {
-		Debug.d(this, "run", "IOException: "+x.getMessage(),
-			Debug.DBG_1);
+		Debug.d(this, "run", "IOException: " + x.getMessage(), 1);
 	    }
 	} // end while
     } // end run()

@@ -100,7 +100,7 @@ public class SmppReceiver
 		rcvThread.start();
 	}
 
-	Debug.d(this, "bind", "Request sent", Debug.DBG_3);
+	Debug.d(this, "bind", "bind_receiver sent", 3);
 
 	SMPPResponse resp = sendRequest(t);
 	if (!asyncComms) {
@@ -119,6 +119,6 @@ public class SmppReceiver
     {
 	DeliverSMResp rsp = new DeliverSMResp(rq);
 	sendResponse(rsp);
-	Debug.d(this, "ackDeliverSM", "Response sent", Debug.DBG_3);
+	Debug.d(this, "ackDeliverSM", "deliver_sm_resp sent", 3);
     }
 }

@@ -79,7 +79,7 @@ public class SmppTransmitter
 
 	// Open the network connection if necessary.
 	if(!link.isConnected()) {
-	    Debug.d(this, "bind", "Opening link connection", Debug.DBG_2);
+	    Debug.d(this, "bind", "Opening link connection", 2);
 	    link.open();
 	}
 
@@ -102,7 +102,7 @@ public class SmppTransmitter
 	t.setAddressNpi(sourceRange.getNPI());
 	t.setAddressRange(sourceRange.getAddress());
 
-	Debug.d(this ,"bind", "Bind request sent", Debug.DBG_3);
+	Debug.d(this ,"bind", "bind_transmitter sent", 3);
 
 	SMPPResponse resp = sendRequest(t);
 	if (!asyncComms) {
@@ -177,7 +177,7 @@ public class SmppTransmitter
 	    s.setSource(src);
 
 	SMPPResponse resp = sendRequest(s);
-	Debug.d(this, "submitMessage", "Request send", Debug.DBG_3);
+	Debug.d(this, "submitMessage", "submit_sm send", 3);
 	return ((SubmitSMResp)resp);
     }
 
@@ -245,7 +245,7 @@ public class SmppTransmitter
 	    throw new InvalidReplaceIfPresentException();
 
 	SMPPResponse resp = sendRequest(s);
-	Debug.d(this, "submitMulti", "Request send", Debug.DBG_3);
+	Debug.d(this, "submitMulti", "submit_multi sent", 3);
 	return ((SubmitMultiResp)resp);
     }
 
@@ -285,7 +285,7 @@ public class SmppTransmitter
 	    s.setSource(src);
 
 	SMPPResponse resp = sendRequest(s);
-	Debug.d(this, "cancelMessage", "Request send", Debug.DBG_3);
+	Debug.d(this, "cancelMessage", "cancel_sm sent", 3);
 	return ((CancelSMResp)resp);
     }
 
@@ -350,7 +350,7 @@ public class SmppTransmitter
 	    s.setExpiryTime(valid);
 
 	SMPPResponse resp = sendRequest(s);
-	Debug.d(this, "replaceMessage", "Request send", Debug.DBG_3);
+	Debug.d(this, "replaceMessage", "replace_sm sent", 3);
 	return ((ReplaceSMResp)resp);
     }
 
@@ -368,7 +368,7 @@ public class SmppTransmitter
 	s.setParamName(name);
 
 	SMPPResponse resp = sendRequest(s);
-	Debug.d(this, "paramRetrieve", "Request send", Debug.DBG_3);
+	Debug.d(this, "paramRetrieve", "param_retrieve sent", 3);
 	return ((ParamRetrieveResp)resp);
     }
 
@@ -404,7 +404,7 @@ public class SmppTransmitter
 	    s.setSource(src);
 
 	SMPPResponse resp = sendRequest(s);
-	Debug.d(this, "queryMessage", "Request send", Debug.DBG_3);
+	Debug.d(this, "queryMessage", "query_sm sent", 3);
 	return ((QuerySMResp)resp);
     }
 
@@ -429,7 +429,7 @@ public class SmppTransmitter
 	s.setMsgCount(num);
 
 	SMPPResponse resp = sendRequest(s);
-	Debug.d(this, "queryLastMsgs", "Request send", Debug.DBG_3);
+	Debug.d(this, "queryLastMsgs", "query_last_msgs sent", 3);
 	return ((QueryLastMsgsResp)resp);
     }
 
@@ -478,7 +478,7 @@ public class SmppTransmitter
 	s.setSmLength(len);
 
 	SMPPResponse resp = sendRequest(s);
-	Debug.d(this, "queryMsgDetails", "Request send", Debug.DBG_3);
+	Debug.d(this, "queryMsgDetails", "query_msg_details sent", 3);
 	return ((QueryMsgDetailsResp)resp);
     }
 }

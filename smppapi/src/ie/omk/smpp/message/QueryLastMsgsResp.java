@@ -81,8 +81,7 @@ public class QueryLastMsgsResp
 	for(int loop = 0; loop < msgCount; loop++) {
 	    String s = SMPPIO.readCString(in);
 	    messageTable.addElement(s);
-	    Debug.d(this, "<init>", "Adding " + s
-		    + " to destinations", Debug.DBG_3);
+	    Debug.d(this, "<init>", "Adding " + s + " to destinations", 3);
 	}
     }
 

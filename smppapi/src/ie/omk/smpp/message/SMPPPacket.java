@@ -290,10 +290,7 @@ public abstract class SMPPPacket
     {
 	if(s != null) {
 	    this.source = s;
-	    if(Debug.dbg)
-		Debug.d(this, "setSource", "Source set to "+s, Debug.DBG_4);
-	} else if(Debug.dbg) {
-	    Debug.d(this, "setSource", "Attempt to set source to null", Debug.DBG_3);
+	    Debug.d(this, "setSource", s, 4);
 	}
     }
 
@@ -316,11 +313,7 @@ public abstract class SMPPPacket
     {
 	if(s != null) {
 	    this.destination = s;
-	    if(Debug.dbg)
-		Debug.d(this, "setDestination", "Dest set to"+s, Debug.DBG_4);
-	} else {
-	    Debug.d(this, "setDestination", "Attempt to set destination to "
-		    + "null", Debug.DBG_3);
+	    Debug.d(this, "setDestination", s, 4);
 	}
     }
 
@@ -345,11 +338,7 @@ public abstract class SMPPPacket
     {
 	if(f != null) {
 	    flags = f;
-	    if(Debug.dbg)
-		Debug.d(this, "setMessageFlags", "Message flags set to "+f, Debug.DBG_4);
-	} else {
-	    Debug.d(this, "setMessageFlags", "Attempt to set flags to null",
-		    Debug.DBG_3);
+	    Debug.d(this, "setMessageFlags", f, 4);
 	}
     }
 
@@ -362,8 +351,7 @@ public abstract class SMPPPacket
 	    flags = new MsgFlags();
 
 	flags.priority = b;
-	if(Debug.dbg)
-	    Debug.d(this, "setPriority", b, Debug.DBG_4);
+	Debug.d(this, "setPriority", b, 4);
     }
 
     /** Set the 'registered' message flag.
@@ -375,8 +363,7 @@ public abstract class SMPPPacket
 	    flags = new MsgFlags();
 
 	flags.registered = b;
-	if(Debug.dbg)
-	    Debug.d(this, "setRegistered", b, Debug.DBG_4);
+	Debug.d(this, "setRegistered", b, 4);
     }
 
     /** Set the 'replace if present' message flag.
@@ -388,8 +375,7 @@ public abstract class SMPPPacket
 	    flags = new MsgFlags();
 
 	flags.replace_if_present = b;
-	if(Debug.dbg)
-	    Debug.d(this, "setReplaceIfPresent", b, Debug.DBG_4);
+	Debug.d(this, "setReplaceIfPresent", b, 4);
     }
     
     /** Set the esm class in the message flags.
@@ -402,8 +388,7 @@ public abstract class SMPPPacket
 	    flags = new MsgFlags();
 
 	flags.esm_class = c;
-	if(Debug.dbg)
-	    Debug.d(this, "setEsmClass", c, Debug.DBG_4);
+	Debug.d(this, "setEsmClass", c, 4);
     }
 
     /** Set the protocol Id in the message flags.
@@ -416,8 +401,7 @@ public abstract class SMPPPacket
 	    flags = new MsgFlags();
 
 	flags.protocol = id;
-	if(Debug.dbg)
-	    Debug.d(this, "setProtocol", id, Debug.DBG_4);
+	Debug.d(this, "setProtocol", id, 4);
     }
 
     /** Set the GSM data coding type in the message flags.
@@ -430,8 +414,7 @@ public abstract class SMPPPacket
 	    flags = new MsgFlags();
 
 	flags.data_coding = dc;
-	if(Debug.dbg)
-	    Debug.d(this, "setDataCoding", dc, Debug.DBG_4);
+	Debug.d(this, "setDataCoding", dc, 4);
     }
 
     /** Set the default message id in the message flags.
@@ -443,8 +426,7 @@ public abstract class SMPPPacket
 	    flags = new MsgFlags();
 
 	flags.default_msg = id;
-	if(Debug.dbg)
-	    Debug.d(this, "setDefaultMsg", id, Debug.DBG_4);
+	Debug.d(this, "setDefaultMsg", id, 4);
     }
 
     /** Get the message flags.
@@ -522,10 +504,9 @@ public abstract class SMPPPacket
 
 	if(text.length() < 161) {
 	    this.message = text;
-	    if(Debug.dbg)
-		Debug.d(this, "setMessageText", text, Debug.DBG_4);
+	    Debug.d(this, "setMessageText", text, 4);
 	} else {
-	    Debug.d(this, "setMessageText", "Message too long", Debug.DBG_1);
+	    Debug.warn(this, "setMessageText", "Message too long");
 	    throw new StringTooLongException(160);
 	}
     }
@@ -559,11 +540,9 @@ public abstract class SMPPPacket
 
 	if(type.length() < 6) {
 	    this.serviceType = type;
-	    if(Debug.dbg)
-		Debug.d(this, "setServiceType", type, Debug.DBG_4);
+	    Debug.d(this, "setServiceType", type, 4);
 	} else {
-	    Debug.d(this, "setServiceType", "Service type too long",
-		    Debug.DBG_1);
+	    Debug.warn(this, "setServiceType", "Service type too long");
 	    throw new StringTooLongException(5);
 	}
     }
@@ -582,9 +561,7 @@ public abstract class SMPPPacket
 	throws ie.omk.smpp.SMPPException
     {
 	this.deliveryTime = d;
-	if(Debug.dbg)
-	    Debug.d(this, "setDeliveryTime", "Delivery time set to " + d,
-		    Debug.DBG_4);
+	Debug.d(this, "setDeliveryTime", d, 4);
     }
 
     /** Get the current value of the scheduled delivery time for the short
@@ -605,9 +582,7 @@ public abstract class SMPPPacket
 	throws ie.omk.smpp.SMPPException
     {
 	expiryTime = d;
-	if(Debug.dbg)
-	    Debug.d(this, "setExpiryTime", "Expiry time set to " + d,
-		    Debug.DBG_4);
+	Debug.d(this, "setExpiryTime", d, 4);
     }
 
     /** Get the current expiry time of the message.
@@ -627,9 +602,7 @@ public abstract class SMPPPacket
 	throws ie.omk.smpp.SMPPException
     {
 	finalDate = d;
-	if(Debug.dbg)
-	    Debug.d(this, "setFinalDate", "Final date set to " + d,
-		    Debug.DBG_4);
+	Debug.d(this, "setFinalDate", d, 4);
     }
 
     /** Get the final date of the message.
@@ -661,8 +634,7 @@ public abstract class SMPPPacket
 
 		this.messageId = id;
 
-		if(Debug.dbg)
-		    Debug.d(this, "setMessageId", id, Debug.DBG_4);
+		Debug.d(this, "setMessageId", id, 4);
 	    } catch (NumberFormatException x) {
 		throw new InvalidMessageIDException(id);
 	    }
@@ -685,8 +657,7 @@ public abstract class SMPPPacket
 	throws ie.omk.smpp.SMPPException
     {
 	this.messageStatus = st;
-	if(Debug.dbg)
-	    Debug.d(this, "setMessageStatus", st, Debug.DBG_4);
+	Debug.d(this, "setMessageStatus", st, 4);
     }
 
     /** Get the message status.
@@ -703,8 +674,7 @@ public abstract class SMPPPacket
 	throws ie.omk.smpp.SMPPException
     {
 	errorCode = code; 
-	if(Debug.dbg)
-	    Debug.d(this, "setErrorCode", code, Debug.DBG_4);
+	Debug.d(this, "setErrorCode", code, 4);
     }
 
     /** Get the error code.
@@ -758,11 +728,8 @@ public abstract class SMPPPacket
 	SMPPIO.writeInt(sequenceNum, 4, out);
 
 	encodeBody(out);
-	out.flush();
 
-	if(Debug.dbg)
-	    Debug.d(this, "writeTo", "Packet written to "
-		    + out.getClass().getName(), Debug.DBG_4);
+	Debug.d(this, "writeTo", "written!", 5);
     }
 
     /** Read an SMPPPacket from an InputStream.  The type of the packet is
@@ -802,181 +769,152 @@ public abstract class SMPPPacket
 
 	int cmdId = SMPPIO.bytesToInt(buf, 4, 4);
 
-	// XXX
-	Debug.dump(buf, 0, cmdLen);
-	Debug.d(SMPPPacket.class, "readPacket",
-		"Header(len:" + cmdLen
-		+ ", id:" + Integer.toHexString(cmdId), Debug.DBG_2);
+	Debug.d(SMPPPacket.class, "readPacket","Hdr ("
+		+ cmdLen + " " + Integer.toHexString(cmdId), 4);
 
 	ByteArrayInputStream bin = new ByteArrayInputStream(buf);
 	switch(cmdId) {
 	    case ESME_NACK:
-		Debug.d(SMPPPacket.class,
-			"readPacket", "GenericNack", Debug.DBG_3);
+		Debug.d(SMPPPacket.class, "readPacket", " GenericNack", 3);
 		response = new GenericNack(bin);
 		break;
 
 	    case ESME_BNDRCV:
-		Debug.d(SMPPPacket.class,
-			"readPacket", "BindReceiver", Debug.DBG_3);
+		Debug.d(SMPPPacket.class, "readPacket", "BindReceiver", 3);
 		response = new BindReceiver(bin);
 		break;
 
 	    case ESME_BNDRCV_RESP:
-		Debug.d(SMPPPacket.class,
-			"readPacket", "BindReceiverResp", Debug.DBG_3);
+		Debug.d(SMPPPacket.class, "readPacket", "BindReceiverResp", 3);
 		response = new BindReceiverResp(bin);
 		break;
 
 	    case ESME_BNDTRN:
-		Debug.d(SMPPPacket.class,
-			"readPacket", "BindTransmitter", Debug.DBG_3);
+		Debug.d(SMPPPacket.class, "readPacket", "BindTransmitter", 3);
 		response = new BindTransmitter(bin);
 		break;
 
 	    case ESME_BNDTRN_RESP:
-		Debug.d(SMPPPacket.class,
-			"readPacket", "BindTransmitterResp", Debug.DBG_3);
+		Debug.d(SMPPPacket.class, "readPacket",
+			"BindTransmitterResp", 3);
 		response = new BindTransmitterResp(bin);
 		break;
 
 	    case ESME_UBD:
-		Debug.d(SMPPPacket.class,
-			"readPacket", "Unbind", Debug.DBG_3);
+		Debug.d(SMPPPacket.class, "readPacket", "Unbind", 3);
 		response = new Unbind(bin);
 		break;
 
 	    case ESME_UBD_RESP:
-		Debug.d(SMPPPacket.class,
-			"readPacket", "UnbindResp", Debug.DBG_3);
+		Debug.d(SMPPPacket.class, "readPacket", "UnbindResp", 3);
 		response = new UnbindResp(bin);
 		break;
 
 	    case ESME_SUB_SM:
-		Debug.d(SMPPPacket.class,
-			"readPacket", "SubmitSM", Debug.DBG_3);
+		Debug.d(SMPPPacket.class, "readPacket", "SubmitSM", 3);
 		response = new SubmitSM(bin);
 		break;
 
 	    case ESME_SUB_SM_RESP:
-		Debug.d(SMPPPacket.class,
-			"readPacket", "SubmitSMResp", Debug.DBG_3);
+		Debug.d(SMPPPacket.class, "readPacket", "SubmitSMResp", 3);
 		response = new SubmitSMResp(bin);
 		break;
 
 	    case ESME_SUB_MULTI:
-		Debug.d(SMPPPacket.class,
-			"readPacket", "SubmitMulti", Debug.DBG_3);
+		Debug.d(SMPPPacket.class, "readPacket", "SubmitMulti", 3);
 		response = new SubmitMulti(bin);
 		break;
 
 	    case ESME_SUB_MULTI_RESP:
-		Debug.d(SMPPPacket.class,
-			"readPacket", "SubmitMultiResp", Debug.DBG_3);
+		Debug.d(SMPPPacket.class, "readPacket", "SubmitMultiResp", 3);
 		response = new SubmitMultiResp(bin);
 		break;
 
 	    case SMSC_DELIVER_SM:
-		Debug.d(SMPPPacket.class,
-			"readPacket", "DeliverSm", Debug.DBG_3);
+		Debug.d(SMPPPacket.class, "readPacket", "DeliverSm", 3);
 		response = new DeliverSM(bin);
 		break;
 
 	    case SMSC_DELIVER_SM_RESP:
-		Debug.d(SMPPPacket.class,
-			"readPacket", "DeliverSMResp", Debug.DBG_3);
+		Debug.d(SMPPPacket.class, "readPacket", "DeliverSMResp", 3);
 		response = new DeliverSMResp(bin);
 		break;
 
 	    case ESME_QUERY_SM:
-		Debug.d(SMPPPacket.class,
-			"readPacket", "QuerySM", Debug.DBG_3);
+		Debug.d(SMPPPacket.class, "readPacket", "QuerySM", 3);
 		response = new QuerySM(bin);
 		break;
 
 	    case ESME_QUERY_SM_RESP:
-		Debug.d(SMPPPacket.class,
-			"readPacket", "QuerySMResp", Debug.DBG_3);
+		Debug.d(SMPPPacket.class, "readPacket", "QuerySMResp", 3);
 		response = new QuerySMResp(bin);
 		break;
 
 	    case ESME_QUERY_LAST_MSGS:
-		Debug.d(SMPPPacket.class,
-			"readPacket", "QueryLastMsgs", Debug.DBG_3);
+		Debug.d(SMPPPacket.class, "readPacket", "QueryLastMsgs", 3);
 		response = new QueryLastMsgs(bin);
 		break;
 
 	    case ESME_QUERY_LAST_MSGS_RESP:
-		Debug.d(SMPPPacket.class,
-			"readPacket", "QueryLastMsgsResp", Debug.DBG_3);
+		Debug.d(SMPPPacket.class, "readPacket", "QueryLastMsgsResp", 3);
 		response = new QueryLastMsgsResp(bin);
 		break;
 
 	    case ESME_QUERY_MSG_DETAILS:
-		Debug.d(SMPPPacket.class,
-			"readPacket", "QueryMsgDetails", Debug.DBG_3);
+		Debug.d(SMPPPacket.class, "readPacket", "QueryMsgDetails", 3);
 		response = new QueryMsgDetails(bin);
 		break;
 
 	    case ESME_QUERY_MSG_DETAILS_RESP:
-		Debug.d(SMPPPacket.class,
-			"readPacket", "QueryMsgDetailsResp", Debug.DBG_3);
+		Debug.d(SMPPPacket.class, "readPacket",
+			"QueryMsgDetailsResp", 3);
 		response = new QueryMsgDetailsResp(bin);
 		break;
 
 	    case ESME_CANCEL_SM:
-		Debug.d(SMPPPacket.class,
-			"readPacket", "CancelSM", Debug.DBG_3);
+		Debug.d(SMPPPacket.class, "readPacket", "CancelSM", 3);
 		response = new CancelSM(bin);
 		break;
 
 	    case ESME_CANCEL_SM_RESP:
-		Debug.d(SMPPPacket.class,
-			"readPacket", "CancelSMResp", Debug.DBG_3);
+		Debug.d(SMPPPacket.class, "readPacket", "CancelSMResp", 3);
 		response = new CancelSMResp(bin);
 		break;
 
 	    case ESME_REPLACE_SM:
-		Debug.d(SMPPPacket.class,
-			"readPacket", "ReplaceSM", Debug.DBG_3);
+		Debug.d(SMPPPacket.class, "readPacket", "ReplaceSM", 3);
 		response = new ReplaceSM(bin);
 		break;
 
 	    case ESME_REPLACE_SM_RESP:
-		Debug.d(SMPPPacket.class,
-			"readPacket", "ReplaceSMResp", Debug.DBG_3);
+		Debug.d(SMPPPacket.class, "readPacket", "ReplaceSMResp", 3);
 		response = new ReplaceSMResp(bin);
 		break;
 
 	    case ESME_QRYLINK:
-		Debug.d(SMPPPacket.class,
-			"readPacket", "EnquireLink", Debug.DBG_3);
+		Debug.d(SMPPPacket.class, "readPacket", "EnquireLink", 3);
 		response = new EnquireLink(bin);
 		break;
 
 	    case ESME_QRYLINK_RESP:
-		Debug.d(SMPPPacket.class,
-			"readPacket", "EnquireLinkResp", Debug.DBG_3);
+		Debug.d(SMPPPacket.class, "readPacket", "EnquireLinkResp", 3);
 		response = new EnquireLinkResp(bin);
 		break;
 
 	    case ESME_PARAM_RETRIEVE:
-		Debug.d(SMPPPacket.class,
-			"readPacket", "ParamRetrieve", Debug.DBG_3);
+		Debug.d(SMPPPacket.class, "readPacket", "ParamRetrieve", 3);
 		response = new ParamRetrieve(bin);
 		break;
 
 	    case ESME_PARAM_RETRIEVE_RESP:
-		Debug.d(SMPPPacket.class,
-			"readPacket", "ParamRetrieveResp", Debug.DBG_3);
+		Debug.d(SMPPPacket.class, "readPacket", "ParamRetrieveResp", 3);
 		response = new ParamRetrieveResp(bin);
 		break;
 
 	    default:
-		Debug.d(SMPPPacket.class,
-			"readPacket", "Unknown Packet", Debug.DBG_3);
-		throw new SMPPException("Unidentified Packet on input stream. "
-			+ "id=" + String.valueOf(cmdId));
+		Debug.d(SMPPPacket.class, "readPacket", "Unknown Packet", 3);
+		throw new SMPPException("Unidentified Packet: "
+			+ Integer.toHexString(cmdId));
 	}
 
 	return (response);
