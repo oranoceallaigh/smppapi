@@ -26,11 +26,11 @@ package ie.omk.smpp.message;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
+import java.util.Date;
+
 import junit.framework.TestCase;
 
-import ie.omk.smpp.Address;
-import ie.omk.smpp.ErrorAddress;
-import ie.omk.smpp.SMPPException;
+import ie.omk.smpp.*;
 
 import ie.omk.smpp.util.GSMConstants;
 import ie.omk.smpp.util.PacketFactory;
@@ -91,30 +91,36 @@ public class SizeTest extends TestCase {
      * packet.
      */
     private void testPacket(String n, SMPPPacket original) {
-	SMPPPacket deserialized;
-	ByteArrayOutputStream out = new ByteArrayOutputStream();
-
 	try {
+	    SMPPPacket deserialized;
+	    ByteArrayOutputStream out = new ByteArrayOutputStream();
+
 	    original.writeTo(out);
+
+	    byte[] array = out.toByteArray();
+	    int id = SMPPIO.bytesToInt(array, 4, 4);
+	    deserialized = PacketFactory.newInstance(id);
+	    if (deserialized == null) {
+		fail(n + " - PacketFactory returned null for Id 0x"
+			+ Integer.toHexString(id));
+		return;
+	    }
+	    deserialized.readFrom(array, 0);
+
+	    assertEquals(n + " serialized.", original.getLength(), array.length);
+	    assertEquals(n + " deserialized.", array.length,
+		    deserialized.getLength());
+	} catch (BadCommandIDException x) {
+	    fail(n + " serialization caused BadCommandIDException:\n"
+		    + x.toString());
+	} catch (SMPPProtocolException x) {
+	    fail(n + " serialization caused SMPPProtocolException:\n"
+		    + x.toString());
 	} catch (IOException x) {
 	    fail(n + " serialization caused I/O Exception:\n"
 		    + x.toString());
 	    return;
 	}
-
-	byte[] array = out.toByteArray();
-	int id = SMPPIO.bytesToInt(array, 4, 4);
-	deserialized = PacketFactory.newPacket(id);
-	if (deserialized == null) {
-	    fail(n + " - PacketFactory returned null for Id 0x"
-		    + Integer.toHexString(id));
-	    return;
-	}
-	deserialized.readFrom(array, 0);
-
-	assertEquals(n + " serialized.", original.getLength(), array.length);
-	assertEquals(n + " deserialized.", array.length,
-		deserialized.getLength());
     }
 
 
@@ -233,11 +239,11 @@ public class SizeTest extends TestCase {
 			    "65534222"));
 	    }
 	    //p.setProtocolId();
-	    p.setPriority(true);
-	    p.setDeliveryTime(new SMPPDate());
-	    p.setExpiryTime(new SMPPDate());
-	    p.setRegistered(true);
-	    p.setReplaceIfPresent(true);
+	    p.setPriority(1);
+	    p.setDeliveryTime(new SMPPDate(new Date()));
+	    p.setExpiryTime(new SMPPDate(new Date()));
+	    p.setRegistered(1);
+	    p.setReplaceIfPresent(1);
 	    //p.setDataCoding();
 	    p.setMessageText("This is a short message");
 	    break;
@@ -253,7 +259,7 @@ public class SizeTest extends TestCase {
 			GSMConstants.GSM_TON_UNKNOWN,
 			GSMConstants.GSM_NPI_UNKNOWN,
 			"65534222"));
-	    p.setRegistered(true);
+	    p.setRegistered(1);
 	    break;
 
 	case SMPPPacket.DATA_SM_RESP:
@@ -328,11 +334,11 @@ public class SizeTest extends TestCase {
 			GSMConstants.GSM_NPI_UNKNOWN,
 			"991293213"));
 	    //q1.setProtocolId();
-	    q1.setPriority(true);
+	    q1.setPriority(1);
 	    q1.setDeliveryTime(new SMPPDate());
 	    q1.setExpiryTime(new SMPPDate());
-	    q1.setRegistered(true);
-	    q1.setReplaceIfPresent(true);
+	    q1.setRegistered(1);
+	    q1.setReplaceIfPresent(1);
 	    //q1.setDataCoding();
 	    q1.setMessageText("This is a short message");
 	    q1.setMessageId("deadbeef");
@@ -368,7 +374,7 @@ public class SizeTest extends TestCase {
 			"65534111"));
 	    p.setDeliveryTime(new SMPPDate());
 	    p.setExpiryTime(new SMPPDate());
-	    p.setRegistered(true);
+	    p.setRegistered(1);
 	    p.setMessageText("This is a short message");
 	    break;
 

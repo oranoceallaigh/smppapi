@@ -46,7 +46,7 @@ public class EncodingTest extends TestCase {
 
 	String msg = "Test message";
 
-	ASCIIEncoding ae = new ASCIIEncoding();
+	ASCIIEncoding ae = ASCIIEncoding.getInstance();
 	assertTrue(Arrays.equals(msg_bytes, ae.encodeString(msg)));
 	assertEquals(msg, ae.decodeString(msg_bytes));
     }
@@ -64,7 +64,7 @@ public class EncodingTest extends TestCase {
 
 	String msg = "Test message¥£³Æ";
 
-	Latin1Encoding enc = new Latin1Encoding();
+	Latin1Encoding enc = Latin1Encoding.getInstance();
 	assertTrue(Arrays.equals(msg_bytes, enc.encodeString(msg)));
 	assertEquals(msg, enc.decodeString(msg_bytes));
     }
