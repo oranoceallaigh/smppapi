@@ -28,7 +28,7 @@ import junit.framework.TestSuite;
 
 public class PackageTests {
     public static Test suite() {
-	TestSuite suite = new TestSuite();
+	TestSuite suite = new TestSuite("ie.omk.smpp.message.tlv package tests");
 	
 	suite.addTestSuite(TLVTests.class);
 

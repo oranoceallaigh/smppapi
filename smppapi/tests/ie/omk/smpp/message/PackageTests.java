@@ -28,7 +28,7 @@ import junit.framework.TestSuite;
 
 public class PackageTests {
     public static Test suite() {
-	TestSuite suite = new TestSuite();
+	TestSuite suite = new TestSuite("ie.omk.smpp.message package tests");
 
 	suite.addTest(new SizeTest("Empty fields test.") {
 	    public void runTest() {

@@ -28,7 +28,7 @@ import junit.framework.TestSuite;
 
 public class PackageTests {
     public static Test suite() {
-	TestSuite suite = new TestSuite();
+	TestSuite suite = new TestSuite("ie.omk.smpp.util package tests");
 	suite.addTest(new SequenceTest("Default sequence test") {
 	    public void runTest() {
 		testSequence();
