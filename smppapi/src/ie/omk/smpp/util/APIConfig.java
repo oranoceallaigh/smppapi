@@ -76,6 +76,13 @@ import org.apache.log4j.Logger;
  * the output stream only when required (after a short period of inactivity, for
  * example).</td>
  * </tr>
+ *
+ * <tr><td><code>smppapi.net.autoclose_snoop</code></td><td>Boolean</td>
+ * <td>If snoop streams are set on the SMSC link object and this value is true
+ * (the default), the snoop streams will be closed when the link is closed. If
+ * false, the snoop streams will be flushed and left open when the link is
+ * closed.</td>
+ * </tr>
  * 
  * <tr><td><code>smppapi.connection.rcv_daemon.ioex_count</code></td><td>Integer</td>
  * <td>The number of I/O exceptions the receiver daemon will accept occurring
@@ -118,6 +125,10 @@ public class APIConfig extends Properties {
     /** See class description for documentation on the properties.
      */
     public static final String LINK_AUTO_FLUSH = "smppapi.net.autoflush";
+
+    /** See class description for documentation on the properties.
+     */
+    public static final String LINK_AUTOCLOSE_SNOOP = "smppapi.net.autoclose_snoop";
 
     /** See class description for documentation on the properties.
      */
