@@ -23,7 +23,10 @@
 <!--  Java SMPP API Homepage: http://smppapi.sourceforge.net/               -->
 
 <project name="smppapi" basedir="." default="dist">
+  <!-- Set this to javac to use Sun's JDK -->
   <property name="build.compiler" value="jikes"/>
+  <!-- Set this to true for using Vim quickfix mode -->
+  <property name="build.compiler.emacs" value="false"/>
 
   <property name="src" value="src"/>
   <property name="build" value="classes"/>
