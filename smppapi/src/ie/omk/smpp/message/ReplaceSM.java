@@ -117,7 +117,7 @@ public class ReplaceSM
 		    deliveryTime.toString().length() : 0)
 		+ ((expiryTime != null) ?
 		    expiryTime.toString().length() : 0)
-		+ ((message != null) ? message.length() : 0));
+		+ ((message != null) ? message.length : 0));
 
 	// 3 1-byte integers, 3 c-strings
 	return (len + 3 + 3);
@@ -133,7 +133,7 @@ public class ReplaceSM
     {
 	int smLength = 0;
 	if(message != null)
-	    smLength = message.length();
+	    smLength = message.length;
 
 	SMPPIO.writeCString(getMessageId(), out);
 	if(source != null) {

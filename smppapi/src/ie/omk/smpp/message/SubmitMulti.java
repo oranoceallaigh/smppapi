@@ -225,7 +225,7 @@ public class SubmitMulti
 		    deliveryTime.toString().length() : 0)
 		+ ((expiryTime != null) ?
 		    expiryTime.toString().length() : 0)
-		+ ((message != null) ? message.length() : 0));
+		+ ((message != null) ? message.length : 0));
 
 	synchronized (destinationTable) {
 	    Iterator i = destinationTable.iterator();
@@ -247,7 +247,7 @@ public class SubmitMulti
     {
 	int smLength = 0;
 	if(message != null)
-	    smLength = message.length();
+	    smLength = message.length;
 
 	synchronized (destinationTable) {
 	    int numDests = destinationTable.size();

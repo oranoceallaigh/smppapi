@@ -133,7 +133,7 @@ public class DeliverSM
 		+ ((serviceType != null) ? serviceType.length() : 0)
 		+ ((source != null) ? source.size() : 3)
 		+ ((destination != null) ? destination.size() : 3)
-		+ ((message != null) ? message.length() : 0));
+		+ ((message != null) ? message.length : 0));
 
 	// 8 1-byte integers, 3 c-strings
 	return (len + 8 + 3);
@@ -149,7 +149,7 @@ public class DeliverSM
     {
 	int smLength = 0;
 	if(message != null)
-	    smLength = message.length();
+	    smLength = message.length;
 
 	SMPPIO.writeCString(serviceType, out);
 
