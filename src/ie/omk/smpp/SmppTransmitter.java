@@ -78,10 +78,7 @@ public class SmppTransmitter
 	    throw new AlreadyBoundException();
 
 	// Open the network connection if necessary.
-	if(!link.isConnected()) {
-	    Debug.d(this, "bind", "Opening link connection", 2);
-	    link.open();
-	}
+	super.openLink();
 
 	// Make sure the listener thread is running
 	setState(BINDING);
@@ -93,7 +90,7 @@ public class SmppTransmitter
 		rcvThread.start();
 	}
 
-	BindTransmitter t = new BindTransmitter(1);
+	BindTransmitter t = new BindTransmitter();
 	t.setSystemId(systemID);
 	t.setPassword(password);
 	t.setSystemType(systemType);
@@ -168,7 +165,7 @@ public class SmppTransmitter
 	    SmeAddress src, SmeAddress dst, SMPPDate del, SMPPDate valid)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
-	SubmitSM s = new SubmitSM(1);
+	SubmitSM s = new SubmitSM();
 	s.setMessageFlags(flags);
 	s.setMessageText(msg);
 	s.setDestination(dst);
@@ -225,7 +222,7 @@ public class SmppTransmitter
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	int loop = 0;
-	SubmitMulti s = new SubmitMulti(1);
+	SubmitMulti s = new SubmitMulti();
 	s.setMessageFlags(flags);
 	s.setMessageText(msg);
 
@@ -250,17 +247,17 @@ public class SmppTransmitter
     }
 
     /** Cancel an already submitted  message.
-      * @param s The service type the original message was submitted under
-      * @param m The Id of the original message
+      * @param st The service type the original message was submitted under
+      * @param msgId The Id of the original message
       * @param d The Destination address of the original message
       * @return The cancel message response, or null if asynchronous
       * communication is used.
       * @exception java.io.IOException If a network error occurs.
       */
-    public CancelSMResp cancelMessage(String s, int m, SmeAddress d)
+    public CancelSMResp cancelMessage(String st, String msgId, SmeAddress d)
 	throws IOException, ie.omk.smpp.SMPPException
     {
-	return (this.cancelMessage(s, m, null, d));
+	return (this.cancelMessage(st, msgId, null, d));
     }
 
     /** Cancel an already submitted  message.
@@ -272,13 +269,13 @@ public class SmppTransmitter
       * communication is used.
       * @exception java.io.IOException If a network error occurs.
       */
-    public CancelSMResp cancelMessage(String st, int msgId,
+    public CancelSMResp cancelMessage(String st, String msgId,
 	    SmeAddress src, SmeAddress dst)
 	throws IOException, ie.omk.smpp.SMPPException
     {
-	CancelSM s = new CancelSM(1);
+	CancelSM s = new CancelSM();
 	s.setServiceType(st);
-	s.setMessageId(Integer.toHexString(msgId));
+	s.setMessageId(msgId);
 	if(dst != null)
 	    s.setDestination(dst);
 	if(src != null)
@@ -298,7 +295,8 @@ public class SmppTransmitter
       * communication is used.
       * @exception java.io.IOException If a network error occurs
       */
-    public ReplaceSMResp replaceMessage(int msgId, String msg, MsgFlags flags)
+    public ReplaceSMResp replaceMessage(String msgId, String msg,
+	    MsgFlags flags)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	return (this.replaceMessage(msgId, msg, flags, null, null, null));
@@ -314,8 +312,8 @@ public class SmppTransmitter
       * communication is used.
       * @exception java.io.IOException If a network error occurs
       */
-    public ReplaceSMResp replaceMessage(int msgId, String msg, MsgFlags flags,
-	    SmeAddress src)
+    public ReplaceSMResp replaceMessage(String msgId, String msg,
+	    MsgFlags flags, SmeAddress src)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	return (this.replaceMessage(msgId, msg, flags, src, null, null));
@@ -333,12 +331,12 @@ public class SmppTransmitter
       * @return true if the replacement is successful, false otherwise
       * @exception java.io.IOException If a network error occurs
       */
-    public ReplaceSMResp replaceMessage(int msgId, String msg, MsgFlags flags,
-	    SmeAddress src, SMPPDate del, SMPPDate valid)
+    public ReplaceSMResp replaceMessage(String msgId, String msg,
+	    MsgFlags flags, SmeAddress src, SMPPDate del, SMPPDate valid)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
-	ReplaceSM s = new ReplaceSM(1);
-	s.setMessageId(Integer.toHexString(msgId));
+	ReplaceSM s = new ReplaceSM();
+	s.setMessageId(msgId);
 	s.setMessageFlags(flags);
 	if(src != null)
 	    s.setSource(src);
@@ -364,7 +362,7 @@ public class SmppTransmitter
     public ParamRetrieveResp paramRetrieve(String name)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
-	ParamRetrieve s = new ParamRetrieve(1);
+	ParamRetrieve s = new ParamRetrieve();
 	s.setParamName(name);
 
 	SMPPResponse resp = sendRequest(s);
@@ -381,7 +379,7 @@ public class SmppTransmitter
       * @exception java.io.IOException If a network error occurs.
       * @see MessageDetails
       */
-    public QuerySMResp queryMessage(int msgId)
+    public QuerySMResp queryMessage(String msgId)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	return (this.queryMessage(msgId, null));
@@ -395,11 +393,11 @@ public class SmppTransmitter
       * @exception java.io.IOException If a network error occurs.
       * @see MessageDetails
       */
-    public QuerySMResp queryMessage(int msgId, SmeAddress src)
+    public QuerySMResp queryMessage(String msgId, SmeAddress src)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
-	QuerySM s = new QuerySM(1);
-	s.setMessageId(Integer.toHexString(msgId));
+	QuerySM s = new QuerySM();
+	s.setMessageId(msgId);
 	if(src != null)
 	    s.setSource(src);
 
@@ -421,10 +419,12 @@ public class SmppTransmitter
 	if(src == null)
 	    throw new NullPointerException("Source address cannot be null.");
 
-	if(num < 1) num = 1;
-	if(num > 100) num = 100;
+	if(num < 1)
+	    num = 1;
+	if(num > 100)
+	    num = 100;
 
-	QueryLastMsgs s = new QueryLastMsgs(1);
+	QueryLastMsgs s = new QueryLastMsgs();
 	s.setSource(src);
 	s.setMsgCount(num);
 
@@ -441,7 +441,7 @@ public class SmppTransmitter
       * communication is used.
       * @exception java.io.IOException If a network error occurs.
       */
-    public QueryMsgDetailsResp queryMsgDetails(int msgId, int len)
+    public QueryMsgDetailsResp queryMsgDetails(String msgId, int len)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	return (this.queryMsgDetails(msgId, null, len));
@@ -455,24 +455,18 @@ public class SmppTransmitter
       * communication is used.
       * @exception java.io.IOException If a network error occurs.
       */
-    public QueryMsgDetailsResp queryMsgDetails(int msgId, SmeAddress src,
+    public QueryMsgDetailsResp queryMsgDetails(String msgId, SmeAddress src,
 	    int len)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
-	/* Don't forget to do a long comparison on the high value...
-	 * Java int's are only 32-bits!!
-	 */
-	if(msgId < 0 || msgId > 0xffffffffL)
-	    throw new NullPointerException("Message Id is out of valid range.");
-
 	// Make sure the length requested is sane!
 	if(len < 0)
 	    len = 0;
 	if(len > 161)
 	    len = 161;
 
-	QueryMsgDetails s = new QueryMsgDetails(1);
-	s.setMessageId(Integer.toHexString(msgId));
+	QueryMsgDetails s = new QueryMsgDetails();
+	s.setMessageId(msgId);
 	if(src != null)
 	    s.setSource(src);
 	s.setSmLength(len);
