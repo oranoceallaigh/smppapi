@@ -1,6 +1,4 @@
 
-import java.lang.reflect.Constructor;
-
 import java.io.IOException;
 import java.io.ByteArrayOutputStream;
 import java.io.ByteArrayInputStream;
@@ -140,14 +138,8 @@ public class Test_Sizes
 
 	System.out.println("\n\n========= Simple null field check ==========");
 	try {
-
-	    Constructor con;
-	    Class[] argTypes = { int.class };
-	    Object[] args = { new Integer(4) };
-
 	    for (loop = 0; loop < cs.length; loop++) {
-		con = cs[loop].getConstructor(argTypes);
-		obj[loop] = (SMPPPacket)con.newInstance(args);
+		obj[loop] = (SMPPPacket)cs[loop].newInstance();
 	    }
 	} catch (Exception x) {
 	    System.out.print(cs[loop].getName() + ":\n    ");
