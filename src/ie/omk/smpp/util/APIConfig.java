@@ -354,7 +354,7 @@ public class APIConfig extends Properties {
     public long getLong(String property, long defaultValue) throws InvalidConfigurationException {
         try {
             return (getLong(property));
-        } catch (InvalidConfigurationException x) {
+        } catch (PropertyNotFoundException x) {
         }
         
         return (defaultValue);
