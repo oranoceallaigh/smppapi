@@ -27,7 +27,7 @@ import ie.omk.smpp.util.SMPPIO;
 import ie.omk.debug.Debug;
 
 
-/** Response to a Replace message request
+/** SMSC response to a ReplaceSM request.
   * @author Oran Kelly
   * @version 1.0
   */
@@ -44,10 +44,11 @@ public class ReplaceSMResp
 
     /** Read in a ReplaceSMResp from an InputStream.  A full packet,
       * including the header fields must exist in the stream.
-      * @param in The InputStream to read from
-      * @see java.io.InputStream
+      * @exception java.io.IOException if there's an error reading from the
+      * input stream.
       */
     public ReplaceSMResp(InputStream in)
+	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super(in);
     }
@@ -61,11 +62,17 @@ public class ReplaceSMResp
 	super(r);
     }
 
+    /** Return the number of bytes this packet would be encoded as to an
+      * OutputStream.
+      */
     public int getCommandLen()
     {
 	return (getHeaderLen());
     }
 
+    /** Convert this packet to a String. Not to be interpreted programmatically,
+      * it's just dead handy for debugging!
+      */
     public String toString()
     {
 	return new String("replace_sm_resp");

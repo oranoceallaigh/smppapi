@@ -27,15 +27,16 @@ import ie.omk.smpp.SMPPException;
 import ie.omk.smpp.util.SMPPIO;
 import ie.omk.debug.Debug;
 
-/** Query Message details...get all information about an existing message
+/** Query Message details.
+  * Get all information about an existing message at the SMSC.
   * @author Oran Kelly
   * @version 1.0
   */
 public class QueryMsgDetails
     extends ie.omk.smpp.message.SMPPRequest
 {
-    /** Length of the message required */
-    int				smLength;
+    /** Length of the message text required */
+    private int smLength;
 
     /** Construct a new QueryMsgDetails with specified sequence number.
       * @param seqNum The sequence number to use
@@ -49,11 +50,11 @@ public class QueryMsgDetails
     /** Read in a QueryMsgDetails from an InputStream.  A full packet,
       * including the header fields must exist in the stream.
       * @param in The InputStream to read from
-      * @exception ie.omk.smpp.SMPPException If the stream does not
-      * contain a QueryMsgDetails packet.
-      * @see java.io.InputStream
+      * @exception java.io.IOException if there's an error reading from the
+      * input stream.
       */
     public QueryMsgDetails(InputStream in)
+	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super(in);
 
@@ -64,24 +65,24 @@ public class QueryMsgDetails
 	    messageId = Integer.parseInt(SMPPIO.readCString(in), 16);
 	    source = new SmeAddress(in);
 	    smLength =  SMPPIO.readInt(in, 1);
-	} catch(IOException iox) {
-	    throw new SMPPException("Input stream does not contain a "
-		    + "query_msg_details packet.");
 	} catch(NumberFormatException nx) {
 	    throw new SMPPException("Error reading message Id from the input stream");
 	}
     }
 
     /** Set the number of bytes of the original message required.
-      * @param s The number of bytes required.
-      * This will be truncated if goes < 0 or > 160
+      * Minimum request length is 0, maximum is 160. If the length is outside
+      * these bounds, it will be set to the min or max.
+      * @param len The number of bytes required.
       */
-    public void setSmLength(int s)
+    public void setSmLength(int len)
     {
-	smLength = s;
+	smLength = len;
 
-	if(smLength < 0) smLength = 0;
-	if(smLength > 160) smLength = 160;
+	if(smLength < 0)
+	    smLength = 0;
+	if(smLength > 160)
+	    smLength = 160;
     }
 
     /** Get the number of bytes being requested of the original message */
@@ -91,20 +92,23 @@ public class QueryMsgDetails
     }
 
 
-    /** Get the size in bytes of this packet */
+    /** Return the number of bytes this packet would be encoded as to an
+      * OutputStream.
+      */
     public int getCommandLen()
     {
 	String id = Integer.toHexString(getMessageId());
 
-	return (getHeaderLen() + 2
-		+ ((id != null) ? id.length() : 0)
+	return (getHeaderLen()
+		+ 1 // 1 1-byte integer
+		+ ((id != null) ? id.length() : 1)
 		+ ((source != null) ? source.size() : 3));
     }
 
     /** Write a byte representation of this packet to an OutputStream
       * @param out The OutputStream to write to
-      * @exception ie.omk.smpp.SMPPException If an I/O error occurs
-      * @see java.io.OutputStream
+      * @exception java.io.IOException if there's an error writing to the
+      * output stream.
       */
     protected void encodeBody(OutputStream out)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
@@ -119,6 +123,9 @@ public class QueryMsgDetails
 	SMPPIO.writeInt(smLength, 1, out);
     }
 
+    /** Convert this packet to a String. Not to be interpreted programmatically,
+      * it's just dead handy for debugging!
+      */
     public String toString()
     {
 	return new String("query_msg_details");

@@ -27,7 +27,7 @@ import ie.omk.smpp.SMPPException;
 import ie.omk.smpp.util.SMPPIO;
 import ie.omk.debug.Debug;
 
-/** SMSC Response to a bind transmitter request
+/** SMSC response to a BindTransmitter request.
   * @author Oran Kelly
   * @version 1.0
   */
@@ -35,7 +35,7 @@ public class BindTransmitterResp
     extends ie.omk.smpp.message.SMPPResponse
 {
     /** System Id */
-    String 		sysId;
+    private String sysId;
 
     /** Construct a new BindTransmitterResp with specified sequence number.
       * @param seqNum The sequence number to use
@@ -49,36 +49,29 @@ public class BindTransmitterResp
     /** Read in a BindTransmitterResp from an InputStream.  A full packet,
       * including the header fields must exist in the stream.
       * @param in The InputStream to read from
-      * @exception ie.omk.smpp.SMPPException If the stream does not
-      * contain a BindReceiverResp packet.
-      * @see java.io.InputStream
+      * @exception java.io.IOException if there's an error reading from the
+      * input stream.
       */
     public BindTransmitterResp(InputStream in)
+	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super(in);
 
 	if(commandStatus != 0)
 	    return;
 
-	try {
-	    sysId = SMPPIO.readCString(in);
-	} catch(IOException iox) {
-	    throw new SMPPException("Input stream does not contain a "
-		    + "bind_transmitter packet");
-	}
+	sysId = SMPPIO.readCString(in);
     }
 
 
-    /** Create a new BindTransmitterResp packet in response to a BindTransmitter
-      * This constructor will set the sequence number and system Id
-      * to their expected values.
+    /** Create a new BindTransmitterResp packet in response to a
+      * BindTransmitter. This constructor will set the sequence number to that
+      * if the packet it is in response to.
       * @param r The Request packet the response is to
       */
     public BindTransmitterResp(BindTransmitter r)
     {
 	super(r);
-
-	sysId = new String(r.getSystemId());
     }
 
     /** Set the system Id
@@ -86,38 +79,41 @@ public class BindTransmitterResp
       * @exception ie.omk.smpp.SMPPException If the system Id is invalid
       */
     public void setSystemId(String sysId)
+	throws ie.omk.smpp.SMPPException
     {
 	if(sysId == null) {
-	    sysId = null;
+	    this.sysId = null;
 	    return;
 	}
 
-	if(sysId.length() > 15)
-	    throw new SMPPException("System ID must be < 16 chars.");
+	if(sysId.length() < 16)
+	    this.sysId = sysId;
 	else
-	    sysId = new String(sysId);
+	    throw new SMPPException("System ID must be < 16 chars.");
     }
 
     /** Get the system Id */
     public String getSystemId()
     {
-	return (sysId == null) ? null : new String(sysId);
+	return (sysId);
     }
 
 
-    /** Get the size in bytes of this packet */
+    /** Return the number of bytes this packet would be encoded as to an
+      * OutputStream.
+      */
     public int getCommandLen()
     {
 	// Calculated as the size of the header plus 1 null-terminator
 	// for the string plus the length of the string
-	return (getHeaderLen() + 1
-		+ ((sysId != null) ? sysId.length() : 0));
+	return (getHeaderLen()
+		+ ((sysId != null) ? sysId.length() : 1));
     }
 
     /** Write a byte representation of this packet to an OutputStream
       * @param out The OutputStream to write to
-      * @exception ie.omk.smpp.SMPPException If an I/O error occurs
-      * @see java.io.OutputStream
+      * @exception java.io.IOException if there's an error writing to the output
+      * stream.
       */
     protected void encodeBody(OutputStream out)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
@@ -125,6 +121,9 @@ public class BindTransmitterResp
 	SMPPIO.writeCString(sysId, out);
     }
 
+    /** Convert this packet to a String. Not to be interpreted programmatically,
+      * it's just dead handy for debugging!
+      */
     public String toString()
     {
 	return new String("bind_transmitter_resp");

@@ -25,7 +25,7 @@ package ie.omk.smpp.message;
 import java.io.*;
 import ie.omk.debug.Debug;
 
-/** Confirm an unbind request
+/** SMSC response to an Unbind request.
   * @author Oran Kelly
   * @version 1.0
   */
@@ -43,11 +43,11 @@ public class UnbindResp
     /** Read in a UnbindResp from an InputStream.  A full packet,
       * including the header fields must exist in the stream.
       * @param in The InputStream to read from
-      * @exception ie.omk.smpp.SMPPException If the stream does not
-      * contain a UnbindResp packet.
-      * @see java.io.InputStream
+      * @exception java.io.IOException If an error occurs writing to the input
+      * stream.
       */
     public UnbindResp(InputStream in)
+	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super(in);
     }
@@ -61,11 +61,17 @@ public class UnbindResp
 	super(r);
     }
 
+    /** Return the number of bytes this packet would be encoded as to an
+      * OutputStream.
+      */
     public int getCommandLen()
     {
 	return (getHeaderLen());
     }
 
+    /** Convert this packet to a String. Not to be interpreted programmatically,
+      * it's just dead handy for debugging!
+      */
     public String toString()
     {
 	return new String("unbind_resp");

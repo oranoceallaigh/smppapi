@@ -28,11 +28,10 @@ import ie.omk.smpp.util.SMPPDate;
 import ie.omk.smpp.message.*;
 import ie.omk.debug.Debug;
 
-/** Structure returned by the message query functions of SmppTransmitter.
-  * The main use of this Object is to return query results.  However,
-  * any type of SMPPPacket can be passed to the constructor and as many
-  * fields as are available will be filled in.  All other fields will
-  * default to their Null values (0 for integers, null for Strings)
+/** Object used as extra information in an SMPP event.
+  * Any packets that contain some form of message information will generate a
+  * MessageDetails object in the 'extra information' field of an SmppEvent.
+  * @see ie.omk.smpp.SmppEvent
   * @see SmppTransmitter#queryMessage
   * @see SmppTransmitter#queryMsgDetails
   * @author Oran Kelly

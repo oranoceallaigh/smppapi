@@ -29,8 +29,8 @@ import ie.omk.smpp.util.SMPPIO;
 import ie.omk.smpp.util.SMPPDate;
 import ie.omk.debug.Debug;
 
-/** Response to Query message details...gives all details of a specified
-  * message
+/** Response to Query message details.
+  * Gives all details of a specified message at the SMSC.
   * @author Oran Kelly
   * @version 1.0
   */
@@ -38,7 +38,7 @@ public class QueryMsgDetailsResp
     extends ie.omk.smpp.message.SMPPResponse
 {
     /** Table of destinations the message was routed to */
-    Vector				destinationTable;
+    private Vector destinationTable;
 
     /** Construct a new QueryMsgDetailsResp with specified sequence number.
       * @param seqNum The sequence number to use
@@ -52,11 +52,11 @@ public class QueryMsgDetailsResp
     /** Read in a QueryMsgDetailsResp from an InputStream.  A full packet,
       * including the header fields must exist in the stream.
       * @param in The InputStream to read from
-      * @exception ie.omk.smpp.SMPPException If the stream does not
-      * contain a QueryMsgDetailsResp packet.
-      * @see java.io.InputStream
+      * @exception java.io.IOException if there's an error reading from the
+      * input stream.
       */
     public QueryMsgDetailsResp(InputStream in)
+	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super(in);
 
@@ -89,6 +89,7 @@ public class QueryMsgDetailsResp
 	    flags.data_coding = SMPPIO.readInt(in, 1);
 	    smLength = SMPPIO.readInt(in, 1);
 
+	    // XXX shouldn't fail on number format
 	    message = SMPPIO.readString(in, smLength);
 	    messageId = Integer.parseInt(SMPPIO.readCString(in), 16);
 
@@ -97,9 +98,6 @@ public class QueryMsgDetailsResp
 
 	    messageStatus = SMPPIO.readInt(in, 1);
 	    errorCode = SMPPIO.readInt(in, 1);
-	} catch(IOException iox) {
-	    throw new SMPPException("Input stream does not contain a "
-		    + "query_msg_details_resp packet");
 	} catch(NumberFormatException nx) {
 	    throw new SMPPException("Error reading message Id from the input "
 		    + "stream.");
@@ -115,8 +113,8 @@ public class QueryMsgDetailsResp
 	super(r);
 
 	// These are the only fields that can be got from the request packet
-	messageId = r.messageId;
-	source = r.source;
+	messageId = r.getMessageId();
+	source = r.getSource();
     }
 
     /** Add a destination address to the destination table
@@ -140,13 +138,12 @@ public class QueryMsgDetailsResp
     /** Set the destination address table.
       * @param d The array of SmeAddresses to submit the message to
       * @exception java.lang.NullPointerException if the array is null
-      * or 0 length
       */
     public void setDestAddresses(SmeAddress d[])
     {
 	int loop=0;
 
-	if(d == null || d.length < 1)
+	if(d == null)
 	    throw new NullPointerException("QueryMsgDetailsResp: Destination "
 		    + "table cannot be null or empty");
 
@@ -165,7 +162,7 @@ public class QueryMsgDetailsResp
     /** Get the number of destination addresses in the destination table */
     public int getNoOfDests()
     {
-	return  (destinationTable.size());
+	return (destinationTable.size());
     }
 
     /** Get an array of the SmeAddresses in the Destination table
@@ -188,22 +185,25 @@ public class QueryMsgDetailsResp
 	return (sd);
     }
 
-    /** Get the size in bytes of this packet */
+    /** Return the number of bytes this packet would be encoded as to an
+      * OutputStream.
+      */
     public int getCommandLen()
     {
 	String id = Integer.toHexString(getMessageId());
 
-	int size = (getHeaderLen() + 13
-		+ ((serviceType != null) ? serviceType.length() : 0)
+	int size = (getHeaderLen()
+		+ 7 // XXX Describe integers here!
+		+ ((serviceType != null) ? serviceType.length() : 1)
 		+ ((source != null) ? source.size() : 3)
 		+ ((deliveryTime != null) ?
-		    deliveryTime.toString().length() : 0)
+		    deliveryTime.toString().length() : 1)
 		+ ((expiryTime != null) ?
-		    expiryTime.toString().length() : 0)
-		+ ((message != null) ? message.length() : 0)
-		+ ((id != null) ? id.length() : 0)
+		    expiryTime.toString().length() : 1)
+		+ ((message != null) ? message.length() : 1)
+		+ ((id != null) ? id.length() : 1)
 		+ ((finalDate != null) ? 
-		    finalDate.toString().length() : 0));
+		    finalDate.toString().length() : 1));
 
 	Enumeration e = destinationTable.elements();
 	if(e != null && e.hasMoreElements()) {
@@ -215,13 +215,13 @@ public class QueryMsgDetailsResp
 	    size += 1;
 	}
 
-	return size;
+	return (size);
     }
 
     /** Write a byte representation of this packet to an OutputStream
       * @param out The OutputStream to write to
-      * @exception ie.omk.smpp.SMPPException If an I/O error occurs
-      * @see java.io.OutputStream
+      * @exception java.io.IOException if there's an error writing to the
+      * output stream.
       */
     protected void encodeBody(OutputStream out)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
@@ -268,6 +268,9 @@ public class QueryMsgDetailsResp
 	SMPPIO.writeInt(errorCode, 1, out);
     }
 
+    /** Convert this packet to a String. Not to be interpreted programmatically,
+      * it's just dead handy for debugging!
+      */
     public String toString()
     {
 	return new String("query_msg_details_resp");

@@ -32,7 +32,7 @@ import ie.omk.smpp.message.*;
 import ie.omk.smpp.net.*;
 import ie.omk.debug.Debug;
 
-/** smpp implementation of the Receiver smpp connection.
+/** Receiver implementation of the SMPP Connection.
   * @author Oran Kelly
   * @version 1.0
   */
@@ -61,8 +61,8 @@ public class SmppReceiver
     /** Bind to the SMSC as a receiver.
       * @return The bind response, or null if asynchronous
       * communication is used.
-      * @exception SMPPException If we are already bound to the SMSC, or the
-      * necessary fields aren't filled in.
+      * @exception ie.omk.smpp.SMPPException If we are already bound to the
+      * SMSC, or the necessary fields aren't filled in.
       * @exception java.io.IOException If a network error occurs.
       * @see SmppTransmitter#bind
       */
@@ -74,13 +74,14 @@ public class SmppReceiver
 	    throw new SMPPException("Already bound to SMSC.");
 
 	// Check the required fields are filled in
-	if(sysId == null)
+	if(this.sysId == null)
 	    throw new SMPPException("Need a system Id to bind as.");
-	if(password == null)
+	if(this.password == null)
 	    throw new SMPPException("Need a password to authenticate.");
-	if(sysType == null)
+	if(this.sysType == null)
 	    throw new SMPPException("Need a system type to identify as.");
 
+	// Open the network connection if necessary
 	if(!link.isConnected())
 	    link.open();
 
@@ -113,6 +114,8 @@ public class SmppReceiver
 	}
 	return ((SMPPResponse)resp);
     }
+
+    // XXX Should ackDeliverSm be moved in here?
 
     /** Acknowledge a DeliverSM command received from the Smsc. */
     public void ackDeliverSm(DeliverSM rq)

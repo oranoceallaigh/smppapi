@@ -29,7 +29,7 @@ import ie.omk.smpp.util.SMPPIO;
 import ie.omk.smpp.util.SMPPDate;
 import ie.omk.debug.Debug;
 
-/** Submit a message to multiple destinations
+/** Submit a message to multiple destinations.
   * @author Oran Kelly
   * @version 1.0
   */
@@ -37,7 +37,7 @@ public class SubmitMulti
     extends ie.omk.smpp.message.SMPPRequest
 {
     /** Table of destinations */
-    Vector				destinationTable;
+    private Vector destinationTable;
 
     /** Construct a new SubmitMulti with specified sequence number.
       * @param seqNum The sequence number to use
@@ -51,11 +51,11 @@ public class SubmitMulti
     /** Read in a SubmitMulti from an InputStream.  A full packet,
       * including the header fields must exist in the stream.
       * @param in The InputStream to read from
-      * @exception ie.omk.smpp.SMPPException If the stream does not
-      * contain a SubmitMulti packet.
-      * @see java.io.InputStream
+      * @exception java.io.IOException if there's an error reading from the
+      * input stream.
       */
     public SubmitMulti(InputStream in)
+	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super(in);
 
@@ -65,50 +65,46 @@ public class SubmitMulti
 	int noOfDests = 0, smLength = 0;
 	String delivery, valid;
 	flags = new MsgFlags();
-	try {
-	    // First the service type
-	    serviceType = SMPPIO.readCString(in);
+	// First the service type
+	serviceType = SMPPIO.readCString(in);
 
-	    source = new SmeAddress(in, true);
+	source = new SmeAddress(in, true);
 
-	    // Read in the number of destination structures to follow:
-	    noOfDests = SMPPIO.readInt(in, 1);			
+	// Read in the number of destination structures to follow:
+	noOfDests = SMPPIO.readInt(in, 1);			
 
-	    // Now read in noOfDests number of destination structs
-	    destinationTable = new Vector(noOfDests);
-	    for(int loop=0; loop<noOfDests; loop++) {
-		SmeAddress d = new SmeAddress(in, true);
-		destinationTable.addElement(d);
-	    }
-
-	    // ESM class, protocol Id, priorityFlag...
-	    flags.esm_class =  SMPPIO.readInt(in, 1);
-	    flags.protocol =  SMPPIO.readInt(in, 1);
-	    flags.priority = (SMPPIO.readInt(in, 1) == 0) ? false : true;
-
-	    delivery = SMPPIO.readCString(in);
-	    valid = SMPPIO.readCString(in);
-	    deliveryTime = new SMPPDate(delivery);
-	    expiryTime = new SMPPDate(valid);
-
-	    // Registered delivery, replace if present, data coding, default msg
-	    // and message length
-	    flags.registered = (SMPPIO.readInt(in, 1) == 0) ? false : true;
-	    flags.replace_if_present = (SMPPIO.readInt(in, 1) == 0) ? false : true;
-	    flags.data_coding = SMPPIO.readInt(in, 1);
-	    flags.default_msg = SMPPIO.readInt(in, 1);
-	    smLength = SMPPIO.readInt(in, 1);
-
-	    message = SMPPIO.readString(in, smLength);
-	} catch(IOException iox) {
-	    throw new SMPPException("Input stream does not contain a "
-		    + "submit_multi packet");
+	// Now read in noOfDests number of destination structs
+	destinationTable = new Vector(noOfDests);
+	for(int loop=0; loop<noOfDests; loop++) {
+	    SmeAddress d = new SmeAddress(in, true);
+	    destinationTable.addElement(d);
 	}
+
+	// ESM class, protocol Id, priorityFlag...
+	flags.esm_class =  SMPPIO.readInt(in, 1);
+	flags.protocol =  SMPPIO.readInt(in, 1);
+	flags.priority = (SMPPIO.readInt(in, 1) == 0) ? false : true;
+
+	delivery = SMPPIO.readCString(in);
+	valid = SMPPIO.readCString(in);
+	deliveryTime = new SMPPDate(delivery);
+	expiryTime = new SMPPDate(valid);
+
+	// Registered delivery, replace if present, data coding, default msg
+	// and message length
+	flags.registered = (SMPPIO.readInt(in, 1) == 0) ? false : true;
+	flags.replace_if_present = (SMPPIO.readInt(in, 1) == 0) ? false : true;
+	flags.data_coding = SMPPIO.readInt(in, 1);
+	flags.default_msg = SMPPIO.readInt(in, 1);
+	smLength = SMPPIO.readInt(in, 1);
+
+	message = SMPPIO.readString(in, smLength);
     }
 
 
     /** Add a destination address to the destination table.
-      * @param d Destination address representing Sme address or distribution list
+      * @param d Destination address representing Sme address or distribution
+      * list
       * @return The current number of destination addresses
       * @see SmeAddress
       */
@@ -151,10 +147,19 @@ public class SubmitMulti
 	}
     }
 
-    /** Get the number of destinations in the destination table */
+    /** Get the number of destinations in the destination table.
+      * @deprecated Use getNumDests()
+      */
     public int getNoOfDests()
     {
 	return  (destinationTable.size());
+    }
+
+    /** Get the number of destinations in the destination table.
+      */
+    public int getNumDests()
+    {
+	return (destinationTable.size());
     }
 
     /** Get an array of the SmeAddress(es) in the destination table.
@@ -176,7 +181,9 @@ public class SubmitMulti
 	return (sd);
     }
 
-    /** Get the size in bytes of this packet */
+    /** Return the number of bytes this packet would be encoded as to an
+      * OutputStream.
+      */
     public int getCommandLen()
     {
 	int size = (getHeaderLen() + 12
@@ -203,8 +210,8 @@ public class SubmitMulti
 
     /** Write a byte representation of this packet to an OutputStream
       * @param out The OutputStream to write to
-      * @exception ie.omk.smpp.SMPPException If an I/O error occurs
-      * @see java.io.OutputStream
+      * @exception java.io.IOException if there's an error writing to the
+      * output stream.
       */
     protected void encodeBody(OutputStream out)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
@@ -251,6 +258,9 @@ public class SubmitMulti
 	SMPPIO.writeString(message, smLength, out);
     }
 
+    /** Convert this packet to a String. Not to be interpreted programmatically,
+      * it's just dead handy for debugging!
+      */
     public String toString()
     {
 	return new String("submit_multi");

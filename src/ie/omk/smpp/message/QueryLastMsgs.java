@@ -27,15 +27,15 @@ import ie.omk.smpp.SMPPException;
 import ie.omk.smpp.util.SMPPIO;
 import ie.omk.debug.Debug;
 
-/** Query the last number of messages sent from a certain ESME
+/** Query the last number of messages sent from a certain ESME.
   * @author Oran Kelly
   * @version 1.0
   */
 public class QueryLastMsgs
     extends ie.omk.smpp.message.SMPPRequest
 {
-    /** No of messages to look up */
-    int			msgCount;
+    /** Number of messages to look up */
+    private int msgCount;
 
     /** Construct a new QueryLastMsgs with specified sequence number.
       * @param seqNum The sequence number to use
@@ -49,38 +49,37 @@ public class QueryLastMsgs
     /** Read in a QueryLastMsgs from an InputStream.  A full packet,
       * including the header fields must exist in the stream.
       * @param in The InputStream to read from
-      * @exception ie.omk.smpp.SMPPException If the stream does not
-      * contain a QueryLastMsgs packet.
-      * @see java.io.InputStream
+      * @exception java.io.IOException if there's an error reading from the
+      * input stream.
       */
     public QueryLastMsgs(InputStream in)
+	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super(in);
 
 	if(commandStatus != 0)
 	    return;
 
-	try {
-	    source = new SmeAddress(in);
-	    msgCount = SMPPIO.readInt(in, 1);
-	} catch(IOException iox) {
-	    throw new SMPPException("Input stream does not contain a "
-		    + "query_last_msgs packet.");
-	}
+	this.source = new SmeAddress(in);
+	this.msgCount = SMPPIO.readInt(in, 1);
     }
 
-    /** Set the number of messages to look up */
-    public void setMsgCount(int s)
+    /** Set the number of messages to look up.
+      * @param n The message count (1 &lt;= n &lt;= 100)
+      * @exception ie.omk.smpp.SMPPException if the message count is invalid.
+      */
+    public void setMsgCount(int n)
+	throws ie.omk.smpp.SMPPException
     {
-	if(s > 0 && s <= 100) {
-	    msgCount = s;
+	if(n > 0 && n <= 100) {
+	    this.msgCount = n;
 	} else {
 	    throw new SMPPException("Number of messages to query must be > 0 "
 		    + "and <= 100");
 	}
     }
 
-    /** Get the count of the number of messages being requested */
+    /** Get the count of the number of messages being requested. */
     public int getMsgCount()
     {
 	return (msgCount);
@@ -89,14 +88,15 @@ public class QueryLastMsgs
     /** Get the size in bytes of this packet */
     public int getCommandLen()
     {
-	return (getHeaderLen() + 1
+	return (getHeaderLen()
+		+ 1 // 1 1-byte int
 		+ ((source != null) ? source.size() : 3));
     }
 
     /** Write a byte representation of this packet to an OutputStream
       * @param out The OutputStream to write to
-      * @exception ie.omk.smpp.SMPPException If an I/O error occurs
-      * @see java.io.OutputStream
+      * @exception java.io.IOException if there's an error writing to the
+      * output stream.
       */
     protected void encodeBody(OutputStream out)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
@@ -109,6 +109,9 @@ public class QueryLastMsgs
 	SMPPIO.writeInt(msgCount, 1, out);
     }
 
+    /** Convert this packet to a String. Not to be interpreted programmatically,
+      * it's just dead handy for debugging!
+      */
     public String toString()
     {
 	return new String("query_last_msgs");

@@ -28,7 +28,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 /** Class that provides input and output methods for writing Java types
-  * encoded as SMPP types.
+  * encoded as SMPP types. This class cannot be instantiated...all it's methods
+  * are static.
   */
 public class SMPPIO
 {
@@ -36,7 +37,8 @@ public class SMPPIO
       * The integer read from the stream is assumed to be in network byte order
       * (ie Big Endian).
       * @param in The InputStream to read from
-      * @param len The number of bytes to form the integer from (usually either 1 or 4)
+      * @param len The number of bytes to form the integer from (usually
+      * either 1 or 4, limited to 1 &lt;= len &lt;= 8)
       * @return An integer representation of the <i>len</i> bytes read in
       * @exception java.io.IOException If EOS is reached before <i>len</i> bytes
       * @see java.io.InputStream

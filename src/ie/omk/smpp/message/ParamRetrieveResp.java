@@ -27,7 +27,8 @@ import ie.omk.smpp.SMPPException;
 import ie.omk.smpp.util.SMPPIO;
 import ie.omk.debug.Debug;
 
-/** Returns the value of a requested parameter
+/** SMSC response to a ParamRetrieve request.
+  * Returns the value of the requested parameter.
   * @author Oran Kelly
   * @version 1.0
   */
@@ -35,7 +36,7 @@ public class ParamRetrieveResp
     extends ie.omk.smpp.message.SMPPResponse
 {
     /** String value of the requested parameter */
-    String				paramValue;
+    private String paramValue;
 
     /** Construct a new BindReceiverResp with specified sequence number.
       * @param seqNum The sequence number to use
@@ -49,23 +50,18 @@ public class ParamRetrieveResp
     /** Read in a BindReceiverResp from an InputStream.  A full packet,
       * including the header fields must exist in the stream.
       * @param in The InputStream to read from
-      * @exception ie.omk.smpp.SMPPException If the stream does not
-      * contain a ParamRetrieveResp packet.
-      * @see java.io.InputStream
+      * @exception java.io.IOException if there's an error reading from the
+      * input stream.
       */
     public ParamRetrieveResp(InputStream in)
+	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super(in);
 
 	if(commandStatus != 0)
 	    return;
 
-	try {
-	    paramValue = SMPPIO.readCString(in);
-	} catch(IOException x) {
-	    throw new SMPPException("Input stream does not contain a "
-		    + "pararetrieve_resp packet.");
-	}
+	paramValue = SMPPIO.readCString(in);
     }
 
     /** Create a new ParamRetrieveResp packet in response to a BindReceiver.
@@ -78,16 +74,20 @@ public class ParamRetrieveResp
     }
 
     /** Set the parameter value.
-      * @param v Value to be returned for the requested parameter (Up to 100 characters)
+      * @param v Value to be returned for the requested parameter (Up to 100
+      * characters)
       * @exception ie.omk.smpp.SMPPException If the value is invalid
       */
     public void setParamValue(String v)
+	throws ie.omk.smpp.SMPPException
     {
-	if(v == null)
-	{ paramValue = null; return; }
+	if(v == null) {
+	    paramValue = null;
+	    return;
+	}
 
 	if(v.length() < 101)
-	    paramValue = new String(v);
+	    this.paramValue = v;
 	else
 	    throw new SMPPException("Paramater value must be < 101 chars");
     }
@@ -95,21 +95,21 @@ public class ParamRetrieveResp
     /** Get the value of the parameter */
     public String getParamValue()
     {
-	return (paramValue == null) ? null : new String(paramValue);
+	return (paramValue);
     }
 
 
     /** Get the size in bytes of this packet */
     public int getCommandLen()
     {
-	return (getHeaderLen() + 1
-		+ ((paramValue != null) ? paramValue.length() : 0));
+	return (getHeaderLen()
+		+ ((paramValue != null) ? paramValue.length() : 1));
     }
 
     /** Write a byte representation of this packet to an OutputStream
       * @param out The OutputStream to write to
-      * @exception ie.omk.smpp.SMPPException If an I/O error occurs
-      * @see java.io.OutputStream
+      * @exception java.io.IOException if there's an error writing to the
+      * output stream.
       */
     protected void encodeBody(OutputStream out)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
@@ -117,6 +117,9 @@ public class ParamRetrieveResp
 	SMPPIO.writeCString(paramValue, out);
     }
 
+    /** Convert this packet to a String. Not to be interpreted programmatically,
+      * it's just dead handy for debugging!
+      */
     public String toString()
     {
 	return new String("param_retrieve_resp");

@@ -36,41 +36,43 @@ public class X25Link
     extends ie.omk.smpp.net.SmscLink
 {
     public X25Link(String address)
+	throws java.io.IOException
     {
-	throw new SMPPException("No x.25 networking module implemented yet!");
+	throw new IOException("No x.25 networking module implemented yet!");
     }
 
     public X25Link(String address, int port)
+	throws java.io.IOException
     {
-	throw new SMPPException("No x.25 networking module implemented yet!");
+	throw new IOException("No x.25 networking module implemented yet!");
     }
 
     /** Does nothing */
     public void open()
-	throws IOException
+	throws java.io.IOException
     {
-	throw new SMPPException("No x.25 networking module implemented yet!");
+	throw new IOException("No x.25 networking module implemented yet!");
     }
 
     /** Does nothing */
     public void close()
-	throws IOException
+	throws java.io.IOException
     {
-	throw new SMPPException("No x.25 networking module implemented yet!");
+	throw new IOException("No x.25 networking module implemented yet!");
     }
 
     /** Does nothing */
     public OutputStream getOutputStream()
-	throws IOException
+	throws java.io.IOException
     {
-	throw new SMPPException("No x.25 networking module implemented yet!");
+	throw new IOException("No x.25 networking module implemented yet!");
     }
 
     /** Does nothing */
     public InputStream getInputStream()
-	throws IOException
+	throws java.io.IOException
     {
-	throw new SMPPException("No x.25 networking module implemented yet!");
+	throw new IOException("No x.25 networking module implemented yet!");
     }
 
     /** Does nothing */

@@ -24,7 +24,9 @@ package ie.omk.smpp.message;
 
 import java.io.InputStream;
 
-/** Abstract parent class of all Smpp Response packets
+import ie.omk.smpp.SMPPException;
+
+/** Abstract parent class of all SMPP Response packets.
   * @author Oran Kelly
   * @version 1.0
   */
@@ -42,11 +44,11 @@ public abstract class SMPPResponse
     /** Read in a SMPPResponse from an InputStream.  A full packet,
       * including the header fields must exist in the stream.
       * @param in The InputStream to read from
-      * @exception ie.omk.smpp.SMPPException If the stream does not
-      * contain a SMPPResponse packet.
-      * @see java.io.InputStream
+      * @exception java.io.IOException if there's an error reading from the
+      * input stream.
       */
     public SMPPResponse(InputStream in)
+	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super(in);
     }
@@ -63,11 +65,14 @@ public abstract class SMPPResponse
 
     /** Set the status of this command (header field)
       * @param s The value for the status
-      * @see SMPPPacket#DELIVERED
+      * @exception ie.omk.smpp.SMPPException if the status is invalid.
       */
     public void setCommandStatus(int s)
+	throws ie.omk.smpp.SMPPException
     {
 	if(s >= 0)
-	    commandStatus = s;
+	    this.commandStatus = s;
+	else
+	    throw new SMPPException("Invalid command status.");
     }
 }

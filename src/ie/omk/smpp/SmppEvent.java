@@ -25,21 +25,30 @@ package ie.omk.smpp;
 import ie.omk.smpp.message.*;
 import ie.omk.debug.Debug;
 
+/** SMPP packet receive event.
+  * When asynchronous communication is in use, registered observers of an
+  * SmppConnection are notified of incoming packets from the SMSC by an
+  * SmppEvent. The SmppEvent object contains the source of the event as well as
+  * the incoming packet, plus some possible extra information, depending on the
+  * incoming packet type.
+  */
 public class SmppEvent
 {
     /** The source object of this event. */
-    Object	source;
+    protected Object source;
 
-    Object	infoClass;
+    /** Optional extra information. */
+    protected Object infoClass;
 
-    /** This is the packet that caused the event. */
-    SMPPPacket	packet;
+    /** A handle to the packet that caused the event. */
+    protected SMPPPacket packet;
 
 
     /** Construct a new Smpp event.
       * @param source The source of this event (not null)
       * @param p The packet that caused the event (not null)
-      * @param o Extra details to associate with the event (see getDetails()) (can be null)
+      * @param o Extra details to associate with the event
+      * (see getDetails()) (can be null)
       * @see SmppEvent#getDetails
       */
     public SmppEvent(Object source, SMPPPacket p, Object o)

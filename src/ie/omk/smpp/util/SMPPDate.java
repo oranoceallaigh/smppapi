@@ -33,11 +33,17 @@ public class SMPPDate
 {
     private Date date = null;
 
+    /** Create a new SMPPDate. A new java.util.Date is created to represent the
+      * current time.
+      */
     public SMPPDate()
     {
 	date = new Date();
     }
 
+    /** Create a new SMPPDate.
+      * @param d The java.util.Date value to use.
+      */
     public SMPPDate(Date d)
     {
 	date = d;

@@ -24,41 +24,20 @@ package ie.omk.smpp;
 
 import ie.omk.debug.Debug;
 
+/** SMPPException.
+  * @author Oran Kelly
+  * @version 1.0
+  */
 public class SMPPException
-    extends RuntimeException
+    extends java.lang.Exception
 {
-    String msgx;
-    String detail;
-
     public SMPPException()
     {
 	super();
-	msgx = new String("");
-	detail = new String("");
     }
 
     public SMPPException(String s)
     {
 	super(s);
-	msgx = new String("");
-	detail = new String("");
-    }
-
-    public SMPPException(String s, Exception e)
-    {
-	super(s);
-	msgx = new String(e.getMessage());
-	detail = new String(e.toString());
-    }
-
-    public String getExtendedMsg()
-    {
-	return new String(msgx);
-    }
-
-    public String getDetails()
-    {
-	return new String(detail);
     }
 }
-

@@ -28,7 +28,8 @@ import ie.omk.smpp.util.SMPPIO;
 import ie.omk.debug.Debug;
 
 /** Defines a destination address structure as used by SubmitMulti
-  * and QueryMsgDetails
+  * and QueryMsgDetails.
+  * XXX Move to ie.omk.smpp.util??
   * @author Oran Kelly
   * @version 1.0
   */
@@ -77,6 +78,7 @@ public class SmeAddress
       * null or is invalid
       */
     public SmeAddress(int ton, int npi, String addr)
+	throws ie.omk.smpp.SMPPException
     {
 	isSme = true;
 	this.ton = ton;
@@ -86,7 +88,7 @@ public class SmeAddress
 	    throw new SMPPException("Destination address cannot be null and "
 		    + "must be < 21 chars.");
 	} else {
-	    this.addr = new String(addr);
+	    this.addr = addr;
 	}
     }
 
@@ -99,6 +101,7 @@ public class SmeAddress
       * null or is invalid
       */
     public SmeAddress(int ton, int npi, String addr, boolean flag)
+	throws ie.omk.smpp.SMPPException
     {
 	this(ton, npi, addr);
 	useFlag = flag;
@@ -110,6 +113,7 @@ public class SmeAddress
       * @exception ie.omk.smpp.SMPPException If <i>addr</i> is null or invalid
       */
     public SmeAddress(String addr)
+	throws ie.omk.smpp.SMPPException
     {
 	isSme = false;
 	useFlag = true;
@@ -127,12 +131,11 @@ public class SmeAddress
     /** Read in a SmeAddress from an InputStream.  A full packet,
       * including the header fields must exist in the stream.
       * @param in The InputStream to read from
-      * @exception ie.omk.smpp.SMPPException If the stream does not
-      * contain a SmeAddress packet.
-      * @see java.io.InputStream
+      * @exception java.io.IOException if there's an error reading from the
+      * input stream.
       */
     public SmeAddress(InputStream in)
-	throws IOException
+	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	this(in, false);
     }
@@ -142,12 +145,11 @@ public class SmeAddress
       * @param in The InputStream to read from
       * @param id If true then read an extra int to distinguish between
       * Sme addresses and distribution lists.
-      * @exception ie.omk.smpp.SMPPException If the stream does not
-      * contain a SmeAddress packet.
-      * @see java.io.InputStream
+      * @exception java.io.IOException if there's an error reading from the
+      * input stream.
       */
     public SmeAddress(InputStream in, boolean id)
-	throws IOException
+	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	useFlag = id;
 
@@ -176,7 +178,9 @@ public class SmeAddress
 	}
     }
 
-    /** Get the size in bytes of this packet */
+    /** Return the number of bytes this address would be encoded as to an
+      * OutputStream.
+      */
     public int size()
     {
 	if(isSme) {
@@ -189,13 +193,13 @@ public class SmeAddress
 	}
     }
 
-    /** Write a byte representation of this packet to an OutputStream
+    /** Write a byte representation of this address to an OutputStream
       * @param out The OutputStream to write to
-      * @exception ie.omk.smpp.SMPPException If an I/O error occurs
-      * @see java.io.OutputStream
+      * @exception java.io.IOException if there's an error writing to the
+      * output stream.
       */
     public void writeTo(OutputStream out)
-	throws java.io.IOException
+	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	if(isSme) {
 	    if(useFlag)
@@ -210,6 +214,9 @@ public class SmeAddress
 	}
     }
 
+    /** Convert this packet to a String. Not to be interpreted programmatically,
+      * it's just dead handy for debugging!
+      */
     public String toString()
     {
 	if(isSme)

@@ -28,7 +28,10 @@ import ie.omk.smpp.util.SMPPIO;
 import ie.omk.debug.Debug;
 
 
-/** Deliver a message
+/** Deliver message.
+  * This message is sent from the SMSC to a Receiver ESME to deliver a short
+  * message. It is also used to notify an ESME that submitted a message using
+  * registered delivery that a message has reached it's end point successfully.
   * @author Oran Kelly
   * @version 1.0
   */
@@ -46,11 +49,11 @@ public class DeliverSM
     /** Read in a DeliverSM from an InputStream.  A full packet,
       * including the header fields must exist in the stream.
       * @param in The InputStream to read from
-      * @exception ie.omk.smpp.SMPPException If the stream does not
-      * contain a DeliverSM packet.
-      * @see java.io.InputStream
+      * @exception java.io.IOException if there's an error reading from the
+      * input stream.
       */
     public DeliverSM(InputStream in)
+	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super(in);
 
@@ -60,43 +63,38 @@ public class DeliverSM
 	int smLength = 0;
 	String delivery, valid;
 
-	try {
-	    // First the service type
-	    serviceType = SMPPIO.readCString(in);
+	// First the service type
+	serviceType = SMPPIO.readCString(in);
 
-	    // Get the source address
-	    source = new SmeAddress(in);
+	// Get the source address
+	source = new SmeAddress(in);
 
-	    // Get the destination address
-	    destination = new SmeAddress(in);
+	// Get the destination address
+	destination = new SmeAddress(in);
 
-	    // ESM class, protocol Id, priorityFlag...
-	    flags.esm_class = SMPPIO.readInt(in, 1);
-	    flags.protocol = SMPPIO.readInt(in, 1);
-	    flags.priority = (SMPPIO.readInt(in, 1) == 0 ? false : true);
+	// ESM class, protocol Id, priorityFlag...
+	flags.esm_class = SMPPIO.readInt(in, 1);
+	flags.protocol = SMPPIO.readInt(in, 1);
+	flags.priority = (SMPPIO.readInt(in, 1) == 0 ? false : true);
 
-	    // These should both just be nul bytes...
-	    delivery = SMPPIO.readCString(in);
-	    valid = SMPPIO.readCString(in);
+	// These should both just be nul bytes...
+	delivery = SMPPIO.readCString(in);
+	valid = SMPPIO.readCString(in);
 
-	    // Registered delivery, replace if present, data coding, default msg
-	    // and message length
-	    flags.registered = (SMPPIO.readInt(in, 1) == 0 ? false : true);
-	    flags.replace_if_present = (SMPPIO.readInt(in, 1) == 0 ? false : true);
-	    flags.data_coding = SMPPIO.readInt(in, 1);
-	    flags.default_msg = SMPPIO.readInt(in, 1);
-	    smLength = SMPPIO.readInt(in, 1);
+	// Registered delivery, replace if present, data coding, default msg
+	// and message length
+	flags.registered = (SMPPIO.readInt(in, 1) == 0 ? false : true);
+	flags.replace_if_present = (SMPPIO.readInt(in, 1) == 0 ? false : true);
+	flags.data_coding = SMPPIO.readInt(in, 1);
+	flags.default_msg = SMPPIO.readInt(in, 1);
+	smLength = SMPPIO.readInt(in, 1);
 
-	    message = SMPPIO.readString(in, smLength);
-	} catch(IOException iox) {
-	    Debug.d(this, "DeliverSM", "Input stream does not contain a "
-		    + "deliver_sm", Debug.DBG_1);
-	    throw new SMPPException("Input stream does not contain a "
-		    + "deliver_sm packet");
-	}
+	message = SMPPIO.readString(in, smLength);
     }
 
-    /** Get the size in bytes of this packet */
+    /** Return the number of bytes this packet would be encoded as to an
+      * OutputStream.
+      */
     public int getCommandLen()
     {
 	return (getHeaderLen() + 13
@@ -108,8 +106,8 @@ public class DeliverSM
 
     /** Write a byte representation of this packet to an OutputStream
       * @param out The OutputStream to write to
-      * @exception ie.omk.smpp.SMPPException If an I/O error occurs
-      * @see java.io.OutputStream
+      * @exception java.io.IOException if there's an error writing to the
+      * output stream.
       */
     protected void encodeBody(OutputStream out)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
@@ -147,6 +145,9 @@ public class DeliverSM
 	SMPPIO.writeString(message, smLength, out);
     }
 
+    /** Convert this packet to a String. Not to be interpreted programmatically,
+      * it's just dead handy for debugging!
+      */
     public String toString()
     {
 	if(flags.esm_class == 4 || flags.esm_class == 16)

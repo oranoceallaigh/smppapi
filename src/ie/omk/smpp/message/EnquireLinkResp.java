@@ -26,7 +26,9 @@ import java.io.*;
 import ie.omk.debug.Debug;
 
 
-/** SMSC or ESME reponse to an EnquireLink packet
+/** ESME or SMSC response to an EnquireLink request.
+  * Used to positivly acknowledge that this entity is still alive and capable of
+  * submitting, or responding to, SMPP messages.
   * @author Oran Kelly
   * @version 1.0
   */
@@ -44,11 +46,11 @@ public class EnquireLinkResp
     /** Read in a EnquireLinkResp from an InputStream.  A full packet,
       * including the header fields must exist in the stream.
       * @param in The InputStream to read from
-      * @exception ie.omk.smpp.SMPPException If the stream does not
-      * contain a EnquireLinkResp packet.
-      * @see java.io.InputStream
+      * @exception java.io.IOException if there's an error reading from the
+      * input stream.
       */
     public EnquireLinkResp(InputStream in)
+	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super(in);
     }
@@ -62,11 +64,17 @@ public class EnquireLinkResp
 	super(r);
     }
 
+    /** Return the number of bytes this packet would be encoded as to an
+      * OutputStream.
+      */
     public int getCommandLen()
     {
 	return (getHeaderLen());
     }
 
+    /** Convert this packet to a String. Not to be interpreted programmatically,
+      * it's just dead handy for debugging!
+      */
     public String toString()
     {
 	return new String("enquire_link_resp");

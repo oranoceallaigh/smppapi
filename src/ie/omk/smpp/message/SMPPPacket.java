@@ -31,7 +31,7 @@ import ie.omk.smpp.util.SMPPIO;
 import ie.omk.smpp.util.GSMConstants;
 import ie.omk.debug.Debug;
 
-/** This is the abstract class that all SMPP messages are inherited from
+/** This is the abstract class that all SMPP messages are inherited from.
  *  @author Oran Kelly
  *  @version 1.0
  */
@@ -152,14 +152,14 @@ public abstract class SMPPPacket
     /** Packet sequence number. */
     protected int sequenceNum = 0;
 
-    /** Almost all packets use one or more of these.
-      * These attributes were all stuck in here for easier maintenance...
-      * instead of altering 5 different packets, just alter it here!!
-      * Special cases like SubmitMulti and QueryMsgDetailsResp maintain
-      * their own destination tables.  Any packets that wish to use
-      * these attribs should override the appropriate methods defined
-      * below to be public and just call super.method()
-      */
+    /* Almost all packets use one or more of these.
+     * These attributes were all stuck in here for easier maintenance...
+     * instead of altering 5 different packets, just alter it here!!
+     * Special cases like SubmitMulti and QueryMsgDetailsResp maintain
+     * their own destination tables.  Any packets that wish to use
+     * these attribs should override the appropriate methods defined
+     * below to be public and just call super.method()
+     */
 
     /** Source address */
     protected SmeAddress	source;
@@ -188,18 +188,11 @@ public abstract class SMPPPacket
     /** Create a new SMPPPacket with specified Id and sequence number.
       * @param id Command Id value
       * @param seqNum Command Sequence number
-      * @exception ie.omk.smpp.SMPPException If an invalid sequence number is
-      * used
       */
     public SMPPPacket(int id, int seqNum)
     {
 	this.commandId = id;
-	if(seqNum >= 0x01 && seqNum <= 0x7FFFFFFF) {
-	    this.sequenceNum = seqNum;
-	} else {
-	    Debug.d(this, "<init>", "Bad sequence no: " + seqNum, Debug.DBG_1);
-	    throw new SMPPException("Sequence Number out of Bounds.");
-	}
+	this.sequenceNum = seqNum;
 
 	// Flags should always be created (rest of code assumes it is.)
 	flags = new MsgFlags();
@@ -207,30 +200,24 @@ public abstract class SMPPPacket
 
     /** Read an SMPPPacket header from an InputStream
       * @param in InputStream to read from
-      * @exception IOException If EOS is reached or I/O error occurs before an SMPPPacket can be read
-      * @see java.io.InputStream
+      * @exception IOException if there's an error reading from the input
+      * stream.
       */
     public SMPPPacket(InputStream in)
+	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	// Flags should always be created (rest of code assumes it is.)
 	flags = new MsgFlags();
 
-	try {
-	    int cmdLen = SMPPIO.readInt(in, 4);
-	    this.commandId = SMPPIO.readInt(in, 4);
-	    this.commandStatus = SMPPIO.readInt(in, 4);
-	    this.sequenceNum = SMPPIO.readInt(in, 4);
-	} catch(IOException iox) {
-	    if(Debug.dbg)
-		Debug.d(this, "<init>", "IOException " + iox.getMessage(),
-			Debug.DBG_1);
-	    throw new SMPPException("Input stream does not contain an SMPP "
-		    + "Packet.");
-	}
+	int cmdLen = SMPPIO.readInt(in, 4);
+	this.commandId = SMPPIO.readInt(in, 4);
+	this.commandStatus = SMPPIO.readInt(in, 4);
+	this.sequenceNum = SMPPIO.readInt(in, 4);
     }
 
-    /** Get the length of this SMPP packet
-      * @return The size in bytes of this packet
+    /** Return the number of bytes this packet would be encoded as to an
+      * OutputStream.
+      * @return The size in bytes of the packet
       */
     public abstract int getCommandLen();
 
@@ -243,7 +230,7 @@ public abstract class SMPPPacket
 	return (16);
     }
 
-    /** Get the Command Id of this SMPP packet
+    /** Get the Command Id of this SMPP packet.
       * @return The Command Id of this packet
       */
     public int getCommandId()
@@ -251,15 +238,16 @@ public abstract class SMPPPacket
 	return (commandId);
     }
 
-    /** Get the status of this packet
-      * @return The error status of this packet (only relevent to Response packets)
+    /** Get the status of this packet.
+      * @return The error status of this packet (only relevent to Response
+      * packets)
       */
     public int getCommandStatus()
     {
 	return (commandStatus);
     }
 
-    /** Get the sequence number of this packet
+    /** Get the sequence number of this packet.
       * @return The sequence number of this SMPP packet
       */
     public int getSequenceNum()
@@ -275,11 +263,13 @@ public abstract class SMPPPacket
     /** Set the source address.
       * Not used by all SMPP Packet types.
       * @see ie.omk.smpp.message.SubmitSM
+      * @see ie.omk.smpp.message.DeliverSM
+      * XXX Add other packets.
       */
     public void setSource(SmeAddress s)
     {
 	if(s != null) {
-	    source = s;
+	    this.source = s;
 	    if(Debug.dbg)
 		Debug.d(this, "setSource", "Source set to "+s, Debug.DBG_4);
 	} else if(Debug.dbg) {
@@ -294,7 +284,7 @@ public abstract class SMPPPacket
     public SmeAddress getSource()
     {
 	if(source != null)
-	    return (new SmeAddress(source.ton, source.npi, source.addr));
+	    return (source);
 	else
 	    return (null);
     }
@@ -306,7 +296,7 @@ public abstract class SMPPPacket
     public void setDestination(SmeAddress s)
     {
 	if(s != null) {
-	    destination = s;
+	    this.destination = s;
 	    if(Debug.dbg)
 		Debug.d(this, "setDestination", "Dest set to"+s, Debug.DBG_4);
 	} else {
@@ -322,9 +312,7 @@ public abstract class SMPPPacket
     public SmeAddress getDestination()
     {
 	if(destination != null) {
-	    return new SmeAddress(destination.ton,
-				  destination.npi,
-				  destination.addr);
+	    return (destination);
 	} else {
 	    return (null);
 	}
@@ -401,7 +389,9 @@ public abstract class SMPPPacket
 	    Debug.d(this, "setProtocol", id, Debug.DBG_4);
     }
 
-    /** Set the GSM data coding type in the message flags. */
+    /** Set the GSM data coding type in the message flags.
+      * @see ie.omk.smpp.util.GSMConstants
+      */
     public void setDataCoding(int dc)
     {
 	if(flags == null)
@@ -433,10 +423,12 @@ public abstract class SMPPPacket
     {
 	return (flags.registered);
     }
+
     public boolean isPriority()
     {
 	return (flags.priority);
     }
+
     public boolean isReplaceIfPresent()
     {
 	return (flags.replace_if_present);
@@ -459,14 +451,19 @@ public abstract class SMPPPacket
     }
 
     /** Set the text of the message (max 160 characters).
+      * @param text The short message text.
+      * @exception ie.omk.smpp.SMPPException if the message is too long.
       */
     public void setMessageText(String text)
+	throws ie.omk.smpp.SMPPException
     {
-	if(text == null)
-	{ message = null; return; }
+	if(text == null) {
+	    message = null;
+	    return;
+	}
 
 	if(text.length() < 161) {
-	    message = new String(text);
+	    this.message = text;
 	    if(Debug.dbg)
 		Debug.d(this, "setMessageText", text, Debug.DBG_4);
 	} else {
@@ -478,28 +475,35 @@ public abstract class SMPPPacket
     /** Get the text of the message. */
     public String getMessageText()
     {
-	return (message == null) ? null : new String(message);
+	return (message);
     }
 
-    /** Get the length of the message text. */
+    /** Get the length of the message text.
+      * @return The length of the message (in bytes/characters).
+      */
     public int getMessageLen()
     {
 	return (message == null) ? 0 : message.length();
     }
 
     /** Set the service type.
+      * @exception ie.omk.smpp.SMPPException If the service type is invalid.
       */
     public void setServiceType(String type)
+	throws ie.omk.smpp.SMPPException
     {
-	if(type == null)
-	{ serviceType = null; return; }
+	if(type == null) {
+	    serviceType = null;
+	    return;
+	}
 
 	if(type.length() < 6) {
-	    serviceType = new String(type);
+	    this.serviceType = type;
 	    if(Debug.dbg)
 		Debug.d(this, "setServiceType", type, Debug.DBG_4);
 	} else {
-	    Debug.d(this, "setServiceType", "Service type too long", Debug.DBG_1);
+	    Debug.d(this, "setServiceType", "Service type too long",
+		    Debug.DBG_1);
 	    throw new SMPPException("Service type must be < 6 characters");
 	}
     }
@@ -507,23 +511,38 @@ public abstract class SMPPPacket
     /** Get the service type. */
     public String getServiceType()
     {
-	return (serviceType == null) ? null : new String(serviceType);
+	return (serviceType);
     }
 
+    /** Set the scheduled delivery time for the short message.
+      * @param d The date and time the message should be delivered.
+      * @throws ie.omk.smpp.SMPPException (XXX can the date be invalid?)
+      */
     public void setDeliveryTime(SMPPDate d)
+	throws ie.omk.smpp.SMPPException
     {
-	deliveryTime = d;
+	this.deliveryTime = d;
 	if(Debug.dbg)
 	    Debug.d(this, "setDeliveryTime", "Delivery time set to " + d,
 		    Debug.DBG_4);
     }
 
+    /** Get the current value of the scheduled delivery time for the short
+      * message.
+      */
     public SMPPDate getDeliveryTime()
     {
 	return (deliveryTime);
     }
 
+    /** Set the expiry time of the message.
+      * If the message is not delivered by time 'd', it will be cancelled and
+      * never delivered to it's destination.
+      * @param d the date and time the message should expire.
+      * @exception ie.omk.smpp.SMPPException (XXX can the time be invalid?)
+      */
     public void setExpiryTime(SMPPDate d)
+	throws ie.omk.smpp.SMPPException
     {
 	expiryTime = d;
 	if(Debug.dbg)
@@ -531,12 +550,21 @@ public abstract class SMPPPacket
 		    Debug.DBG_4);
     }
 
+    /** Get the current value for the expiry time of the message.
+      */
     public SMPPDate getExpiryTime()
     {
 	return (expiryTime);
     }
 
+    /** Set the final date of the message.
+      * The final date is the date and time that the message reached it's final
+      * destination.
+      * @param d the date the message was delivered.
+      * @exception ie.omk.smpp.SMPPException (XXX can the time be invalid?)
+      */
     public void setFinalDate(SMPPDate d)
+	throws ie.omk.smpp.SMPPException
     {
 	finalDate = d;
 	if(Debug.dbg)
@@ -544,54 +572,84 @@ public abstract class SMPPPacket
 		    Debug.DBG_4);
     }
 
+    /** Get the final date of the message.
+      */
     public SMPPDate getFinalDate()
     {
 	return (finalDate);
     }
 
+    /** Set the message Id.
+      * Each submitted short message is assigned an Id by the SMSC which is used
+      * to uniquely identify it. SMPP v3.3 message Ids are hexadecimal numbers
+      * up to 9 characters long. This gives them a range of 0x0 - 0xffffffff.
+      * @param id The message's id.
+      * @exception ie.omk.smpp.SMPPException if the message id is invalid.
+      */
     public void setMessageId(int id)
+	throws ie.omk.smpp.SMPPException
     {
-	if(id < 0)
-	{ messageId = 0; return; }
-
-	String sid = Integer.toHexString(id);
-	if(sid.length() > 9) {
-	    Debug.d(this, "setMessageId", "id invalid"+id, Debug.DBG_1);
-	    throw new SMPPException("Message Id invalid: range "
-		    + "[00000000h - FFFFFFFFh");
+	if(id < 0) {
+	    messageId = 0;
+	    return;
 	}
+
+	if (id > 0xffffffff)
+	    throw new SMPPException("Message id is too long.");
 
 	messageId = id;
 	if(Debug.dbg)
 	    Debug.d(this, "setMessageId", id, Debug.DBG_4);
     }
+    
+    /** Get the message id.
+      */
     public int getMessageId()
     {
 	return (messageId);
     }
 
+    /** Set the message status. This is different to the command status field.
+      * XXX describe the message status.
+      * @param st The message status.
+      * @exception ie.omk.smpp.SMPPException if the status is invalid.
+      */
     public void setMessageStatus(int st)
+	throws ie.omk.smpp.SMPPException
     {
 	messageStatus = st;
 	if(Debug.dbg)
 	    Debug.d(this, "setMessageStatus", st, Debug.DBG_4);
     }
+
+    /** Get the message status.
+      */
     public int getMessageStatus()
     {
 	return (messageStatus);
     }
 
+    /** Set the error code.
+      * @param code The error code.
+      */
     public void setErrorCode(int code)
+	throws ie.omk.smpp.SMPPException
     {
 	errorCode = code; 
 	if(Debug.dbg)
 	    Debug.d(this, "setErrorCode", code, Debug.DBG_4);
     }
+
+    /** Get the error code.
+      */
     public int getErrorCode()
     {
 	return (errorCode);
     }
 
+    /** Convert this packet to a String. Not to be interpreted programmatically,
+      * it's just dead handy for debugging!
+      */
     public String toString()
     {
 	return new String("header: " + getHeaderLen() + ", "
@@ -600,6 +658,14 @@ public abstract class SMPPPacket
 		+ Integer.toHexString(sequenceNum));
     }
 
+    /** Encode the body of the SMPP Packet to the output stream. Sub classes
+      * should override this method to output their packet-specific fields. This
+      * method is called from SMPPPacket.writeTo(java.io.OutputStream) to
+      * encode the message.
+      * @param out The output stream to write to.
+      * @exception java.io.IOException if there's an error writing to the output
+      * stream.
+      */
     protected void encodeBody(OutputStream out)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
@@ -608,33 +674,26 @@ public abstract class SMPPPacket
 
     /** Write the byte representation of this SMPP packet to an OutputStream
       * @param out The OutputStream to use
-      * @exception ie.omk.smpp.SMPPException If an error occurs trying to
-      * write the packet.
-      * @see java.io.OutputStream
+      * @exception java.io.IOException if there's an error writing to the
+      * output stream.
       */
     public final void writeTo(OutputStream out)
+	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
-	try {
-	    // Make sure the size is set properly
-	    int commandLen = getCommandLen();
+	// Make sure the size is set properly
+	int commandLen = getCommandLen();
 
-	    SMPPIO.writeInt(commandLen, 4, out);
-	    SMPPIO.writeInt(commandId, 4, out);
-	    SMPPIO.writeInt(commandStatus, 4, out);
-	    SMPPIO.writeInt(sequenceNum, 4, out);
+	SMPPIO.writeInt(commandLen, 4, out);
+	SMPPIO.writeInt(commandId, 4, out);
+	SMPPIO.writeInt(commandStatus, 4, out);
+	SMPPIO.writeInt(sequenceNum, 4, out);
 
-	    encodeBody(out);
-	    out.flush();
+	encodeBody(out);
+	out.flush();
 
-	    if(Debug.dbg)
-		Debug.d(this, "writeTo", "Packet written to "
-			+ out.getClass().getName(), Debug.DBG_4);
-
-	} catch(IOException x) {
-	    Debug.d(this, "writeTo", "IOException "+x.getMessage(), Debug.DBG_1);
-	    throw new SMPPException("Error writing SMPP header information "
-		    + "to output stream");
-	}
+	if(Debug.dbg)
+	    Debug.d(this, "writeTo", "Packet written to "
+		    + out.getClass().getName(), Debug.DBG_4);
     }
 
     /** Read an SMPPPacket from an InputStream.  The type of the packet is
@@ -645,12 +704,14 @@ public abstract class SMPPPacket
       * determined from SMPPPacket.getCommandId()
       * @exception java.io.EOFException If the end of stream is reached
       * @exception java.io.IOException If an I/O error occurs
-      * @see java.io.InputStream
-      * @see ie.omk.smpp.message.SMPPPacket#getCommandId
       */
     public static SMPPPacket readPacket(InputStream in)
-	throws SocketException, IOException
+	throws java.net.SocketException, java.io.IOException,
+	    ie.omk.smpp.SMPPException
     {
+	// XXX should this method throw SMPPException or catch it.
+
+
 	SMPPPacket response = null;
 	byte b[] = new byte[4];
 

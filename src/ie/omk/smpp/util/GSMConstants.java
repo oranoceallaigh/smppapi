@@ -25,6 +25,10 @@ package ie.omk.smpp.util;
 
 import java.util.Hashtable;
 
+/** GSM constant values.
+  * This class includes static values for known Type-of numbers, numbering plan
+  * indicators and GSM error codes.
+  */
 public final class GSMConstants
 {
     /** No error */

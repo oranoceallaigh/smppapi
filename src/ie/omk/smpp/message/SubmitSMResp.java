@@ -27,7 +27,7 @@ import ie.omk.smpp.SMPPException;
 import ie.omk.smpp.util.SMPPIO;
 import ie.omk.debug.Debug;
 
-/** SMSC response to a submit_sm message
+/** Submit short message response.
   * @author Oran Kelly
   * @version 1.0
   */
@@ -45,11 +45,11 @@ public class SubmitSMResp
     /** Read in a SubmitSMResp from an InputStream.  A full packet,
       * including the header fields must exist in the stream.
       * @param in The InputStream to read from
-      * @exception ie.omk.smpp.SMPPException If the stream does not
-      * contain a SubmitSMResp packet.
-      * @see java.io.InputStream
+      * @exception java.io.IOException If an error occurs writing to the input
+      * stream.
       */
     public SubmitSMResp(InputStream in)
+	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super(in);
 
@@ -57,10 +57,8 @@ public class SubmitSMResp
 	    return;
 
 	try {
+	    // XXX should not fail on number format.
 	    messageId = Integer.parseInt(SMPPIO.readCString(in), 16);
-	} catch(IOException x) {
-	    throw new SMPPException("Input Stream does not contain a "
-		    + "submit_sresp packet");
 	} catch(NumberFormatException nx) {
 	    throw new SMPPException("Error reading message Id from the "
 		    + "input stream.");
@@ -77,7 +75,9 @@ public class SubmitSMResp
 	super(r);
     }
 
-    /** Get the size in bytes of this packet */
+    /** Return the number of bytes this packet would be encoded as to an
+      * OutputStream.
+      */
     public int getCommandLen()
     {
 	String id = Integer.toHexString(getMessageId());
@@ -88,8 +88,8 @@ public class SubmitSMResp
 
     /** Write a byte representation of this packet to an OutputStream
       * @param out The OutputStream to write to
-      * @exception ie.omk.smpp.SMPPException If an I/O error occurs
-      * @see java.io.OutputStream
+      * @exception java.io.IOException If an error occurs writing to the output
+      * stream.
       */
     protected void encodeBody(OutputStream out)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
@@ -97,6 +97,9 @@ public class SubmitSMResp
 	SMPPIO.writeCString(Integer.toHexString(getMessageId()), out);
     }
 
+    /** Convert this packet to a String. Not to be interpreted programmatically,
+      * it's just dead handy for debugging!
+      */
     public String toString()
     {
 	return new String("submit_sm_resp");

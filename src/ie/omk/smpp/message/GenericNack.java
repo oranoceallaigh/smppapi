@@ -24,7 +24,10 @@ package ie.omk.smpp.message;
 
 import java.io.*;
 
-/** Generic negative acknowledgment: header fields were invalid
+/** Generic negative acknowledgment.
+  * Used if the short message entity, either ESME or SMSC, does not understand a
+  * message transmitted to it or if a transmitted protocol message is badly
+  * formed.
   * @author Oran Kelly
   * @version 1.0
   */
@@ -42,20 +45,26 @@ public class GenericNack
     /** Read in a GenericNack from an InputStream.  A full packet,
       * including the header fields must exist in the stream.
       * @param in The InputStream to read from
-      * @exception ie.omk.smpp.SMPPException If the stream does not
-      * contain a GenericNack packet.
-      * @see java.io.InputStream
+      * @exception java.io.IOException if there's an error reading from the
+      * input stream.
       */
     public GenericNack(InputStream in)
+	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super(in);
     }
 
+    /** Return the number of bytes this packet would be encoded as to an
+      * OutputStream.
+      */
     public int getCommandLen()
     {
 	return (getHeaderLen());
     }
 
+    /** Convert this packet to a String. Not to be interpreted programmatically,
+      * it's just dead handy for debugging!
+      */
     public String toString()
     {
 	return new String("generic_nack");

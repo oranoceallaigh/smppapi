@@ -21,9 +21,6 @@
  * Java SMPP API Homepage: http://smppapi.sourceforge.net/
  */
 
-/*
- * Transmitter implementation of the SMPP API
- */
 package ie.omk.smpp;
 
 import java.io.*;
@@ -34,7 +31,7 @@ import ie.omk.smpp.net.*;
 import ie.omk.smpp.util.SMPPDate;
 import ie.omk.debug.Debug;
 
-/** smpp implementation of a Transmitter SmppConnection
+/** Transmitter implementation of the SMPP Connection.
   * @author Oran Kelly
   * @version 1.0
   */
@@ -94,6 +91,7 @@ public class SmppTransmitter
 	if(sysType == null)
 	    throw new SMPPException("Need a system type to identify as.");
 
+	// Open the network connection if necessary.
 	if(!link.isConnected()) {
 	    Debug.d(this, "bind", "Opening link connection", Debug.DBG_2);
 	    link.open();
@@ -209,7 +207,6 @@ public class SmppTransmitter
       * communication is used.
       * @exception java.io.IOException If a network error occurs
       * @see SmeAddress
-      * @see SmppTransmitter#sendMessage
       */
     public SubmitMultiResp submitMulti(String msg, MsgFlags flags,
 	    SmeAddress src, SmeAddress dst[])
@@ -479,8 +476,10 @@ public class SmppTransmitter
 	    throw new NullPointerException("Message Id is out of valid range.");
 
 	// Make sure the length requested is sane!
-	if(len < 0) len = 0;
-	if(len > 161) len = 161;
+	if(len < 0)
+	    len = 0;
+	if(len > 161)
+	    len = 161;
 
 	QueryMsgDetails s = new QueryMsgDetails(nextPacket());
 	s.setMessageId(msgId);
