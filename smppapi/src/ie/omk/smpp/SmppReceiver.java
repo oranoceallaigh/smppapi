@@ -1,6 +1,6 @@
 /*
- * Java implementation of the SMPP v3.3 API
- * Copyright (C) 1998 - 2000 by Oran Kelly
+ * Java SMPP API
+ * Copyright (C) 1998 - 2001 by Oran Kelly
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,6 +18,7 @@
  * 
  * A copy of the LGPL can be viewed at http://www.gnu.org/copyleft/lesser.html
  * Java SMPP API author: oran.kelly@ireland.com
+ * Java SMPP API Homepage: http://smppapi.sourceforge.net/
  */
 
 /*
@@ -39,28 +40,38 @@ public class SmppReceiver
     extends ie.omk.smpp.SmppConnection
 {
     /** Create a new smpp Receiver connection
-     * @param link The network link to the Smsc
-     */
+      * @param link The network link to the Smsc
+      */
     public SmppReceiver(SmscLink link)
     {
 	super(link);
     }
 
+    /** Create a new Smpp receiver specifying the type of communications
+      * desired.
+      * @param link The network link object to the Smsc (cannot be null)
+      * @param async true for asyncronous communication, false for synchronous.
+      * @exception java.lang.NullPointerException If the link is null
+      */
+    public SmppReceiver(SmscLink link, boolean async)
+    {
+	super(link, async);
+    }
 
     /** Bind to the SMSC as a receiver.
-     * @return true if the bind is successful, false otherwise
-     * @exception SMPPException If we are already bound to the SMSC, or the
-     * necessary fields aren't filled in.
-     * @exception java.io.IOException If a network error occurs.
-     * @see SmppConnection#bind
-     * @see SmppTransmitter#bind
-     */
-    public boolean bind()
-	throws java.io.IOException
+      * @return The bind response, or null if asynchronous
+      * communication is used.
+      * @exception SMPPException If we are already bound to the SMSC, or the
+      * necessary fields aren't filled in.
+      * @exception java.io.IOException If a network error occurs.
+      * @see SmppTransmitter#bind
+      */
+    public SMPPResponse bind()
+	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	// Make sure we're not already bound
-	if(bound)
-	    throw new SMPPException("Already bound to SMSC as Receiver.");
+	if(getState() != UNBOUND)
+	    throw new SMPPException("Already bound to SMSC.");
 
 	// Check the required fields are filled in
 	if(sysId == null)
@@ -72,8 +83,6 @@ public class SmppReceiver
 
 	if(!link.isConnected())
 	    link.open();
-	in = link.getInputStream();
-	out = link.getOutputStream();
 
 	BindReceiver t = new BindReceiver(nextPacket());
 	t.setSystemId(this.sysId);
@@ -84,36 +93,33 @@ public class SmppReceiver
 	t.setAddressNpi(this.addrNpi);
 	t.setAddressRange(this.addrRange);
 
-	// Start the listener thread on the incoming socket...
-	rcvThread.start();
+	// Make sure the listener thread is running
+	setState(BINDING);
+	if(asyncComms) {
+	    if (rcvThread == null)
+		rcvThread = new Thread(this);
 
-	sendRequest(t);
+	    if (!rcvThread.isAlive())
+		rcvThread.start();
+	}
+
 	Debug.d(this, "bind", "Request sent", Debug.DBG_3);
-	return true;
+
+	SMPPResponse resp = sendRequest(t);
+	if (!asyncComms) {
+	    if (resp.getCommandId() == SMPPPacket.ESME_BNDRCV_RESP
+		    && resp.getCommandStatus() == 0)
+		setState(BOUND);
+	}
+	return ((SMPPResponse)resp);
     }
 
     /** Acknowledge a DeliverSM command received from the Smsc. */
     public void ackDeliverSm(DeliverSM rq)
-	throws java.io.IOException
+	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	DeliverSMResp rsp = new DeliverSMResp(rq);
 	sendResponse(rsp);
 	Debug.d(this, "ackDeliverSM", "Response sent", Debug.DBG_3);
     }
-
-    /** Unbind from the SMSC.  This method stops the listener thread
-     * and calls SmppConnection.unbind()
-     * @return true if the unbind is successful, false otherwise
-     * @exception java.io.IOException If a network error occurs
-     */
-    /*	public boolean unbind()
-	throws java.io.IOException
-	{
-    // Stop the thread listening on the incoming socket...
-    if(listener != null)
-    listener.stop();
-
-    return super.unbind();
-    }*/
 }
-

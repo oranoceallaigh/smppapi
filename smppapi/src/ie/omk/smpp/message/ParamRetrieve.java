@@ -1,6 +1,6 @@
 /*
- * Java implementation of the SMPP v3.3 API
- * Copyright (C) 1998 - 2000 by Oran Kelly
+ * Java SMPP API
+ * Copyright (C) 1998 - 2001 by Oran Kelly
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,11 +18,13 @@
  * 
  * A copy of the LGPL can be viewed at http://www.gnu.org/copyleft/lesser.html
  * Java SMPP API author: oran.kelly@ireland.com
+ * Java SMPP API Homepage: http://smppapi.sourceforge.net/
  */
 package ie.omk.smpp.message;
 
 import java.io.*;
 import ie.omk.smpp.SMPPException;
+import ie.omk.smpp.util.SMPPIO;
 import ie.omk.debug.Debug;
 
 /** Retrieve the value of a parameter from the SMSC
@@ -36,30 +38,30 @@ public class ParamRetrieve
     String			paramName;
 
     /** Construct a new ParamRetrieve with specified sequence number.
-     * @param seqNo The sequence number to use
-     */
-    public ParamRetrieve(int seqNo)
+      * @param seqNum The sequence number to use
+      */
+    public ParamRetrieve(int seqNum)
     {
-	super(ESME_PARAM_RETRIEVE, seqNo);
+	super(ESME_PARAM_RETRIEVE, seqNum);
 	paramName = null;
     }
 
     /** Read in a ParamRetrieve from an InputStream.  A full packet,
-     * including the header fields must exist in the stream.
-     * @param in The InputStream to read from
-     * @exception ie.omk.smpp.SMPPException If the stream does not
-     * contain a ParamRetrieve packet.
-     * @see java.io.InputStream
-     */
+      * including the header fields must exist in the stream.
+      * @param in The InputStream to read from
+      * @exception ie.omk.smpp.SMPPException If the stream does not
+      * contain a ParamRetrieve packet.
+      * @see java.io.InputStream
+      */
     public ParamRetrieve(InputStream in)
     {
 	super(in);
 
-	if(cmdStatus != 0)
+	if(commandStatus != 0)
 	    return;
 
 	try {
-	    paramName = readCString(in);
+	    paramName = SMPPIO.readCString(in);
 	} catch(IOException iox) {
 	    throw new SMPPException("Input stream does not contain a "
 		    + "pararetrieve packet.");
@@ -67,9 +69,9 @@ public class ParamRetrieve
     }
 
     /** Set the name of the parameter to retrieve
-     * @param s Parameter name: Up to 31 characters
-     * @exception ie.omk.smpp.SMPPException If the param name is invalid
-     */
+      * @param s Parameter name: Up to 31 characters
+      * @exception ie.omk.smpp.SMPPException If the param name is invalid
+      */
     public void setParamName(String s)
     {
 	if(s == null)
@@ -90,32 +92,21 @@ public class ParamRetrieve
 
 
     /** Get the size in bytes of this packet */
-    public int size()
+    public int getCommandLen()
     {
-	return (super.size() + 1
+	return (getHeaderLen() + 1
 		+ ((paramName != null) ? paramName.length() : 0));
     }
 
     /** Write a byte representation of this packet to an OutputStream
-     * @param out The OutputStream to write to
-     * @exception ie.omk.smpp.SMPPException If an I/O error occurs
-     * @see java.io.OutputStream
-     */
-    public void writeTo(OutputStream out)
+      * @param out The OutputStream to write to
+      * @exception ie.omk.smpp.SMPPException If an I/O error occurs
+      * @see java.io.OutputStream
+      */
+    protected void encodeBody(OutputStream out)
+	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
-	try {
-	    ByteArrayOutputStream b = new ByteArrayOutputStream();
-
-	    super.writeTo(b);
-	    writeCString(paramName, b);
-
-	    b.writeTo(out);
-	} catch(IOException x) {
-	    Debug.d(this, "writeTo", "Error writing packet to output",
-		    Debug.DBG_1);
-	    throw new SMPPException("Error writing ParamRetrieve packet to "
-		    + "Output Stream");
-	}
+	SMPPIO.writeCString(paramName, out);
     }
 
     public String toString()

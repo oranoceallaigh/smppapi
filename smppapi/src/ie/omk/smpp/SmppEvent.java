@@ -1,6 +1,6 @@
 /*
- * Java implementation of the SMPP v3.3 API
- * Copyright (C) 1998 - 2000 by Oran Kelly
+ * Java SMPP API
+ * Copyright (C) 1998 - 2001 by Oran Kelly
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,6 +18,7 @@
  * 
  * A copy of the LGPL can be viewed at http://www.gnu.org/copyleft/lesser.html
  * Java SMPP API author: oran.kelly@ireland.com
+ * Java SMPP API Homepage: http://smppapi.sourceforge.net/
  */
 package ie.omk.smpp;
 
@@ -26,80 +27,41 @@ import ie.omk.debug.Debug;
 
 public class SmppEvent
 {
-    // The source object of this event
+    /** The source object of this event. */
     Object	source;
-
-    // Command Id of the packet causing the event
-    int		cmdId;
-
-    // Status of the Smpp command
-    int		status;
-
-    // Sequence number of the Smpp command
-    int		seqNo;
 
     Object	infoClass;
 
-    // This is the packet that caused the event.
+    /** This is the packet that caused the event. */
     SMPPPacket	packet;
 
 
     /** Construct a new Smpp event.
-     * @param source The source of this event (not null)
-     * @param o Extra details to associate with the event (see getDetails()) (can be null)
-     * @param p The packet that caused the event (not null)
-     * @see SmppEvent#getDetails
-     */
-    public SmppEvent(Object source, Object o, SMPPPacket p)
+      * @param source The source of this event (not null)
+      * @param p The packet that caused the event (not null)
+      * @param o Extra details to associate with the event (see getDetails()) (can be null)
+      * @see SmppEvent#getDetails
+      */
+    public SmppEvent(Object source, SMPPPacket p, Object o)
     {
 	if(p == null || source == null)
 	    throw new NullPointerException();
 
 	this.source = source;
-	this.cmdId = p.getCommandId();
-	this.status = p.getCommandStatus();
-	this.seqNo = p.getSeqNo();
 	this.packet = p;
 	this.infoClass = o;
-    }
-
-    /** Construct a new Smpp event.
-     * @param source The source of this event (not null)
-     * @param cmdid The command Id of this event
-     * @param status The status to associate with the event
-     * @param seqno The sequence number of the command associated with this event
-     * @param o Extra details to associate with the event (see getDetails()) (can be null)
-     * @param p The packet that caused the event (can be null)
-     * @see SmppEvent#getDetails
-     */
-    public SmppEvent(Object source,	// Source of the event
-	    int cmdid,			// Command Id
-	    int status,			// Status of the command
-	    int seqno,			// Sequence no.
-	    Object o,			// Additional information
-	    SMPPPacket p)		// The packet that caused the event
-    {
-	if(source == null)
-	    throw new NullPointerException();
-
-	this.source = source;
-	this.cmdId = cmdid;
-	this.status = status;
-	this.seqNo = seqNo;
-	this.infoClass = o;
-	this.packet = p;
     }
 
     /** Get the source of this event */
     public Object getSource()
     {
-	return source;
+	return (source);
     }
 
     /** Make an Object of appropriate type for inclusion in an SmppEvent.
-     * @param p The packet to generate a details Object for.
-     * @see SmppEvent#getDetails
-     */
+      * @param p The packet to generate a details Object for.
+      * @see SmppEvent#getDetails
+      */
     public static Object detailFactory(SMPPPacket p)
     {
 	if(p instanceof DeliverSM)
@@ -125,52 +87,52 @@ public class SmppEvent
     }
 
     /** Additional details.  This can take the form of one of the following:
-     *  Object type		Smpp Command
-     *  -----------		------------
-     * class MessageDetails	QuerySMResp
+      *  Object type		Smpp Command
+      *  -----------		------------
+      * class MessageDetails	QuerySMResp
      *				QueryMsgDetailsResp
      *				DeliverSM
-     * java.lang.String		BindTransmitterResp
+      * java.lang.String		BindTransmitterResp
      *				BindReceiverResp
      *				ParamRetrieveResp
-     * java.lang.Integer	SubmitSMResp
+      * java.lang.Integer	SubmitSMResp
      *				SubmitMultiResp
-     * int[]			QueryLastMsgsResp
-     * null			GenericNack
+      * int[]			QueryLastMsgsResp
+      * null			GenericNack
      *				UnbindResp
      *				CancelSMResp
      *				ReplaceSMResp
      *				EnquireLink
      *				EnquireLinkResp
      *
-     * (All others return null, but will not usually be part of an
-     *  Smpp event)
-     */
+      * (All others return null, but will not usually be part of an
+      *  Smpp event)
+      */
     public Object getDetails()
     {
-	return infoClass;
+	return (infoClass);
     }
 
     /** Get the command Id associated with this event. */
     public int getCommandId()
     {
-	return cmdId;
+	return (packet.getCommandId());
     }
 
     /** Get the status of the command associated with this event */
     public int getStatus()
     {
-	return status;
+	return (packet.getCommandStatus());
     }
 
     /** Get the sequence number of the command associated with this event */ 
-    public int getSeqNo()
+    public int getSequenceNum()
     {
-	return seqNo;
+	return (packet.getSequenceNum());
     }
 
     public SMPPPacket getPacket()
     {
-	return packet;
+	return (packet);
     }
 }

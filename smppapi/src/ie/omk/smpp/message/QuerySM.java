@@ -1,6 +1,6 @@
 /*
- * Java implementation of the SMPP v3.3 API
- * Copyright (C) 1998 - 2000 by Oran Kelly
+ * Java SMPP API
+ * Copyright (C) 1998 - 2001 by Oran Kelly
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,14 +18,16 @@
  * 
  * A copy of the LGPL can be viewed at http://www.gnu.org/copyleft/lesser.html
  * Java SMPP API author: oran.kelly@ireland.com
+ * Java SMPP API Homepage: http://smppapi.sourceforge.net/
  */
 package ie.omk.smpp.message;
 
 import java.io.*;
 import ie.omk.smpp.SMPPException;
+import ie.omk.smpp.util.SMPPIO;
 import ie.omk.debug.Debug;
 
-/** Query the state of a int message
+/** Query the state of a message
   * @author Oran Kelly
   * @version 1.0
   */
@@ -33,29 +35,29 @@ public class QuerySM
     extends ie.omk.smpp.message.SMPPRequest
 {
     /** Construct a new QuerySM with specified sequence number.
-     * @param seqNo The sequence number to use
-     */
-    public QuerySM(int seqNo)
+      * @param seqNum The sequence number to use
+      */
+    public QuerySM(int seqNum)
     {
-	super(ESME_QUERY_SM, seqNo);
+	super(ESME_QUERY_SM, seqNum);
     }
 
     /** Read in a QuerySM from an InputStream.  A full packet,
-     * including the header fields must exist in the stream.
-     * @param in The InputStream to read from
-     * @exception ie.omk.smpp.SMPPException If the stream does not
-     * contain a QuerySM packet.
-     * @see java.io.InputStream
-     */
+      * including the header fields must exist in the stream.
+      * @param in The InputStream to read from
+      * @exception ie.omk.smpp.SMPPException If the stream does not
+      * contain a QuerySM packet.
+      * @see java.io.InputStream
+      */
     public QuerySM(InputStream in)
     {
 	super(in);
 
-	if(cmdStatus != 0)
+	if(commandStatus != 0)
 	    return;
 
 	try {
-	    messageId = Integer.parseInt(readCString(in), 16);
+	    messageId = Integer.parseInt(SMPPIO.readCString(in), 16);
 	    source = new SmeAddress(in);
 	} catch(IOException iox) {
 	    throw new SMPPException("Input stream does not contain a "
@@ -63,76 +65,30 @@ public class QuerySM
 	}
     }
 
-    /** Set the message Id
-     * @param messageId The message Id to use (Up to 8 chars)
-     * @exception ie.omk.smpp.SMPPException If the message Id is invalid
-     */
-    public void setMessageId(int id)
-    {
-	super.setMessageId(id);
-    }
-
-    /** Set Source address to match against in SMSC
-     * @param sourceTon Source Address Ton
-     * @param sourceNpi Source Address Npi
-     * @param sourceAddr Source Address (up to 20 characters)
-     * @exception ie.omk.smpp.SMPPException If the address is invalid
-     */
-    //	public void setSource(int ton, int npi, String addr)
-    //		{ super.setSource(new SmeAddress(ton, npi, addr); }
-
-    /** Set the source address
-     * @see SmeAddress
-     */
-    public void setSource(SmeAddress d)
-    {
-	super.setSource(d);
-    }
-
-    /** Get the message Id */
-    public int getMessageId()
-    {
-	return super.getMessageId();
-    }
-
-    /** Get the source address */
-    public SmeAddress getSource()
-    {
-	return super.getSource();
-    }
-
     /** Get the size in bytes of this packet */
-    public int size()
+    public int getCommandLen()
     {
 	String id = Integer.toHexString(getMessageId());
 
-	return (super.size() + 1
+	return (getHeaderLen() + 1
 		+ ((id != null) ? id.length() : 0)
 		+ ((source != null) ? source.size() : 3));
     }
 
     /** Write a byte representation of this packet to an OutputStream
-     * @param out The OutputStream to write to
-     * @exception ie.omk.smpp.SMPPException If an I/O error occurs
-     * @see java.io.OutputStream
-     */
-    public void writeTo(OutputStream out)
+      * @param out The OutputStream to write to
+      * @exception ie.omk.smpp.SMPPException If an I/O error occurs
+      * @see java.io.OutputStream
+      */
+    protected void encodeBody(OutputStream out)
+	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
-	try {
-	    ByteArrayOutputStream b = new ByteArrayOutputStream();
-	    super.writeTo(b);
-
-	    writeCString(Integer.toHexString(getMessageId()), b);
-	    if(source != null) {
-		source.writeTo(b);
-	    } else {
-		writeInt(0, 2, b);
-		writeCString(null, b);
-	    }
-
-	    b.writeTo(out);
-	} catch(IOException x) {
-	    throw new SMPPException("Error writing query_sm packet to output stream");
+	SMPPIO.writeCString(Integer.toHexString(getMessageId()), out);
+	if(source != null) {
+	    source.writeTo(out);
+	} else {
+	    SMPPIO.writeInt(0, 2, out);
+	    SMPPIO.writeCString(null, out);
 	}
     }
 

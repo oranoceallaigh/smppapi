@@ -1,6 +1,6 @@
 /*
- * Java implementation of the SMPP v3.3 API
- * Copyright (C) 1998 - 2000 by Oran Kelly
+ * Java SMPP API
+ * Copyright (C) 1998 - 2001 by Oran Kelly
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,11 +18,14 @@
  * 
  * A copy of the LGPL can be viewed at http://www.gnu.org/copyleft/lesser.html
  * Java SMPP API author: oran.kelly@ireland.com
+ * Java SMPP API Homepage: http://smppapi.sourceforge.net/
  */
 package ie.omk.debug;
 
 public class Debug
 {
+    private static java.io.FileOutputStream file = null;
+
     private static int			debugLevel = 0;
     public static int			DBG_0 = 0;
     public static int			DBG_1 = 1;
@@ -49,7 +52,7 @@ public class Debug
 	    dbg = true;
 	}
 
-	System.out.println("Debugger@setDebugLevel: Debug level set to "
+	System.err.println("Debugger@setDebugLevel: Debug level set to "
 		+ debugLevel);
     }
 
@@ -67,8 +70,8 @@ public class Debug
 	else
 	    classFile = classt.getClass().getName();
 
-	System.out.print("#"+debugLevel+tabs.substring(0, debugLevel));
-	System.out.println(classFile
+	System.err.print("#"+debugLevel+tabs.substring(0, debugLevel));
+	System.err.println(classFile
 		+ "@"
 		+ method
 		+ ": "
@@ -79,10 +82,10 @@ public class Debug
        {
        if(debugLevel == 0 || level < debugLevel) return;
 
-       System.out.print("#"+debugLevel+tabs.substring(0, debugLevel));
-       System.out.println(classFile + "@" + method + ": " +s);
+       System.err.print("#"+debugLevel+tabs.substring(0, debugLevel));
+       System.err.println(classFile + "@" + method + ": " +s);
        }
-     */
+      */
     public static void d(Object cf, String met, boolean b, int level)
     {
 	d(cf, met, String.valueOf(b), level);
@@ -95,5 +98,21 @@ public class Debug
     {
 	d(cf, met, String.valueOf(b), level);
     }
-}
 
+    public static void setDumpFile(String name)
+	throws java.io.IOException
+    {
+	file = new java.io.FileOutputStream(name);
+    }
+
+    public static void dump(byte[] b, int off, int len)
+    {
+	try {
+	    if (file == null)
+		return;
+	    file.write(b, off, len);
+	    file.flush();
+	} catch (java.io.IOException x) {
+	}
+    }
+}
