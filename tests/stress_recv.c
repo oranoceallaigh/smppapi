@@ -52,6 +52,8 @@
 
 pthread_t sender_thread;
 pthread_t recv_thread;
+pthread_mutex_t write_lock = PTHREAD_MUTEX_INITIALIZER;
+int unbinding = 0;
 
 void *deliver_msgs(void *arg);
 void *dump_incoming(void *arg);
@@ -211,11 +213,15 @@ int main(int argc, char *argv[])
 	pthread_join(sender_thread, &thread_return);
 	pthread_join(recv_thread, &thread_return);
 
+	pthread_mutex_destroy(&write_lock);
+
 	printf("Both threads exited normally.\n"
 			"Number of deliver_sm responses received: "
 			"%u\n", thread_return);
 
-	shutdown(sock, 2);
+	shutdown(sock, 0);
+	sleep(1);
+
 	close(sock);
 	return (0);
 }
@@ -257,7 +263,7 @@ void *deliver_msgs(void *arg)
 	memcpy(dm + 19, "353861234567", 13);
 
 
-	printf("[deliver] Attempting to send %d messages.\n",
+	printf("[send] Attempting to send %d messages.\n",
 			targs->msg_count);
 
 	start = time(NULL);
@@ -265,7 +271,11 @@ void *deliver_msgs(void *arg)
 	/*
 	 * The loop to dump a shit load of messages down the network..
 	 */
+	pthread_mutex_lock(&write_lock);
 	for (seq = 1; seq <= targs->msg_count; seq++) {
+		if (unbinding)
+			break;
+
 		hdr->seq_num = htonl(seq);
 		make_random_msg(sm_len, msg);
 		make_random_dest(dest);
@@ -273,28 +283,35 @@ void *deliver_msgs(void *arg)
 		hdr->cmd_len = htonl(len);
 
 		if (write(targs->sock, dm, len) == -1) {
-			perror("deliver_msgs:write");
+			perror("[send],write");
 			break;
 		}
 
 		if ((seq % 1000) == 0)
 			printf("%u\n", seq);
 	}
+	pthread_mutex_unlock(&write_lock);
 
 	end = time(NULL);
-	printf("Start time: %lu\nEnd time: %lu\nTotal elapsed: %lu seconds\n",
-			start, end, (end - start));
+	printf("[send] Sent %d deliver_sm's.\n"
+			"    Start time: %lu\n"
+			"    End time: %lu\n"
+			"    Total elapsed: %lu seconds\n",
+			seq - 1, start, end, (end - start));
 
 	free(dm);
 
-	/* Send an unbind. */
-	unbind.cmd_len = htonl(16);
-	unbind.cmd_id = htonl(UNBIND);
-	unbind.cmd_status = 0;
-	unbind.seq_num = htonl(seq);
+	/* Send an unbind, if needed */
+	if (!unbinding) {
+		unbind.cmd_len = htonl(16);
+		unbind.cmd_id = htonl(UNBIND);
+		unbind.cmd_status = 0;
+		unbind.seq_num = htonl(seq);
 
-	if (write(targs->sock, &unbind, 16) == -1)
-		fprintf(stderr, "deliver_msgs: error sending unbind!");
+		if (write(targs->sock, &unbind, 16) == -1)
+			fprintf(stderr, "[send] deliver_msgs: error sending "
+					"unbind!");
+	}
 
 
 	pthread_exit((void *)0);
@@ -359,7 +376,7 @@ void *dump_incoming(void *arg)
 
 	buf = malloc(buf_sz);
 	if (buf == NULL) {
-		fprintf(stderr, "dump_incoming: failed to allocate "
+		fprintf(stderr, "[recv]: failed to allocate "
 				" a buffer.\n");
 		pthread_exit((void *)-1);
 	}
@@ -372,23 +389,28 @@ void *dump_incoming(void *arg)
 		cmd = ntohl(hdr->cmd_id);
 
 		if (cmd == UNBIND) {
-			printf("Unbind request received. Sending response.\n");
+			unbinding = 1;
+			pthread_mutex_lock(&write_lock);
+			printf("[recv] Unbind request received. Sending "
+					"response.\n");
 			unbindr.cmd_len = htonl(16);
 			unbindr.cmd_id = htonl(UNBIND_RESP);
 			unbindr.cmd_status = 0;
 			unbindr.seq_num = hdr->seq_num;
 			if (write(sock, &unbindr, 16) == -1) {
-				fprintf(stderr, "dump_incoming: error writing"
+				fprintf(stderr, "[recv] Error writing"
 						" unbind response.\n");
 			}
+			pthread_mutex_unlock(&write_lock);
 			break;
 		} else if (cmd == UNBIND_RESP) {
-			printf("Unbind response received.\n");
+			printf("[recv] Unbind response received.\n");
 			break;
 		} else if (cmd == DELIVER_SM_RESP) {
 			++responses;
 		} else {
-			printf("(SMPP Packet received, ID = 0x%x\n)", cmd);
+			printf("[recv] (SMPP Packet received, ID = 0x%x\n)",
+					cmd);
 		}
 	}
 
@@ -404,6 +426,7 @@ int read_smpp_packet(int sock, char *buf, int *buf_size)
 	uint32_t len;
 	int p, c = 0;
 	char *newbuf;
+	smpp_header *hdr = (smpp_header *)buf;
 
 	for (p = 0; p < 4; p += c) {
 		c = read(sock, buf + p, 4 - p);
@@ -411,7 +434,7 @@ int read_smpp_packet(int sock, char *buf, int *buf_size)
 			goto error;
 	}
 
-	len = (uint32_t)ntohl(*((int *)buf));
+	len = (uint32_t)ntohl(hdr->cmd_len);
 
 	if (len > *buf_size) {
 		/* Realloc the buffer.. */
@@ -422,6 +445,7 @@ int read_smpp_packet(int sock, char *buf, int *buf_size)
 
 		buf = newbuf;
 		*buf_size = len;
+		hdr = (smpp_header *)buf;
 	}
 
 	for (p = 4; p < len; p += c) {
@@ -441,11 +465,12 @@ error:
 void make_bind_receiver(char *buf, bind_receiver *r)
 {
 	int len = 0;
+	smpp_header *hdr = (smpp_header *)buf;
 
-	r->cmd_len = (uint32_t)ntohl(*((int *)buf));
-	r->cmd_id = (uint32_t)ntohl(*((int *)(buf + 4)));
-	r->cmd_status = (uint32_t)ntohl(*((int *)(buf + 8)));
-	r->seq_num = (uint32_t)ntohl(*((int *)(buf + 12)));
+	r->cmd_len = (uint32_t)ntohl(hdr->cmd_len);
+	r->cmd_id = (uint32_t)ntohl(hdr->cmd_id);
+	r->cmd_status = (uint32_t)ntohl(hdr->cmd_status);
+	r->seq_num = (uint32_t)ntohl(hdr->seq_num);
 
 	buf += 16;
 	len = strlen(buf) + 1;
