@@ -42,6 +42,8 @@ public class PackageTests {
 	    }
 	});
 
+	suite.addTestSuite(SMPPPacketTest.class);
+
 	return (suite);
     }
 }
