@@ -37,7 +37,6 @@ import ie.omk.debug.Debug;
 /** Object used as extra information in an SMPP event.
   * Any packets that contain some form of message information will generate a
   * MessageDetails object in the 'extra information' field of an SmppEvent.
-  * @see ie.omk.smpp.SmppEvent
   * @see SmppTransmitter#queryMessage
   * @see SmppTransmitter#queryMsgDetails
   * @author Oran Kelly
