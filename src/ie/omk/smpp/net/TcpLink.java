@@ -140,7 +140,7 @@ public class TcpLink
       * @see java.io.OutputStream
       * @see java.net.Socket#getOutputStream
       */
-    public OutputStream getOutputStream()
+    protected OutputStream getOutputStream()
 	throws java.io.IOException
     {
 	if(sock == null)
@@ -154,7 +154,7 @@ public class TcpLink
       * @see java.io.InputStream
       * @see java.net.Socket#getInputStream
       */
-    public InputStream getInputStream()
+    protected InputStream getInputStream()
 	throws java.io.IOException
     {
 	if(sock == null)
