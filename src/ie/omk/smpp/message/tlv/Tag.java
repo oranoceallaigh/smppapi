@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /** Enumeration class for optional parameter tag values.
+ * @author Oran Kelly &lt;orank@users.sf.net&gt;
  */
 public class Tag implements java.io.Serializable {
 
@@ -171,37 +172,80 @@ public class Tag implements java.io.Serializable {
 	 = new Tag(0x1383, byte[].class, 2);
 
                                     
+    /** Integer value of this tag.
+     */    
     private Integer tag = null;
 
-    /** The minimum, or fixed, length.
+    /** The minimum length a value of this tag type can be.
      */
     private int minLength = -1;
 
-    /** The maximum length of a value of this tag.
+    /** The maximum length a value of this tag type can be.
      */
     private int maxLength = -1;
 
+    /** The Java type a value of this tag type must be.
+     */    
     private Class type = null;
 
+    /** The class used for encoding and decoding values of
+     * this tag type.
+     * @see ie.omk.smpp.message.tlv.Encoder
+     */    
     private Encoder encoder = null;
 
 
-    private Tag(int tag, Class type, int fixedLength) {
+    /** Create a new Tag. The encoder type will be chosen
+     * from the set of known built-in encoders.
+     * @param tag The integer value of the tag.
+     * @param type The allowed Java type for the value.
+     * @param fixedLength The fixed length allowed for the value.
+     * @throws ie.omk.smpp.message.tlv.TagDefinedException If a tag with integer value <code>tag</code> has
+     * already been defined.
+     */    
+    private Tag(int tag, Class type, int fixedLength) throws TagDefinedException {
 	this (tag, type, null, fixedLength, fixedLength);
     }
 
-    private Tag(int tag, Class type, int minLength, int maxLength) {
+    /** Create a new Tag.  he encoder type will be chosen
+     * from the set of known built-in encoders.
+     * @param tag The integer value of the tag.
+     * @param type The allowed Java type of the value.
+     * @param minLength The minimum length allowed for the value.
+     * @param maxLength The maximum length allowed for the value.
+     * @throws ie.omk.smpp.message.tlv.TagDefinedException If a tag with integer value <code>tag</code> has
+     * already been defined.
+     */    
+    private Tag(int tag, Class type, int minLength, int maxLength) throws TagDefinedException {
 	this (tag, type, null, minLength, maxLength);
     }
 
     // XXX document that the TagDefinedException it thrown
-    private Tag(int tag, Class type, Encoder enc, int fixedLength) {
+    /** Create a new Tag.
+     * @param tag The integer value of the tag.
+     * @param type The allowed Java type for the value
+     * @param enc The encoding class to use to encode and
+     * decode values.
+     * @param fixedLength The fixed length allowed for the value.
+     * @throws ie.omk.smpp.message.tlv.TagDefinedException If a tag with integer value <code>tag</code> has
+     * already been defined.
+     */    
+    private Tag(int tag, Class type, Encoder enc, int fixedLength) throws TagDefinedException {
 	this (tag, type, fixedLength, fixedLength);
     }
 
-    // XXX document that the TagDefinedException it thrown
+    /** Create a new Tag.
+     * @param tag The integer value of the tag.
+     * @param type The allowed Java type for the value
+     * @param enc The encoding class to use to encode and
+     * decode values.
+     * @param minLength The minimum length allowed for the value.
+     * @param maxLength The maximum length allowed for the value.
+     * @throws ie.omk.smpp.message.tlv.TagDefinedException If a tag with integer value <code>tag</code> has
+     * already been defined.
+     */    
     private Tag(int tag, Class type, Encoder enc,
-	    int minLength, int maxLength) {
+	    int minLength, int maxLength) throws TagDefinedException {
 	this.tag = new Integer(tag);
 	this.type = type;
 	this.minLength = minLength;
@@ -213,7 +257,7 @@ public class Tag implements java.io.Serializable {
 
 	synchronized (tagTable) {
 	    if (tagTable.containsKey(this.tag))
-		throw new TagDefinedException("Tag 0x"
+		throw new TagDefinedException(tag, "Tag 0x"
 			+ Integer.toHexString(tag)
 			+ " is already defined.");
 
@@ -221,6 +265,10 @@ public class Tag implements java.io.Serializable {
 	}
     }
 
+    /** Get an <code>Encoder</code> for a particular Java type.
+     * @param type The Java type to get an encoder for.
+     * @return The encoder/decoder for Java type <code>type</code>.
+     */    
     private Encoder getEncoderForType(Class type) {
 	// If type is null and encoder is null, this is a "no value" tlv type.
 	if (type == null)
@@ -235,34 +283,56 @@ public class Tag implements java.io.Serializable {
 	else if (byte[].class.isAssignableFrom(type))
 	    return (OctetEncoder.getInstance());
 	else
-	    throw new NoEncoderException("No encoder for class type "
+	    throw new NoEncoderException(type, "No encoder for class type "
 		    + type.getName());
     }
 
+    /** Get the integer value of this tag.
+     * @return the integer value of this tag.
+     */
     public int getTag() {
 	return (tag.intValue());
     }
 
+    /** Get the integer value of this tag.
+     * @return the integer value of this tag.
+     */
     public int intValue() {
 	return (tag.intValue());
     }
 
+    /** Get the allowed length of a value of this tag type.
+     * @return The allowed length, or the maximum length if a range is set.
+     */
     public int getLength() {
 	return (maxLength < 0 ? minLength : maxLength);
     }
 
+    /** Get the minimum length of a value of this tag type.
+     * @return the minimum length of a value of this tag type.
+     */
     public int getMinLength() {
 	return (minLength);
     }
 
+    /** Get the maximum length of a value of this tag type.
+     * @return the maximum length of a value of this tag type.
+     */
     public int getMaxLength() {
 	return (maxLength);
     }
 
+    /** Get the Java type of values of this tag type.
+     * @return the Java type of values of this tag type.
+     */
     public Class getType() {
 	return (type);
     }
 
+    /** Test for equality. Two tags are equal if their integer values are
+     * equivalent.
+     * @return true if <code>obj</code> is Tag and has the same tag value.
+     */
     public boolean equals(Object obj) {
 	if (obj instanceof Tag)
 	    return (((Tag)obj).tag.equals(this.tag));
@@ -270,26 +340,48 @@ public class Tag implements java.io.Serializable {
 	    return (false);
     }
 
+    /** Test for equality against an integer.
+     * @return true if this Tag's integer value is equal to <code>tag</code>.
+     */
     public boolean equals(int tag) {
 	return (tag == this.tag.intValue());
     }
 
+    /** Get the hashCode for this Tag. The hashCode for a Tag is the same
+     * as:<br>
+     * <code>new Integer(tag.tagValue()).hashCode()</code>
+     * @return A hash code for this tag.
+     */
     public int hashCode() {
 	return (tag.hashCode());
     }
 
+    /** Convert this tag to a String. This returns a decimal representation of
+     * the tag's integer value in a String.
+     * @return This tag's string value.
+     */
     public String toString() {
 	return (tag.toString());
     }
 
+    /** Convert this tag to a String. This returns a hex representation of
+     * the tag's integer value in a String.
+     * @return This tag's hexadecimal representation.
+     */
     public String toHexString() {
 	return (Integer.toHexString(tag.intValue()));
     }
 
+    /** Get the encoder used to encode values of this tag type.
+     * @return the encoder used to encode values of this tag type.
+     */
     public Encoder getEncoder() {
 	return (encoder);
     }
 
+    /** Get the static Tag object that represents tag <code>tagValue</code>.
+     * @return The static Tag object representing the tag <code>tagValue</code>.
+     */
     public static final Tag getTag(int tagValue) {
 	return ((Tag)tagTable.get(new Integer(tagValue)));
     }
@@ -301,9 +393,13 @@ public class Tag implements java.io.Serializable {
      * @param enc the encoder used to serialize and deserialize. This may be
      * null to use one of the API's internally defined encoders.
      * @param fixedSize the defined size of the parameter.
+     * @throws ie.omk.smpp.message.tlv.TagDefinedException if an attempt is made
+     * to define a tag with a integer value equivalent to an already defined
+     * tag.
+     * @see Encoder
      */
     public static final Tag defineTag(int tagValue, Class type, Encoder enc,
-	    int fixedSize) {
+	    int fixedSize) throws TagDefinedException {
 	return (new Tag(tagValue, type, enc, fixedSize));
     }
 
@@ -315,11 +411,29 @@ public class Tag implements java.io.Serializable {
      * null to use one of the API's internally defined encoders.
      * @param minSize the minimum size of the parameter.
      * @param maxSize the maximum size of the parameter.
+     * @throws ie.omk.smpp.message.tlv.TagDefinedException if an attempt is made
+     * to define a tag with a integer value equivalent to an already defined
+     * tag.
      * @see Encoder
      */
     public static final Tag defineTag(int tagValue, Class type, Encoder enc,
-	    int minSize, int maxSize) {
+	    int minSize, int maxSize) throws TagDefinedException {
 	return (new Tag(tagValue, type, enc, minSize, maxSize));
+    }
+
+    /** Undefine a tag. This removes all knoweledge of this tag type from the
+     * internal tables. If there is no such tag defined already, this method
+     * will do nothing.
+     * @param tag The tag to undefine. null if there was no tag defined already.
+     * @return The Tag object that has been undefined.
+     */
+    public static final Tag undefineTag(Tag tag) {
+	if (tag == null)
+	    return (null);
+
+	synchronized (tagTable) {
+	    return ((Tag)tagTable.remove(tag));
+	}
     }
 
     // XXX defineTags method that can read definitions from a properties file

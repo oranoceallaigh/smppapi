@@ -23,19 +23,28 @@
  */
 package ie.omk.smpp.message.tlv;
 
+/** Value encoder for string types. Operates on the java.lang.String type.
+ * @author Oran Kelly &lt;orank@users.sf.net&gt;
+ */
 public class StringEncoder implements Encoder {
 
+    /** StringEncoder singleton instance.
+     */    
     private static final StringEncoder instance = new StringEncoder();
 
+    /** Create a new StringEncoder.
+     */    
     private StringEncoder() {
     }
 
+    /** Get the singleton StringEncoder instance.
+     * @return The singleton StringEncoder instance.
+     */
     public static final StringEncoder getInstance() {
 	return (instance);
     }
 
-    // XXX document arrayindex exception
-    public void writeTo(Tag tag, Object value, byte[] b, int offset) {
+    public void writeTo(Tag tag, Object value, byte[] b, int offset) throws ArrayIndexOutOfBoundsException {
 	try {
 	    String s = value.toString();
 	    int len = s.length();
@@ -48,7 +57,7 @@ public class StringEncoder implements Encoder {
 	}
     }
 
-    public Object readFrom(Tag tag, byte[] b, int offset, int length) {
+    public Object readFrom(Tag tag, byte[] b, int offset, int length) throws ArrayIndexOutOfBoundsException {
 	try {
 	    String s = new String(b, offset, length - 1, "US-ASCII");
 	    return (s);

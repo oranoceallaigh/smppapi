@@ -23,18 +23,33 @@
  */
 package ie.omk.smpp.message.tlv;
 
+
+/** "No value" encoder. This encoder type was necessary as there are some
+ * optional parameters that have no value. Therefore, it was possible for the
+ * tag/value map in <code>TLVTable</code> to have <code>null</code> values in
+ * it. As <code>null</code> is also returned from a map when there is no value
+ * for a particular key, some way was needed to distinguish between a parameter
+ * not set and a parameter having a null value. Hence the encoder.
+ * @author Oran Kelly &lt;orank@users.sf.net&gt;
+ */
 public class NullEncoder implements Encoder {
 
+    /** NullEncoder singleton instance.
+     */    
     private static final NullEncoder instance = new NullEncoder();
 
+    /** Create a new NullEncoder.
+     */    
     private NullEncoder() {
     }
 
+    /** Get the singleton NullEncoder instance.
+     * @return the singleton NullEncoder instance.
+     */
     public static final NullEncoder getInstance() {
 	return (instance);
     }
 
-    // XXX document arrayindex exception
     public void writeTo(Tag tag, Object value, byte[] b, int offset) {
     }
 

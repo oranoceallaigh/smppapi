@@ -25,18 +25,32 @@ package ie.omk.smpp.message.tlv;
 
 import java.util.BitSet;
 
+/** Encoder for bit mask value types. This class encodes and
+ * decodes {@link java.util.BitSet} objects to and from
+ * byte arrays.
+ * @see java.util.BitSet
+ */
 public class BitmaskEncoder implements Encoder {
 
+    /** The BitmaskEncoder singleton.
+     */    
     private static final BitmaskEncoder instance = new BitmaskEncoder();
 
+    /** Create a new BitmaskEncoder. This is a
+     * singleton pattern, only one will ever
+     * be created.
+     */    
     private BitmaskEncoder() {
     }
 
+    /** Get the singleton BitmaskEncoder instance.
+     * @return The singleton BitmaskEncoder instance.
+     */    
     public static final BitmaskEncoder getInstance() {
 	return (instance);
     }
 
-    public void writeTo(Tag tag, Object value, byte[] b, int offset) {
+    public void writeTo(Tag tag, Object value, byte[] b, int offset) throws ArrayIndexOutOfBoundsException {
 	try {
 	    BitSet bs = (BitSet)value;
 	    int l = tag.getLength();
@@ -55,7 +69,7 @@ public class BitmaskEncoder implements Encoder {
 	}
     }
 
-    public Object readFrom(Tag tag, byte[] b, int offset, int length) {
+    public Object readFrom(Tag tag, byte[] b, int offset, int length) throws ArrayIndexOutOfBoundsException {
 	BitSet bs = new BitSet();
 	
 	for (int i = 0; i < length; i++) {
