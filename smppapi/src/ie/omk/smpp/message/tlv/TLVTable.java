@@ -32,6 +32,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
+
 import ie.omk.smpp.util.SMPPIO;
 
 /** Table of optional parameters (TLVs). <p>TLV stands for Tag/Length/Value and was
@@ -69,6 +71,8 @@ import ie.omk.smpp.util.SMPPIO;
  * @author Oran Kelly &lt;orank@users.sf.net&gt;
  */
 public class TLVTable implements java.io.Serializable {
+
+    private static final Logger logger = Logger.getLogger("ie.omk.smpp.message.tlv");
 
     /** Map of tag to values.
      */    
@@ -123,7 +127,7 @@ public class TLVTable implements java.io.Serializable {
 		if (buffer.length < (l + 4))
 		    buffer = new byte[l + 4];
 
-		SMPPIO.intToBytes(t.getTag(), 2, buffer, 0);
+		SMPPIO.intToBytes(t.intValue(), 2, buffer, 0);
 		SMPPIO.intToBytes(l, 2, buffer, 2);
 		enc.writeTo(t, v, buffer, 4);
 
@@ -146,6 +150,19 @@ public class TLVTable implements java.io.Serializable {
 
 	if (v == null)
 	    v = getValueFromBytes(tag);
+
+	return (v);
+    }
+
+    /** Get the value for a tag.
+     * @see #get(ie.omk.smpp.message.tlv.Tag)
+     */
+    public Object get(int tag) {
+	Tag tagObj = Tag.getTag(tag);
+	Object v = map.get(tagObj);
+
+	if (v == null)
+	    v = getValueFromBytes(tagObj);
 
 	return (v);
     }
@@ -192,7 +209,11 @@ public class TLVTable implements java.io.Serializable {
 	    int max = tag.getMaxLength();
 	    int actual = tag.getEncoder().getValueLength(tag, value);
 
-	    if (actual < min || actual > max) {
+	    boolean illegal = (min > -1 && actual < min);
+	    if (!illegal)
+		illegal = (max > -1 && actual > max);
+
+	    if (illegal) {
 		throw new InvalidSizeForValueException("Tag "
 			+ Integer.toHexString(tag.intValue())
 			+ " must have a length in the range "
