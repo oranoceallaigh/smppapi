@@ -26,7 +26,6 @@ package ie.omk.smpp.message;
 import java.io.IOException;
 import ie.omk.smpp.SMPPException;
 import ie.omk.smpp.BadCommandIDException;
-import ie.omk.smpp.StringTooLongException;
 import ie.omk.smpp.util.SMPPIO;
 import org.apache.log4j.Logger;
 
@@ -43,22 +42,6 @@ public class BindReceiverResp
     {
 	super(BIND_RECEIVER_RESP);
     }
-
-    /** Read in a BindReceiverResp from an InputStream.  A full packet,
-      * including the header fields must exist in the stream.
-      * @param in The InputStream to read from
-      * @throws java.io.IOException if there's an error reading from the
-      * stream.
-      */
-    /*public BindReceiverResp(InputStream in)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
-    {
-	super(in);
-
-	if (getCommandId() != SMPPPacket.BIND_RECEIVER_RESP)
-	    throw new BadCommandIDException(SMPPPacket.BIND_RECEIVER_RESP,
-		    getCommandId());
-    }*/
 
     /** Create a new BindReceiverResp packet in response to a BindReceiver.
       * This constructor will set the sequence number to that of the

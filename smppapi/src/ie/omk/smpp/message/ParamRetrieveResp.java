@@ -28,7 +28,6 @@ import java.io.OutputStream;
 
 import ie.omk.smpp.SMPPException;
 import ie.omk.smpp.BadCommandIDException;
-import ie.omk.smpp.StringTooLongException;
 import ie.omk.smpp.util.SMPPIO;
 import org.apache.log4j.Logger;
 
@@ -61,27 +60,6 @@ public class ParamRetrieveResp
 	paramValue = null;
     }
 
-    /** Read in a BindReceiverResp from an InputStream.  A full packet,
-      * including the header fields must exist in the stream.
-      * @param in The InputStream to read from
-      * @throws java.io.IOException if there's an error reading from the
-      * input stream.
-      */
-    /*public ParamRetrieveResp(InputStream in)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
-    {
-	super(in);
-
-	if (getCommandId() != SMPPPacket.PARAM_RETRIEVE_RESP)
-	    throw new BadCommandIDException(SMPPPacket.PARAM_RETRIEVE_RESP,
-		    getCommandId());
-
-	if (getCommandStatus() != 0)
-	    return;
-
-	paramValue = SMPPIO.readCString(in);
-    }*/
-
     /** Create a new ParamRetrieveResp packet in response to a BindReceiver.
       * This constructor will set the sequence number to it's expected value.
       * @param r The Request packet the response is to
@@ -94,12 +72,10 @@ public class ParamRetrieveResp
     /** Set the parameter value.
       * @param v Value to be returned for the requested parameter (Up to 100
       * characters)
-      * @throws ie.omk.smpp.StringTooLongException if the parameter value is
-      * too long.
+      * @throws ie.omk.smpp.message.InvalidParameterValueException if the
+      * parameter value is too long.
       */
-    public void setParamValue(String v)
-	throws StringTooLongException
-    {
+    public void setParamValue(String v) throws InvalidParameterValueException {
 	if(v == null) {
 	    paramValue = null;
 	    return;
@@ -108,7 +84,7 @@ public class ParamRetrieveResp
 	if(v.length() < 101)
 	    this.paramValue = v;
 	else
-	    throw new StringTooLongException(100);
+	    throw new InvalidParameterValueException("Parameter value is too long", v);
     }
 
     /** Get the value of the parameter */
@@ -137,8 +113,7 @@ public class ParamRetrieveResp
 	SMPPIO.writeCString(paramValue, out);
     }
 
-    public void readBodyFrom(byte[] body, int offset)
-    {
+    public void readBodyFrom(byte[] body, int offset) throws SMPPProtocolException {
 	paramValue = SMPPIO.readCString(body, offset);
     }
 

@@ -31,7 +31,6 @@ import java.util.Iterator;
 import java.util.ListIterator;
 
 import ie.omk.smpp.Address;
-import ie.omk.smpp.StringTooLongException;
 
 import ie.omk.smpp.util.SMPPIO;
 
@@ -42,25 +41,19 @@ public class DestinationTable
 
     private int length = 0;
 
-    public DestinationTable()
+    DestinationTable()
     {
 	dests = new ArrayList();
     }
 
-    public synchronized void add(Address addr)
+    synchronized void add(Address addr)
     {
 	dests.add(addr);
 	length += addr.getLength() + 1; // don't forget the dest type flag!
     }
 
-    public synchronized void add(String distList)
-	throws ie.omk.smpp.StringTooLongException
+    synchronized void add(String distList)
     {
-	if (distList.length() > 20) {
-	    throw new StringTooLongException("DLName must be less 20 "
-		    + "characters or less");
-	}
-
 	dests.add(distList);
 	length += distList.length() + 2; // nul byte plus dest type flag
     }

@@ -23,7 +23,6 @@
  */
 package ie.omk.smpp.message;
 
-import java.io.InputStream;
 import ie.omk.smpp.SMPPException;
 import ie.omk.smpp.BadCommandIDException;
 import org.apache.log4j.Logger;
@@ -53,29 +52,12 @@ public class Unbind
 	super(UNBIND, seqNum);
     }
 
-    /** Read in a Unbind from an InputStream.  A full packet,
-      * including the header fields must exist in the stream.
-      * @param in The InputStream to read from
-      * @throws java.io.IOException If an error occurs writing to the input
-      * stream.
-      */
-    /*public Unbind(InputStream in)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
-    {
-	super(in);
-
-	if (getCommandId() != SMPPPacket.UNBIND)
-	    throw new BadCommandIDException(SMPPPacket.UNBIND,
-		    getCommandId());
-    }*/
-
     public int getBodyLength()
     {
 	return (0);
     }
 
-    public void readBodyFrom(byte[] b, int offset)
-    {
+    public void readBodyFrom(byte[] b, int offset) throws SMPPProtocolException {
 	return;
     }
 

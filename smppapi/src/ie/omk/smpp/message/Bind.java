@@ -26,14 +26,14 @@ package ie.omk.smpp.message;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import ie.omk.smpp.SMPPException;
 import org.apache.log4j.Logger;
+
 import ie.omk.smpp.BadCommandIDException;
-import ie.omk.smpp.BadInterfaceVersionException;
-import ie.omk.smpp.InvalidNPIException;
-import ie.omk.smpp.InvalidTONException;
-import ie.omk.smpp.StringTooLongException;
+import ie.omk.smpp.SMPPException;
+
 import ie.omk.smpp.util.SMPPIO;
+
+import ie.omk.smpp.version.SMPPVersion;
 
 /** Abstract parent of BindTransmitter and BindReceiver.
   * @author Oran Kelly
@@ -54,9 +54,6 @@ public abstract class Bind
     /** Address range for message routing */
     private String addressRange = null;
 
-    /** Interface version */
-    private int interfaceVer = 0x33; // XXX use SMPPVersion class.
-
     /** Address Type Of Number for message routing */
     private int addrTon = 0;
 
@@ -69,139 +66,88 @@ public abstract class Bind
 	super(id);
     }
 
-    /** Read in a BindTransmitter from an InputStream.  A full packet,
-      * including the header fields must exist in the stream.
-      * @param in The InputStream to read from
-      * @throws java.io.IOException if there's a problem reading from the
-      * input stream.
-      */
-    /*public Bind(InputStream in)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
-    {
-	super(in);
-
-	if (getCommandStatus() != 0)
-	    return;
-
-	sysId = SMPPIO.readCString(in);
-	password = SMPPIO.readCString(in);
-	sysType = SMPPIO.readCString(in);
-	interfaceVer =  SMPPIO.readInt(in, 1);
-	addrTon =  SMPPIO.readInt(in, 1);
-	addrNpi =  SMPPIO.readInt(in, 1);
-	addressRange = SMPPIO.readCString(in);
-    }*/
-
     /** Set the system Id
       * @param sysId The System Id to use (Up to 15 characters)
-      * @throws ie.omk.smpp.StringTooLongException if the system id is too
-      * long.
+      * @throws ie.omk.smpp.message.InvalidParameterValueException If the system
+      * ID fails version validation.
       */
-    public void setSystemId(String sysId)
-	throws StringTooLongException
-    {
-	if(sysId == null) {
+    public void setSystemId(String sysId) throws InvalidParameterValueException {
+	if(sysId != null) {
+	    if (version.validateSystemId(sysId))
+		this.sysId = sysId;
+	    else
+		throw new InvalidParameterValueException("Invalid system ID", sysId);
+	} else {
 	    this.sysId = null;
-	    return;
 	}
-
-	if(sysId.length() < 16)
-	    this.sysId = sysId;
-	else
-	    throw new StringTooLongException(15);
     }
 
     /** Set the password for this transmitter
       * @param password The new password to use (Up to 8 characters in length)
-      * @throws ie.omk.smpp.StringTooLongException if the password is too
-      * long.
+      * @throws ie.omk.smpp.message.InvalidParameterValueException If the
+      * password fails version validation.
       */
-    public void setPassword(String password)
-	throws StringTooLongException
-    {
-	if(password == null) {
+    public void setPassword(String password) throws InvalidParameterValueException {
+	if(password != null) {
+	    if (version.validatePassword(password))
+		this.password = password;
+	    else
+		throw new InvalidParameterValueException("Invalid password", password);
+	} else {
 	    this.password = null;
-	    return;
 	}
-
-	if(password.length() < 9)
-	    this.password = password;
-	else
-	    throw new StringTooLongException(8);
     }
 
     /** Set the system type for this transmitter
       * @param sysType The new system type (Up to 12 characters in length)
-      * @throws ie.omk.smpp.StringTooLongException if the system type is too
-      * long.
+      * @throws ie.omk.smpp.message.InvalidParameterValueException If the system
+      * type fails version validation.
       */
-    public void setSystemType(String sysType)
-	throws StringTooLongException
-    {
-	if(sysType == null) {
+    public void setSystemType(String sysType) throws InvalidParameterValueException {
+	if(sysType != null) {
+	    if (version.validateSystemType(sysType))
+		this.sysType = sysType;
+	    else
+		throw new InvalidParameterValueException("Invalid system type", sysType);
+	} else {
 	    this.sysType = null;
-	    return;
 	}
-
-	if(sysType.length() < 13)
-	    this.sysType = sysType;
-	else
-	    throw new StringTooLongException(12);
-    }
-
-    /** Set the interface version being used by this transmitter
-      * @param interfaceVer The interface version to report to the SMSC.
-      * @throws ie.omk.smpp.BadInterfaceVersionException if the interface
-      * version is invalid.
-      */ 
-    public void setInterfaceVersion(int interfaceVer)
-	throws BadInterfaceVersionException
-    {
-	if (interfaceVer != 0x33 && interfaceVer != 0x34)
-	    throw new BadInterfaceVersionException(interfaceVer);
-
-	this.interfaceVer = interfaceVer;
     }
 
     /** Set the message routing Ton for this transmitter
       * @param addrTon The new Type Of Number to use
-      * @throws ie.omk.smpp.InvalidTONException if the TON is invalid.
+      * @throws ie.omk.smpp.message.InvalidParameterValueException If the TON
+      * fails version validation.
       */
-    public void setAddressTon(int addrTon)
-	throws InvalidTONException
-    {
-	// XXX Check TON?
+    public void setAddressTon(int addrTon) throws InvalidParameterValueException {
+	// XXX check the TON?
 	this.addrTon = addrTon;
     }
 
     /** Set the message routing Npi for this transmitter
       * @param addrNpi The new Numbering plan indicator to use
-      * @throws ie.omk.smpp.InvalidNPIException if the NPI is invalid
+      * @throws ie.omk.smpp.message.InvalidParameterValueException If the NPI
+      * fails version validation.
       */
-    public void setAddressNpi(int addrNpi)
-	throws InvalidNPIException
-    {
+    public void setAddressNpi(int addrNpi) throws InvalidParameterValueException {
 	// XXX check the NPI?
 	this.addrNpi = addrNpi;
     }
 
     /** Set the message routing address range for this transmitter
       * @param addressRange The new address range to use (Up to 40 characters)
-      * @throws ie.omk.smpp.StringTooLongException if the address range is
-      * too long.
+      * @throws ie.omk.smpp.message.InvalidParameterValueException If the
+      * address range fails version validation.
       */
-    public void setAddressRange(String addressRange)
-	throws StringTooLongException
-    {
-	if(addressRange == null) {
+    public void setAddressRange(String addressRange) throws InvalidParameterValueException {
+	if(addressRange != null) {
+	    if (version.validateAddressRange(addressRange))
+		this.addressRange = addressRange;
+	    else
+		throw new InvalidParameterValueException("Invalid address range", addressRange);
+	} else {
 	    this.addressRange = null;
-	    return;
 	}
-
-	if(addressRange.length() < 41)
-	    this.addressRange = addressRange;
-	else
-	    throw new StringTooLongException(40);
     }
 
     /** Get the system Id */
@@ -243,7 +189,7 @@ public abstract class Bind
     /** Get the interface version */
     public int getInterfaceVersion()
     {
-	return (interfaceVer);
+	return (version.getVersionID());
     }
 
 
@@ -275,27 +221,34 @@ public abstract class Bind
 	SMPPIO.writeCString(sysId, out);
 	SMPPIO.writeCString(password, out);
 	SMPPIO.writeCString(sysType, out);
-	SMPPIO.writeInt(interfaceVer, 1, out);
+	SMPPIO.writeInt(version.getVersionID(), 1, out);
 	SMPPIO.writeInt(addrTon, 1, out);
 	SMPPIO.writeInt(addrNpi, 1, out);
 	SMPPIO.writeCString(addressRange, out);
     }
 
-    public void readBodyFrom(byte[] body, int offset)
-    {
-	sysId = SMPPIO.readCString(body, offset);
-	offset += sysId.length() + 1;
+    public void readBodyFrom(byte[] body, int offset) throws SMPPProtocolException {
+	try {
+	    sysId = SMPPIO.readCString(body, offset);
+	    offset += sysId.length() + 1;
 
-	password = SMPPIO.readCString(body, offset);
-	offset += password.length() + 1;
+	    password = SMPPIO.readCString(body, offset);
+	    offset += password.length() + 1;
 
-	sysType = SMPPIO.readCString(body, offset);
-	offset += sysType.length() + 1;
+	    sysType = SMPPIO.readCString(body, offset);
+	    offset += sysType.length() + 1;
 
-	interfaceVer = SMPPIO.bytesToInt(body, offset++, 1);
-	addrTon = SMPPIO.bytesToInt(body, offset++, 1);
-	addrNpi = SMPPIO.bytesToInt(body, offset++, 1);
-	addressRange = SMPPIO.readCString(body, offset);
+	    // XXX if this api is used to write a server application, this won't
+	    // work for apps that try and bind as a later api version (this api
+	    // should be able to negotiate downward).
+	    int interfaceVer = SMPPIO.bytesToInt(body, offset++, 1);
+	    version = SMPPVersion.getVersion(interfaceVer);
+	    addrTon = SMPPIO.bytesToInt(body, offset++, 1);
+	    addrNpi = SMPPIO.bytesToInt(body, offset++, 1);
+	    addressRange = SMPPIO.readCString(body, offset);
+	} catch (ie.omk.smpp.version.VersionException x) {
+	    throw new SMPPProtocolException("Invalid interface version in response", x);
+	}
     }
 
     /** Convert this packet to a String. Not to be interpreted programmatically,

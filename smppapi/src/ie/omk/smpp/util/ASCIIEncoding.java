@@ -31,15 +31,20 @@ public class ASCIIEncoding
 {
     private static final int DCS = 1;
 
-    static {
-	// Register encoding type
-	registerEncoding(DCS, new ASCIIEncoding());
-    }
+    private static final ASCIIEncoding instance = new ASCIIEncoding();
+
 
     /** Construct a new ASCIIEncoding.
      */
     public ASCIIEncoding()
     {
+	super (DCS);
+    }
+
+    /** Get the singleton instance of ASCIIEncoding.
+     */
+    public static ASCIIEncoding getInstance() {
+	return (instance);
     }
 
     /** Decode SMS message text to a Java String. The SMS message is expected to
@@ -48,12 +53,12 @@ public class ASCIIEncoding
     public String decodeString(byte[] b)
     {
 	if (b == null)
-	    return (null);
+	    return ("");
 
 	try {
 	    return (new String(b, "US-ASCII"));
 	} catch (java.io.UnsupportedEncodingException x) {
-	    return (null);
+	    return ("");
 	}
     }
 
@@ -62,26 +67,16 @@ public class ASCIIEncoding
     public byte[] encodeString(String s)
     {
 	if (s == null)
-	    return (null);
+	    return (new byte[0]);
 
 	try {
 	    return (s.getBytes("US-ASCII"));
 	} catch (java.io.UnsupportedEncodingException x) {
-	    return (null);
+	    return (new byte[0]);
 	}
     }
 
-    /** Get the correct data_coding value for this message encoding type.
-     */
-    public int getDataCoding()
-    {
-	return (DCS);
-    }
-
-    /** Get the maximum number of octets allowed for this encoding type.
-     */
-    public int getMaxLength()
-    {
-	return (140);
+    public int getEncodingLength() {
+	return (8);
     }
 }

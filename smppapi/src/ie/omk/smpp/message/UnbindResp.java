@@ -52,22 +52,6 @@ public class UnbindResp
 	super(UNBIND_RESP, seqNum);
     }
 
-    /** Read in a UnbindResp from an InputStream.  A full packet,
-      * including the header fields must exist in the stream.
-      * @param in The InputStream to read from
-      * @throws java.io.IOException If an error occurs writing to the input
-      * stream.
-      */
-    /*public UnbindResp(InputStream in)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
-    {
-	super(in);
-
-	if (getCommandId() != SMPPPacket.UNBIND_RESP)
-	    throw new BadCommandIDException(SMPPPacket.UNBIND_RESP,
-		    getCommandId());
-    }*/
-
     /** Create a new UnbindResp packet in response to a BindReceiver.
       * This constructor will set the sequence number to it's expected value.
       * @param r The Request packet the response is to
@@ -82,8 +66,7 @@ public class UnbindResp
 	return (0);
     }
 
-    public void readBodyFrom(byte[] b, int offset)
-    {
+    public void readBodyFrom(byte[] b, int offset) throws SMPPProtocolException {
 	return;
     }
 

@@ -25,14 +25,13 @@ package ie.omk.smpp.message;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.InputStream;
 
 import java.net.SocketException;
 
+import java.util.Date;
+
 import ie.omk.smpp.Address;
 import ie.omk.smpp.SMPPException;
-import ie.omk.smpp.InvalidMessageIDException;
-import ie.omk.smpp.StringTooLongException;
 
 import ie.omk.smpp.message.tlv.Tag;
 import ie.omk.smpp.message.tlv.TLVTable;
@@ -44,6 +43,9 @@ import ie.omk.smpp.util.GSMConstants;
 import ie.omk.smpp.util.MessageEncoding;
 import ie.omk.smpp.util.SMPPDate;
 import ie.omk.smpp.util.SMPPIO;
+
+import ie.omk.smpp.version.SMPPVersion;
+
 
 /** This is the abstract class that all SMPP messages are inherited from.
  *  @author Oran Kelly
@@ -168,6 +170,12 @@ public abstract class SMPPPacket
     public static final int ESME_ROK			= 0;
 
 
+    /** Version of this packet. This object controls valid settings for field
+     * values.
+     */
+    protected SMPPVersion version = SMPPVersion.getDefaultVersion();
+
+
     /** Command ID. */
     protected int commandId = 0;
 
@@ -216,14 +224,14 @@ public abstract class SMPPPacket
     /** Error associated with message */
     protected int		errorCode = 0;
     
-    /** Message priority. In v3.3, this is boolean, either '1' or '0' */
+    /** Message priority. */
     protected int		priority = 0;
 
     /** Registered delivery. */
-    protected boolean		registered = false;
+    protected int		registered = 0;
 
     /** Replace if present. */
-    protected boolean		replaceIfPresent = false;
+    protected int		replaceIfPresent = 0;
 
     /** ESM class. */
     protected int		esmClass = 0;
@@ -231,17 +239,17 @@ public abstract class SMPPPacket
     /** GSM protocol ID. */
     protected int		protocolID = 0;
 
+    /** Alphabet to use to encode this message's text. */
+    private MessageEncoding	encoding = AlphabetFactory.getDefaultAlphabet();
+
     /** GSM data coding (see GSM 03.38). */
-    public int			dataCoding = 0;
+    protected int		dataCoding = encoding.getDataCoding();
 
     /** Default message number. */
     protected int		defaultMsg = 0;
 
     /** Optional parameter table. */
     protected TLVTable		tlvTable = new TLVTable();
-
-    /** Alphabet to use to encode this message's text. */
-    private AlphabetEncoding	alphabet = AlphabetFactory.getDefaultAlphabet();
 
     /** Create a new SMPPPacket with specified Id.
       * @param id Command Id value
@@ -261,19 +269,36 @@ public abstract class SMPPPacket
 	this.sequenceNum = seqNum;
     }
 
-    /** Read an SMPPPacket header from an InputStream
-      * @param in InputStream to read from
-      * @throws IOException if there's an error reading from the input
-      * stream.
-      */
-    /*protected SMPPPacket(InputStream in)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
-    {
-	int cmdLen = SMPPIO.readInt(in, 4);
-	this.commandId = SMPPIO.readInt(in, 4);
-	this.commandStatus = SMPPIO.readInt(in, 4);
-	this.sequenceNum = SMPPIO.readInt(in, 4);
-    }*/
+    protected SMPPPacket(int id, SMPPVersion version) {
+	this.commandId = id;
+	this.version = version;
+    }
+
+    protected SMPPPacket(int id, int seqNum, SMPPVersion version) {
+	this.commandId = id;
+	this.sequenceNum = seqNum;
+	this.version = version;
+    }
+
+
+    /** Get the version handler in use for this packet.
+     * @see ie.omk.smpp.version.SMPPVersion
+     */
+    public SMPPVersion getVersion() {
+	return (version);
+    }
+
+    /** Set the version handler for this packet. If <code>null</code> is passed
+     * in as the version, the default version will be used.
+     * @param version the version handler to use.
+     * @see ie.omk.smpp.version.SMPPVersion#getDefaultVersion
+     */
+    public void setVersion(SMPPVersion version) {
+	if (version == null)
+	    this.version = SMPPVersion.getDefaultVersion();
+	else
+	    this.version = version;
+    }
 
     /** Return the number of bytes this packet would be encoded as to an
       * OutputStream.
@@ -343,10 +368,15 @@ public abstract class SMPPPacket
       * @see ie.omk.smpp.message.DeliverSM
       * XXX Add other packets.
       */
-    public void setSource(Address s)
+    public void setSource(Address s) throws InvalidParameterValueException
     {
-	if(s != null) {
-	    this.source = s;
+	if (s != null) {
+	    if (version.validateAddress(s))
+		this.source = s;
+	    else
+		throw new InvalidParameterValueException("Bad source address.", s);
+	} else {
+	    this.source = null;
 	}
     }
 
@@ -356,10 +386,7 @@ public abstract class SMPPPacket
       */
     public Address getSource()
     {
-	if(source != null)
-	    return (source);
-	else
-	    return (null);
+	return (source);
     }
 
     /** Set the destination address.
@@ -367,8 +394,13 @@ public abstract class SMPPPacket
       */
     public void setDestination(Address s)
     {
-	if(s != null) {
-	    this.destination = s;
+	if (s != null) {
+	    if (version.validateAddress(s))
+		this.source = s;
+	    else
+		throw new InvalidParameterValueException("Bad destination address.", s);
+	} else {
+	    this.source = null;
 	}
     }
 
@@ -378,66 +410,80 @@ public abstract class SMPPPacket
       */
     public Address getDestination()
     {
-	if(destination != null) {
-	    return (destination);
-	} else {
-	    return (null);
-	}
-    }
-
-    /** Set the message flags.
-      * Not used by all SMPP Packet types.
-      * @see ie.omk.smpp.message.MsgFlags
-      * @deprecated
-      */
-    public void setMessageFlags(MsgFlags f)
-    {
-	if(f != null) {
-	    this.priority = (f.priority) ? 1 : 0;
-	    this.registered = f.registered;
-	    this.replaceIfPresent = f.replace_if_present;
-	    this.esmClass = f.esm_class;
-	    this.protocolID = f.protocol;
-	    this.dataCoding = f.data_coding;
-	    this.defaultMsg = f.default_msg;
-	}
+	return (destination);
     }
 
     /** Set the 'priority' flag.
-      * @see ie.omk.smpp.message.MsgFlags
+      * @deprecated
       */
     public void setPriority(boolean b)
     {
 	this.priority = (b) ? 1 : 0;
     }
 
+    /** Set the 'priority' flag.
+     * @throws ie.omk.smpp.message.InvalidParameterValueException If
+     * <code>p</code> is not a valid value for the priority flag.
+     */
+    public void setPriority(int p) throws InvalidParameterValueException {
+	if (version.validatePriorityFlag(p))
+	    this.priority = p;
+	else
+	    throw new InvalidParameterValueException("Bad priority flag value", p);
+    }
+
     /** Set 'registered delivery' flag.
-      * @see ie.omk.smpp.message.MsgFlags
+      * @deprecated
       */
     public void setRegistered(boolean b)
     {
-	this.registered = b;
+	this.registered = b ? 1 : 0;
+    }
+
+    /** Set 'registered delivery' flag.
+     * @throws ie.omk.smpp.message.InvalidParameterValueException If
+     * <code>r</code> is not a valid value for the registered delivery flag.
+     */
+    public void setRegistered(int r) throws InvalidParameterValueException {
+	if (version.validateRegisteredDelivery(r))
+	    this.registered = r;
+	else
+	    throw new InvalidParameterValueException("Bad registered delivery flag value", r);
     }
 
     /** Set 'replace if present'.
-      * @see ie.omk.smpp.message.MsgFlags
+      * @deprecated
       */
     public void setReplaceIfPresent(boolean b)
     {
-	this.replaceIfPresent = b;
+	this.replaceIfPresent = b ? 1 : 0;
+    }
+
+    /** Set 'replace if present' flag.
+     * @throws ie.omk.smpp.message.InvalidParameterValueException If
+     * <code>rip</code> is not a valid value for the replace if present flag.
+     */
+    public void setReplaceIfPresent(int rip) throws InvalidParameterValueException {
+	if (version.validateReplaceIfPresent(rip))
+	    this.replaceIfPresent = rip;
+	else
+	    throw new InvalidParameterValueException("Bad replace if present flag value", rip);
     }
     
     /** Set the esm class of the message.
-      * @see ie.omk.smpp.message.MsgFlags
-      * @see ie.omk.smpp.util.GSMConstants
-      */
-    public void setEsmClass(int c)
+     * @see ie.omk.smpp.util.GSMConstants
+     * @throws ie.omk.smpp.message.InvalidParameterValueException If the value
+     * passed is not a valid ESM class.
+     */
+    public void setEsmClass(int c) throws InvalidParameterValueException
     {
-	this.esmClass = c;
+	if (version.validateEsmClass(c))
+	    this.esmClass = c;
+	else
+	    throw new InvalidParameterValueException("Bad ESM class", c);
     }
 
     /** Set the protocol Id in the message flags.
-      * @see ie.omk.smpp.message.MsgFlags
       * @see ie.omk.smpp.util.GSMConstants
       * @deprecated ie.omk.smpp.message.SMPPPacket#setProtocolID
       */
@@ -447,81 +493,92 @@ public abstract class SMPPPacket
     }
 
     /** Set the GSM protocol ID.
-      * @see ie.omk.smpp.message.MsgFlags
-      * @see ie.omk.smpp.util.GSMConstants
-      */
-    public void setProtocolID(int id)
+     * @see ie.omk.smpp.util.GSMConstants
+     * @throws ie.omk.smpp.message.InvalidParameterValueException If the
+     * protocol ID supplied is invalid.
+     */
+    public void setProtocolID(int id) throws InvalidParameterValueException
     {
-	this.protocolID = id;
+	if (version.validateProtocolID(id))
+	    this.protocolID = id;
+	else
+	    throw new InvalidParameterValueException("Bad Protocol ID", id);
     }
 
     /** Set the GSM data coding of the message.
-      * @see ie.omk.smpp.message.MsgFlags
-      * @see ie.omk.smpp.util.GSMConstants
-      */
-    public void setDataCoding(int dc)
+     * @see ie.omk.smpp.util.GSMConstants
+     * @throws ie.omk.smpp.message.InvalidParameterValueException If the data
+     * coding supplied is invalid.
+     */
+    public void setDataCoding(int dc) throws InvalidParameterValueException
     {
-	this.dataCoding = dc;
+	if (version.validateDataCoding(dc)) {
+	    this.dataCoding = dc;
+	    this.encoding = MessageEncoding.getEncoding(dc);
+	} else
+	    throw new InvalidParameterValueException("Bad data coding", dc);
     }
 
     /** Set the default message id in the message flags.
-      * @see ie.omk.smpp.message.MsgFlags
       */
-    public void setDefaultMsg(int id)
+    public void setDefaultMsg(int id) throws InvalidParameterValueException
     {
-	this.defaultMsg = id;
-    }
-
-    /** Get the message flags.
-      * @return The ie.omk.smpp.message.MsgFlags object. Never null.
-      * @deprecated
-      */
-    public MsgFlags getMessageFlags()
-    {
-	MsgFlags flags = new MsgFlags();
-	flags.priority  = (this.priority == 0) ? false : true;
-	flags.registered = this.registered;
-	flags.replace_if_present = this.replaceIfPresent;
-	flags.esm_class = this.esmClass;
-	flags.protocol = this.protocolID;
-	flags.data_coding = this.dataCoding;
-	flags.default_msg = this.defaultMsg;
-
-	return (flags);
+	if (version.validateDefaultMsg(id))
+	    this.defaultMsg = id;
+	else
+	    throw new InvalidParameterValueException("Default message ID out of range", id);
     }
 
     /** Check is the message registered.
-      * @see ie.omk.smpp.message.MsgFlags
+      * @deprecated
       */
     public boolean isRegistered()
     {
-	return (this.registered);
+	return (this.registered > 0);
+    }
+
+    /** Get the 'registered' flag for the message.
+     */
+    public int getRegistered() {
+	return (registered);
     }
 
     /** Check is the message submitted as priority.
-      * @see ie.omk.smpp.message.MsgFlags
+      * @deprecated
       */
     public boolean isPriority()
     {
 	return ((this.priority == 0) ? false : true);
     }
 
+    /** Get the priority flag for the message.
+     */
+    public int getPriority() {
+	return (priority);
+    }
+
     /** Check if the message should be replaced if it is already present.
-      * @see ie.omk.smpp.message.MsgFlags
+      * @deprecated
       */
     public boolean isReplaceIfPresent()
     {
-	return (this.replaceIfPresent);
+	return (this.replaceIfPresent > 0);
     }
+
+    /** Get the replace if present flag for the message.
+     */
+    public int getReplaceIfPresent() {
+	return (replaceIfPresent);
+    }
+
     /** Get the ESM class of the message.
-      * @see ie.omk.smpp.message.MsgFlags
       */
     public int getEsmClass()
     {
 	return (this.esmClass);
     }
+
     /** Get the GSM protocol Id of the message.
-      * @see ie.omk.smpp.message.MsgFlags
       * @deprecated getProtocolID
       */
     public int getProtocolId()
@@ -530,7 +587,6 @@ public abstract class SMPPPacket
     }
 
     /** Get the GSM protocol ID of the message.
-      * @see ie.omk.smpp.message.MsgFlags
       */
     public int getProtocolID()
     {
@@ -538,126 +594,125 @@ public abstract class SMPPPacket
     }
 
     /** Get the data coding.
-      * @see ie.omk.smpp.message.MsgFlags
       */
     public int getDataCoding()
     {
 	return (this.dataCoding);
     }
+
     /** Get the default message to use.
-      * @see ie.omk.smpp.message.MsgFlags
       */
     public int getDefaultMsgId()
     {
 	return (this.defaultMsg);
     }
 
-    /** Set the text of the message (max 160 characters).
-      * This method sets the message text encoded using the default alphabet (as
-      * returned by AlphabetFactory.getDefaultAlphabet).  The maximum length of
-      * the string is 160 octets. Calling this method sets the data_coding value
-      * using AlphabetEncoding.getDataCoding.
-      * @param text The short message text.
-      * @throws ie.omk.smpp.StringTooLongException if the message is too
-      * long.
-      * @see ie.omk.smpp.util.AlphabetEncoding
-      * @see ie.omk.smpp.util.AlphabetEncoding#getDataCoding
-      * @see ie.omk.smpp.util.AlphabetFactory
-      * @see ie.omk.smpp.util.DefaultAlphabetEncoding
-      */
-    public void setMessageText(String text)
-	throws StringTooLongException
-    {
-	this.setMessageText(text, this.alphabet);
+    /** Set the text of the message.
+     * This method sets the message text encoded using the current alphabet for
+     * this message. The default alphabet to use is obtained using
+     * {@link ie.omk.smpp.util.AlphabetFactory#getDefaultAlphabet}. If, at some
+     * point, the encoding for the message has been altered to be one other than
+     * a sub-class of {@link ie.omk.smpp.util.AlphabetEncoding} then calls to
+     * this method will reset the encoding back to the default.  The maximum
+     * length of the message is determined by the SMPP version in use.  Calling
+     * this method affects the data_coding value.
+     * @param text The short message text.
+     * @throws ie.omk.smpp.message.InvalidParameterValueException If the message
+     * text is too long.
+     * @see ie.omk.smpp.util.AlphabetEncoding
+     * @see ie.omk.smpp.util.AlphabetEncoding#getDataCoding
+     * @see ie.omk.smpp.util.AlphabetFactory
+     * @see ie.omk.smpp.util.DefaultAlphabetEncoding
+     */
+    public void setMessageText(String text) throws InvalidParameterValueException {
+	if (!(encoding instanceof AlphabetEncoding))
+	    encoding = AlphabetFactory.getDefaultAlphabet();
+
+	AlphabetEncoding a = (AlphabetEncoding)encoding;
+	setMessage(a.encodeString(text), a);
     }
 
-    /** Set the text of the message (max 160 characters).
-      * This method sets the message text encoded using the SMS alphabet
-      * <i>alphabet</i>. The AlphabetEncoding.getDataCoding value will be used
-      * to set the data_coding field.
-      * @param text The short message text.
-      * @param alphabet The SMS alphabet to use.
-      * @throws ie.omk.smpp.StringTooLongException if the message is too
-      * long.
-      * @see ie.omk.smpp.util.AlphabetEncoding
-      * @see ie.omk.smpp.util.AlphabetEncoding#getDataCoding
-      * @see ie.omk.smpp.util.DefaultAlphabetEncoding
-      */
-    public void setMessageText(String text, AlphabetEncoding alphabet)
-	throws StringTooLongException
-    {
-	if(text == null) {
-	    this.message = null;
-	    return;
-	}
+    /** Set the text of the message.
+     * This method sets the message text encoded using the SMS alphabet
+     * <code>alphabet</code>. The AlphabetEncoding.getDataCoding value will be
+     * used to set the data_coding field.
+     * @param text The short message text.
+     * @param alphabet The SMS alphabet to use.
+     * @throws ie.omk.smpp.message.InvalidParameterValueException If the message
+     * text is too long.
+     * @see ie.omk.smpp.util.AlphabetEncoding
+     * @see ie.omk.smpp.util.AlphabetEncoding#getDataCoding
+     * @see ie.omk.smpp.util.DefaultAlphabetEncoding
+     */
+    public void setMessageText(String text, AlphabetEncoding alphabet) throws InvalidParameterValueException {
+	if (alphabet == null)
+	    throw new NullPointerException("Alphabet cannot be null");
 
-	byte[] bytes = alphabet.encodeString(text);
-	this.setMessage(bytes, alphabet);
+	this.setMessage(alphabet.encodeString(text), alphabet);
     }
 
-    /** Set the message data (max 140 octets).
-      * Maximum data length is 140 octets. The data will be copied from the
-      * supplied byte array into a newly created internal one.
-      * @param message The byte array to take message data from.
-      * @throws ie.omk.smpp.StringTooLongException if the message is too long
-      */
-    public void setMessage(byte[] message)
-	throws StringTooLongException
-    {
+    /** Set the message data.
+     * The data will be copied from the supplied byte array into an
+     * internal one.
+     * @param message The byte array to take message data from.
+     * @throws ie.omk.smpp.message.InvalidParameterValueException If the message
+     * data is too long.
+     */
+    public void setMessage(byte[] message) throws InvalidParameterValueException {
 	this.setMessage(message, 0, message.length, null);
     }
 
-    /** Set the message data (max 140 octets).
-      * Maximum data length is 140 octets. The data will be copied from the
-      * supplied byte array into a newly created internal one.
-      * @param message The byte array to take message data from.
-      * @throws ie.omk.smpp.StringTooLongException if the message is too long
-      */
-    public void setMessage(byte[] message, MessageEncoding encoding)
-	throws StringTooLongException
-    {
+    /** Set the message data.
+     * The data will be copied from the supplied byte array into an internal
+     * one.
+     * @param message The byte array to take message data from.
+     * @throws ie.omk.smpp.message.InvalidParameterValueException If the message
+     * data is too long.
+     */
+    public void setMessage(byte[] message, MessageEncoding encoding) throws InvalidParameterValueException {
 	this.setMessage(message, 0, message.length, encoding);
     }
 
-    /** Set the message data (max 140 octets).
-      * Maximum data length is 140 octets. The data will be copied from the
-      * supplied byte array into a newly created internal one. If
-      * <i>encoding</i> is not null, the data_coding field will be set using the
-      * value returned by MessageEncoding.getDataCoding.
-      * @param message The byte array to take message data from.
-      * @param start The index the message data begins at.
-      * @param len The length of the message data.
-      * @param encoding The encoding object representing the type of data in the
-      * message. If null, uses ie.omk.smpp.util.BinaryEncoding.
-      * @throws ie.omk.smpp.StringTooLongException if the message is too long
-      */
+    /** Set the message data.
+     * The data will be copied from the supplied byte array into an internal
+     * one. If <i>encoding</i> is not null, the data_coding field will be set
+     * using the value returned by MessageEncoding.getDataCoding.
+     * @param message The byte array to take message data from.
+     * @param start The index the message data begins at.
+     * @param len The length of the message data.
+     * @param encoding The encoding object representing the type of data in the
+     * message. If null, uses ie.omk.smpp.util.BinaryEncoding.
+     * @throws ie.omk.smpp.message.InvalidParameterValueException If the message
+     * data is too long.
+     * @throws java.lang.ArrayIndexOutOfBoundsException if start or len is less
+     * than zero or if the byte array length is less than <code>start +
+     * len</code>.
+     */
     public void setMessage(byte[] message, int start, int len,
-	    MessageEncoding encoding)
-	throws StringTooLongException
-    {
+	    MessageEncoding encoding) throws InvalidParameterValueException {
+
 	int maxLen = 0;
 	int dcs = -1;
 
-	if (encoding == null) {
-	    // use unspecified (ie binary) encoding type..
-	    maxLen = new BinaryEncoding().getMaxLength();
-	} else {
-	    maxLen = encoding.getMaxLength();
-	    dcs = encoding.getDataCoding();
-	}
+	// encoding should never be null, but for resilience, we check it here
+	// and default back to binary encoding if none is found.
+	if (encoding == null)
+	    encoding = BinaryEncoding.getInstance();
+
+	maxLen = (version.getMaxLength(version.MESSAGE_PAYLOAD) * 8) 
+		/ encoding.getEncodingLength();
+	dcs = encoding.getDataCoding();
 
 	if (message != null) {
 	    if ((start < 0) || (len < 0) || message.length < (start + len))
-		throw new ArrayIndexOutOfBoundsException();
+		throw new ArrayIndexOutOfBoundsException("Not enough bytes in array");
 
-	    if (len > maxLen) {
-		throw new StringTooLongException(maxLen);
-	    }
+	    if (len > maxLen)
+		throw new InvalidParameterValueException("Message is too long", message);
 
 	    this.message = new byte[len];
 	    System.arraycopy(message, start, this.message, 0, len);
-	    if (dcs != -1)
-		this.setDataCoding(encoding.getDataCoding());
+	    this.dataCoding = dcs;
 	} else {
 	    this.message = null;
 	}
@@ -678,24 +733,27 @@ public abstract class SMPPPacket
     }
 
     /** Get the text of the message.
-      * The message will be decoded according to  the data_coding field. If the
-      * API has no registered encoding for a data_coding value, the default
-      * alphabet (as returned by AlphabetFactory.getDefaultAlphabet) will be
-      * used.
-      * @see ie.omk.smpp.util.AlphabetFactory#getDefaultAlphabet
+      * The message will be decoded according to the current encoding of the
+      * message (that is, according to it's DCS value). If the current encoding
+      * is not some form of text encoding (that is, the DCS indicates a binary
+      * encoding), <code>null</code> will be returned.
+      * @return The text of the message, or <code>null</code> if the message is
+      * not text.
+      * @see #getMessageText(ie.omk.smpp.util.AlphabetEncoding)
+      * @see #setMessageText(java.lang.String, ie.omk.smpp.util.AlphabetEncoding)
       */
     public String getMessageText()
     {
-	AlphabetEncoding enc = AlphabetEncoding.getEncoding(this.dataCoding);
-	if (enc == null)
-	    enc = this.alphabet;
-
-	return (enc.decodeString(this.message));
+	if (encoding instanceof AlphabetEncoding)
+	    return (((AlphabetEncoding)encoding).decodeString(this.message));
+	else
+	    return (null);
     }
 
 
-    /** Get the text of the message.
-      * @param enc The text encoding of the message bytes.
+    /** Get the text of the message. Never returns null.
+      * @param enc The alphabet to use to decode the message bytes.
+      * @return The text of the message. Never returns null.
       * @see ie.omk.smpp.util.AlphabetEncoding
       */
     public String getMessageText(AlphabetEncoding enc)
@@ -713,21 +771,17 @@ public abstract class SMPPPacket
 
     /** Set the service type.
       * @param type The service type.
-      * @throws ie.omk.smpp.StringTooLongException if the service type is too
-      * long.
+      * @throws ie.omk.smpp.message.InvalidParameterValueException if the
+      * service type is too long.
       */
-    public void setServiceType(String type)
-	throws StringTooLongException
-    {
-	if(type == null) {
-	    serviceType = null;
-	    return;
-	}
-
-	if(type.length() < 6) {
-	    this.serviceType = type;
+    public void setServiceType(String type) throws InvalidParameterValueException {
+	if (type != null) {
+	    if (version.validateServiceType(type))
+		this.serviceType = type;
+	    else
+		throw new InvalidParameterValueException("Bad service type", type);
 	} else {
-	    throw new StringTooLongException(5);
+	    this.serviceType = null;
 	}
     }
 
@@ -745,6 +799,13 @@ public abstract class SMPPPacket
 	this.deliveryTime = d;
     }
 
+    /** Set the scheduled delivery time for the short message.
+     * @param d The date and time the message should be delivered.
+     */
+    public void setDeliveryTime(Date d) {
+	this.deliveryTime = new SMPPDate(d);
+    }
+
     /** Get the current value of the scheduled delivery time for the short
       * message.
       */
@@ -752,6 +813,7 @@ public abstract class SMPPPacket
     {
 	return (deliveryTime);
     }
+
 
     /** Set the expiry time of the message.
       * If the message is not delivered by time 'd', it will be cancelled and
@@ -761,6 +823,14 @@ public abstract class SMPPPacket
     public void setExpiryTime(SMPPDate d)
     {
 	expiryTime = d;
+    }
+
+    /** Set the expiry time of the message.
+      * If the message is not delivered by time 'd', it will be cancelled and
+      * never delivered to it's destination.
+      */
+    public void setExpiryTime(Date d) {
+	expiryTime = new SMPPDate(d);
     }
 
     /** Get the current expiry time of the message.
@@ -780,32 +850,41 @@ public abstract class SMPPPacket
 	finalDate = d;
     }
 
-    /** Get the final date of the message.
+    /** Set the final date of the message.
+      * The final date is the date and time that the message reached it's final
+      * destination.
+      * @param d the date the message was delivered.
       */
+    public void setFinalDate(Date d) {
+	this.finalDate = new SMPPDate(d);
+    }
+
+    /** Get the final date of the message.
+     */
     public SMPPDate getFinalDate()
     {
 	return (finalDate);
     }
 
     /** Set the message Id.
-      * Each submitted short message is assigned an Id by the SMSC which is used
-      * to uniquely identify it. SMPP v3.3 message Ids are hexadecimal numbers
-      * up to 9 characters long. This gives them a range of 0x0 - 0xffffffff.
-      * <p>SMPP v3.4 Ids, on the other hand, are opaque objects represented as
-      * C-Strings assigned by the SMSC and can be up to 64 characters (plus 1
-      * nul-terminator).
-      * @param id The message's id.
-      * @throws ie.omk.smpp.StringTooLongException If the message ID is too long
-      * for for the interface version in use.
-      */
-    public void setMessageId(String id)
-	throws StringTooLongException
-    {
-	if (id == null) {
-	    this.messageId = null;
+     * Each submitted short message is assigned an Id by the SMSC which is used
+     * to uniquely identify it. SMPP v3.3 message Ids are hexadecimal numbers
+     * up to 9 characters long. This gives them a range of 0x0 - 0xffffffff.
+     * <p>SMPP v3.4 Ids, on the other hand, are opaque objects represented as
+     * C-Strings assigned by the SMSC and can be up to 64 characters (plus 1
+     * nul-terminator).
+     * @param id The message's id.
+     * @throws ie.omk.smpp.message.InvalidParameterValueException If the message
+     * ID is invalid.
+     */
+    public void setMessageId(String id) throws InvalidParameterValueException {
+	if (id != null) {
+	    if (version.validateMessageId(id))
+		this.messageId = id;
+	    else
+		throw new InvalidParameterValueException("Bad message Id", id);
 	} else {
-	    // XXX need a version length check!
-	    this.messageId = id;
+	    this.messageId = null;
 	}
     }
     
@@ -816,13 +895,18 @@ public abstract class SMPPPacket
 	return (this.messageId);
     }
 
-    /** Set the message status. This is different to the command status field.
-      * XXX describe the message status.
-      * @param st The message status.
-      */
-    public void setMessageStatus(int st)
-    {
-	this.messageStatus = st;
+    /** Set the message status. The message status (or message state) describes
+     * the current state of the message at the SMSC. There are a number of
+     * states defined in the SMPP specification.
+     * @param st The message status.
+     */
+    // XXX Add in a link to the eventual SMPPConstants file that'll be
+    // implemented.
+    public void setMessageStatus(int st) throws InvalidParameterValueException {
+	if (version.validateMessageState(st))
+	    this.messageStatus = st;
+	else
+	    throw new InvalidParameterValueException("Invalid message state", st);
     }
 
     /** Get the message status.
@@ -835,9 +919,11 @@ public abstract class SMPPPacket
     /** Set the error code.
       * @param code The error code.
       */
-    public void setErrorCode(int code)
-    {
-	errorCode = code; 
+    public void setErrorCode(int code) throws InvalidParameterValueException {
+	if (version.validateErrorCode(code))
+	    errorCode = code; 
+	else
+	    throw new InvalidParameterValueException("Invalid error code", code);
     }
 
     /** Get the error code.
@@ -911,9 +997,11 @@ public abstract class SMPPPacket
     public void setAlphabet(AlphabetEncoding enc)
     {
 	if (enc == null)
-	    this.alphabet = new ie.omk.smpp.util.DefaultAlphabetEncoding();
+	    this.encoding = AlphabetFactory.getDefaultAlphabet();
 	else
-	    this.alphabet = enc;
+	    this.encoding = enc;
+
+	this.dataCoding = enc.getDataCoding();
     }
 
     /** Return a String representation of this packet. This method does not
@@ -966,15 +1054,20 @@ public abstract class SMPPPacket
 
     }
 
-    // XXX javadoc
-    public void readFrom(byte[] b, int offset)
-    {
+    /** Decode an SMPP packet from a byte array.
+     * @param b the byte array to read the SMPP packet's fields from.
+     * @param offset the offset into <code>b</code> to begin reading the packet
+     * fields from.
+     * @throws ie.omk.smpp.message.SMPPProtocolException if there is an error
+     * parsing the packet fields.
+     */
+    public void readFrom(byte[] b, int offset) throws SMPPProtocolException {
 	// Clear out the TLVTable..
 	tlvTable.clear();
 
 	if (b.length < (offset + 16)) {
-	    // XXX exception??
-	    throw new RuntimeException("no header present in bytes (not enuf)");
+	    throw new SMPPProtocolException("Not enough bytes for a header: "
+		    + (b.length - (offset + 16)));
 	}
 
 	int len = SMPPIO.bytesToInt(b, offset, 4);
@@ -982,29 +1075,39 @@ public abstract class SMPPPacket
 
 	if (id != commandId) {
 	    // Command type mismatch...ye can't do that, lad!
-	    // XXX exception
-	    throw new RuntimeException("Command ID mismatch.");
+	    throw new SMPPProtocolException("The packet on the input stream is not"
+		    + " the same as this packet's type.");
 	}
 	if (b.length < (offset + len)) {
 	    // not enough bytes there for me to read in, buddy!
-	    // XXX exception
-	    throw new RuntimeException("not enough bytes in array.");
+	    throw new SMPPProtocolException("Header specifies the packet length is longer"
+		    + " than the number of bytes available.");
 	}
 
 	commandStatus = SMPPIO.bytesToInt(b, offset + 8, 4);
 	sequenceNum = SMPPIO.bytesToInt(b, offset + 12, 4);
 
-	if (commandStatus == 0) {
-	    // Read the mandatory body parameters..
-	    int ptr = 16 + offset;
-	    readBodyFrom(b, ptr);
+	try {
+	    if (commandStatus == 0) {
+		// Read the mandatory body parameters..
+		int ptr = 16 + offset;
+		readBodyFrom(b, ptr);
 
-	    // Read the optional parameters..
-	    ptr += getBodyLength();
-	    tlvTable.readFrom(b, offset, (offset + len) - ptr);
+		// Read the optional parameters..
+		len -= (16 + getBodyLength());
+		if (len > 0)
+		    tlvTable.readFrom(b, offset, len);
+	    }
+	} catch (ArrayIndexOutOfBoundsException x) {
+	    throw new SMPPProtocolException("Ran out of bytes to read for packet body", x);
 	}
     }
 
-    // XXX javadoc
-    public abstract void readBodyFrom(byte[] b, int offset);
+    /** Read this packet's mandatory parameters from a byte array.
+     * @param b the byte array to read the mandatory parameters from.
+     * @param offset the offset into b that the mandatory parameter's begin at.
+     * @throws ie.omk.smpp.message.SMPPProtocolException if there is an error
+     * parsing the packet fields.
+     */
+    protected abstract void readBodyFrom(byte[] b, int offset) throws SMPPProtocolException;
 }

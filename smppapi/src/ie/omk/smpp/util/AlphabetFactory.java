@@ -36,25 +36,10 @@ import org.apache.log4j.Logger;
  */
 public final class AlphabetFactory
 {
-    private static AlphabetEncoding defaultAlphabet =
-	new DefaultAlphabetEncoding();
+    private static AlphabetEncoding defaultAlphabet = null;
 
-    /** Initialise the default alphabet class.
-      */
-    static {
-	String className = "";
-	try {
-	    className = System.getProperty("smpp.default_alphabet");
-	    if (className != null) {
-		Class alphaClass = Class.forName(className);
-		defaultAlphabet = (AlphabetEncoding)alphaClass.newInstance();
-	    }
-	} catch (Exception x) {
-	    // Leave the alphabet as DefaultAlphabetExt
-	    Logger.getLogger("ie.omk.smpp.util").warn("Couldn't load default alphabet "
-		    + className, x);
-	}
-    }
+    private static final String DEFAULT_ALPHABET_PROPNAME = "smpp.default_alphabet";
+
 
     private AlphabetFactory()
     {
@@ -76,13 +61,34 @@ public final class AlphabetFactory
      */
     public static AlphabetEncoding getDefaultAlphabet()
     {
+	if (defaultAlphabet == null)
+	    init();
+
 	return (defaultAlphabet);
+    }
+
+    private static final void init() {
+	String className = "";
+	try {
+	    className = System.getProperty(DEFAULT_ALPHABET_PROPNAME);
+	    if (className != null) {
+		Class alphaClass = Class.forName(className);
+		defaultAlphabet = (AlphabetEncoding)alphaClass.newInstance();
+	    } else {
+		defaultAlphabet = DefaultAlphabetEncoding.getInstance();
+	    }
+	} catch (Exception x) {
+	    // Leave the alphabet as DefaultAlphabet
+	    Logger.getLogger("ie.omk.smpp.util").warn("Couldn't load default alphabet "
+		    + className, x);
+	    defaultAlphabet = DefaultAlphabetEncoding.getInstance();
+	}
     }
 
 
     /** Get the SMSAlphabet needed for encoding messages in a particular
      * language. At the moment this ONLY returns an instance of
-     * DefaultAlphabetExt seeing as that's the only alphabet implemented
+     * DefaultAlphabet seeing as that's the only alphabet implemented
      * currently.
      * @param lang The ISO code for the language the message is in.
      */

@@ -23,14 +23,6 @@
  */
 package ie.omk.smpp.message;
 
-import java.io.IOException;
-import ie.omk.smpp.SMPPException;
-import ie.omk.smpp.BadCommandIDException;
-import ie.omk.smpp.BadInterfaceVersionException;
-import ie.omk.smpp.StringTooLongException;
-import ie.omk.smpp.util.SMPPIO;
-import org.apache.log4j.Logger;
-
 /** Bind to the SMSC as a transmitter.
   * @author Oran Kelly
   * @version 1.0
@@ -45,22 +37,6 @@ public class BindTransmitter
     {
 	super(BIND_TRANSMITTER);
     }
-
-    /** Read in a BindTransmitter from an InputStream.  A full packet,
-      * including the header fields must exist in the stream.
-      * @param in The InputStream to read from
-      * @throws java.io.IOException if there's a problem reading from the
-      * input stream.
-      */
-    /*public BindTransmitter(InputStream in)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
-    {
-	super(in);
-
-	if (getCommandId() != SMPPPacket.BIND_TRANSMITTER)
-	    throw new BadCommandIDException(SMPPPacket.BIND_TRANSMITTER,
-		    getCommandId());
-    }*/
 
     /** Convert this packet to a String. Not to be interpreted programmatically,
       * it's just dead handy for debugging!

@@ -23,14 +23,6 @@
  */
 package ie.omk.smpp.message;
 
-import java.io.IOException;
-import ie.omk.smpp.SMPPException;
-import ie.omk.smpp.BadCommandIDException;
-import ie.omk.smpp.StringTooLongException;
-import ie.omk.smpp.BadInterfaceVersionException;
-import ie.omk.smpp.util.SMPPIO;
-import org.apache.log4j.Logger;
-
 /** Bind to the SMSC as receiver.
   * This message is used to bind to the SMSC as a Receiver ESME.
   * @author Oran Kelly
@@ -45,21 +37,6 @@ public class BindReceiver
     {
 	super(BIND_RECEIVER);
     }
-
-    /** Read a BindReceiver packet from an InputStream.  An entire packet
-      * must exist in the stream, including the header information.
-      * @param in The InputStream to read from
-      * @throws java.io.IOException if there's a read error.
-      */
-    /*public BindReceiver(InputStream in)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
-    {
-	super(in);
-
-	if (getCommandId() != SMPPPacket.BIND_RECEIVER)
-	    throw new BadCommandIDException(SMPPPacket.BIND_RECEIVER,
-		    getCommandId());
-    }*/
 
     /** Convert this packet to a String. Not to be interpreted programmatically,
       * it's just dead handy for debugging!

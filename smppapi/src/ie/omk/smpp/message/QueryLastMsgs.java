@@ -28,7 +28,6 @@ import java.io.OutputStream;
 
 import ie.omk.smpp.Address;
 import ie.omk.smpp.BadCommandIDException;
-import ie.omk.smpp.NumberOutOfRangeException;
 import ie.omk.smpp.SMPPException;
 
 import ie.omk.smpp.util.GSMConstants;
@@ -68,40 +67,17 @@ public class QueryLastMsgs
 	msgCount = 0;
     }
 
-    /** Read in a QueryLastMsgs from an InputStream.  A full packet,
-      * including the header fields must exist in the stream.
-      * @param in The InputStream to read from
-      * @throws java.io.IOException if there's an error reading from the
-      * input stream.
-      */
-    /*public QueryLastMsgs(InputStream in)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
-    {
-	super(in);
-
-	if (getCommandId() != SMPPPacket.QUERY_LAST_MSGS)
-	    throw new BadCommandIDException(SMPPPacket.QUERY_LAST_MSGS,
-		    getCommandId());
-
-	if (getCommandStatus() != 0)
-	    return;
-
-	this.source = new Address(in);
-	this.msgCount = SMPPIO.readInt(in, 1);
-    }*/
-
-    /** Set the number of messages to look up.
-      * @param n The message count (1 &lt;= n &lt;= 100)
-      * @throws ie.omk.smpp.NumberOutOfRangeException if the count is set
-      * outside the valid range.
-      */
-    public void setMsgCount(int n)
-	throws NumberOutOfRangeException
-    {
+    /** Set the number of messages to look up. The minimum number of messages to
+     * query is 1 and the maximum is 100.
+     * @param n The message count (1 &lt;= n &lt;= 100)
+     * @throws ie.omk.smpp.message.InvalidParameterValueException if the count
+     * is set outside the valid range.
+     */
+    public void setMsgCount(int n) throws InvalidParameterValueException {
 	if(n > 0 && n <= 100) {
 	    this.msgCount = n;
 	} else {
-	    throw new NumberOutOfRangeException(1, 100);
+	    throw new InvalidParameterValueException("Message count must be between 1 and 100", n);
 	}
     }
 
@@ -137,8 +113,7 @@ public class QueryLastMsgs
 	SMPPIO.writeInt(msgCount, 1, out);
     }
 
-    public void readBodyFrom(byte[] body, int offset)
-    {
+    public void readBodyFrom(byte[] body, int offset) throws SMPPProtocolException {
 	source = new Address();
 	source.readFrom(body, offset);
 	offset += source.getLength();

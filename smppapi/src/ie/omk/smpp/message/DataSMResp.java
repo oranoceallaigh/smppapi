@@ -79,8 +79,7 @@ public class DataSMResp
 	SMPPIO.writeCString(getMessageId(), out);
     }
 
-    public void readBodyFrom(byte[] b, int offset)
-    {
+    public void readBodyFrom(byte[] b, int offset) throws SMPPProtocolException {
 	messageId = SMPPIO.readCString(b, offset);
     }
 

@@ -24,13 +24,41 @@
 
 package ie.omk.smpp.util;
 
+import java.util.Hashtable;
+
 public abstract class MessageEncoding
 {
+    private static Hashtable dcMapping = new Hashtable();
+
+    private int dataCoding = -1;
+
+
+    protected MessageEncoding(int dataCoding) {
+	this.dataCoding = dataCoding;
+	dcMapping.put(new Integer(dataCoding), this);
+    }
+
     /** Get the correct data_coding value for this message encoding type.
      */
-    public abstract int getDataCoding();
+    public final int getDataCoding() {
+	return (dataCoding);
+    }
 
-    /** Get the maximum number of octets allowed for this encoding type.
+    /** Get the MessageEncoding handler for data coding <i>dcs</i>.
+      * @param dcs The data coding value to match.
+      * @return The message encoding type registered, or null if none.
+      */
+    public static final MessageEncoding getEncoding(int dcs) {
+	return ((MessageEncoding)dcMapping.get(new Integer(dcs)));
+    }
+
+    /** Get the number of bits this encoding uses per character. This method
+     * only makes proper sense for alphabet encoding classes. For example, the
+     * default GSM alphabet encodes characters in 7 bits. Latin-1 encoding uses
+     * 8 bits per character and UCS2 uses 16 bits per character. This method
+     * always returns 8, unless overridden in the subclass.  
      */
-    public abstract int getMaxLength();
+    public int getEncodingLength() {
+	return (8);
+    }
 }

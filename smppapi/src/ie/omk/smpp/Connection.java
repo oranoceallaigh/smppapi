@@ -54,6 +54,7 @@ import ie.omk.smpp.message.DeliverSMResp;
 import ie.omk.smpp.message.EnquireLink;
 import ie.omk.smpp.message.EnquireLinkResp;
 import ie.omk.smpp.message.GenericNack;
+import ie.omk.smpp.message.InvalidParameterValueException;
 import ie.omk.smpp.message.ParamRetrieve;
 import ie.omk.smpp.message.ParamRetrieveResp;
 import ie.omk.smpp.message.QueryLastMsgs;
@@ -65,6 +66,7 @@ import ie.omk.smpp.message.QuerySMResp;
 import ie.omk.smpp.message.ReplaceSM;
 import ie.omk.smpp.message.ReplaceSMResp;
 import ie.omk.smpp.message.SMPPPacket;
+import ie.omk.smpp.message.SMPPProtocolException;
 import ie.omk.smpp.message.SMPPRequest;
 import ie.omk.smpp.message.SMPPResponse;
 import ie.omk.smpp.message.SubmitMulti;
@@ -83,13 +85,29 @@ import ie.omk.smpp.util.SequenceNumberScheme;
 import ie.omk.smpp.util.SMPPDate;
 import ie.omk.smpp.util.SMPPIO;
 
+import ie.omk.smpp.version.SMPPVersion;
+import ie.omk.smpp.version.VersionException;
+
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
-/** SMPP client connection (ESME).
-  * @author Oran Kelly
-  * @version 1.0
-  */
+/** SMPP client connection (ESME). An SMPP Connection represents any kind of
+ * connection to the SMSC, be it a transmitter, receiver or transceiver. It also
+ * supports both synchronous and asynchronous modes of communication.
+ * Synchronous mode is only useful for very simple applications that use
+ * single-threading. Asynchronous mode is recommended for more complex
+ * applications, especially those that will be running many threads.
+ * <p><b>Important Note</b>: if you wish to use synchronous mode in a
+ * multi-threaded environment, it is the <u>application's</u> responsiblity to
+ * ensure there is only one thread executing a call to either or both of the
+ * <code>sendRequest</code> and <code>readNextPacket</code> methods. If there
+ * are concurrent calls to these methods executing, there is a strong
+ * possibility of the incorrect packet being returned in a particular thread and
+ * both the API and the application getting confused. These are the only methods
+ * that contain such a race condition.</p>
+ * @author Oran Kelly
+ * @version 1.0
+ */
 public class Connection
     implements java.lang.Runnable
 {
@@ -130,6 +148,17 @@ public class Connection
     /** The first ConnectionObserver added to this object. */
     private ConnectionObserver	singleObserver = null;
 
+    /** Queue of incoming packets to deliver to application before reading from
+     * the network. The queue is used only in syncrhonized mode. In the case
+     * where an application has sent a request to the SMSC and is blocked
+     * waiting a response and the SMSC initiates a request of it's own (an
+     * unbind request or an enquire_link), the API will cache the request packet
+     * and wait for the response to it's packet. Any other type of packet will
+     * be added to the packetQueue and subsequent calls to
+     * <code>readNextPacket</code> will clear this queue.
+     */
+    private ArrayList		packetQueue = null;
+
     /** The list of ConnectionObservers on this object. This list does
      * <b>NOT</b> include the first observer referenced by
      * <code>singleObserver</code>.
@@ -147,7 +176,7 @@ public class Connection
 
     /** SMPP protocol version number.
      */
-    protected SMPPVersion	interfaceVersion = SMPPVersion.V33;
+    protected SMPPVersion	interfaceVersion = SMPPVersion.getDefaultVersion();
 
     /** Current state of the SMPP connection.
       * Possible states are UNBOUND, BINDING, BOUND and UNBINDING.
@@ -170,7 +199,8 @@ public class Connection
 
     /** Initialise a new SMPP connection object. This is a convenience
      * constructor that will create a new {@link ie.omk.smpp.net.TcpLink} object
-     * using the host name and port provided.
+     * using the host name and port provided. The connection created will use
+     * synchronous communications.
      * @param host the hostname of the SMSC.
      * @param port the port to connect to. If 0, use the default SMPP port
      * number.
@@ -181,16 +211,30 @@ public class Connection
 	this (new TcpLink(host, port), false);
     }
 
-    /** Initialise a new SMPP connection object.
-      * @param link The network link object to the Smsc (cannot be null)
-      */
+    /** Initialise a new SMPP connection object. This is a convenience
+     * constructor that will create a new {@link ie.omk.smpp.net.TcpLink} object
+     * using the host name and port provided.
+     * @param host the hostname of the SMSC.
+     * @param port the port to connect to. If 0, use the default SMPP port
+     * number.
+     * @param async true for asyncronous communication, false for synchronous.
+     */
+    public Connection(String host, int port, boolean async) throws java.net.UnknownHostException {
+	this (new TcpLink(host, port), async);
+    }
+
+    /** Initialise a new SMPP connection object. The connection will use
+     * synchronous communications.
+     * @param link The network link object to the Smsc (cannot be null)
+     */
     public Connection(SmscLink link)
     {
 	this (link, false);
     }
 
     /** Initialise a new SMPP connection object, specifying the type of
-     * communication desired.
+     * communication desired. See the {@link Connection} class description for
+     * some required knowledge on using the Connection in syncrhonous mode.
      * @param link The network link object to the Smsc (cannot be null)
      * @param async true for asyncronous communication, false for synchronous.
      */
@@ -202,6 +246,8 @@ public class Connection
 	if (asyncComms) {
 	    this.observers = new ArrayList();
 	    createRecvThread();
+	} else {
+	    packetQueue = new ArrayList();
 	}
     }
 
@@ -222,6 +268,37 @@ public class Connection
     {
 	logger.info("Setting state " + state);
 	this.state = state;
+    }
+
+    /** Set the SMPP version this connection will use. Setting the version is
+     * only a valid operation before the connection is bound. Any attempt to set
+     * the version after binding to the SMSC will result in an exception being
+     * thrown.
+     * @param version the SMPP version to use.
+     * @throws ie.omk.smpp.version.VersionException if an attempt is made to set
+     * the version of the connection after binding to the SMSC.
+     * @see ie.omk.smpp.version.SMPPVersion
+     */
+    public void setVersion(SMPPVersion version) throws VersionException {
+	if (getState() != UNBOUND)
+	    throw new VersionException("Cannot set SMPP version after binding");
+
+	if (version == null)
+	    this.interfaceVersion = SMPPVersion.getDefaultVersion();
+	else
+	    this.interfaceVersion = version;
+    }
+
+    /** Get the SMPP version in use by this connection. The version in use by
+     * the connection <b>may</b> be different to that specified before the bind
+     * operation as binding to the SMSC may result in an alternative SMPP
+     * version being negotiated. For instance, if the client sends a bind packet
+     * to the SMSC specifying that it supports SMPP version 3.4 but the SMSC
+     * returns a bind_resp stating it supports version 3.3, the Connection
+     * automatically sets it's internal version to use down to 3.3.
+     */
+    public SMPPVersion getVersion() {
+	return (interfaceVersion);
     }
 
     /** Get the current state of the ESME. One of UNBOUND, BINDING, BOUND or
@@ -251,6 +328,27 @@ public class Connection
 	}
     }
 
+
+    /** Close the underlying network link to the SMSC. This method calls the
+     * underlying link's <code>close</code> method to actually shutdown
+     * the network connection to the SMSC.
+     * @throws ie.omk.smpp.IllegalStateException if an attempt is made to close
+     * the connection while bound to the SMSC.
+     * @throws java.io.IOException if an I/O exception occurs while trying to
+     * close the link.
+     * @see ie.omk.smpp.net.SmscLink#close
+     */
+    public void closeLink() throws IOException {
+	if (getState() != UNBOUND)
+	    throw new IllegalStateException("Cannot close the link while bound to the SMSC");
+
+	if (this.link.isConnected()) {
+	    logger.info("Shutting down the network link");
+	    this.link.close();
+	} else {
+	    logger.debug("closeLink called on an unopen connection");
+	}
+    }
 
     /** Get the interface version.
      * @see #setInterfaceVersion(SMPPVersion)
@@ -329,11 +427,13 @@ public class Connection
     }
 
     /** Send an smpp request to the SMSC.
-      * No fields in the SMPPRequest packet will be altered except for the
-      * sequence number. The sequence number of the packet will be set by this
-      * method according to the numbering maintained by this Connection
-      * object. The numbering policy is to start at 1 and increment by 1 for
-      * each packet sent.
+      * No fields in the SMPPRequest packet will be altered except possibly the
+      * sequence number. The sequence number will be assigned the next number as
+      * defined by this Connection's sequence numbering scheme. If the sequence
+      * numbering scheme class is <code>null</code> for this Connection, no
+      * number will be assigned. By default, the
+      * {@link ie.omk.smpp.util.DefaultSequenceScheme} class is used to assign
+      * sequence numbers to packets.
       * @param r The request packet to send to the SMSC
       * @return The response packet returned by the SMSC, or null if
       * asynchronous communication is being used.
@@ -342,47 +442,62 @@ public class Connection
       * waiting for a response packet. (Only in synchronized mode).
       * @throws java.io.IOException If an I/O error occurs while writing the
       * request packet to the network connection.
-      * @throws ie.omk.smpp.UnsupportedOperationException if the negotiated
-      * version of the SMPP link does not support the request type
-      * <code>r</code>.
+      * @throws ie.omk.smpp.UnsupportedOperationException If this connection
+      * type does not support operation <code>r</code>. For example, a receiver
+      * link does not support the submit_sm operation.
       * @throws ie.omk.smpp.AlreadyBoundException If the request type is a bind
       * packet and this connection is already bound.
+      * @throws ie.omk.smpp.message.SMPPProtocolException If synchronous
+      * communications is in use and the incoming response packet violates the
+      * SMPP specification, this exception will be thrown.
+      * @see #setSeqNumScheme
       */
     public SMPPResponse sendRequest(SMPPRequest r)
-	throws java.net.SocketTimeoutException, java.io.IOException, UnsupportedOperationException, AlreadyBoundException
+	throws java.net.SocketTimeoutException, java.io.IOException, AlreadyBoundException, VersionException, SMPPProtocolException, UnsupportedOperationException
     {
-	if (link == null)
-	    throw new IOException("Connection to the SMSC is not open.");
-
+	SMPPResponse resp = null;
 	int id = r.getCommandId();
 
-	// Check the command is supported by the interface version..
-	if (!this.interfaceVersion.isSupported(id)) {
-	    throw new UnsupportedOperationException("Command ID 0x"
-		    + Integer.toHexString(id)
-		    + " is not supported by SMPP "
-		    + this.interfaceVersion);
-	}
-	
+	if (this.state != BOUND)
+	    throw new NotBoundException("Must be bound to the SMSC before "
+		    + "sending packets");
+
 	// Very few request types allowed by a receiver connection.
 	if (connectionType == RECEIVER) {
 	    if (id != SMPPPacket.ENQUIRE_LINK && id != SMPPPacket.UNBIND)
 		throw new UnsupportedOperationException(
-			"Operation not permitted "
-			+ "over receiver connection");
+			"Operation not permitted over receiver connection");
 	}
 
-	SMPPPacket resp = null;
+	return (sendRequestInternal(r));
+    }
 
-	if (this.seqNumScheme != null)
-	    r.setSequenceNum(this.seqNumScheme.nextNumber());
+    /** Send a request to the SMSC.
+     * XXX complete javadoc for this method.
+     * @throws ie.omk.smpp.version.VersionException if the version in use
+     * does not support the request being sent.
+     */
+    protected SMPPResponse sendRequestInternal(SMPPRequest r)
+    throws java.net.SocketTimeoutException, java.io.IOException, AlreadyBoundException, VersionException, SMPPProtocolException {
+	SMPPResponse resp = null;
+	int id = r.getCommandId();
 
-	// Special packet handling..
+	if (link == null)
+	    throw new IOException("No SMSC connection.");
+
+	// Check the command is supported by the interface version..
+	if (!this.interfaceVersion.isSupported(id)) {
+	    throw new VersionException("Command ID 0x"
+		    + Integer.toHexString(id)
+		    + " is not supported by SMPP "
+		    + this.interfaceVersion);
+	}
+
 	if (id == SMPPPacket.BIND_TRANSMITTER
 		|| id == SMPPPacket.BIND_RECEIVER
 		|| id == SMPPPacket.BIND_TRANSCEIVER) {
 	    if (this.state != UNBOUND)
-		throw new AlreadyBoundException();
+		throw new AlreadyBoundException("Already bound to the SMSC");
 
 	    openLink();
 
@@ -394,40 +509,95 @@ public class Connection
 		if (!rcvThread.isAlive())
 		    rcvThread.start();
 	    }
+	} else if (id == SMPPPacket.UNBIND) {
+	    if (!asyncComms && packetQueue.size() > 0)
+		throw new IllegalStateException("Cannot unbind while there are incoming packets "
+			+ "waiting responses");
+
+	    if (this.state != BOUND)
+		throw new IllegalStateException("Not currently bound");
+
+	    setState(UNBINDING);
 	}
 
-	try {
-	    id = -1;
-	    link.write(r);
+	// XXX temporary...this should be removed once it's safe to assume that
+	// no packet can be submitted that has been constructed outside the
+	// confines of this connection's factory method.
+	if (r.getSequenceNum() == 0 && seqNumScheme != null)
+	    r.setSequenceNum(seqNumScheme.nextNumber());
 
-	    if (!asyncComms) {
-		resp = readNextPacketInternal();
-		id = resp.getCommandId();
-		if(!(resp instanceof SMPPResponse)) {
-		    logger.warn("Packet received from the SMSC is not a response");
-		}
-	    }
-	} catch (java.net.SocketTimeoutException x) {
-	    // Must set our state and re-throw the exception..
-	    logger.error("Received a socket timeout exception", x);
-	    setState(UNBOUND);
-	    throw x;
-	}
-
-	// Special!
-	if (id == SMPPPacket.BIND_TRANSMITTER_RESP
-		|| id == SMPPPacket.BIND_RECEIVER_RESP
-		|| id == SMPPPacket.BIND_TRANSCEIVER_RESP) {
-	    handleBindResp((BindResp)resp);
-	}
+	link.write(r);
+	if (!asyncComms)
+	    resp = waitForResponsePacket(r);
 
 	return ((SMPPResponse)resp);
     }
 
+    /** Wait for a response packet from the SMSC. A response packet with the
+     * same sequence number as <code>req</code> will be waited for from the
+     * SMSC. If an unexpected packet arrives, either a response packet with a
+     * different sequence number or a request packet, it will be queued for
+     * later retrieval by the application via <code>readNextPacket</code>.
+     * @param req the request packet to wait for a response to.
+     * @return A response packet with the same sequence number as
+     * <code>req</code>.
+     * @throws java.net.SocketTimeoutException if the read on the socket times
+     * out.
+     * @see #readNextPacket
+     * @see java.net.SocketTimeoutException
+     */
+    protected SMPPResponse waitForResponsePacket(SMPPPacket req)
+    throws java.net.SocketTimeoutException, java.io.IOException, SMPPProtocolException {
+	try {
+	    int id = -1;
+	    SMPPPacket resp = null;
+
+	    int expectedSeq = req.getSequenceNum();
+	    while (true) {
+		resp = readNextPacketInternal();
+		id = resp.getCommandId();
+
+		if ((id & 0x80000000) != 0
+			&& resp.getSequenceNum() == expectedSeq) {
+		    break;
+		} else {
+		    logger.info("Received out-of-sequence packet from SMSC."
+			    + " Queueing it.");
+		    packetQueue.add(resp);
+		}
+	    }
+
+	    return ((SMPPResponse)resp);
+	} catch (java.net.SocketTimeoutException x) {
+	    // Must set our state and re-throw the exception..
+	    logger.error("Received a socket timeout exception", x);
+	    throw x;
+	}
+    }
+
+    /** Determine if there are packets available for reading using
+     * <code>readNextPacket</code>. This method is only valid for synchronous
+     * communications...it will always return 0 if asynchronous mode is in
+     * use.
+     * @return 0 if there is no packet available for reading, 1 if there is data
+     * available but the call to <code>readNextPacket</code> may block or 2 if
+     * there is a full packet available.
+     */
+    public int packetAvailable() {
+	int ret = 0;
+
+	if (!asyncComms) {
+	    if (packetQueue.size() > 0)
+		ret = 2;
+	    else if (link.available() > 0)
+		ret = 1;
+	}
+
+	return (ret);
+    }
+
     /** Send an smpp response packet to the SMSC
       * @param r The response packet to send to the SMSC
-      * @throws ie.omk.smpp.NoSuchRequestException if the response contains a
-      * sequence number of a request this connection has not seen.
       * @throws java.io.IOException If an I/O error occurs while writing the
       * response packet to the output stream.
       */
@@ -472,33 +642,25 @@ public class Connection
      * @return the bind response packet.
      * @throws java.lang.IllegalArgumentException if a bad <code>type</code>
      * value is supplied.
-     * @throws ie.omk.smpp.UnsupportedOperationException if an attempt is made
+     * @throws ie.omk.smpp.VersionException if an attempt is made
      * to bind as transceiver while using SMPP version 3.3.
-     * @throws ie.omk.smpp.StringTooLongException If any of systemID, password,
-     * system type or address range are outside allowed bounds.
-     * @throws ie.omk.smpp.InvalidTONException If the TON is invalid.
-     * @throws ie.omk.smpp.InvalidNPIException If the NPI is invalid.
+     * @throws ie.omk.smpp.InvalidParameterValueException If any of systemID,
+     * password, system type or address range are outside allowed bounds or the
+     * TON or NPI is invalid.
      * @throws java.io.IOException If an I/O error occurs while writing the bind
      * packet to the output stream.
      * @throws ie.omk.smpp.AlreadyBoundException If the Connection is already
      * bound.
+     * @throws ie.omk.smpp.SMPPProtocolExcpetion if synchronous communication is
+     * in use and the incoming response packet violates the SMPP protocol.
      */
     public BindResp bind(int type,
 	    String systemID,
 	    String password,
 	    String systemType)
-	throws java.io.IOException, UnsupportedOperationException, StringTooLongException, InvalidTONException, InvalidNPIException, IllegalArgumentException, AlreadyBoundException
+	throws java.io.IOException, InvalidParameterValueException, IllegalArgumentException, AlreadyBoundException, VersionException, SMPPProtocolException
     {
-	try {
-	    return (this.bind(type, systemID, password, systemType, 
-			0, 0, null));
-	} catch (InvalidTONException x) {
-	    logger.warn("Invalid TON in bind", x);
-	    return (null);
-	} catch (InvalidNPIException x) {
-	    logger.warn("Invalid NPI in bind", x);
-	    return (null);
-	}
+	return (this.bind(type, systemID, password, systemType, 0, 0, null));
     }
 
     /** Bind this connection to the SMSC. An application must bind to an SMSC as
@@ -524,16 +686,17 @@ public class Connection
      * @return the bind response packet.
      * @throws java.lang.IllegalArgumentException if a bad <code>type</code>
      * value is supplied.
-     * @throws ie.omk.smpp.UnsupportedOperationException if an attempt is made
+     * @throws ie.omk.smpp.VersionException if an attempt is made
      * to bind as transceiver while using SMPP version 3.3.
-     * @throws ie.omk.smpp.StringTooLongException If any of systemID, password,
-     * system type or address range are outside allowed bounds.
-     * @throws ie.omk.smpp.InvalidTONException If the TON is invalid.
-     * @throws ie.omk.smpp.InvalidNPIException If the NPI is invalid.
+     * @throws ie.omk.smpp.InvalidParameterValueException If any of systemID,
+     * password, system type or address range are outside allowed bounds.
      * @throws java.io.IOException If an I/O error occurs while writing the bind
      * packet to the output stream.
      * @throws ie.omk.smpp.AlreadyBoundException If the Connection is already
      * bound.
+     * @throws ie.omk.smpp.message.SMPPProtocolException If synchronous comms is
+     * in use and the incoming bind response packet violates the SMPP
+     * specification, this exception is thrown.
      */
     public BindResp bind(int type,
 	    String systemID,
@@ -542,7 +705,7 @@ public class Connection
 	    int typeOfNum,
 	    int numberPlan,
 	    String addrRange)
-	throws java.io.IOException, UnsupportedOperationException, StringTooLongException, InvalidTONException, InvalidNPIException, IllegalArgumentException, AlreadyBoundException
+	throws java.io.IOException, InvalidParameterValueException, IllegalArgumentException, AlreadyBoundException, VersionException, SMPPProtocolException
     {
 	Bind bindReq = null;
 
@@ -557,9 +720,9 @@ public class Connection
 
 	case TRANSCEIVER:
 	    if (this.interfaceVersion.isOlder(SMPPVersion.V34)) {
-		throw new UnsupportedOperationException("Cannot bind as "
-			+ "transceiver in SMPP "
-			+ interfaceVersion);
+		throw new VersionException("Cannot bind as "
+			+ "transceiver "
+			+ interfaceVersion.toString());
 	    }
 	    bindReq = new BindTransceiver();
 	    break;
@@ -568,53 +731,54 @@ public class Connection
 	    throw new IllegalArgumentException("No such connection type.");
 	}
 
+	this.connectionType = type;
 	logger.info("Binding to the SMSC as type " + type);
 
+	bindReq.setVersion(interfaceVersion);
 	bindReq.setSystemId(systemID);
 	bindReq.setPassword(password);
 	bindReq.setSystemType(systemType);
 	bindReq.setAddressTon(typeOfNum);
 	bindReq.setAddressNpi(numberPlan);
 	bindReq.setAddressRange(addrRange);
-	try {
-	    bindReq.setInterfaceVersion(this.interfaceVersion.getVersionID());
-	} catch (BadInterfaceVersionException x) {
-	    // This cannot be...we're using our own enumeration!!
-	    throw new RuntimeException("Please notify project admin that "
-		    + "there's a coding error in Connection.java!"
-		    + "\nAnd attach this stack trace.");
-	}
-
-	return ((BindResp)sendRequest(bindReq));
+	return ((BindResp)sendRequestInternal(bindReq));
     }
 
 
     /** Unbind from the SMSC. This method will unbind the SMPP protocol
      * connection from the SMSC. No further SMPP operations will be possible
-     * once unbound, a new bind packet will need to be send to the SMSC. Note
-     * that this method will <b>not</b> close the underlying network connection.
+     * once unbound. If the calling application is using sync mode, it should be
+     * sure there are no incoming packets awaiting a response (check using
+     * {@link #packetAvailable}), otherwise an
+     * <code>IllegalStateException</code> may be thrown. Note that this method
+     * will <b>not</b> close the underlying network connection.
      * @return The Unbind response packet, or null if asynchronous
      * communication is being used.
      * @throws ie.omk.smpp.NotBoundException if the connection is not yet
      * bound.
+     * @throws ie.omk.smpp.message.SMPPProtocolException If synchronous comms is
+     * in use and the incoming unbind_resp packet violates the SMPP
+     * specification, this exception is thrown.
      * @throws java.io.IOException If an I/O error occurs while writing the
      * unbind request or reading the unbind response.
      */
     public UnbindResp unbind()
-	throws java.io.IOException, NotBoundException
+	throws java.io.IOException, NotBoundException, SMPPProtocolException
     {
 	if((state != BOUND) || !(link.isConnected()))
 	    throw new NotBoundException();
 
-	/* If this is set, the run() method will return when an
-	 * unbind response packet arrives, stopping the listener
-	 * thread. (after all observers have been notified of the packet)
-	 */
-	setState(UNBINDING);
-
-	logger.info("Unbinding from the SMSC");
-	Unbind u = new Unbind();
-	return ((UnbindResp)sendRequest(u));
+	try {
+	    logger.info("Unbinding from the SMSC");
+	    Unbind u = (Unbind)newInstance(SMPPPacket.UNBIND);
+	    return ((UnbindResp)sendRequest(u));
+	} catch (VersionException x) {
+	    // impossible...every version supports unbind!
+	    throw new SMPPRuntimeException("Internal smppapi error");
+	} catch (BadCommandIDException x) {
+	    // similarly impossible!
+	    throw new SMPPRuntimeException("Internal smppapi error");
+	}
     }
 
     /** Unbind from the SMSC. This method is used to acknowledge an unbind
@@ -693,16 +857,23 @@ public class Connection
       * communication is in use.
       * @throws java.io.IOException If an I/O error occurs while writing to the
       * network connection.
+      * @throws ie.omk.smpp.message.SMPPProtocolException If synchronous
+      * communications is in use and the incoming enquire_link_resp packet
+      * violates the SMPP specification, this exception is thrown.
       */
     public EnquireLinkResp enquireLink()
-	throws java.io.IOException
+	throws java.io.IOException, SMPPProtocolException
     {
-	EnquireLink s = new EnquireLink();
-	SMPPResponse resp = sendRequest(s);
-	logger.debug("enquire_link request sent.");
-	if (resp != null)
-	    logger.debug("enquire_link_response received.");
-	return ((EnquireLinkResp)resp);
+	try {
+	    EnquireLink s = (EnquireLink)newInstance(SMPPPacket.ENQUIRE_LINK);
+	    SMPPResponse resp = sendRequest(s);
+	    logger.debug("enquire_link request sent.");
+	    if (resp != null)
+		logger.debug("enquire_link_response received.");
+	    return ((EnquireLinkResp)resp);
+	} catch (BadCommandIDException x) {
+	    throw new SMPPRuntimeException("Internal smppapi error");
+	}
     }
 
     /** Get the type of this SMPP connection. The connection type is one of
@@ -772,14 +943,20 @@ public class Connection
       * the network connection.
       * @throws ie.omk.smpp.InvalidOperationException If asynchronous comms
       * is in use.
+      * @throws ie.omk.smpp.message.SMPPProtocolException if the incoming data
+      * violates the SMPP protocol specifications.
       */
     public SMPPPacket readNextPacket()
-	throws java.io.IOException, InvalidOperationException
+	throws java.io.IOException, InvalidOperationException, SMPPProtocolException
     {
-	if (asyncComms)
+	if (asyncComms) {
 	    throw new InvalidOperationException("Asynchronous comms in use.");
-	else
-	    return (readNextPacketInternal());
+	} else {
+	    if (packetQueue.size() > 0)
+		return ((SMPPPacket)packetQueue.remove(0));
+	    else
+		return (readNextPacketInternal());
+	}
     }
 
 
@@ -791,42 +968,46 @@ public class Connection
       * the network connection.
       */
     private SMPPPacket readNextPacketInternal()
-	throws java.io.IOException
+	throws java.io.IOException, SMPPProtocolException
     {
-	SMPPPacket pak = null;
-	int id = -1, st = -1;
+	try {
+	    SMPPPacket pak = null;
+	    int id = -1, st = -1;
 
-	this.buf = link.read(this.buf);
-	id = SMPPIO.bytesToInt(this.buf, 4, 4);
-	if (logger.isDebugEnabled())
-	    logger.debug("Packet received: "
-		    + Integer.toHexString(id));
+	    this.buf = link.read(this.buf);
+	    id = SMPPIO.bytesToInt(this.buf, 4, 4);
+	    if (logger.isDebugEnabled())
+		logger.debug("Packet received: "
+			+ Integer.toHexString(id));
 
-	pak = PacketFactory.newPacket(id);
+	    pak = PacketFactory.newInstance(id);
 
-	if (pak != null) {
-	    pak.readFrom(this.buf, 0);
+	    if (pak != null) {
+		pak.readFrom(this.buf, 0);
 
-	    // Special case handling for certain packet types..
-	    st = pak.getCommandStatus();
-	    switch (pak.getCommandId()) {
-	    case SMPPPacket.BIND_TRANSMITTER_RESP:
-	    case SMPPPacket.BIND_RECEIVER_RESP:
-	    case SMPPPacket.BIND_TRANSCEIVER_RESP:
-		handleBindResp((BindResp)pak);
-		break;
+		// Special case handling for certain packet types..
+		st = pak.getCommandStatus();
+		switch (pak.getCommandId()) {
+		case SMPPPacket.BIND_TRANSMITTER_RESP:
+		case SMPPPacket.BIND_RECEIVER_RESP:
+		case SMPPPacket.BIND_TRANSCEIVER_RESP:
+		    handleBindResp((BindResp)pak);
+		    break;
 
-	    case SMPPPacket.UNBIND_RESP:
-		handleUnbindResp((UnbindResp)pak);
-		break;
+		case SMPPPacket.UNBIND_RESP:
+		    handleUnbindResp((UnbindResp)pak);
+		    break;
 
-	    case SMPPPacket.UNBIND:
-		handleUnbind((Unbind)pak);
-		break;
+		case SMPPPacket.UNBIND:
+		    handleUnbind((Unbind)pak);
+		    break;
+		}
 	    }
-	}
 
-	return (pak);
+	    return (pak);
+	} catch (BadCommandIDException x) {
+	    throw new SMPPProtocolException("Unrecognised command received", x);
+	}
     }
 
     /** Handle an incoming bind response packet. Method is called by a few
@@ -981,7 +1162,7 @@ public class Connection
 
 		case SMPPPacket.ENQUIRE_LINK:
 		    if (ackQryLinks)
-			ackLinkQuery((EnquireLink)pak);
+			ackEnquireLink((EnquireLink)pak);
 		    break;
 		}
 
@@ -1012,5 +1193,31 @@ public class Connection
 	throws java.io.IOException
     {
 	ackEnquireLink(el);
+    }
+
+    /** Get a new instance of an SMPP packet. The packet will be initialised so
+     * that it uses the same SMPP version as this connection and it's sequence
+     * number will be initialised to using this connection's sequence numbering
+     * scheme.
+     * @param commandId the SMPP command ID of the packet to retrieve.
+     * @return a subclass of {@link ie.omk.smpp.message.SMPPPacket}
+     * corresponding to SMPP command <code>commandId</code>.
+     * @throws ie.omk.smpp.BadCommandIDException if the command ID is not
+     * recognised.
+     * @throws ie.omk.smpp.NotSupportedException if the Connection is currently
+     * using an SMPP version which does not support SMPP command
+     * <code>commandId</code>.
+     */
+    public SMPPPacket newInstance(int commandId) throws BadCommandIDException, VersionException {
+
+	if (!this.interfaceVersion.isSupported(commandId))
+	    throw new VersionException("Command is not supported in this SMPP version");
+
+	SMPPPacket response = PacketFactory.newInstance(commandId);
+	response.setVersion(this.interfaceVersion);
+	if (this.seqNumScheme != null)
+	    response.setSequenceNum(this.seqNumScheme.nextNumber());
+
+	return (response);
     }
 }

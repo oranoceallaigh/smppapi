@@ -52,29 +52,12 @@ public class GenericNack
 	super(GENERIC_NACK, seqNum);
     }
 
-    /** Read in a GenericNack from an InputStream.  A full packet,
-      * including the header fields must exist in the stream.
-      * @param in The InputStream to read from
-      * @throws java.io.IOException if there's an error reading from the
-      * input stream.
-      */
-    /*public GenericNack(InputStream in)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
-    {
-	super(in);
-
-	if (getCommandId() != SMPPPacket.GENERIC_NACK)
-	    throw new BadCommandIDException(SMPPPacket.GENERIC_NACK,
-		    getCommandId());
-    }*/
-
     public int getBodyLength()
     {
 	return (0);
     }
 
-    public void readBodyFrom(byte[] b, int offset)
-    {
+    public void readBodyFrom(byte[] b, int offset) throws SMPPProtocolException {
 	return;
     }
 

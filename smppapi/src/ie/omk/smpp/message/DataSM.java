@@ -110,12 +110,11 @@ public class DataSM
 	}
 
 	SMPPIO.writeInt(esmClass, 1, out);
-	SMPPIO.writeInt(registered ? 1 : 0, 1, out);
+	SMPPIO.writeInt(registered, 1, out);
 	SMPPIO.writeInt(dataCoding, 1, out);
     }
 
-    public void readBodyFrom(byte[] body, int offset)
-    {
+    public void readBodyFrom(byte[] body, int offset) throws SMPPProtocolException {
 	// First the service type
 	serviceType = SMPPIO.readCString(body, offset);
 	offset += serviceType.length() + 1;
@@ -132,7 +131,7 @@ public class DataSM
 	esmClass = SMPPIO.bytesToInt(body, offset++, 1);
 
 	// Registered delivery, data coding
-	registered = (SMPPIO.bytesToInt(body, offset++, 1) == 0) ? false : true;
+	registered = SMPPIO.bytesToInt(body, offset++, 1);
 	dataCoding = SMPPIO.bytesToInt(body, offset++, 1);
     }
 

@@ -32,7 +32,11 @@ import java.io.OutputStream;
 
 import ie.omk.smpp.SMPPException;
 import ie.omk.smpp.message.SMPPPacket;
+
+import ie.omk.smpp.util.APIConfig;
+import ie.omk.smpp.util.PropertyNotFoundException;
 import ie.omk.smpp.util.SMPPIO;
+
 import org.apache.log4j.Logger;
 
 /** Abstract super class of all classes that implement a network link
@@ -69,11 +73,24 @@ public abstract class SmscLink
     /** Log4J Logger object. Subclasses may use this logger too. */
     protected Logger logger = null;
 
+    /** Set to automatically flush the output stream after every packet.
+     * Default is true.
+     */
+    protected boolean autoFlush = true;
+
+
     /** Create a new unconnected SmscLink.
      */
     public SmscLink()
     {
 	logger = Logger.getLogger("ie.omk.smpp.net.SmscLink");
+	try {
+	    autoFlush = APIConfig.getInstance().getBoolean(APIConfig.LINK_AUTO_FLUSH);
+	} catch (PropertyNotFoundException x) {
+	} finally {
+	    if (logger.isDebugEnabled())
+		logger.debug("autoFlush set to" + autoFlush);
+	}
     }
 
 
@@ -88,8 +105,28 @@ public abstract class SmscLink
     {
 	implOpen();
 
-	this.out = new BufferedOutputStream(getOutputStream());
-	this.in = new BufferedInputStream(getInputStream());
+	int inSize = -1, outSize = -1;
+	try {
+	    APIConfig cfg = APIConfig.getInstance();
+	    inSize = cfg.getInt(cfg.LINK_BUFFERSIZE_IN);
+	    outSize = cfg.getInt(cfg.LINK_BUFFERSIZE_OUT);
+	} catch (PropertyNotFoundException x) {
+	} finally {
+	    if (logger.isDebugEnabled()) {
+		logger.debug("IN buffer size: " + inSize);
+		logger.debug("OUT buffer size: " + outSize);
+	    }
+	}
+
+	if (inSize < 1)
+	    this.in = new BufferedInputStream(getInputStream());
+	else
+	    this.in = new BufferedInputStream(getInputStream(), inSize);
+
+	if (outSize < 1)
+	    this.out = new BufferedOutputStream(getOutputStream());
+	else
+	    this.out = new BufferedOutputStream(getOutputStream(), outSize);
     }
 
     /** Implementation-specific link open. This method will be called by the
@@ -154,7 +191,8 @@ public abstract class SmscLink
 		pak.writeTo(snoopOut);
 
 	    pak.writeTo(out);
-	    out.flush(); // XXX does it make sense to flush every packet?
+	    if (autoFlush)
+		out.flush();
 	}
     }
 
@@ -169,11 +207,28 @@ public abstract class SmscLink
 	    out.flush();
     }
 
+    /** Get the auto flush behaviour of this link. The default behaviour is
+     * defined in the smppapi properties file. If no properties are found at
+     * runtime, the default behaviour is set to <code>true</code>.
+     * @see #setAutoFlush
+     * @see ie.omk.smpp.util.APIConfig
+     */
+    public boolean getAutoFlush() {
+	return (autoFlush);
+    }
+
+    /** Set the auto flush behaviour of this link. If set to true, the link will
+     * flush the output stream after every packet written. In high-load
+     * environments this may be undesirable.
+     * @see #getAutoFlush
+     */
+    public void setAutoFlush(boolean flush) {
+	this.autoFlush = flush;
+    }
+
     /** Read the next SMPP packet from the SMSC. This method will block until a
       * full packet can be read from the SMSC. The caller should pass in a byte
-      * array to read the packet into and use the
-      * {@link ie.omk.smpp.util.PacketFactory} class to create an instance of
-      * the appropriate SMPP packet class. If the passed in byte array is too
+      * array to read the packet into.  If the passed in byte array is too
       * small, a new one will be allocated and returned to the caller.
       * @param buf a byte array buffer to read the packet into.
       * @return the handle to the passed in buffer or the reallocated one.
@@ -226,12 +281,27 @@ public abstract class SmscLink
 		    ptr += c;
 		}
 	    } catch (IOException x) {
+		// After the finally clause, make sure the caller still gets the
+		// IOException..
 		throw x;
 	    } finally {
 		dump(snoopIn, buf, 0, ptr);
 	    }
 	}
 	return (buf);
+    }
+
+    /** Get the number of bytes currently available on the input stream.
+     */
+    public final int available() {
+	try {
+	    synchronized (readLock) {
+		return (in.available());
+	    }
+	} catch (IOException x) {
+	    logger.debug("IOException in available", x);
+	    return (0);
+	}
     }
 
     /** Dump bytes to an output stream.

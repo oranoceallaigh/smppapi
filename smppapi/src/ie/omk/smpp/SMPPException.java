@@ -41,4 +41,8 @@ public class SMPPException
     {
 	super(s);
     }
+
+    public SMPPException(String msg, Throwable rootCause) {
+	super (msg, rootCause);
+    }
 }

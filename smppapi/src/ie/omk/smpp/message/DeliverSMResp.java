@@ -59,27 +59,6 @@ public class DeliverSMResp
     }
 
 
-    /** Read in a DeliverSMResp from an InputStream.  A full packet,
-      * including the header fields must exist in the stream.
-      * @param in The InputStream to read from
-      * @throws java.io.IOException if there's an error reading from the
-      * input stream.
-      */
-    /*public DeliverSMResp(InputStream in)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
-    {
-	super(in);
-
-	if (getCommandId() != SMPPPacket.DELIVER_SM_RESP)
-	    throw new BadCommandIDException(SMPPPacket.DELIVER_SM_RESP,
-		    getCommandId());
-
-	if (getCommandStatus() != 0)
-	    return;
-
-	messageId = SMPPIO.readCString(in);
-    }*/
-
     /** Create a new DeliverSMResp packet in response to a DeliverSM.
       * This constructor will set the sequence number to it's expected value.
       * @param r The Request packet the response is to
@@ -105,8 +84,7 @@ public class DeliverSMResp
 	SMPPIO.writeCString(getMessageId(), out);
     }
 
-    public void readBodyFrom(byte[] b, int offset)
-    {
+    public void readBodyFrom(byte[] b, int offset) throws SMPPProtocolException {
 	messageId = SMPPIO.readCString(b, offset);
     }
 

@@ -28,8 +28,11 @@ import java.io.OutputStream;
 
 import ie.omk.smpp.SMPPException;
 import ie.omk.smpp.BadCommandIDException;
+
+import ie.omk.smpp.util.InvalidDateFormatException;
 import ie.omk.smpp.util.SMPPIO;
 import ie.omk.smpp.util.SMPPDate;
+
 import org.apache.log4j.Logger;
 
 /** SMSC response to a QuerySM request.
@@ -55,32 +58,6 @@ public class QuerySMResp
     {
 	super(QUERY_SM_RESP, seqNum);
     }
-
-    /** Read in a QuerySMResp from an InputStream.  A full packet,
-      * including the header fields must exist in the stream.
-      * @param in The InputStream to read from
-      * @throws java.io.IOException if there's an error reading from the
-      * input stream.
-      */
-    /*public QuerySMResp(InputStream in)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
-    {
-	super(in);
-
-	if (getCommandId() != SMPPPacket.QUERY_SM_RESP)
-	    throw new BadCommandIDException(SMPPPacket.QUERY_SM_RESP,
-		    getCommandId());
-
-	if (getCommandStatus() != 0)
-	    return;
-
-	messageId = SMPPIO.readCString(in);
-	String finald = SMPPIO.readCString(in);
-	if (finald != null)
-	    finalDate = new SMPPDate(finald);
-	messageStatus =  SMPPIO.readInt(in, 1);
-	errorCode =  SMPPIO.readInt(in, 1);
-    }*/
 
     /** Create a new QuerySMResp packet in response to a BindReceiver.
       * This constructor will set the sequence number to it's expected value.
@@ -125,18 +102,21 @@ public class QuerySMResp
 	SMPPIO.writeInt(errorCode, 1, out);
     }
 
-    public void readBodyFrom(byte[] body, int offset)
-    {
-	messageId = SMPPIO.readCString(body, offset);
-	offset += messageId.length() + 1;
+    public void readBodyFrom(byte[] body, int offset) throws SMPPProtocolException {
+	try {
+	    messageId = SMPPIO.readCString(body, offset);
+	    offset += messageId.length() + 1;
 
-	String finald = SMPPIO.readCString(body, offset);
-	offset += finald.length() + 1;
-	if (finald.length() > 0)
-	    finalDate = new SMPPDate(finald);
+	    String finald = SMPPIO.readCString(body, offset);
+	    offset += finald.length() + 1;
+	    if (finald.length() > 0)
+		finalDate = SMPPDate.parseSMPPDate(finald);
 
-	messageStatus =  SMPPIO.bytesToInt(body, offset++, 1);
-	errorCode =  SMPPIO.bytesToInt(body, offset++, 1);
+	    messageStatus =  SMPPIO.bytesToInt(body, offset++, 1);
+	    errorCode =  SMPPIO.bytesToInt(body, offset++, 1);
+	} catch (InvalidDateFormatException x) {
+	    throw new SMPPProtocolException("Unrecognized date format", x);
+	}
     }
 
     /** Convert this packet to a String. Not to be interpreted programmatically,

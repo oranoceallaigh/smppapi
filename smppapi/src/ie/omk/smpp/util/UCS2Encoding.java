@@ -31,25 +31,37 @@ public class UCS2Encoding
 
     private static final int DCS = 8;
 
+    private static final UCS2Encoding beInstance = new UCS2Encoding(true);
 
-    static {
-	// Register encoding type
-	registerEncoding(DCS, new UCS2Encoding());
-    }
-
-    /** Construct a new UCS2 encoding that uses UTF-16BE.
-     */
-    public UCS2Encoding()
-    {
-    }
+    private static final UCS2Encoding leInstance = new UCS2Encoding(false);
 
     /** Construct a new UCS2 encoding.
      * @param bigEndian true to use UTF-16BE, false to use UTF-16LE.
      */
-    public UCS2Encoding(boolean bigEndian)
+    private UCS2Encoding(boolean bigEndian)
     {
+	super (DCS);
+
 	if (!bigEndian)
 	    encType = "UTF-16LE";
+    }
+
+    /** Get the singleton instance of the big-endian UCS2Encoding.
+     */
+    public static UCS2Encoding getInstance() {
+	return (beInstance);
+    }
+
+    /** Get the singleton instance of either the big-endian or little-endian
+     * instance of UCS2Encoding.
+     * @param bigEndian true to get the big-endian instance, false to get the
+     * little-endian instance.
+     */
+    public static UCS2Encoding getInstance(boolean bigEndian) {
+	if (bigEndian)
+	    return (beInstance);
+	else
+	    return (leInstance);
     }
 
     /** Decode SMS message text to a Java String. The SMS message is expected to
@@ -58,12 +70,12 @@ public class UCS2Encoding
     public String decodeString(byte[] b)
     {
 	if (b == null)
-	    return (null);
+	    return ("");
 
 	try {
 	    return (new String(b, encType));
 	} catch (java.io.UnsupportedEncodingException x) {
-	    return (null);
+	    return ("");
 	}
     }
 
@@ -72,26 +84,16 @@ public class UCS2Encoding
     public byte[] encodeString(String s)
     {
 	if (s == null)
-	    return (null);
+	    return (new byte[0]);
 
 	try {
 	    return (s.getBytes(encType));
 	} catch (java.io.UnsupportedEncodingException x) {
-	    return (null);
+	    return (new byte[0]);
 	}
     }
 
-    /** Get the correct data_coding value for this message encoding type.
-     */
-    public int getDataCoding()
-    {
-	return (DCS);
-    }
-
-    /** Get the maximum number of octets allowed for this encoding type.
-     */
-    public int getMaxLength()
-    {
-	return (140);
+    public int getEncodingLength() {
+	return (16);
     }
 }

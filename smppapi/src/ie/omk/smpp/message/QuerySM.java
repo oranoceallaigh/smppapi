@@ -63,28 +63,6 @@ public class QuerySM
 	super(QUERY_SM, seqNum);
     }
 
-    /** Read in a QuerySM from an InputStream.  A full packet,
-      * including the header fields must exist in the stream.
-      * @param in The InputStream to read from
-      * @throws java.io.IOException if there's an error reading from the
-      * input stream.
-      */
-    /*public QuerySM(InputStream in)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
-    {
-	super(in);
-
-	if (getCommandId() != SMPPPacket.QUERY_SM)
-	    throw new BadCommandIDException(SMPPPacket.QUERY_SM,
-		    getCommandId());
-
-	if (getCommandStatus() != 0)
-	    return;
-
-	messageId = SMPPIO.readCString(in);
-	source = new Address(in);
-    }*/
-
     public int getBodyLength()
     {
 	int len = (((messageId != null) ? messageId.length() : 0)
@@ -112,8 +90,7 @@ public class QuerySM
 	}
     }
 
-    public void readBodyFrom(byte[] body, int offset)
-    {
+    public void readBodyFrom(byte[] body, int offset) throws SMPPProtocolException {
 	messageId = SMPPIO.readCString(body, offset);
 	offset += messageId.length() + 1;
 

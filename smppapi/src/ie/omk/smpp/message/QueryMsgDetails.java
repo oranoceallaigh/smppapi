@@ -69,29 +69,6 @@ public class QueryMsgDetails
 	smLength = 0;
     }
 
-    /** Read in a QueryMsgDetails from an InputStream.  A full packet,
-      * including the header fields must exist in the stream.
-      * @param in The InputStream to read from
-      * @throws java.io.IOException if there's an error reading from the
-      * input stream.
-      */
-    /*public QueryMsgDetails(InputStream in)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
-    {
-	super(in);
-
-	if (getCommandId() != SMPPPacket.QUERY_MSG_DETAILS)
-	    throw new BadCommandIDException(SMPPPacket.QUERY_MSG_DETAILS,
-		    getCommandId());
-
-	if (getCommandStatus() != 0)
-	    return;
-
-	messageId = SMPPIO.readCString(in);
-	source = new Address(in);
-	smLength =  SMPPIO.readInt(in, 1);
-    }*/
-
     /** Set the number of bytes of the original message required.
       * Minimum request length is 0, maximum is 160. If the length is outside
       * these bounds, it will be set to the min or max.
@@ -143,8 +120,7 @@ public class QueryMsgDetails
 	SMPPIO.writeInt(smLength, 1, out);
     }
 
-    public void readBodyFrom(byte[] body, int offset)
-    {
+    public void readBodyFrom(byte[] body, int offset) throws SMPPProtocolException {
 	messageId = SMPPIO.readCString(body, offset);
 	offset += messageId.length() + 1;
 
