@@ -80,6 +80,24 @@ public class DeliverSM
 	super(DELIVER_SM, seqNum);
     }
 
+    /** Setting a delivery time on a deliver_sm is in violation of the SMPP
+     * specification.
+     */
+    public void setDeliveryTime(SMPPDate d) {
+	logger.fatal("Setting the delivery time on a deliver_sm is in violation "
+		+ "of the SMPP specification");
+	super.setDeliveryTime(d);
+    }
+
+    /** Setting an expiry time on a deliver_sm is in violation of the SMPP
+     * specification.
+     */
+    public void setExpiryTime(SMPPDate d) {
+	logger.fatal("Setting the expiry time on a deliver_sm is in violation "
+		+ "of the SMPP specification");
+	super.setExpiryTime(d);
+    }
+
     /** Return the number of bytes this packet would be encoded as to an
       * OutputStream.
       * @return the number of bytes this packet would encode as.
@@ -89,6 +107,10 @@ public class DeliverSM
 	int len = (((serviceType != null) ? serviceType.length() : 0)
 		+ ((source != null) ? source.getLength() : 3)
 		+ ((destination != null) ? destination.getLength() : 3)
+		+ ((deliveryTime != null) ?
+		    deliveryTime.toString().length() : 0)
+		+ ((expiryTime != null) ?
+		    expiryTime.toString().length() : 0)
 		+ ((message != null) ? message.length : 0));
 
 	// 8 1-byte integers, 3 c-strings
@@ -124,14 +146,15 @@ public class DeliverSM
 	    new Address(GSMConstants.GSM_TON_UNKNOWN,
 		    GSMConstants.GSM_NPI_UNKNOWN, "").writeTo(out);
 	}
+
+	String dt = (deliveryTime == null) ? "" : deliveryTime.toString();
+	String et = (expiryTime == null) ? "" : expiryTime.toString();
+
 	SMPPIO.writeInt(esmClass, 1, out);
 	SMPPIO.writeInt(protocolID, 1, out);
 	SMPPIO.writeInt(priority, 1, out);
-
-	// Delivery time, expiry time both null fields
-	SMPPIO.writeCString(null, out);
-	SMPPIO.writeCString(null, out);
-
+	SMPPIO.writeCString(dt, out);
+	SMPPIO.writeCString(et, out);
 	SMPPIO.writeInt(registered, 1, out);
 	SMPPIO.writeInt(replaceIfPresent, 1, out);
 	SMPPIO.writeInt(dataCoding, 1, out);
