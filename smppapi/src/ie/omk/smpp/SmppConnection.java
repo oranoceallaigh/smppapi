@@ -73,7 +73,13 @@ public abstract class SmppConnection
     private Object		seqNumLock = new Object();
 
     /** The network link (virtual circuit) to the SMSC */
-    protected SmscLink		link = null;
+    private SmscLink		link = null;
+
+    /** Buffered output of the SMSC link. */
+    private BufferedOutputStream outLink = null;
+
+    /** Buffered input of the SMSC link. */
+    private BufferedInputStream inLink = null;
 
     /** Current state of the SMPP connection.
       * Possible states are UNBOUND, BINDING, BOUND and UNBINDING.
@@ -102,7 +108,15 @@ public abstract class SmppConnection
 	if(link == null)
 	    throw new NullPointerException("Smsc Link cannot be null.");
 
-	this.link = link;
+	try {
+	    this.link = link;
+	    if (link.isConnected()) {
+		this.inLink = new BufferedInputStream(link.getInputStream());
+		this.outLink = new BufferedOutputStream(link.getOutputStream());
+	    }
+	} catch (IOException x) {
+	    Debug.warn(this, "<init>", "IOException: " + x.getMessage());
+	}
     }
 
     /** Create a new Smpp connection specifying the type of communications
@@ -114,7 +128,7 @@ public abstract class SmppConnection
     protected SmppConnection(SmscLink link, boolean async)
     {
 	this(link);
-	asyncComms = async;
+	this.asyncComms = async;
 
 	if (asyncComms)
 	    rcvThread = new Thread(this);
@@ -136,6 +150,19 @@ public abstract class SmppConnection
 	return (this.state);
     }
 
+    /** Method to open the link to the SMSC.
+      * @exception java.io.IOException if an i/o error occurs.
+      */
+    protected void openLink()
+	throws java.io.IOException
+    {
+	if (!this.link.isConnected()) {
+	    Debug.d(this, "openLink", "Opening network link.", 1);
+	    this.link.open();
+	    this.inLink = new BufferedInputStream(link.getInputStream());
+	    this.outLink = new BufferedOutputStream(link.getOutputStream());
+	}
+    }
 
     /** Set the behaviour of automatically acking QRYLINK's from the SMSC.
       * By default, the listener thread will automatically ack an enquire_link
@@ -189,23 +216,48 @@ public abstract class SmppConnection
 	    throw new IOException("Connection to the SMSC is not open.");
 
 	SMPPPacket resp = null;
-	OutputStream out = link.getOutputStream();
-	InputStream in = link.getInputStream();
 
 	r.setSequenceNum(nextPacket());
 
+	// Special packet handling..
+	int id = r.getCommandId();
+	if (id == SMPPPacket.ESME_BNDTRN || id == SMPPPacket.ESME_BNDRCV) {
+	    if (this.state != UNBOUND)
+		throw new AlreadyBoundException();
+
+	    openLink();
+
+	    setState(BINDING);
+	    if (asyncComms) {
+		if (rcvThread == null)
+		    rcvThread = new Thread(this);
+		if (!rcvThread.isAlive())
+		    rcvThread.start();
+	    }
+	}
+
+	id = -1;
 	synchronized (link) {
-	    r.writeTo(out);
+	    r.writeTo(this.outLink);
+	    this.outLink.flush();
 	    Debug.send(r);
 
 	    if (!asyncComms) {
-		resp = SMPPPacket.readPacket(in);
+		resp = SMPPPacket.readPacket(this.inLink);
+		id = resp.getCommandId();
 		Debug.recv(resp);
 		if(!(resp instanceof SMPPResponse)) {
 		    Debug.d(this, "sendRequest", "packet received from "
 			+ "SMSC is not an SMPPResponse!", 1);
 		}
 	    }
+	}
+
+	// Special!
+	if (id == SMPPPacket.ESME_BNDTRN_RESP
+		|| id == SMPPPacket.ESME_BNDRCV_RESP) {
+	    if (resp.getCommandStatus() == 0)
+		setState(BOUND);
 	}
 
 	return ((SMPPResponse)resp);
@@ -225,10 +277,9 @@ public abstract class SmppConnection
 	if (link == null)
 	    throw new IOException("Connection to SMSC is not valid.");
 
-	OutputStream out = link.getOutputStream();
-
 	synchronized (link) {
-	    resp.writeTo(out);
+	    resp.writeTo(this.outLink);
+	    this.outLink.flush();
 	    Debug.send(resp);
 	}
     }
@@ -272,7 +323,7 @@ public abstract class SmppConnection
 	 */
 	setState(UNBINDING);
 
-	Unbind u = new Unbind(1);
+	Unbind u = new Unbind();
 	SMPPResponse resp = sendRequest(u);
 	if (!asyncComms) {
 	    if (resp.getCommandId() == SMPPPacket.ESME_UBD_RESP
@@ -340,7 +391,7 @@ public abstract class SmppConnection
     public EnquireLinkResp enquireLink()
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
-	EnquireLink s = new EnquireLink(1);
+	EnquireLink s = new EnquireLink();
 	SMPPResponse resp = sendRequest(s);
 	Debug.d(this, "enquireLink", "sent enquire_link", 3);
 	if (resp != null)
@@ -418,12 +469,11 @@ public abstract class SmppConnection
 	    throw new InvalidOperationException("Asynchronous comms in use.");
 
 	Date start = new Date();
-	InputStream in = link.getInputStream();
 	SMPPPacket pak = null;
 
 	synchronized (link) {
 	    while ((new Date().getTime() - start.getTime()) < timeout) {
-		if (in.available() < 16) {
+		if (this.inLink.available() < 16) {
 		    try {
 			Thread.sleep(5);
 		    continue;
@@ -432,7 +482,7 @@ public abstract class SmppConnection
 		    }
 		}
 
-		pak = SMPPPacket.readPacket(in);
+		pak = SMPPPacket.readPacket(this.inLink);
 		if (pak != null)
 		    Debug.recv(pak);
 	    }
@@ -480,7 +530,7 @@ public abstract class SmppConnection
 	while (state != UNBOUND) {
 	    try {
 		try {
-		    pak = SMPPPacket.readPacket(link.getInputStream());
+		    pak = SMPPPacket.readPacket(this.inLink);
 		    if (pak == null)
 			continue;
 
