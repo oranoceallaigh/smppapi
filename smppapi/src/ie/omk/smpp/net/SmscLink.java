@@ -35,37 +35,31 @@ import ie.omk.debug.Debug;
   */
 public abstract class SmscLink
 {
-    /** Tells whether the connection is open or not */
-    protected boolean connected = false;
-
     /** Open the connection to the SMSC.
       * @exception java.io.IOException If a communication error occurs
       */
     public abstract void open()
-	throws IOException;
+	throws java.io.IOException;
 
     /** Close the connection to the SMSC.
       * @exception java.io.IOException If a communication error occurs
       */
     public abstract void close()
-	throws IOException;
+	throws java.io.IOException;
 
     /** Get the output stream of the virtual circuit.
       * @exception java.io.IOException If a communication error occurs
       */
     public abstract OutputStream getOutputStream()
-	throws IOException;
+	throws java.io.IOException;
 
-    /** Get the input stream of the virtual circuit
+    /** Get the input stream of the virtual circuit.
       * @exception java.io.IOException If a communication error occurs
       */
     public abstract InputStream getInputStream()
-	throws IOException;
+	throws java.io.IOException;
 
-    /** Check whether or not the connection to the SMSC is open
+    /** Check whether or not the connection to the SMSC is open.
       */
-    public boolean isConnected()
-    {
-	return connected;
-    }
+    public abstract boolean isConnected();
 }

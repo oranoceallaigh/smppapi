@@ -48,29 +48,31 @@ public class SmeAddress_e
 
     /** Read in an SmeAddress_e from an InputStream
       * @param in InputStream to read from
-      * @exception java.io.IOException If an I/O error occurs
-      * @see java.io.InputStream
+      * @exception java.io.IOException if there's an error reading from the
+      * input stream.
       */
     public SmeAddress_e(InputStream in)
-	throws IOException
+	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super(in);
-	errorStatus = SMPPIO.readInt(in, 4);
+	this.errorStatus = SMPPIO.readInt(in, 4);
     }
 
-    /** Get the size in bytes of this packet */
+    /** Return the number of bytes this address would be encoded as to an
+      * OutputStream.
+      */
     public int size()
     {
 	return (super.size() + 4);
     }
 
-    /** Write a byte representation of this packet to an OutputStream
+    /** Write a byte representation of this address to an OutputStream
       * @param out The OutputStream to write to
-      * @exception java.io.IOException If an I/O error occurs
-      * @see java.io.OutputStream
+      * @exception java.io.IOException if there's an error writing to the
+      * output stream.
       */
     public void writeTo(OutputStream out)
-	throws java.io.IOException
+	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super.writeTo(out);
 	SMPPIO.writeInt(errorStatus, 4, out);

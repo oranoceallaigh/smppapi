@@ -27,7 +27,7 @@ import ie.omk.smpp.SMPPException;
 import ie.omk.smpp.util.SMPPIO;
 import ie.omk.debug.Debug;
 
-/** ESME response to a deliver_sm message
+/** ESME response to a Deliver message request.
   * @author Oran Kelly
   * @version 1.0
   */
@@ -46,11 +46,11 @@ public class DeliverSMResp
     /** Read in a DeliverSMResp from an InputStream.  A full packet,
       * including the header fields must exist in the stream.
       * @param in The InputStream to read from
-      * @exception ie.omk.smpp.SMPPException If the stream does not
-      * contain a DeliverSMResp packet.
-      * @see java.io.InputStream
+      * @exception java.io.IOException if there's an error reading from the
+      * input stream.
       */
     public DeliverSMResp(InputStream in)
+	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super(in);
 
@@ -58,12 +58,8 @@ public class DeliverSMResp
 	    return;
 
 	try {
+	    // XXX shouldn't fail because of number format
 	    messageId = Integer.parseInt(SMPPIO.readCString(in), 16);
-	} catch(IOException x) {
-	    Debug.d(this, "DeliverSMResp", "Input stream does not contain a "
-		    + "deliver_sm_resp", Debug.DBG_1);
-	    throw new SMPPException("Input Stream does not contain a "
-		    + "deliver_sm_resp packet");
 	} catch(NumberFormatException x) {
 	    Debug.d(this, "DeliverSMResp", "Error reading message id from "
 		    + "Input stream", Debug.DBG_1);
@@ -82,7 +78,9 @@ public class DeliverSMResp
 	super(r);
     }
 
-    /** Get the size in bytes of this packet */
+    /** Return the number of bytes this packet would be encoded as to an
+      * OutputStream.
+      */
     public int getCommandLen()
     {
 	String id = Integer.toHexString(getMessageId());
@@ -93,8 +91,8 @@ public class DeliverSMResp
 
     /** Write a byte representation of this packet to an OutputStream
       * @param out The OutputStream to write to
-      * @exception ie.omk.smpp.SMPPException If an I/O error occurs
-      * @see java.io.OutputStream
+      * @exception java.io.IOException if there's an error writing to the
+      * output stream.
       */
     protected void encodeBody(OutputStream out)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
@@ -102,6 +100,9 @@ public class DeliverSMResp
 	SMPPIO.writeCString(Integer.toHexString(getMessageId()), out);
     }
 
+    /** Convert this packet to a String. Not to be interpreted programmatically,
+      * it's just dead handy for debugging!
+      */
     public String toString()
     {
 	return new String("deliver_sm_resp");

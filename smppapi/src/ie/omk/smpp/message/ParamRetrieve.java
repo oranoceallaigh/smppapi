@@ -27,7 +27,8 @@ import ie.omk.smpp.SMPPException;
 import ie.omk.smpp.util.SMPPIO;
 import ie.omk.debug.Debug;
 
-/** Retrieve the value of a parameter from the SMSC
+/** Parameter retrieve.
+  * Gets the current value of a configurable parameter at the SMSC.
   * @author Oran Kelly
   * @version 1.0
   */
@@ -35,7 +36,7 @@ public class ParamRetrieve
     extends ie.omk.smpp.message.SMPPRequest
 {
     /** Name of the parameter to retrieve */
-    String			paramName;
+    private String paramName;
 
     /** Construct a new ParamRetrieve with specified sequence number.
       * @param seqNum The sequence number to use
@@ -49,36 +50,34 @@ public class ParamRetrieve
     /** Read in a ParamRetrieve from an InputStream.  A full packet,
       * including the header fields must exist in the stream.
       * @param in The InputStream to read from
-      * @exception ie.omk.smpp.SMPPException If the stream does not
-      * contain a ParamRetrieve packet.
-      * @see java.io.InputStream
+      * @exception java.io.IOException if there's an error reading from the
+      * input stream.
       */
     public ParamRetrieve(InputStream in)
+	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super(in);
 
 	if(commandStatus != 0)
 	    return;
 
-	try {
-	    paramName = SMPPIO.readCString(in);
-	} catch(IOException iox) {
-	    throw new SMPPException("Input stream does not contain a "
-		    + "pararetrieve packet.");
-	}
+	paramName = SMPPIO.readCString(in);
     }
 
     /** Set the name of the parameter to retrieve
-      * @param s Parameter name: Up to 31 characters
+      * @param paramName Parameter name, up to 31 characters
       * @exception ie.omk.smpp.SMPPException If the param name is invalid
       */
-    public void setParamName(String s)
+    public void setParamName(String paramName)
+	throws ie.omk.smpp.SMPPException
     {
-	if(s == null)
-	{ paramName = null; return; }
+	if(paramName == null) {
+	    this.paramName = null;
+	    return;
+	}
 
-	if(s.length() < 32) {
-	    paramName = new String(s);
+	if(paramName.length() < 32) {
+	    this.paramName = paramName;
 	} else {
 	    throw new SMPPException("Parameter name must be < 32 chars");
 	}
@@ -87,21 +86,23 @@ public class ParamRetrieve
     /** Get the parameter name */
     public String getParamName()
     {
-	return (paramName == null) ? null : new String(paramName);
+	return (paramName);
     }
 
 
-    /** Get the size in bytes of this packet */
+    /** Return the number of bytes this packet would be encoded as to an
+      * OutputStream.
+      */
     public int getCommandLen()
     {
-	return (getHeaderLen() + 1
-		+ ((paramName != null) ? paramName.length() : 0));
+	return (getHeaderLen()
+		+ ((paramName != null) ? paramName.length() : 1));
     }
 
     /** Write a byte representation of this packet to an OutputStream
       * @param out The OutputStream to write to
-      * @exception ie.omk.smpp.SMPPException If an I/O error occurs
-      * @see java.io.OutputStream
+      * @exception java.io.IOException if there's an error writing to the
+      * output stream.
       */
     protected void encodeBody(OutputStream out)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
@@ -109,6 +110,9 @@ public class ParamRetrieve
 	SMPPIO.writeCString(paramName, out);
     }
 
+    /** Convert this packet to a String. Not to be interpreted programmatically,
+      * it's just dead handy for debugging!
+      */
     public String toString()
     {
 	return new String("param_retrieve");

@@ -28,7 +28,7 @@ import ie.omk.smpp.util.SMPPIO;
 import ie.omk.smpp.util.SMPPDate;
 import ie.omk.debug.Debug;
 
-/** Submit a message to the SMSC
+/** Submit a message to the SMSC for delivery to a single destination.
   * @author Oran Kelly
   * @version 1.0
   */
@@ -46,11 +46,11 @@ public class SubmitSM
     /** Read in a SubmitSM from an InputStream.  A full packet,
       * including the header fields must exist in the stream.
       * @param in The InputStream to read from
-      * @exception ie.omk.smpp.SMPPException If the stream does not
-      * contain a SubmitSM packet.
-      * @see java.io.InputStream
+      * @exception java.io.IOException If an error occurs writing to the input
+      * stream.
       */
     public SubmitSM(InputStream in)
+	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super(in);
 
@@ -59,38 +59,35 @@ public class SubmitSM
 
 	int smLength = 0;
 	String delivery, valid;
-	try {
-	    // First the service type
-	    serviceType = SMPPIO.readCString(in);
-	    source = new SmeAddress(in);
-	    destination = new SmeAddress(in);
+	// First the service type
+	serviceType = SMPPIO.readCString(in);
+	source = new SmeAddress(in);
+	destination = new SmeAddress(in);
 
-	    // ESM class, protocol Id, priorityFlag...
-	    flags.esm_class = SMPPIO.readInt(in, 1);
-	    flags.protocol = SMPPIO.readInt(in, 1);
-	    flags.priority = (SMPPIO.readInt(in, 1) == 0) ? false : true;
+	// ESM class, protocol Id, priorityFlag...
+	flags.esm_class = SMPPIO.readInt(in, 1);
+	flags.protocol = SMPPIO.readInt(in, 1);
+	flags.priority = (SMPPIO.readInt(in, 1) == 0) ? false : true;
 
-	    delivery = SMPPIO.readCString(in);
-	    valid = SMPPIO.readCString(in);
-	    deliveryTime = new SMPPDate(delivery);
-	    expiryTime = new SMPPDate(valid);
+	delivery = SMPPIO.readCString(in);
+	valid = SMPPIO.readCString(in);
+	deliveryTime = new SMPPDate(delivery);
+	expiryTime = new SMPPDate(valid);
 
-	    // Registered delivery, replace if present, data coding, default msg
-	    // and message length
-	    flags.registered = (SMPPIO.readInt(in, 1) == 0) ? false : true;
-	    flags.replace_if_present = (SMPPIO.readInt(in, 1) == 0) ? false : true;
-	    flags.data_coding = SMPPIO.readInt(in, 1);
-	    flags.default_msg = SMPPIO.readInt(in, 1);
-	    smLength = SMPPIO.readInt(in, 1);
+	// Registered delivery, replace if present, data coding, default msg
+	// and message length
+	flags.registered = (SMPPIO.readInt(in, 1) == 0) ? false : true;
+	flags.replace_if_present = (SMPPIO.readInt(in, 1) == 0) ? false : true;
+	flags.data_coding = SMPPIO.readInt(in, 1);
+	flags.default_msg = SMPPIO.readInt(in, 1);
+	smLength = SMPPIO.readInt(in, 1);
 
-	    message = SMPPIO.readString(in, smLength);
-	} catch(IOException iox) {
-	    throw new SMPPException("Input stream does not contain a "
-		    + "submit_sm packet");
-	}
+	message = SMPPIO.readString(in, smLength);
     }
 
-    /** Get the size in bytes of this packet */
+    /** Return the number of bytes this packet would be encoded as to an
+      * OutputStream.
+      */
     public int getCommandLen()
     {
 	return (getHeaderLen() + 11
@@ -107,8 +104,8 @@ public class SubmitSM
 
     /** Write a byte representation of this packet to an OutputStream
       * @param out The OutputStream to write to
-      * @exception ie.omk.smpp.SMPPException If an I/O error occurs
-      * @see java.io.OutputStream
+      * @exception java.io.IOException If an error occurs writing to the output
+      * stream.
       */
     protected void encodeBody(OutputStream out)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
@@ -145,6 +142,9 @@ public class SubmitSM
 	SMPPIO.writeString(message, smLength, out);
     }
 
+    /** Convert this packet to a String. Not to be interpreted programmatically,
+      * it's just dead handy for debugging!
+      */
     public String toString()
     {
 	return new String("submit_sm");

@@ -74,8 +74,21 @@ public class SmppConnectionDropPacket
 	return (message);
     }
 
+    /** Return the number of bytes this packet would be encoded as to an
+      * OutputStream.
+      */
     public int getCommandLen()
     {
 	return (getHeaderLen());
+    }
+
+    /** Invalid. An SmppConnectionDropPacket cannot be encoded to an output
+      * stream as it is NOT a valid SMPP message. This method just throws an
+      * SMPPException if it is called.
+      */
+    protected void encodeBody(java.io.OutputStream out)
+	throws java.io.IOException, ie.omk.smpp.SMPPException
+    {
+	throw new SMPPException("Cannot encode an SmppConnectionDropPacket!");
     }
 }

@@ -28,7 +28,8 @@ import ie.omk.smpp.util.SMPPIO;
 import ie.omk.smpp.util.SMPPDate;
 import ie.omk.debug.Debug;
 
-/** Response packet to a query message request
+/** SMSC response to a QuerySM request.
+  * Contains the current state of a short message at the SMSC.
   * @author Oran Kelly
   * @version 1.0
   */
@@ -46,11 +47,11 @@ public class QuerySMResp
     /** Read in a QuerySMResp from an InputStream.  A full packet,
       * including the header fields must exist in the stream.
       * @param in The InputStream to read from
-      * @exception ie.omk.smpp.SMPPException If the stream does not
-      * contain a QuerySMResp packet.
-      * @see java.io.InputStream
+      * @exception java.io.IOException if there's an error reading from the
+      * input stream.
       */
     public QuerySMResp(InputStream in)
+	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super(in);
 
@@ -58,13 +59,11 @@ public class QuerySMResp
 	    return;
 
 	try {
+	    // XXX shouldn't fail on number format
 	    messageId = Integer.parseInt(SMPPIO.readCString(in), 16);
 	    finalDate = new SMPPDate(SMPPIO.readCString(in));
 	    messageStatus =  SMPPIO.readInt(in, 1);
 	    errorCode =  SMPPIO.readInt(in, 1);
-	} catch(IOException iox) {
-	    throw new SMPPException("Input stream does not contain a "
-		    + "query_sresp packet.");
 	} catch(NumberFormatException nx) {
 	    throw new SMPPException("Error reading message Id from the input "
 		    + "stream.");
@@ -79,13 +78,15 @@ public class QuerySMResp
     {
 	super(r);
 
-	messageId = r.messageId;
+	messageId = r.getMessageId();
 	finalDate = null;
 	messageStatus = 0;
 	errorCode = 0;
     }
 
-    /** Get the size in bytes of this packet */
+    /** Return the number of bytes this packet would be encoded as to an
+      * OutputStream.
+      */
     public int getCommandLen()
     {
 	String id = Integer.toHexString(getMessageId());
@@ -98,8 +99,8 @@ public class QuerySMResp
 
     /** Write a byte representation of this packet to an OutputStream
       * @param out The OutputStream to write to
-      * @exception ie.omk.smpp.SMPPException If an I/O error occurs
-      * @see java.io.OutputStream
+      * @exception java.io.IOException if there's an error writing to the
+      * output stream.
       */
     protected void encodeBody(OutputStream out)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
@@ -110,6 +111,9 @@ public class QuerySMResp
 	SMPPIO.writeInt(errorCode, 1, out);
     }
 
+    /** Convert this packet to a String. Not to be interpreted programmatically,
+      * it's just dead handy for debugging!
+      */
     public String toString()
     {
 	return new String("query_sm_resp");

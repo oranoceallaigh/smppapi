@@ -29,7 +29,11 @@ import ie.omk.smpp.message.*;
 import ie.omk.smpp.net.*;
 import ie.omk.debug.Debug;
 
-/** Abstract super class of impementations of an Smpp Protocol connection
+/** SMPP client connection (ESME).
+  * This is an abstract class which provides the base functionality for
+  * SmppTransmitter and SmppReceiver.
+  * @see ie.omk.smpp.SmppTransmitter
+  * @see ie.omk.smpp.SmppReceiver
   * @author Oran Kelly
   * @version 1.0
   */
@@ -37,11 +41,8 @@ public abstract class SmppConnection
     extends java.util.Observable
     implements java.lang.Runnable
 {
-    /** Major version number of the SMPP Protocol implemented */
-    public static final int	INTERFACE_VERSION = 0x03;
-
-    /** Minor version number of the protocol implemented */
-    public static final int	MINOR_VERSION = 0x03;
+    /** Version number of the SMPP Protocol implemented. */
+    public static final int	INTERFACE_VERSION = 0x33;
 
     /** Connection state: not bound to the SMSC. */
     public static final int	UNBOUND = 0;
@@ -60,48 +61,48 @@ public abstract class SmppConnection
     public static final int	UNBINDING = 3;
 
     /** Listening occurs in a separate thread. */
-    Thread			rcvThread = null;
+    protected Thread		rcvThread = null;
 
     /** Milliseconds to timeout while waiting on I/O in listener thread. */
-    private long		timeout = 100;
+    protected long		timeout = 100;
 
     /** Address range used for routing messages */
-    String			addrRange = null;
+    protected String		addrRange = null;
 
     /** ESME System Id, used to authenticate to the SMSC */
-    String			sysId = null;
+    protected String		sysId = null;
 
     /** Password, used to authenticate to the SMSC */
-    String			password = null;
+    protected String		password = null;
 
     /** Identify the system type of this ESME to the SMSC */
-    String			sysType = null;
+    protected String		sysType = null;
 
     /** Address routing type of number */
-    int				addrTon = 0;
+    protected int		addrTon = 0;
 
     /** Address routing numbering plan indicator */
-    int				addrNpi = 0;
+    protected int		addrNpi = 0;
 
     /** Sequence number */
-    int				seqNum = 1;
+    protected int		seqNum = 1;
 
     /** The network link (virtual circuit) to the SMSC */
-    SmscLink			link = null;
+    protected SmscLink		link = null;
 
     /** Last Request packet sent to the SMSC */
-    Hashtable			outTable = null;
+    protected Hashtable		outTable = null;
 
     /** Last Response packet received from the SMSC */
-    Hashtable			inTable = null;
+    protected Hashtable		inTable = null;
 
     /** Points to the last packet sent to the Smsc */
-    SMPPPacket			lastOutward = null;
+    protected SMPPPacket	lastOutward = null;
 
     /** For each request sent, 1 is added, for each proper ack got,
       * 1 comes off.
       */
-    int				waitingAck = 0;
+    protected int		waitingAck = 0;
 
     /** Current state of the SMPP connection.
       * Possible states are UNBOUND, BINDING, BOUND and UNBINDING.
@@ -111,12 +112,12 @@ public abstract class SmppConnection
     /** Specify whether the listener thread will automatically ack
       * enquire_link primitives received from the Smsc
       */
-    boolean			ackQryLinks = true;
+    protected boolean		ackQryLinks = true;
 
     /** Should the listener thread automatically ack incoming messages?
       * Only valid for the Receiver
       */
-    boolean			ackDeliverSm = false;
+    protected boolean		ackDeliverSm = false;
 
     /** Is the user using synchronous are async communication?. */
     protected boolean		asyncComms = false;
@@ -154,13 +155,18 @@ public abstract class SmppConnection
 	    rcvThread = new Thread(this);
     }
 
-
+    /** Set the state of this ESME.
+      * @see ie.omk.smpp.SmppConnection#getState
+      */
     protected synchronized void setState(int state)
     {
 	this.state = state;
     }
 
-    protected synchronized int getState()
+    /** Get the current state of the ESME. One of UNBOUND, BINDING, BOUND or
+      * UNBINDING.
+      */
+    public synchronized int getState()
     {
 	return (this.state);
     }
@@ -170,19 +176,21 @@ public abstract class SmppConnection
       * @param npi The Numbering plan indicator
       * @param range The address routing expression (Up to 40 characters)
       * @exception SMPPException If the routing expression is invalid
+      * @see ie.omk.smpp.util.GSMConstants
       */
     public void setSourceAddress(int ton, int npi, String range)
+	throws ie.omk.smpp.SMPPException
     {
-	addrTon = ton;
-	addrNpi = npi;
+	this.addrTon = ton;
+	this.addrNpi = npi;
 
 	if(range == null) {
-	    addrRange = null;
+	    this.addrRange = null;
 	    return;
 	}
 
 	if(range.length() < 41)
-	    addrRange = new String(range);
+	    this.addrRange = range;
 	else
 	    throw new SMPPException("Address range must be < 41 chars");
     }
@@ -192,14 +200,15 @@ public abstract class SmppConnection
       * @exception SMPPException If the system Id is invalid
       */
     public void setSystemId(String name)
+	throws ie.omk.smpp.SMPPException
     {
 	if(name == null) {
-	    sysId = null;
+	    this.sysId = null;
 	    return;
 	}
 
 	if(name.length() < 16)
-	    sysId = new String(name);
+	    this.sysId = name;
 	else
 	    throw new SMPPException("System Id must be < 16 chars");
     }
@@ -209,14 +218,15 @@ public abstract class SmppConnection
       * @exception SMPPException If the password is invalid
       */
     public void setPassword(String pass)
+	throws ie.omk.smpp.SMPPException
     {
 	if(pass == null) {
-	    password = null;
+	    this.password = null;
 	    return;
 	}
 
 	if(pass.length() < 9)
-	    password = new String(pass);
+	    this.password = pass;
 	else
 	    throw new SMPPException("Password must be < 9 chars");
     }
@@ -226,14 +236,15 @@ public abstract class SmppConnection
       * @exception SMPPException If the system type is invalid
       */
     public void setSystemType(String type)
+	throws ie.omk.smpp.SMPPException
     {
 	if(type == null) {
-	    sysType = null;
+	    this.sysType = null;
 	    return;
 	}
 
 	if(type.length() < 13)
-	    sysType = new String(type);
+	    this.sysType = type;
 	else
 	    throw new SMPPException("System type must be < 13 chars");
     }
@@ -345,7 +356,7 @@ public abstract class SmppConnection
       * @see SmppConnection#nextPacket
       */
     public void sendResponse(SMPPResponse resp)
-	throws IOException
+	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	Integer key = null;
 	SMPPRequest rq = null;
@@ -388,6 +399,8 @@ public abstract class SmppConnection
       * Sub classes of SmppConnection must provide an implementation of this.
       * @return The bind transmitter or bind receiver response or null if
       * asynchronous communications is in use.
+      * @exception java.io.IOException If a communications error occurs
+      * @exception ie.omk.smpp.SMPPExceptione XXX when?
       * @see ie.omk.smpp.SmppTransmitter#bind
       * @see ie.omk.smpp.SmppReceiver#bind
       */
@@ -399,6 +412,7 @@ public abstract class SmppConnection
       * is being used.
       * @exception SMPPException If already bound or a Nack arrives.
       * @exception java.io.IOException If a network error occurs.
+      * @exception ie.omk.smpp.SMPPExceptione XXX when?
       * @see ie.omk.smpp.SmppReceiver#bind
       */
     public UnbindResp unbind()
@@ -460,7 +474,10 @@ public abstract class SmppConnection
     }
 
 
-    /** Acknowledge an EnquireLink received from the Smsc */
+    /** Acknowledge an EnquireLink received from the Smsc
+      * @exception java.io.IOException If a communications error occurs.
+      * @exception ie.omk.smpp.SMPPExceptione XXX when?
+      */
     public void ackEnquireLink(EnquireLink rq)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
@@ -472,6 +489,7 @@ public abstract class SmppConnection
     /** Do a confidence check on the SMPP link to the SMSC.
       * @return true if the packet was sent successfully
       * @exception java.io.IOException If a network error occurs
+      * @exception ie.omk.smpp.SMPPExceptione XXX when?
       */
     public EnquireLinkResp enquireLink()
 	throws java.io.IOException, ie.omk.smpp.SMPPException
@@ -567,8 +585,10 @@ public abstract class SmppConnection
     /** Reset's this connection as if before binding.
       * This loses all packets currently stored and reset's the
       * sequence numbering to the start.
+      * @exception ie.omk.smpp.SMPPException XXX why?
       */
     public void reset()
+	throws ie.omk.smpp.SMPPException
     {
 	if((state == BOUND) || link.isConnected()) {
 	    Debug.d(this, "reset", "Reset failed. state="
@@ -577,10 +597,6 @@ public abstract class SmppConnection
 		    + link.isConnected(), Debug.DBG_3);
 	    throw new SMPPException("Cannot reset connection while bound or "
 		    + "connected.");
-	}
-	if (rcvThread != null && rcvThread.isAlive()) {
-	    Debug.d(this, "reset", "listener thread stopped.", Debug.DBG_2);
-	    rcvThread.stop();
 	}
 
 	Debug.d(this, "reset", "SmppConnection reset", Debug.DBG_1);
@@ -600,7 +616,7 @@ public abstract class SmppConnection
       * it's value
       * @return The next valid sequence number.
       */
-    synchronized int nextPacket()
+    protected synchronized int nextPacket()
     {
 	// Gonna return x in a second...
 	int x = seqNum;
@@ -689,6 +705,7 @@ public abstract class SmppConnection
 	super.notifyObservers(ev);
     }
 
+    // XXX Fix exception handling in this method!
     public void run()
     {
 	Integer key = null;
@@ -768,41 +785,48 @@ public abstract class SmppConnection
 		int st = pak.getCommandStatus();
 
 		// Special case packets...
-		switch (id) {
-		case SMPPPacket.ESME_BNDTRN_RESP:
-		case SMPPPacket.ESME_BNDRCV_RESP:
-		    if (state == BINDING && st == 0)
-			setState(BOUND);
-		    break;
+		try {
+		    switch (id) {
+		    case SMPPPacket.ESME_BNDTRN_RESP:
+		    case SMPPPacket.ESME_BNDRCV_RESP:
+			if (state == BINDING && st == 0)
+			    setState(BOUND);
+			break;
 
-		case SMPPPacket.ESME_UBD_RESP:
-		    if (state == UNBINDING && st == 0) {
-			Debug.d(this, "run", "Successfully unbound.",
-				Debug.DBG_3);
-			setState(UNBOUND);
-		    }
-		    break;
+		    case SMPPPacket.ESME_UBD_RESP:
+			if (state == UNBINDING && st == 0) {
+			    Debug.d(this, "run", "Successfully unbound.",
+				    Debug.DBG_3);
+			    setState(UNBOUND);
+			}
+			break;
 
-		case SMPPPacket.SMSC_DELIVER_SM:
-		    if (ackDeliverSm) {
-			DeliverSMResp dr = new DeliverSMResp((DeliverSM)pak);
-			sendResponse(dr);
-			Debug.d(this, "run", "Ack'd deliver_sm #"
-				+ dr.getSequenceNum(),
-				Debug.DBG_3);
-		    }
-		    break;
+		    case SMPPPacket.SMSC_DELIVER_SM:
+			if (ackDeliverSm) {
+			    DeliverSMResp dr =
+				new DeliverSMResp((DeliverSM)pak);
+			    sendResponse(dr);
+			    Debug.d(this, "run", "Ack'd deliver_sm #"
+				    + dr.getSequenceNum(),
+				    Debug.DBG_3);
+			}
+			break;
 
-		case SMPPPacket.ESME_QRYLINK:
-		    if(ackQryLinks) {
-			EnquireLinkResp el =
-			    new EnquireLinkResp((EnquireLink)pak);
-			sendResponse(el);
-			Debug.d(this, "run", "Ack'd enquire_link #"
-				+ el.getSequenceNum(),
-				Debug.DBG_3);
+		    case SMPPPacket.ESME_QRYLINK:
+			if(ackQryLinks) {
+			    EnquireLinkResp el =
+				new EnquireLinkResp((EnquireLink)pak);
+			    sendResponse(el);
+			    Debug.d(this, "run", "Ack'd enquire_link #"
+				    + el.getSequenceNum(),
+				    Debug.DBG_3);
+			}
+			break;
 		    }
-		    break;
+		} catch (SMPPException x) {
+		    // XXX Handle properly
+		    System.err.print("[SmppConnection.run]\n\t");
+		    x.printStackTrace(System.err);
 		}
 
 		// Tell all the observers about the new packet
@@ -812,8 +836,6 @@ public abstract class SmppConnection
 	    } catch(IOException x) {
 		Debug.d(this, "run", "IOException: "+x.getMessage(),
 			Debug.DBG_1);
-		throw new SMPPException("I/O Error in listener."
-			+ x.toString());
 	    }
 	} // end while
     } // end run()

@@ -27,7 +27,7 @@ import ie.omk.smpp.SMPPException;
 import ie.omk.smpp.util.SMPPIO;
 import ie.omk.debug.Debug;
 
-/** Query the state of a message
+/** Query the state of a message.
   * @author Oran Kelly
   * @version 1.0
   */
@@ -45,40 +45,37 @@ public class QuerySM
     /** Read in a QuerySM from an InputStream.  A full packet,
       * including the header fields must exist in the stream.
       * @param in The InputStream to read from
-      * @exception ie.omk.smpp.SMPPException If the stream does not
-      * contain a QuerySM packet.
-      * @see java.io.InputStream
+      * @exception java.io.IOException if there's an error reading from the
+      * input stream.
       */
     public QuerySM(InputStream in)
+	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super(in);
 
 	if(commandStatus != 0)
 	    return;
 
-	try {
-	    messageId = Integer.parseInt(SMPPIO.readCString(in), 16);
-	    source = new SmeAddress(in);
-	} catch(IOException iox) {
-	    throw new SMPPException("Input stream does not contain a "
-		    + "query_sm packet.");
-	}
+	messageId = Integer.parseInt(SMPPIO.readCString(in), 16);
+	source = new SmeAddress(in);
     }
 
-    /** Get the size in bytes of this packet */
+    /** Return the number of bytes this packet would be encoded as to an
+      * OutputStream.
+      */
     public int getCommandLen()
     {
 	String id = Integer.toHexString(getMessageId());
 
-	return (getHeaderLen() + 1
-		+ ((id != null) ? id.length() : 0)
+	return (getHeaderLen()
+		+ ((id != null) ? id.length() : 1)
 		+ ((source != null) ? source.size() : 3));
     }
 
     /** Write a byte representation of this packet to an OutputStream
       * @param out The OutputStream to write to
-      * @exception ie.omk.smpp.SMPPException If an I/O error occurs
-      * @see java.io.OutputStream
+      * @exception java.io.IOException if there's an error writing to the
+      * output stream.
       */
     protected void encodeBody(OutputStream out)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
@@ -87,11 +84,13 @@ public class QuerySM
 	if(source != null) {
 	    source.writeTo(out);
 	} else {
-	    SMPPIO.writeInt(0, 2, out);
-	    SMPPIO.writeCString(null, out);
+	    SMPPIO.writeInt(0, 3, out);
 	}
     }
 
+    /** Convert this packet to a String. Not to be interpreted programmatically,
+      * it's just dead handy for debugging!
+      */
     public String toString()
     {
 	return new String("query_sm");

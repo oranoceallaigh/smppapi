@@ -33,26 +33,30 @@ import ie.omk.debug.Debug;
 public class TcpLink
     extends ie.omk.smpp.net.SmscLink
 {
-    /** Default ip port to use if none are specified */
-    static final int				defaultPort = 5016;
+    /** Default IP port to use if none are specified */
+    public static final int DEFAULT_PORT = 5016;
 
     /** The ip address of the SMSC */
-    InetAddress addr = null;
+    private InetAddress addr = null;
 
     /** The ip port to connect to */
-    int port = 0;
+    private int port = 0;
 
     /** The socket corresponding to the virtual connection */
-    Socket	sock = null;
+    private Socket sock = null;
+
+    /** Are we connected? */
+    private boolean connected = false;
+
 
     /** Create a new TcpLink
       * @param address IP address or hostname of SMSC
       * @exception java.net.UnknownHostException If the host is not found.
       */
     public TcpLink(String address)
-	throws UnknownHostException
+	throws java.net.UnknownHostException
     {
-	this(address, defaultPort);
+	this(address, DEFAULT_PORT);
     }
 
     /** Create a new TcpLink
@@ -61,7 +65,7 @@ public class TcpLink
       * @exception java.net.UnknownHostException If the host is not found.
       */
     public TcpLink(String address, int port)
-	throws UnknownHostException
+	throws java.net.UnknownHostException
     {
 	this.addr = InetAddress.getByName(address);
 	this.port = port;
@@ -72,8 +76,9 @@ public class TcpLink
       * @exception java.net.UnknownHostException If the host is not found.
       */
     public TcpLink(InetAddress address)
+	throws java.net.UnknownHostException
     {
-	this(address, defaultPort);
+	this(address, DEFAULT_PORT);
     }
 
     /** Create a new TcpLink
@@ -82,6 +87,7 @@ public class TcpLink
       * @exception java.net.UnknownHostException If the host is not found.
       */
     public TcpLink(InetAddress address, int port)
+	throws java.net.UnknownHostException
     {
 	this.addr = address;
 	this.port = port;
@@ -91,26 +97,29 @@ public class TcpLink
       * virtual circuit.
       * @exception java.io.IOException If an error occurs connecting to the SMSC
       */
-    public void open()
-	throws IOException
+    public synchronized void open()
+	throws java.io.IOException
     {
-	sock = new Socket(addr, port);
-	connected = true;
+	if (!connected) {
+	    sock = new Socket(addr, port);
+	    connected = true;
+	}
     }
 
     /** Close the virtual circuit to the SMSC
       * @exception java.io.IOException If a network error occurs closing the connection
       */
-    public void close()
-	throws IOException
+    public synchronized void close()
+	throws java.io.IOException
     {
-	if(sock != null) {
+	if (connected && sock != null) {
 	    try {
 		sock.close();
 		sock = null;
 		connected = false;
 	    } catch(IOException ix) {
 		connected = false;
+		ix.fillInStackTrace();
 		throw ix;
 	    }
 	}
@@ -122,7 +131,7 @@ public class TcpLink
       * @see java.net.Socket#getOutputStream
       */
     public OutputStream getOutputStream()
-	throws IOException
+	throws java.io.IOException
     {
 	if(sock == null)
 	    throw new IOException("Socket connection is not open");
@@ -136,7 +145,7 @@ public class TcpLink
       * @see java.net.Socket#getInputStream
       */
     public InputStream getInputStream()
-	throws IOException
+	throws java.io.IOException
     {
 	if(sock == null)
 	    throw new IOException("Socket connection is not open");
@@ -144,13 +153,25 @@ public class TcpLink
 	    return sock.getInputStream();
     }
 
+    /** Get the address we're connected (or connecting) to.
+      */
     public InetAddress getAddress()
     {
-	return addr;
+	return (addr);
     }
 
+    /** Get the port we're connected (or connecting) to.
+      */
     public int getPort()
     {
-	return port;
+	return (port);
+    }
+
+    /** Check connection status.
+      * @return false if unconnected, true if connected.
+      */
+    public boolean isConnected()
+    {
+	return (connected);
     }
 }

@@ -24,29 +24,32 @@ package ie.omk.smpp.message;
 
 /** Structure to hold the flags for a message.
   * @author Oran Kelly
-  * @see SmppConnection#submitMessage
-  * @see SmppConnection#replaceMessage
+  * @see ie.omk.smpp.SmppTransmitter#submitMessage
+  * @see ie.omk.smpp.SmppTransmitter#replaceMessage
   */
 public class MsgFlags
 {
-    /** Message priority */
+    /** Priority message. */
     public boolean priority = false;
 
-    /** Registered delivery */
+    /** Registered delivery. If true, a delivery receipt will be returned
+      * to the submitting ESME once the short message has reached it's final
+      * destination.
+      */
     public boolean registered = false;
 
-    /** Replace message if already present */
+    /** Replace message if already present. */
     public boolean replace_if_present = false;
 
-    /** Esm class */
+    /** Esm class. */
     public int esm_class = 0;
 
-    /** GSM protocol Id */
+    /** GSM protocol Id. */
     public int protocol = 0;
 
-    /** GSM data encoding */
+    /** GSM data encoding. */
     public int data_coding = 0;
 
-    /** Default message number to send */
+    /** Default message number to send. */
     public int default_msg = 0;
 }

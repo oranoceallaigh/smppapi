@@ -27,20 +27,33 @@ import ie.omk.smpp.SMPPException;
 import ie.omk.smpp.util.SMPPIO;
 import ie.omk.debug.Debug;
 
-/** Bind to the SMSC as transmitter
+/** Bind to the SMSC as a transmitter.
   * @author Oran Kelly
   * @version 1.0
   */
 public class BindTransmitter
     extends ie.omk.smpp.message.SMPPRequest
 {
-    String		sysId,
-    password,
-    sysType,
-    addressRange;
-    int		interfaceVer,
-    addrTon,
-    addrNpi;
+    /** System Id */
+    private String sysId;
+
+    /** Authentication password */
+    private String password;
+
+    /** System type */
+    private String sysType;
+
+    /** Address range for message routing */
+    private String addressRange;
+
+    /** Interface version */
+    private int interfaceVer = 0x33;
+
+    /** Address Type Of Number for message routing */
+    private int addrTon;
+
+    /** Address Numbering Plan Indicator for message routing */
+    private int addrNpi;
 
 
     /** Construct a new BindTransmitter with specified sequence number.
@@ -55,86 +68,43 @@ public class BindTransmitter
 	interfaceVer = addrTon = addrNpi = 0;
     }
 
-    /*	public BindTransmitter(int seqNum, String sysId, String password,
-	String sysType, int interfaceVer)
-	{
-	super(ESME_BNDTRN, seqNum);
-
-	try {
-	if(sysId.length() < 16)
-	sysId = new String(sysId);
-	else
-	throw new SMPPException("System Id must be < 16 chars");
-	}
-	catch(NullPointerException x)
-	{ sysId = null; }
-
-	try {
-	if(password.length() < 9)
-	password = new String(password);
-	else
-	throw new SMPPException("Password must be < 9 chars");
-	}
-	catch(NullPointerException x)
-	{ password = null; }
-
-	try {
-	if(sysType.length() < 13)
-	sysType = new String(sysType);
-	else
-	throw new SMPPException("System type must be < 13 chars");
-	}
-	catch(NullPointerException x)
-	{ sysType = null; }
-
-	this.interfaceVer = interfaceVer;
-	this.addrTon = 0;
-	this.addrNpi = 0;
-	this.addressRange = null;
-	}
-      */
-
     /** Read in a BindTransmitter from an InputStream.  A full packet,
       * including the header fields must exist in the stream.
       * @param in The InputStream to read from
-      * @exception ie.omk.smpp.SMPPException If the stream does not
-      * contain a BindReceiverResp packet.
-      * @see java.io.InputStream
+      * @exception java.io.IOException if there's a problem reading from the
+      * input stream.
       */
     public BindTransmitter(InputStream in)
+	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super(in);
 
 	if(commandStatus != 0)
 	    return;
 
-	try {
-	    sysId = SMPPIO.readCString(in);
-	    password = SMPPIO.readCString(in);
-	    sysType = SMPPIO.readCString(in);
-	    interfaceVer =  SMPPIO.readInt(in, 1);
-	    addrTon =  SMPPIO.readInt(in, 1);
-	    addrNpi =  SMPPIO.readInt(in, 1);
-	    addressRange = SMPPIO.readCString(in);
-	} catch(IOException iox) {
-	    throw new SMPPException("Input stream does not contain a "
-		    + "bind_transmitter packet.");
-	}
+	sysId = SMPPIO.readCString(in);
+	password = SMPPIO.readCString(in);
+	sysType = SMPPIO.readCString(in);
+	interfaceVer =  SMPPIO.readInt(in, 1);
+	addrTon =  SMPPIO.readInt(in, 1);
+	addrNpi =  SMPPIO.readInt(in, 1);
+	addressRange = SMPPIO.readCString(in);
     }
 
     /** Set the system Id
       * @param sysId The System Id to use (Up to 15 characters)
-      * @exception ie.omk.smpp.SMPPException Id the System Id is invalid
+      * @exception ie.omk.smpp.SMPPException If the System Id is invalid
       */
     public void setSystemId(String sysId)
+	throws ie.omk.smpp.SMPPException
     {
 	if(sysId == null) {
-	    sysId = null;
+	    this.sysId = null;
 	    return;
 	}
 
 	if(sysId.length() < 16)
-	    this.sysId = new String(sysId);
+	    this.sysId = sysId;
 	else
 	    throw new SMPPException("System Id must be < 16 chars");
     }
@@ -144,14 +114,15 @@ public class BindTransmitter
       * @exception ie.omk.smpp.SMPPException If the password is invalid
       */
     public void setPassword(String password)
+	throws ie.omk.smpp.SMPPException
     {
 	if(password == null) {
-	    password = null;
+	    this.password = null;
 	    return;
 	}
 
 	if(password.length() < 9)
-	    this.password = new String(password);
+	    this.password = password;
 	else
 	    throw new SMPPException("Password must be < 9 chars");
     }
@@ -161,14 +132,15 @@ public class BindTransmitter
       * @exception ie.omk.smpp.SMPPException If the system type is invalid
       */
     public void setSystemType(String sysType)
+	throws ie.omk.smpp.SMPPException
     {
 	if(sysType == null) {
-	    sysType = null;
+	    this.sysType = null;
 	    return;
 	}
 
 	if(sysType.length() < 13)
-	    this.sysType = new String(sysType);
+	    this.sysType = sysType;
 	else
 	    throw new SMPPException("System Type must be < 13 chars");
     }
@@ -176,25 +148,37 @@ public class BindTransmitter
     /** Set the interface version being used by this transmitter
       * @param interfaceVer The interface version to report to the SMSC
       * (major version number only)
+      * @exception ie.omk.smpp.SMPPException if the interface version is
+      * invalid.
       */ 
     public void setInterfaceVersion(int interfaceVer)
+	throws ie.omk.smpp.SMPPException
     {
+	if (interfaceVer != 0x33)
+	    throw new SMPPException("Bad version number.");
+
 	this.interfaceVer = interfaceVer;
     }
 
     /** Set the message routing Ton for this transmitter
       * @param addrTon The new Type Of Number to use
+      * @exception ie.omk.smpp.SMPPException
       */
     public void setAddressTon(int addrTon)
+	throws ie.omk.smpp.SMPPException
     {
+	// XXX Check TON?
 	this.addrTon = addrTon;
     }
 
     /** Set the message routing Npi for this transmitter
       * @param addrNpi The new Numbering plan indicator to use
+      * @exception ie.omk.smpp.SMPPException if the NPI is invalid
       */
     public void setAddressNpi(int addrNpi)
+	throws ie.omk.smpp.SMPPException
     {
+	// XXX check the NPI?
 	this.addrNpi = addrNpi;
     }
 
@@ -203,6 +187,7 @@ public class BindTransmitter
       * @exception ie.omk.smpp.SMPPException If the address range is invalid
       */
     public void setAddressRange(String addressRange)
+	throws ie.omk.smpp.SMPPException
     {
 	if(addressRange == null) {
 	    this.addressRange = null;
@@ -210,7 +195,7 @@ public class BindTransmitter
 	}
 
 	if(addressRange.length() < 41)
-	    this.addressRange = new String(addressRange);
+	    this.addressRange = addressRange;
 	else
 	    throw new SMPPException("Address Range invalid.");
     }
@@ -218,62 +203,68 @@ public class BindTransmitter
     /** Get the system Id */
     public String getSystemId()
     {
-	return (sysId == null) ? null : new String(sysId);
+	return (sysId);
     }
 
     /** Get the authentication password */
     public String getPassword()
     {
-	return (password == null) ? null : new String(password);
+	return (password);
     }
 
     /** Get the current system type */
     public String getSystemType()
     {
-	return (sysType == null) ? null : new String(sysType);
+	return (sysType);
     }
 
     /** Get the routing address regular expression */
     public String getAddressRange()
     {
-	return (addressRange == null) ? null : new String(addressRange);
+	return (addressRange);
     }
 
     /** Get the Type of number */
     public int getAddressTon()
     {
-	return addrTon;
+	return (addrTon);
     }
 
     /** Get the Numbering plan indicator */
     public int getAddressNpi()
     {
-	return addrNpi;
+	return (addrNpi);
     }
 
     /** Get the interface version */
     public int getInterfaceVersion()
     {
-	return interfaceVer;
+	return (interfaceVer);
     }
 
 
-    /** Get the size in bytes of this packet */
+    /** Return the number of bytes this packet would be encoded as to an
+      * OutputStream.
+      */
     public int getCommandLen()
     {
 	// Calculated as the size of the header plus 3 1-byte ints and
 	// 4 null-terminators for the strings plus the length of the strings
-	return (getHeaderLen() + 7
+	int len = (getHeaderLen()
+		+ 3 // 3 1-byte ints
 		+ ((sysId != null) ? sysId.length() : 0)
 		+ ((password != null) ? password.length() : 0)
 		+ ((sysType != null) ? sysType.length() : 0)
 		+ ((addressRange != null) ? addressRange.length() : 0));
+
+	// Length plus CString nul terminators!
+	return (len + 4);
     }
 
-    /** Write a byte representation of this packet to an OutputStream
-      * @param out The OutputStream to write to
-      * @exception ie.omk.smpp.SMPPException If an I/O error occurs
-      * @see java.io.OutputStream
+    /** Write the byte representation of this packet to an OutputStream.
+      * @param out The output stream to write to
+      * @exception java.io.IOException If there is an error writing to the
+      * stream.
       */
     protected void encodeBody(OutputStream out)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
@@ -287,6 +278,9 @@ public class BindTransmitter
 	SMPPIO.writeCString(addressRange, out);
     }
 
+    /** Convert this packet to a String. Not to be interpreted programmatically,
+      * it's just dead handy for debugging!
+      */
     public String toString()
     {
 	return new String("bind_transmitter");

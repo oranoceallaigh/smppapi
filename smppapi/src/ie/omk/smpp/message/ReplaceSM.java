@@ -28,7 +28,9 @@ import ie.omk.smpp.util.SMPPIO;
 import ie.omk.smpp.util.SMPPDate;
 import ie.omk.debug.Debug;
 
-/** Replace an existing message with another
+/** Replace a message.
+  * This message submits a short message to the SMSC replacing a previously
+  * submitted message.
   * @author Oran Kelly
   * @version 1.0
   */
@@ -46,11 +48,11 @@ public class ReplaceSM
     /** Read in a ReplaceSM from an InputStream.  A full packet,
       * including the header fields must exist in the stream.
       * @param in The InputStream to read from
-      * @exception ie.omk.smpp.SMPPException If the stream does not
-      * contain a ReplaceSM packet.
-      * @see java.io.InputStream
+      * @exception java.io.IOException if there's an error reading from the
+      * input stream.
       */
     public ReplaceSM(InputStream in)
+	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super(in);
 
@@ -74,31 +76,33 @@ public class ReplaceSM
 	    smLength = SMPPIO.readInt(in, 1);
 
 	    message = SMPPIO.readString(in, smLength);
-	} catch(IOException iox) {
-	    throw new SMPPException("Input stream does not contain a "
-		    + "replace_sm packet.");
+	} catch(NumberFormatException x) {
+	    throw new SMPPException("Bad message Id.");
 	}
     }
 
-    /** Get the size in bytes of this packet */
+    /** Return the number of bytes this packet would be encoded as to an
+      * OutputStream.
+      */
     public int getCommandLen()
     {
 	String id = Integer.toHexString(getMessageId());
 
-	return (getHeaderLen() + 6
-		+ ((id != null) ? id.length() : 0)
+	return (getHeaderLen()
+		+ 2 // XXX describe integers
+		+ ((id != null) ? id.length() : 1)
 		+ ((source != null) ? source.size() : 3)
 		+ ((deliveryTime != null) ?
-		    deliveryTime.toString().length() : 0)
+		    deliveryTime.toString().length() : 1)
 		+ ((expiryTime != null) ?
-		    expiryTime.toString().length() : 0)
-		+ ((message != null) ? message.length() : 0));
+		    expiryTime.toString().length() : 1)
+		+ ((message != null) ? message.length() : 1));
     }
 
     /** Write a byte representation of this packet to an OutputStream
       * @param out The OutputStream to write to
-      * @exception ie.omk.smpp.SMPPException If an I/O error occurs
-      * @see java.io.OutputStream
+      * @exception java.io.IOException if there's an error writing to the
+      * output stream.
       */
     protected void encodeBody(OutputStream out)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
@@ -111,8 +115,7 @@ public class ReplaceSM
 	if(source != null) {
 	    source.writeTo(out);
 	} else {
-	    SMPPIO.writeInt(0, 2, out);
-	    SMPPIO.writeCString(null, out);
+	    SMPPIO.writeInt(0, 3, out);
 	}
 
 	String dt = (deliveryTime == null) ? "" : deliveryTime.toString();
@@ -126,6 +129,9 @@ public class ReplaceSM
 	SMPPIO.writeString(message, smLength, out);
     }
 
+    /** Convert this packet to a String. Not to be interpreted programmatically,
+      * it's just dead handy for debugging!
+      */
     public String toString()
     {
 	return new String("replace_sm");
