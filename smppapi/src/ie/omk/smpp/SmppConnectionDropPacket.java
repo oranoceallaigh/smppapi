@@ -37,7 +37,7 @@ import ie.omk.debug.Debug;
 public class SmppConnectionDropPacket
     extends SMPPPacket
 {
-    protected String message = null;
+    protected String errorMsg = null;
 
     /** Invented command id for a connection drop */
     public static final int CONNECTION_DROP = 0xefffffff;
@@ -45,7 +45,7 @@ public class SmppConnectionDropPacket
     public SmppConnectionDropPacket(int seq)
     {
 	super(SMPPPacket.ESME_NACK, seq);
-	this.message = "";
+	this.errorMsg = "";
 
 	// Command Id should not be anything near any valid Smpp message...
 	commandId = CONNECTION_DROP;
@@ -57,21 +57,21 @@ public class SmppConnectionDropPacket
     {
 	super(ESME_NACK, seq);
 
-	this.message = msg;
+	this.errorMsg = msg;
 
 	// Command Id should not be anything near any valid Smpp message...
 	commandId = CONNECTION_DROP;
 	commandStatus = 0;
     }
 
-    public void setMessage(String s)
+    public void setErrorMessage(String s)
     {
-	this.message = s;
+	this.errorMsg = s;
     }
 
-    public String getMessage()
+    public String getErrorMessage()
     {
-	return (message);
+	return (errorMsg);
     }
 
     /** Return the number of bytes this packet would be encoded as to an
