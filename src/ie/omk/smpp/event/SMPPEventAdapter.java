@@ -140,6 +140,7 @@ public abstract class SMPPEventAdapter implements ConnectionObserver
 	    break;
 
 	case SMPPPacket.BIND_TRANSMITTER_RESP:
+    case SMPPPacket.BIND_TRANSCEIVER_RESP:
 	case SMPPPacket.BIND_RECEIVER_RESP:
 	    bindResponse(source, (BindResp)pak);
 	    break;
