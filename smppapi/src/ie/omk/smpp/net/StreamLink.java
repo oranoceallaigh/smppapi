@@ -50,14 +50,14 @@ public class StreamLink
 
     /** Does nothing (the streams should already be open).
       */
-    public synchronized void open()
+    public void implOpen()
     {
     }
 
     /** Does nothing. This object is not responsible for opening or closing the
       * streams.
       */
-    public synchronized void close()
+    public void implClose()
     {
     }
 
