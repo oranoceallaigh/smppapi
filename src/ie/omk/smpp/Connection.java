@@ -1317,7 +1317,7 @@ public class Connection
 	    response.setSequenceNum(this.seqNumScheme.nextNumber());
 
 	if (defaultAlphabet != null)
-	    response.setAlphabet(defaultAlphabet);
+	    response.setAlphabet(defaultAlphabet, 0);
 
 	return (response);
     }
