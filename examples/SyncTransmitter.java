@@ -18,6 +18,7 @@
  * 
  * A copy of the LGPL can be viewed at http://www.gnu.org/copyleft/lesser.html
  * Java SMPP API author: orank@users.sf.net
+ * $Id$
  */
 
 import java.util.Properties;
