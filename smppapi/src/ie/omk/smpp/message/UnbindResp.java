@@ -23,8 +23,10 @@
  */
 package ie.omk.smpp.message;
 
-import java.io.*;
+import java.io.IOException;
+
 import ie.omk.smpp.BadCommandIDException;
+
 import ie.omk.debug.Debug;
 
 /** SMSC response to an Unbind request.
@@ -53,10 +55,10 @@ public class UnbindResp
     /** Read in a UnbindResp from an InputStream.  A full packet,
       * including the header fields must exist in the stream.
       * @param in The InputStream to read from
-      * @exception java.io.IOException If an error occurs writing to the input
+      * @throws java.io.IOException If an error occurs writing to the input
       * stream.
       */
-    public UnbindResp(InputStream in)
+    /*public UnbindResp(InputStream in)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super(in);
@@ -64,7 +66,7 @@ public class UnbindResp
 	if (getCommandId() != SMPPPacket.UNBIND_RESP)
 	    throw new BadCommandIDException(SMPPPacket.UNBIND_RESP,
 		    getCommandId());
-    }
+    }*/
 
     /** Create a new UnbindResp packet in response to a BindReceiver.
       * This constructor will set the sequence number to it's expected value.

@@ -23,7 +23,8 @@
  */
 package ie.omk.smpp.message;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.OutputStream;
 
 import ie.omk.smpp.Address;
 import ie.omk.smpp.BadCommandIDException;
@@ -78,7 +79,7 @@ public class SubmitSM
     /** Read in a SubmitSM from an InputStream.  A full packet,
       * including the header fields must exist in the stream.
       * @param in The InputStream to read from
-      * @exception java.io.IOException If an error occurs writing to the input
+      * @throws java.io.IOException If an error occurs writing to the input
       * stream.
       */
     /*public SubmitSM(InputStream in)
@@ -149,11 +150,11 @@ public class SubmitSM
 
     /** Write a byte representation of this packet to an OutputStream
       * @param out The OutputStream to write to
-      * @exception java.io.IOException If an error occurs writing to the output
+      * @throws java.io.IOException If an error occurs writing to the output
       * stream.
       */
     protected void encodeBody(OutputStream out)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
+	throws java.io.IOException
     {
 	int smLength = 0;
 	if(message != null)

@@ -23,13 +23,17 @@
  */
 package ie.omk.smpp.message;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.OutputStream;
+
 import ie.omk.smpp.SMPPException;
+import ie.omk.debug.Debug;
 import ie.omk.smpp.BadCommandIDException;
 import ie.omk.smpp.BadInterfaceVersionException;
+import ie.omk.smpp.InvalidNPIException;
+import ie.omk.smpp.InvalidTONException;
 import ie.omk.smpp.StringTooLongException;
 import ie.omk.smpp.util.SMPPIO;
-import ie.omk.debug.Debug;
 
 /** Abstract parent of BindTransmitter and BindReceiver.
   * @author Oran Kelly
@@ -68,7 +72,7 @@ public abstract class Bind
     /** Read in a BindTransmitter from an InputStream.  A full packet,
       * including the header fields must exist in the stream.
       * @param in The InputStream to read from
-      * @exception java.io.IOException if there's a problem reading from the
+      * @throws java.io.IOException if there's a problem reading from the
       * input stream.
       */
     /*public Bind(InputStream in)
@@ -90,11 +94,11 @@ public abstract class Bind
 
     /** Set the system Id
       * @param sysId The System Id to use (Up to 15 characters)
-      * @exception ie.omk.smpp.StringTooLongException if the system id is too
+      * @throws ie.omk.smpp.StringTooLongException if the system id is too
       * long.
       */
     public void setSystemId(String sysId)
-	throws ie.omk.smpp.SMPPException
+	throws StringTooLongException
     {
 	if(sysId == null) {
 	    this.sysId = null;
@@ -109,11 +113,11 @@ public abstract class Bind
 
     /** Set the password for this transmitter
       * @param password The new password to use (Up to 8 characters in length)
-      * @exception ie.omk.smpp.StringTooLongException if the password is too
+      * @throws ie.omk.smpp.StringTooLongException if the password is too
       * long.
       */
     public void setPassword(String password)
-	throws ie.omk.smpp.SMPPException
+	throws StringTooLongException
     {
 	if(password == null) {
 	    this.password = null;
@@ -128,11 +132,11 @@ public abstract class Bind
 
     /** Set the system type for this transmitter
       * @param sysType The new system type (Up to 12 characters in length)
-      * @exception ie.omk.smpp.StringTooLongException if the system type is too
+      * @throws ie.omk.smpp.StringTooLongException if the system type is too
       * long.
       */
     public void setSystemType(String sysType)
-	throws ie.omk.smpp.SMPPException
+	throws StringTooLongException
     {
 	if(sysType == null) {
 	    this.sysType = null;
@@ -147,11 +151,11 @@ public abstract class Bind
 
     /** Set the interface version being used by this transmitter
       * @param interfaceVer The interface version to report to the SMSC.
-      * @exception ie.omk.smpp.BadInterfaceVersionException if the interface
+      * @throws ie.omk.smpp.BadInterfaceVersionException if the interface
       * version is invalid.
       */ 
     public void setInterfaceVersion(int interfaceVer)
-	throws ie.omk.smpp.SMPPException
+	throws BadInterfaceVersionException
     {
 	if (interfaceVer != 0x33 && interfaceVer != 0x34)
 	    throw new BadInterfaceVersionException(interfaceVer);
@@ -161,10 +165,10 @@ public abstract class Bind
 
     /** Set the message routing Ton for this transmitter
       * @param addrTon The new Type Of Number to use
-      * @exception ie.omk.smpp.InvalidTONException if the TON is invalid.
+      * @throws ie.omk.smpp.InvalidTONException if the TON is invalid.
       */
     public void setAddressTon(int addrTon)
-	throws ie.omk.smpp.SMPPException
+	throws InvalidTONException
     {
 	// XXX Check TON?
 	this.addrTon = addrTon;
@@ -172,10 +176,10 @@ public abstract class Bind
 
     /** Set the message routing Npi for this transmitter
       * @param addrNpi The new Numbering plan indicator to use
-      * @exception ie.omk.smpp.InvalidNPIException if the NPI is invalid
+      * @throws ie.omk.smpp.InvalidNPIException if the NPI is invalid
       */
     public void setAddressNpi(int addrNpi)
-	throws ie.omk.smpp.SMPPException
+	throws InvalidNPIException
     {
 	// XXX check the NPI?
 	this.addrNpi = addrNpi;
@@ -183,13 +187,11 @@ public abstract class Bind
 
     /** Set the message routing address range for this transmitter
       * @param addressRange The new address range to use (Up to 40 characters)
-      * @exception ie.omk.smpp.StringTooLongException if the address range is
+      * @throws ie.omk.smpp.StringTooLongException if the address range is
       * too long.
-      * @exception ie.omk.smpp.InvalidAddressRangeException if the address range
-      * is invalid.
       */
     public void setAddressRange(String addressRange)
-	throws ie.omk.smpp.SMPPException
+	throws StringTooLongException
     {
 	if(addressRange == null) {
 	    this.addressRange = null;
@@ -264,11 +266,11 @@ public abstract class Bind
 
     /** Write the byte representation of this packet to an OutputStream.
       * @param out The output stream to write to
-      * @exception java.io.IOException If there is an error writing to the
+      * @throws java.io.IOException If there is an error writing to the
       * stream.
       */
     protected void encodeBody(OutputStream out)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
+	throws java.io.IOException
     {
 	SMPPIO.writeCString(sysId, out);
 	SMPPIO.writeCString(password, out);

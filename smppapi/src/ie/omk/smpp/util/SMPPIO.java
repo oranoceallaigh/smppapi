@@ -41,9 +41,8 @@ public class SMPPIO
       * @param len The number of bytes to form the integer from (usually
       * either 1 or 4, limited to 1 &lt;= len &lt;= 8)
       * @return An integer representation of the len bytes read from in.
-      * @exception java.io.IOException If EOS is reached before <code>len</code>
-      * bytes
-      * are read.
+      * @throws java.io.IOException If EOS is reached before <code>len</code>
+      * bytes are read.
       * @see java.io.InputStream
       */
     public static final int readInt(InputStream in, int len)
@@ -67,7 +66,7 @@ public class SMPPIO
     /** Read in a NUL-terminated string from an InputStream
       * @param in The InputStream to read from
       * @return A String representation with the NUL byte removed.
-      * @exception java.io.IOException If EOS is reached before a NUL byte
+      * @throws java.io.IOException If EOS is reached before a NUL byte
       * @see java.io.InputStream
       */
     public static final String readCString(InputStream in)
@@ -116,7 +115,7 @@ public class SMPPIO
       * @param len The number of bytes to read in from the InputStream
       * @return A String of length <code>len</code>. null if <code>len</code> is
       * less than 1.
-      * @exception java.io.IOException If EOS is reached before a NUL byte
+      * @throws java.io.IOException If EOS is reached before a NUL byte
       * @see java.io.InputStream
       */
     public static final String readString(InputStream in, int len)
@@ -291,7 +290,7 @@ public class SMPPIO
       * @param x The integer to write
       * @param len The number of bytes in this integer (usually either 1 or 4)
       * @param out The OutputStream to write the integer to
-      * @exception java.io.IOException If an I/O error occurs.
+      * @throws java.io.IOException If an I/O error occurs.
       * @see java.io.OutputStream
       */
     public static void writeInt(int x, int len, OutputStream out)
@@ -303,7 +302,7 @@ public class SMPPIO
     /** Write a String to an OutputStream followed by a NUL byte
       * @param s The string to write
       * @param out The output stream to write to
-      * @exception java.io.IOException If an I/O error occurs
+      * @throws java.io.IOException If an I/O error occurs
       * @see java.io.OutputStream
       */
     public static void writeCString(String s, OutputStream out)
@@ -318,7 +317,7 @@ public class SMPPIO
       * @param len The length of the String to write.  If this is longer than
       * the length of the String, the whole String will be sent.
       * @param out The OutputStream to use
-      * @exception java.io.IOException If an I/O error occurs
+      * @throws java.io.IOException If an I/O error occurs
       * @see java.io.OutputStream
       */
     public static void writeString(String s, int len, OutputStream out)
@@ -336,7 +335,7 @@ public class SMPPIO
     /** Write a String in it's entirety to an OutputStream
       * @param s The String to write
       * @param out The OutputStream to write to
-      * @exception java.io.IOException If an I/O error occurs
+      * @throws java.io.IOException If an I/O error occurs
       * @see java.io.OutputStream
       */
     public static void writeString(String s, OutputStream out)

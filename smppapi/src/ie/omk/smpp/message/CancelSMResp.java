@@ -23,7 +23,7 @@
  */
 package ie.omk.smpp.message;
 
-import java.io.*;
+import java.io.IOException;
 import ie.omk.smpp.BadCommandIDException;
 import ie.omk.smpp.util.SMPPIO;
 import ie.omk.debug.Debug;
@@ -55,7 +55,7 @@ public class CancelSMResp
     /** Read in a CancelSMResp from an InputStream.  A full packet,
       * including the header fields must exist in the stream.
       * @param in The InputStream to read from
-      * @exception java.io.IOException if there's an error reading from the
+      * @throws java.io.IOException if there's an error reading from the
       * input stream.
       */
     /*public CancelSMResp(InputStream in)

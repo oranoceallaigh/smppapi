@@ -53,14 +53,14 @@ public abstract class SMPPResponse
     /** Read in a SMPPResponse from an InputStream.  A full packet,
       * including the header fields must exist in the stream.
       * @param in The InputStream to read from
-      * @exception java.io.IOException if there's an error reading from the
+      * @throws java.io.IOException if there's an error reading from the
       * input stream.
       */
-    protected SMPPResponse(InputStream in)
+    /*protected SMPPResponse(InputStream in)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super(in);
-    }
+    }*/
 
     /** Create a new SMPPResponse packet in response to a BindReceiver.
       * This constructor will set the sequence number to it's expected value.
@@ -74,10 +74,10 @@ public abstract class SMPPResponse
 
     /** Set the status of this command (header field)
       * @param s The value for the status
-      * @exception ie.omk.smpp.BadCommandStatus if the status is invalid.
+      * @throws ie.omk.smpp.BadCommandStatus if the status is invalid.
       */
     public void setCommandStatus(int s)
-	throws ie.omk.smpp.SMPPException
+	throws BadCommandStatusException
     {
 	if(s >= 0)
 	    this.commandStatus = s;

@@ -62,7 +62,7 @@ public class SMPPDate
 
     /** Create a new SMPPDate.
       * @param d The java.util.Date value to use.
-      * @exception java.lang.NullPointerException if d is null.
+      * @throws java.lang.NullPointerException if d is null.
       */
     public SMPPDate(Date d)
     {
@@ -86,7 +86,7 @@ public class SMPPDate
       * <li> ss = second (00 - 59)
       * </ul>
       * @param An SMSC time string of the above format.
-      * @exception java.lang.NullPointerException If s is null.
+      * @throws java.lang.NullPointerException If s is null.
       */
     public SMPPDate(String s)
     {

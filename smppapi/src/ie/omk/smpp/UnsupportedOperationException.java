@@ -23,7 +23,7 @@
  */
 package ie.omk.smpp;
 
-public class UnsupportedOperationException extends SMPPException
+public class UnsupportedOperationException extends SMPPRuntimeException
 {
     public UnsupportedOperationException()
     {

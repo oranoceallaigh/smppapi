@@ -23,7 +23,7 @@
  */
 package ie.omk.smpp.message;
 
-import java.io.*;
+import java.io.IOException;
 import ie.omk.smpp.BadCommandIDException;
 import ie.omk.debug.Debug;
 
@@ -56,10 +56,10 @@ public class EnquireLinkResp
     /** Read in a EnquireLinkResp from an InputStream.  A full packet,
       * including the header fields must exist in the stream.
       * @param in The InputStream to read from
-      * @exception java.io.IOException if there's an error reading from the
+      * @throws java.io.IOException if there's an error reading from the
       * input stream.
       */
-    public EnquireLinkResp(InputStream in)
+    /*public EnquireLinkResp(InputStream in)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super(in);
@@ -67,7 +67,7 @@ public class EnquireLinkResp
 	if (getCommandId() != SMPPPacket.ENQUIRE_LINK_RESP)
 	    throw new BadCommandIDException(SMPPPacket.ENQUIRE_LINK_RESP,
 		    getCommandId());
-    }
+    }*/
 
     /** Create a new BindReceiverResp packet in response to a BindReceiver.
       * This constructor will set the sequence number to it's expected value.

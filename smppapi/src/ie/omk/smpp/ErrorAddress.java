@@ -26,30 +26,55 @@ package ie.omk.smpp;
 import java.io.OutputStream;
 import ie.omk.smpp.util.SMPPIO;
 
+/** An address that message submission was unsuccessfully submitted to. This
+ * class is used in the SubmitMultiResp packet type to return a list of SME
+ * addresses that message submission failed for along with an error code for
+ * each address indicating the reason for the failure.
+ * @author Oran Kelly &lt;orank@users.sf.net&gt;
+ */
 public class ErrorAddress extends Address
 {
+    /** The error code showing why this address failed.
+     */
     private int error = 0;
 
+    /** Create a new ErrorAddress object.
+     */
     public ErrorAddress()
     {
     }
 
+    /** Create a new ErrorAddress object.
+     * @param ton The Type Of Number.
+     * @param npi The Numbering Plan Indicator.
+     * @param addr The address.
+     */
     public ErrorAddress(int ton, int npi, String addr)
     {
 	super(ton, npi, addr);
     }
 
+    /** Create a new ErrorAddress object.
+     * @param ton The Type Of Number.
+     * @param npi The Numbering Plan Indicator.
+     * @param addr The address.
+     * @param error The error code indicating why message submission failed.
+     */
     public ErrorAddress(int ton, int npi, String addr, int error)
     {
 	super(ton, npi, addr);
 	this.error = error;
     }
 
+    /** Get the error code associated with this ErrorAddress.
+     */
     public int getError()
     {
 	return (error);
     }
 
+    /** Set the error code associated with this ErrorAddress.
+     */
     public void setError(int error)
     {
 	this.error = error;

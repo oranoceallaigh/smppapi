@@ -128,9 +128,6 @@ public class AsyncReceiver2 extends SMPPEventAdapter
 	} catch (IOException x) {
 	    System.err.println("IOException while acking unbind.\n"
 		    + x.toString());
-	} catch (SMPPException x) {
-	    System.err.println("SMPPException while acking unbind.\n"
-		    + x.toString());
 	}
     }
 

@@ -23,7 +23,10 @@
  */
 package ie.omk.smpp.message;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.InputStream;
+
 import java.net.SocketException;
 
 import ie.omk.smpp.Address;
@@ -262,17 +265,17 @@ public abstract class SMPPPacket
 
     /** Read an SMPPPacket header from an InputStream
       * @param in InputStream to read from
-      * @exception IOException if there's an error reading from the input
+      * @throws IOException if there's an error reading from the input
       * stream.
       */
-    protected SMPPPacket(InputStream in)
+    /*protected SMPPPacket(InputStream in)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	int cmdLen = SMPPIO.readInt(in, 4);
 	this.commandId = SMPPIO.readInt(in, 4);
 	this.commandStatus = SMPPIO.readInt(in, 4);
 	this.sequenceNum = SMPPIO.readInt(in, 4);
-    }
+    }*/
 
     /** Return the number of bytes this packet would be encoded as to an
       * OutputStream.
@@ -568,7 +571,7 @@ public abstract class SMPPPacket
       * the string is 160 octets. Calling this method sets the data_coding value
       * using AlphabetEncoding.getDataCoding.
       * @param text The short message text.
-      * @exception ie.omk.smpp.StringTooLongException if the message is too
+      * @throws ie.omk.smpp.StringTooLongException if the message is too
       * long.
       * @see ie.omk.smpp.util.AlphabetEncoding
       * @see ie.omk.smpp.util.AlphabetEncoding#getDataCoding
@@ -576,7 +579,7 @@ public abstract class SMPPPacket
       * @see ie.omk.smpp.util.DefaultAlphabetEncoding
       */
     public void setMessageText(String text)
-	throws ie.omk.smpp.SMPPException
+	throws StringTooLongException
     {
 	this.setMessageText(text, this.alphabet);
     }
@@ -587,14 +590,14 @@ public abstract class SMPPPacket
       * to set the data_coding field.
       * @param text The short message text.
       * @param alphabet The SMS alphabet to use.
-      * @exception ie.omk.smpp.StringTooLongException if the message is too
+      * @throws ie.omk.smpp.StringTooLongException if the message is too
       * long.
       * @see ie.omk.smpp.util.AlphabetEncoding
       * @see ie.omk.smpp.util.AlphabetEncoding#getDataCoding
       * @see ie.omk.smpp.util.DefaultAlphabetEncoding
       */
     public void setMessageText(String text, AlphabetEncoding alphabet)
-	throws ie.omk.smpp.SMPPException
+	throws StringTooLongException
     {
 	if(text == null) {
 	    this.message = null;
@@ -609,11 +612,10 @@ public abstract class SMPPPacket
       * Maximum data length is 140 octets. The data will be copied from the
       * supplied byte array into a newly created internal one.
       * @param message The byte array to take message data from.
-      * @exception ie.omk.smpp.StringTooLongException if the message is too long
-      * (XXX this will probably change to a better exception).
+      * @throws ie.omk.smpp.StringTooLongException if the message is too long
       */
     public void setMessage(byte[] message)
-	throws ie.omk.smpp.SMPPException
+	throws StringTooLongException
     {
 	this.setMessage(message, 0, message.length, null);
     }
@@ -622,11 +624,10 @@ public abstract class SMPPPacket
       * Maximum data length is 140 octets. The data will be copied from the
       * supplied byte array into a newly created internal one.
       * @param message The byte array to take message data from.
-      * @exception ie.omk.smpp.StringTooLongException if the message is too long
-      * (XXX this will probably change to a better exception).
+      * @throws ie.omk.smpp.StringTooLongException if the message is too long
       */
     public void setMessage(byte[] message, MessageEncoding encoding)
-	throws ie.omk.smpp.SMPPException
+	throws StringTooLongException
     {
 	this.setMessage(message, 0, message.length, encoding);
     }
@@ -641,12 +642,11 @@ public abstract class SMPPPacket
       * @param len The length of the message data.
       * @param encoding The encoding object representing the type of data in the
       * message. If null, uses ie.omk.smpp.util.BinaryEncoding.
-      * @exception ie.omk.smpp.StringTooLongException if the message is too long
-      * (XXX this will probably change to a better exception).
+      * @throws ie.omk.smpp.StringTooLongException if the message is too long
       */
     public void setMessage(byte[] message, int start, int len,
 	    MessageEncoding encoding)
-	throws ie.omk.smpp.SMPPException
+	throws StringTooLongException
     {
 	int maxLen = 0;
 	int dcs = -1;
@@ -713,7 +713,6 @@ public abstract class SMPPPacket
       * @see ie.omk.smpp.util.AlphabetEncoding
       */
     public String getMessageText(AlphabetEncoding enc)
-	throws java.io.UnsupportedEncodingException
     {
 	return (enc.decodeString(this.message));
     }
@@ -728,11 +727,11 @@ public abstract class SMPPPacket
 
     /** Set the service type.
       * @param type The service type.
-      * @exception ie.omk.smpp.StringTooLongException if the service type is too
+      * @throws ie.omk.smpp.StringTooLongException if the service type is too
       * long.
       */
     public void setServiceType(String type)
-	throws ie.omk.smpp.SMPPException
+	throws StringTooLongException
     {
 	if(type == null) {
 	    serviceType = null;
@@ -756,10 +755,8 @@ public abstract class SMPPPacket
 
     /** Set the scheduled delivery time for the short message.
       * @param d The date and time the message should be delivered.
-      * @throws ie.omk.smpp.SMPPException (XXX can the date be invalid?)
       */
     public void setDeliveryTime(SMPPDate d)
-	throws ie.omk.smpp.SMPPException
     {
 	this.deliveryTime = d;
 	Debug.d(this, "setDeliveryTime", d, 4);
@@ -777,10 +774,8 @@ public abstract class SMPPPacket
       * If the message is not delivered by time 'd', it will be cancelled and
       * never delivered to it's destination.
       * @param d the date and time the message should expire.
-      * @exception ie.omk.smpp.SMPPException (XXX can the time be invalid?)
       */
     public void setExpiryTime(SMPPDate d)
-	throws ie.omk.smpp.SMPPException
     {
 	expiryTime = d;
 	Debug.d(this, "setExpiryTime", d, 4);
@@ -797,10 +792,8 @@ public abstract class SMPPPacket
       * The final date is the date and time that the message reached it's final
       * destination.
       * @param d the date the message was delivered.
-      * @exception ie.omk.smpp.SMPPException (XXX can the time be invalid?)
       */
     public void setFinalDate(SMPPDate d)
-	throws ie.omk.smpp.SMPPException
     {
 	finalDate = d;
 	Debug.d(this, "setFinalDate", d, 4);
@@ -817,28 +810,21 @@ public abstract class SMPPPacket
       * Each submitted short message is assigned an Id by the SMSC which is used
       * to uniquely identify it. SMPP v3.3 message Ids are hexadecimal numbers
       * up to 9 characters long. This gives them a range of 0x0 - 0xffffffff.
+      * <p>SMPP v3.4 Ids, on the other hand, are opaque objects represented as
+      * C-Strings assigned by the SMSC and can be up to 64 characters (plus 1
+      * nul-terminator).
       * @param id The message's id.
-      * @exception ie.omk.smpp.InvalidMessageIDException if the message id is
-      * invalid.
+      * @throws ie.omk.smpp.StringTooLongException If the message ID is too long
+      * for for the interface version in use.
       */
     public void setMessageId(String id)
-	throws ie.omk.smpp.SMPPException
+	throws StringTooLongException
     {
 	if (id == null) {
 	    this.messageId = null;
 	} else {
-	    try {
-		// Using longs is probably only valid for SMPP v3.3!
-		long l = Long.parseLong(id, 16);
-		if (l < 0L || l > 0x0ffffffffL)
-		    throw new InvalidMessageIDException(id);
-
-		this.messageId = id;
-
-		Debug.d(this, "setMessageId", id, 4);
-	    } catch (NumberFormatException x) {
-		throw new InvalidMessageIDException(id);
-	    }
+	    // XXX need a version length check!
+	    this.messageId = id;
 	}
     }
     
@@ -852,10 +838,8 @@ public abstract class SMPPPacket
     /** Set the message status. This is different to the command status field.
       * XXX describe the message status.
       * @param st The message status.
-      * @exception ie.omk.smpp.SMPPException if the status is invalid.
       */
     public void setMessageStatus(int st)
-	throws ie.omk.smpp.SMPPException
     {
 	this.messageStatus = st;
 	Debug.d(this, "setMessageStatus", st, 4);
@@ -872,7 +856,6 @@ public abstract class SMPPPacket
       * @param code The error code.
       */
     public void setErrorCode(int code)
-	throws ie.omk.smpp.SMPPException
     {
 	errorCode = code; 
 	Debug.d(this, "setErrorCode", code, 4);
@@ -914,7 +897,7 @@ public abstract class SMPPPacket
      * parameter table.
      * @param tag the tag of the parameter to set.
      * @param value the value object to set.
-     * @exception ie.omk.smpp.message.tlv.BadValueTypeException if the type of
+     * @throws ie.omk.smpp.message.tlv.BadValueTypeException if the type of
      * <code>value</code> is incorrect for the <code>tag</code>.
      * @return the previous value of the parameter, or null if it was unset.
      */
@@ -974,11 +957,11 @@ public abstract class SMPPPacket
       * method is called from SMPPPacket.writeTo(java.io.OutputStream) to
       * encode the message.
       * @param out The output stream to write to.
-      * @exception java.io.IOException if there's an error writing to the output
+      * @throws java.io.IOException if there's an error writing to the output
       * stream.
       */
     protected void encodeBody(OutputStream out)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
+	throws java.io.IOException
     {
 	// some packets ain't got a body...provide a default adapter instead of
 	// making it abstract.
@@ -986,11 +969,11 @@ public abstract class SMPPPacket
 
     /** Write the byte representation of this SMPP packet to an OutputStream
       * @param out The OutputStream to use
-      * @exception java.io.IOException if there's an error writing to the
+      * @throws java.io.IOException if there's an error writing to the
       * output stream.
       */
     public final void writeTo(OutputStream out)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
+	throws java.io.IOException
     {
 	int commandLen = getLength();
 

@@ -23,7 +23,7 @@
  */
 package ie.omk.smpp.message;
 
-import java.io.*;
+import java.io.IOException;
 import ie.omk.smpp.SMPPException;
 import ie.omk.smpp.BadCommandIDException;
 import ie.omk.smpp.BadInterfaceVersionException;
@@ -49,7 +49,7 @@ public class BindTransmitter
     /** Read in a BindTransmitter from an InputStream.  A full packet,
       * including the header fields must exist in the stream.
       * @param in The InputStream to read from
-      * @exception java.io.IOException if there's a problem reading from the
+      * @throws java.io.IOException if there's a problem reading from the
       * input stream.
       */
     /*public BindTransmitter(InputStream in)

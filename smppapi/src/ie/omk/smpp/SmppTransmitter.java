@@ -24,13 +24,50 @@
 
 package ie.omk.smpp;
 
-import java.io.*;
-import java.util.*;
+import java.io.IOException;
 
 import ie.omk.smpp.Address;
 
-import ie.omk.smpp.message.*;
-import ie.omk.smpp.net.*;
+import ie.omk.smpp.message.AlertNotification;
+import ie.omk.smpp.message.Bind;
+import ie.omk.smpp.message.BindReceiver;
+import ie.omk.smpp.message.BindReceiverResp;
+import ie.omk.smpp.message.BindResp;
+import ie.omk.smpp.message.BindTransceiver;
+import ie.omk.smpp.message.BindTransceiverResp;
+import ie.omk.smpp.message.BindTransmitter;
+import ie.omk.smpp.message.BindTransmitterResp;
+import ie.omk.smpp.message.CancelSM;
+import ie.omk.smpp.message.CancelSMResp;
+import ie.omk.smpp.message.DataSM;
+import ie.omk.smpp.message.DataSMResp;
+import ie.omk.smpp.message.DeliverSM;
+import ie.omk.smpp.message.DeliverSMResp;
+import ie.omk.smpp.message.EnquireLink;
+import ie.omk.smpp.message.EnquireLinkResp;
+import ie.omk.smpp.message.GenericNack;
+import ie.omk.smpp.message.MsgFlags;
+import ie.omk.smpp.message.ParamRetrieve;
+import ie.omk.smpp.message.ParamRetrieveResp;
+import ie.omk.smpp.message.QueryLastMsgs;
+import ie.omk.smpp.message.QueryLastMsgsResp;
+import ie.omk.smpp.message.QueryMsgDetails;
+import ie.omk.smpp.message.QueryMsgDetailsResp;
+import ie.omk.smpp.message.QuerySM;
+import ie.omk.smpp.message.QuerySMResp;
+import ie.omk.smpp.message.ReplaceSM;
+import ie.omk.smpp.message.ReplaceSMResp;
+import ie.omk.smpp.message.SMPPPacket;
+import ie.omk.smpp.message.SMPPRequest;
+import ie.omk.smpp.message.SMPPResponse;
+import ie.omk.smpp.message.SubmitMulti;
+import ie.omk.smpp.message.SubmitMultiResp;
+import ie.omk.smpp.message.SubmitSM;
+import ie.omk.smpp.message.SubmitSMResp;
+import ie.omk.smpp.message.Unbind;
+import ie.omk.smpp.message.UnbindResp;
+
+import ie.omk.smpp.net.SmscLink;
 
 import ie.omk.smpp.util.SMPPDate;
 
@@ -56,7 +93,7 @@ public class SmppTransmitter
       * desired.
       * @param link The network link object to the Smsc (cannot be null)
       * @param async true for asyncronous communication, false for synchronous.
-      * @exception java.lang.NullPointerException If the link is null
+      * @throws java.lang.NullPointerException If the link is null
       */
     public SmppTransmitter(SmscLink link, boolean async)
     {
@@ -64,24 +101,33 @@ public class SmppTransmitter
     }
 
     /** Bind to the SMSC as a transmitter. This method will
-      * send a bind_transmitter packet to the SMSC.  If the network
-      * connection to the SMSC is not already open, it will be opened in
-      * this method.
-      * @param systemID The system ID of this ESME.
-      * @param password The password used to authenticate to the SMSC.
-      * @param systemType The system type of this ESME.
-      * @param sourceRange The source routing information. If null, the defaults
-      * at the SMSC will be used.
-      * @return The bind response, or null if asynchronous communication is
-      * used.
-      * @exception ie.omk.smpp.AlreadyBoundException if the connection is
-      * already bound to the SMSC.
-      * @exception java.io.IOException If there is a network error
-      * @see ie.omk.smpp.Connection#bind
-      */
+     * send a bind_transmitter packet to the SMSC.  If the network
+     * connection to the SMSC is not already open, it will be opened in
+     * this method.
+     * @param systemID The system ID of this ESME.
+     * @param password The password used to authenticate to the SMSC.
+     * @param systemType The system type of this ESME.
+     * @param sourceRange The source routing information. If null, the defaults
+     * at the SMSC will be used.
+     * @return The bind response, or null if asynchronous communication is
+     * used.
+     * @throws java.lang.IllegalArgumentException if a bad <code>type</code>
+     * value is supplied.
+     * @throws ie.omk.smpp.UnsupportedOperationException if an attempt is made
+     * to bind as transceiver while using SMPP version 3.3.
+     * @throws ie.omk.smpp.StringTooLongException If any of systemID, password,
+     * system type or address range are outside allowed bounds.
+     * @throws ie.omk.smpp.InvalidTONException If the TON is invalid.
+     * @throws ie.omk.smpp.InvalidNPIException If the NPI is invalid.
+     * @throws java.io.IOException If an I/O error occurs while writing the bind
+     * packet to the output stream.
+     * @throws ie.omk.smpp.AlreadyBoundException If the Connection is already
+     * bound.
+     * @see ie.omk.smpp.Connection#bind
+     */
     public BindResp bind(String systemID, String password,
 	    String systemType, Address sourceRange)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
+	throws java.io.IOException, UnsupportedOperationException, StringTooLongException, InvalidTONException, InvalidNPIException, IllegalArgumentException, AlreadyBoundException
     {
 	return (super.bind(
 		    TRANSMITTER,
@@ -100,7 +146,7 @@ public class SmppTransmitter
       * @param dst Destination ESME to send the message to (may be null)
       * @return The submit message response, or null if asynchronous
       * communication is used.
-      * @exception java.io.IOException If a network error occurs
+      * @throws java.io.IOException If a network error occurs
       * @see Address
       * @see SmppTransmitter#submitMulti
       * @deprecated This method will disappear from this class within the next 2
@@ -108,7 +154,7 @@ public class SmppTransmitter
       */
     public SubmitSMResp submitMessage(String msg, MsgFlags flags,
 	    Address dst)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
+	throws java.io.IOException, StringTooLongException
     {
 	return (this.submitMessage(msg, flags, null, dst, null, null));
     }
@@ -121,7 +167,7 @@ public class SmppTransmitter
       * @param dst Destination ESME to send the message to (may be null)
       * @return The submit message response, or null if asynchronous
       * communication is used.
-      * @exception java.io.IOException If a network error occurs
+      * @throws java.io.IOException If a network error occurs
       * @see Address
       * @see SmppTransmitter#submitMulti
       * @deprecated This method will disappear from this class within the next 2
@@ -129,7 +175,7 @@ public class SmppTransmitter
       */
     public SubmitSMResp submitMessage(String msg, MsgFlags flags,
 	    Address src, Address dst)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
+	throws java.io.IOException, StringTooLongException
     {
 	return (this.submitMessage(msg, flags, src, dst, null, null));
     }
@@ -143,7 +189,9 @@ public class SmppTransmitter
       * @param valid The time of expiry of this message (may be null)
       * @return The submit message response, or null if asynchronous
       * communication is used.
-      * @exception java.io.IOException If a network error occurs
+      * @throws java.io.IOException If a network error occurs
+      * @throws ie.omk.smpp.StringTooLongException if the message string is too
+      * long.
       * @see Address
       * @see SmppTransmitter#submitMulti
       * @deprecated This method will disappear from this class within the next 2
@@ -151,7 +199,7 @@ public class SmppTransmitter
       */
     public SubmitSMResp submitMessage(String msg, MsgFlags flags,
 	    Address src, Address dst, SMPPDate del, SMPPDate valid)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
+	throws java.io.IOException, StringTooLongException
     {
 	SubmitSM s = new SubmitSM();
 	s.setPriority(flags.priority);
@@ -181,14 +229,14 @@ public class SmppTransmitter
       * @param valid The validity period of the message, after which it will
       * @return The submit multi response, or null if asynchronous
       * communication is used.
-      * @exception java.io.IOException If a network error occurs
+      * @throws java.io.IOException If a network error occurs
       * @see Address
       * @deprecated This method will disappear from this class within the next 2
       * releases.
       */
     public SubmitMultiResp submitMulti(String msg, MsgFlags flags,
 	    Address src, Address dst[])
-	throws java.io.IOException, ie.omk.smpp.SMPPException
+	throws java.io.IOException, StringTooLongException, InvalidDestinationCountException, InvalidReplaceIfPresentException
     {
 	return (this.submitMulti(msg, flags, src, dst, null, null));
     }
@@ -203,12 +251,18 @@ public class SmppTransmitter
       * @param valid The validity period of the message, after which it will
       * @return The submit multi response, or null if asynchronous
       * communication is used.
-      * @exception ie.omk.smpp.InvalidDestinationCountException if the
+      * @throws ie.omk.smpp.InvalidDestinationCountException if the
       * destination table contains 0 addresses. There is currently no upper
       * limit.
-      * @exception ie.omk.smpp.InvalidReplaceIfPresentException if the
+      * @throws ie.omk.smpp.InvalidReplaceIfPresentException if the
       * replace-if-present flag is set and there are more than 1 destination.
-      * @exception java.io.IOException If a network error occurs
+      * @throws java.io.IOException If a network error occurs
+      * @throws ie.omk.smpp.StringTooLongException if the message string is too
+      * long.
+      * @throws InvalidDestinationCountException If the number of destinations
+      * to submit the message to is outside allowed limits.
+      * @throws InvalidReplaceIfPresentException If the replace-if-present flag
+      * was set and there was more than one destination specified.
       * @see Address
       * @see SmppTransmitter#submitMulti
       * @deprecated This method will disappear from this class within the next 2
@@ -216,7 +270,7 @@ public class SmppTransmitter
       */
     public SubmitMultiResp submitMulti(String msg, MsgFlags flags,
 	    Address src, Address dst[], SMPPDate del, SMPPDate valid)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
+	throws java.io.IOException, StringTooLongException, InvalidDestinationCountException, InvalidReplaceIfPresentException
     {
 	int loop = 0;
 	SubmitMulti s = new SubmitMulti();
@@ -256,10 +310,10 @@ public class SmppTransmitter
       * @param d The Destination address of the original message
       * @return The cancel message response, or null if asynchronous
       * communication is used.
-      * @exception java.io.IOException If a network error occurs.
+      * @throws java.io.IOException If a network error occurs.
       */
     public CancelSMResp cancelMessage(String st, String msgId, Address d)
-	throws IOException, ie.omk.smpp.SMPPException
+	throws IOException, StringTooLongException
     {
 	return (this.cancelMessage(st, msgId, null, d));
     }
@@ -271,11 +325,11 @@ public class SmppTransmitter
       * @param src The source address of the original message (may be null)
       * @return The cancel message response, or null if asynchronous
       * communication is used.
-      * @exception java.io.IOException If a network error occurs.
+      * @throws java.io.IOException If a network error occurs.
       */
     public CancelSMResp cancelMessage(String st, String msgId,
 	    Address src, Address dst)
-	throws IOException, ie.omk.smpp.SMPPException
+	throws IOException, StringTooLongException
     {
 	CancelSM s = new CancelSM();
 	s.setServiceType(st);
@@ -297,13 +351,13 @@ public class SmppTransmitter
       * and the default message Id flags are relevant.
       * @return The replace message response, or null if asynchronous
       * communication is used.
-      * @exception java.io.IOException If a network error occurs
+      * @throws java.io.IOException If a network error occurs
       * @deprecated This method will disappear from this class within the next 2
       * releases.
       */
     public ReplaceSMResp replaceMessage(String msgId, String msg,
 	    MsgFlags flags)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
+	throws java.io.IOException, StringTooLongException
     {
 	return (this.replaceMessage(msgId, msg, flags, null, null, null));
     }
@@ -316,13 +370,13 @@ public class SmppTransmitter
       * and the default message Id flags are relevant.
       * @return The replace message response, or null if asynchronous
       * communication is used.
-      * @exception java.io.IOException If a network error occurs
+      * @throws java.io.IOException If a network error occurs
       * @deprecated This method will disappear from this class within the next 2
       * releases.
       */
     public ReplaceSMResp replaceMessage(String msgId, String msg,
 	    MsgFlags flags, Address src)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
+	throws java.io.IOException, StringTooLongException
     {
 	return (this.replaceMessage(msgId, msg, flags, src, null, null));
     }
@@ -337,13 +391,13 @@ public class SmppTransmitter
       * @param valid The validity period of the message, after which it will
       * expire (may be null)
       * @return true if the replacement is successful, false otherwise
-      * @exception java.io.IOException If a network error occurs
+      * @throws java.io.IOException If a network error occurs
       * @deprecated This method will disappear from this class within the next 2
       * releases.
       */
     public ReplaceSMResp replaceMessage(String msgId, String msg,
 	    MsgFlags flags, Address src, SMPPDate del, SMPPDate valid)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
+	throws java.io.IOException, StringTooLongException
     {
 	ReplaceSM s = new ReplaceSM();
 	s.setMessageId(msgId);
@@ -372,10 +426,10 @@ public class SmppTransmitter
       * @param name The name of the parameter to get
       * @return The param retrieve response, or null if asynchronous
       * communication is used.
-      * @exception java.io.IOException If a network error occurs.
+      * @throws java.io.IOException If a network error occurs.
       */
     public ParamRetrieveResp paramRetrieve(String name)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
+	throws java.io.IOException, StringTooLongException
     {
 	ParamRetrieve s = new ParamRetrieve();
 	s.setParamName(name);
@@ -391,11 +445,10 @@ public class SmppTransmitter
       * @param msgId The Id of the submitted message
       * @return The query message response, or null if asynchronous
       * communication is used.
-      * @exception java.io.IOException If a network error occurs.
-      * @see MessageDetails
+      * @throws java.io.IOException If a network error occurs.
       */
     public QuerySMResp queryMessage(String msgId)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
+	throws java.io.IOException, StringTooLongException
     {
 	return (this.queryMessage(msgId, null));
     }
@@ -405,11 +458,10 @@ public class SmppTransmitter
       * @param src The source address of the original message (may be null)
       * @return The query message response, or null if asynchronous
       * communication is used.
-      * @exception java.io.IOException If a network error occurs.
-      * @see MessageDetails
+      * @throws java.io.IOException If a network error occurs.
       */
     public QuerySMResp queryMessage(String msgId, Address src)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
+	throws java.io.IOException, StringTooLongException
     {
 	QuerySM s = new QuerySM();
 	s.setMessageId(msgId);
@@ -426,10 +478,10 @@ public class SmppTransmitter
       * @param num The number of messages to query (0 &lt; num &lt;= 100).
       * @return The query last messages response, or null if asynchronous
       * communication is used.
-      * @exception java.io.IOException If a network error occurs.
+      * @throws java.io.IOException If a network error occurs.
       */
     public QueryLastMsgsResp queryLastMsgs(Address src, int num)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
+	throws java.io.IOException, NumberOutOfRangeException
     {
 	if(src == null)
 	    throw new NullPointerException("Source address cannot be null.");
@@ -454,10 +506,10 @@ public class SmppTransmitter
       * @param len The number of bytes of the message text to get.
       * @return The query details response, or null if asynchronous
       * communication is used.
-      * @exception java.io.IOException If a network error occurs.
+      * @throws java.io.IOException If a network error occurs.
       */
     public QueryMsgDetailsResp queryMsgDetails(String msgId, int len)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
+	throws java.io.IOException, StringTooLongException
     {
 	return (this.queryMsgDetails(msgId, null, len));
     }
@@ -468,11 +520,11 @@ public class SmppTransmitter
       * @param len The number of bytes of the message text to get.
       * @return The query details response, or null if asynchronous
       * communication is used.
-      * @exception java.io.IOException If a network error occurs.
+      * @throws java.io.IOException If a network error occurs.
       */
     public QueryMsgDetailsResp queryMsgDetails(String msgId, Address src,
 	    int len)
-	throws java.io.IOException, ie.omk.smpp.SMPPException
+	throws java.io.IOException, StringTooLongException
     {
 	// Make sure the length requested is sane!
 	if(len < 0)

@@ -53,14 +53,14 @@ public abstract class SMPPRequest
     /** Read in a SMPPRequest from an InputStream.  A full packet,
       * including the header fields must exist in the stream.
       * @param in The InputStream to read from
-      * @exception java.io.IOException if there's an error reading from the
+      * @throws java.io.IOException if there's an error reading from the
       * input stream.
       */
-    protected SMPPRequest(InputStream in)
+    /*protected SMPPRequest(InputStream in)
 	throws java.io.IOException, ie.omk.smpp.SMPPException
     {
 	super(in);
-    }
+    }*/
 
     /** Check has this request been acknowledged or not.
       */

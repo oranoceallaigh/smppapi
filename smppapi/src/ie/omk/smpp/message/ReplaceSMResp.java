@@ -54,7 +54,7 @@ public class ReplaceSMResp
 
     /** Read in a ReplaceSMResp from an InputStream.  A full packet,
       * including the header fields must exist in the stream.
-      * @exception java.io.IOException if there's an error reading from the
+      * @throws java.io.IOException if there's an error reading from the
       * input stream.
       */
     /*public ReplaceSMResp(InputStream in)

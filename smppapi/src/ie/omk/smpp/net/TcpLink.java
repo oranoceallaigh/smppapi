@@ -57,7 +57,7 @@ public class TcpLink
 
     /** Create a new TcpLink
       * @param address IP address or hostname of SMSC
-      * @exception java.net.UnknownHostException If the host is not found.
+      * @throws java.net.UnknownHostException If the host is not found.
       */
     public TcpLink(String address)
 	throws java.net.UnknownHostException
@@ -68,7 +68,7 @@ public class TcpLink
     /** Create a new TcpLink
       * @param address IP address or hostname of SMSC
       * @param port The port number to connect to
-      * @exception java.net.UnknownHostException If the host is not found.
+      * @throws java.net.UnknownHostException If the host is not found.
       */
     public TcpLink(String address, int port)
 	throws java.net.UnknownHostException
@@ -79,7 +79,7 @@ public class TcpLink
 
     /** Create a new TcpLink
       * @param address IP address SMSC
-      * @exception java.net.UnknownHostException If the host is not found.
+      * @throws java.net.UnknownHostException If the host is not found.
       */
     public TcpLink(InetAddress address)
 	throws java.net.UnknownHostException
@@ -90,7 +90,7 @@ public class TcpLink
     /** Create a new TcpLink
       * @param address IP address of SMSC
       * @param port The port number to connect to
-      * @exception java.net.UnknownHostException If the host is not found.
+      * @throws java.net.UnknownHostException If the host is not found.
       */
     public TcpLink(InetAddress address, int port)
 	throws java.net.UnknownHostException
@@ -102,8 +102,9 @@ public class TcpLink
     /** Create a new Socket connection to the SMSC. This implementation creates
      * a new instance of a java.net.Socket with the host name and port supplied
      * to the constructor an instance of this class was created with.
-     * @exception java.io.IOException If an error occurs connecting to the SMSC
-     * @see java.net.Socket
+     * @throws java.io.IOException If an error occurs while creating the socket
+     * connection to the SMSC.
+     * @see java.net.Socket#Socket(java.net.InetAddress, int)
      */
     protected void implOpen()
 	throws java.io.IOException
@@ -113,10 +114,10 @@ public class TcpLink
     }
 
     /** Close the Socket connection to the SMSC.
-      * @exception java.io.IOException If a network error occurs closing the
-      * connection.
+     * @throws java.io.IOException If an I/O error occurs closing the
+     * socket connection.
      * @see java.net.Socket#close
-      */
+     */
     protected void implClose()
 	throws java.io.IOException
     {
@@ -134,7 +135,8 @@ public class TcpLink
     }
 
     /** Get the output stream of the Socket connection to the SMSC.
-      * @exception java.io.IOException If the socket connections are not open
+      * @throws java.io.IOException If the socket connection is not open or an
+      * I/O error occurs when creating the output stream.
       * @see java.io.OutputStream
       * @see java.net.Socket#getOutputStream
       */
@@ -148,7 +150,8 @@ public class TcpLink
     }
 
     /** Get the input stream of the Socket connection to the SMSC.
-      * @exception java.io.IOException If the socket connections are not open
+      * @throws java.io.IOException If the socket connection is not open or an
+      * I/O error occurs when creating the input stream.
       * @see java.io.InputStream
       * @see java.net.Socket#getInputStream
       */
@@ -162,17 +165,44 @@ public class TcpLink
     }
 
     /** Get the address we're connected (or connecting) to.
-      */
+     * @return The address of the SMSC this link is connected to.
+     */
     public InetAddress getAddress()
     {
 	return (addr);
     }
 
-    /** Get the port we're connected (or connecting) to.
-      */
+    /** Get the service port to connect to at the SMSC to establish a TCP
+     * connection.
+     * @return The service port at the SMSC to connect to.
+     */
     public int getPort()
     {
 	return (port);
+    }
+
+    /** Get the port at the SMSC that this link is connected to. This is the
+     * remote port that this link is connected to after a successful connection
+     * has been made.
+     * @return The remote port this link is connected to.
+     * @throws java.io.IOException If the connection is not open.
+     */
+    public int getConnectedPort() throws java.io.IOException {
+	if (sock == null)
+	    throw new IOException("Socket connection is not open");
+	else
+	    return (sock.getPort());
+    }
+
+    /** Get the local port number this link is connected to.
+     * @return The local port number this link is connected to.
+     * @throws java.io.IOException If the connection is not open.
+     */
+    public int getLocalPort() throws java.io.IOException {
+	if (sock == null)
+	    throw new IOException("Socket connection is not open");
+	else
+	    return (sock.getLocalPort());
     }
 
     /** Check connection status.

@@ -27,8 +27,41 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
 import ie.omk.smpp.SMPPException;
-import ie.omk.smpp.message.*;
 import ie.omk.debug.Debug;
+
+import ie.omk.smpp.message.AlertNotification;
+import ie.omk.smpp.message.BindReceiver;
+import ie.omk.smpp.message.BindReceiverResp;
+import ie.omk.smpp.message.BindTransceiver;
+import ie.omk.smpp.message.BindTransceiverResp;
+import ie.omk.smpp.message.BindTransmitter;
+import ie.omk.smpp.message.BindTransmitterResp;
+import ie.omk.smpp.message.CancelSM;
+import ie.omk.smpp.message.CancelSMResp;
+import ie.omk.smpp.message.DataSM;
+import ie.omk.smpp.message.DataSMResp;
+import ie.omk.smpp.message.DeliverSM;
+import ie.omk.smpp.message.DeliverSMResp;
+import ie.omk.smpp.message.EnquireLink;
+import ie.omk.smpp.message.EnquireLinkResp;
+import ie.omk.smpp.message.GenericNack;
+import ie.omk.smpp.message.ParamRetrieve;
+import ie.omk.smpp.message.ParamRetrieveResp;
+import ie.omk.smpp.message.QueryLastMsgs;
+import ie.omk.smpp.message.QueryLastMsgsResp;
+import ie.omk.smpp.message.QueryMsgDetails;
+import ie.omk.smpp.message.QueryMsgDetailsResp;
+import ie.omk.smpp.message.QuerySM;
+import ie.omk.smpp.message.QuerySMResp;
+import ie.omk.smpp.message.ReplaceSM;
+import ie.omk.smpp.message.ReplaceSMResp;
+import ie.omk.smpp.message.SMPPPacket;
+import ie.omk.smpp.message.SubmitMulti;
+import ie.omk.smpp.message.SubmitMultiResp;
+import ie.omk.smpp.message.SubmitSM;
+import ie.omk.smpp.message.SubmitSMResp;
+import ie.omk.smpp.message.Unbind;
+import ie.omk.smpp.message.UnbindResp;
 
 // XXX javadoc
 public class PacketFactory
