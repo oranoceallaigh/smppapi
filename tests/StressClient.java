@@ -26,6 +26,7 @@ package tests;
 import java.io.IOException;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Vector;
 
 import ie.omk.smpp.Address;
@@ -36,6 +37,7 @@ import ie.omk.smpp.event.ConnectionObserver;
 import ie.omk.smpp.event.ReceiverExitEvent;
 import ie.omk.smpp.event.SMPPEvent;
 
+import ie.omk.smpp.message.BindResp;
 import ie.omk.smpp.message.DeliverSM;
 import ie.omk.smpp.message.SMPPPacket;
 import ie.omk.smpp.message.Unbind;
@@ -73,7 +75,7 @@ public class StressClient
 	}
     }
 
-    public void packetReceived(Connection recv, SMPPPacket pak)
+    public void packetReceived(Connection myConnection, SMPPPacket pak)
     {
 	switch (pak.getCommandId()) {
 
@@ -114,7 +116,7 @@ public class StressClient
 	    System.out.println("\nSMSC has requested unbind! Responding..");
 	    try {
 		UnbindResp ubr = new UnbindResp((Unbind)pak);
-		recv.sendResponse(ubr);
+		myConnection.sendResponse(ubr);
 	    } catch (IOException x) {
 		x.printStackTrace(System.err);
 	    } finally {
@@ -135,7 +137,7 @@ public class StressClient
 	}
     }
 
-    private void receiverExit(Connection recv, ReceiverExitEvent ev)
+    private void receiverExit(Connection myConnection, ReceiverExitEvent ev)
     {
 	if (!ev.isException()) {
 	    System.out.println("Receiver thread has exited normally.");
@@ -159,43 +161,103 @@ public class StressClient
     public static void main(String[] clargs)
     {
 	try {
-	    StressClient ex = new StressClient();
-	    Args args = new Args(clargs);
+	    java.util.HashMap myArgs = ParseArgs.parse(clargs);
+	    int port = Integer.parseInt((String)myArgs.get(ParseArgs.PORT));
 
-	    // Open a network link to the SMSC..
-	    TcpLink link = new TcpLink(args.hostName, args.port);
+	    StressClient ex = new StressClient();
 
 	    // Create a Connection object (we won't bind just yet..)
-	    Connection recv = new Connection(link, true);
+	    Connection myConnection = new Connection((String)myArgs.get(ParseArgs.HOSTNAME), port, true);
 
 	    // Need to add myself to the list of listeners for this connection
-	    recv.addObserver(ex);
+	    myConnection.addObserver(ex);
 
 	    // Automatically respond to ENQUIRE_LINK requests from the SMSC
-	    recv.autoAckLink(true);
-	    recv.autoAckMessages(true);
+	    myConnection.autoAckLink(true);
+	    myConnection.autoAckMessages(true);
 
 	    // Bind to the SMSC as a receiver
-	    recv.bind(Connection.RECEIVER,
-		    args.sysID,
-		    args.password,
-		    args.sysType);
+	    BindResp resp = myConnection.bind(myConnection.RECEIVER,
+		    (String)myArgs.get(ParseArgs.SYSTEM_ID),
+		    (String)myArgs.get(ParseArgs.PASSWORD),
+		    (String)myArgs.get(ParseArgs.SYSTEM_TYPE),
+		    Integer.parseInt((String)myArgs.get(ParseArgs.ADDRESS_TON)),
+		    Integer.parseInt((String)myArgs.get(ParseArgs.ADDRESS_NPI)),
+		    (String)myArgs.get(ParseArgs.ADDRESS_RANGE));
 
 	    System.out.println("Hit a key to issue an unbind..");
 	    System.in.read();
 
-	    if (recv.getState() == recv.BOUND) {
+	    if (myConnection.getState() == myConnection.BOUND) {
 		System.out.println("Sending unbind request..");
-		recv.unbind();
+		myConnection.unbind();
 	    }
 
 	    Thread.sleep(2000);
+
+	    myConnection.closeLink();
 	} catch (IOException x) {
-	    x.printStackTrace(System.err);
-	} catch (SMPPException x) {
-	    System.err.println("SMPP exception: " + x.getMessage());
 	    x.printStackTrace(System.err);
 	} catch (InterruptedException x) {
 	}
+    }
+
+}
+
+// This is a cut-and-paste of the examples class.
+class ParseArgs {
+
+    public static final Object HOSTNAME = new String("hostname");
+
+    public static final Object PORT = new String("port");
+
+    public static final Object SYSTEM_ID = new String("sysid");
+
+    public static final Object SYSTEM_TYPE = new String("systype");
+
+    public static final Object PASSWORD = new String("password");
+
+    public static final Object ADDRESS_TON = new String("ton");
+
+    public static final Object ADDRESS_NPI = new String("npi");
+
+    public static final Object ADDRESS_RANGE = new String ("ar");
+
+
+    private ParseArgs() {
+    }
+
+    public static final HashMap parse(String[] args) {
+	HashMap a = new HashMap();
+
+	try {
+	    String s;
+	    int i = args[0].indexOf(':');
+	    if (i >= 0) {
+		s = args[0].substring(0, i);
+		a.put(HOSTNAME, s);
+
+		s = args[0].substring(i + 1);
+		a.put(PORT, s);
+	    } else {
+		a.put(HOSTNAME, args[0]);
+	    }
+
+	    a.put(SYSTEM_ID, args[1]);
+	    a.put(PASSWORD, args[2]);
+	    a.put(SYSTEM_TYPE, args[3]);
+
+	    int p1 = args[4].indexOf(':');
+	    int p2 = args[4].indexOf(':', p1 + 1);
+
+	    if (p1 > -1 && p2 > -1) {
+		a.put(ADDRESS_TON, args[4].substring(0, p1));
+		a.put(ADDRESS_NPI, args[4].substring(p1 + 1, p2));
+		a.put(ADDRESS_RANGE, args[4].substring(p2 + 1));
+	    }
+	} catch (ArrayIndexOutOfBoundsException x) {
+	}
+
+	return (a);
     }
 }
