@@ -1125,10 +1125,32 @@ public class Connection
     private void handleBindResp(BindResp resp) {
 	int st = resp.getCommandStatus();
 
-	if (state == BINDING && st == 0)
-	    setState(BOUND);
-	else if (st != 0)
-	    setState(UNBOUND);
+    // Throw an exception if we're not in a BINDING state..
+    if (state != BINDING) {
+        throw new IllegalStateException("A bind response was received in bound state " + state);
+    }
+
+    if (st != 0) {
+        // Bind failed. Close the network link and return.
+        
+        if (logger.isDebugEnabled()) {
+            logger.debug("Bind response indicates failure. Setting internal state to unbound.");
+        }
+
+        try {
+    	    setState(UNBOUND);
+            this.link.close();
+        } catch (IOException x) {
+            if (logger.isWarnEnabled()) {
+                logger.warn("I/O Exception shutting down link after failed bind.", x);
+            }
+        }
+
+        return;
+    }
+
+    // Alright so, we're bound to the SMSC..
+    setState(BOUND);
 
 	// Read the version of the protocol supported at the SMSC.
 	Number n = (Number)resp.getOptionalParameter(Tag.SC_INTERFACE_VERSION);
@@ -1180,10 +1202,14 @@ public class Connection
     /** Handle an incoming unbind response packet.
      */
     private void handleUnbindResp(UnbindResp resp) {
-	if (state == UNBINDING && resp.getCommandStatus() == 0) {
-	    logger.info("Successfully unbound");
-	    setState(UNBOUND);
-	}
+        try {
+            if (state == UNBINDING && resp.getCommandStatus() == 0) {
+                logger.info("Successfully unbound");
+                setState(UNBOUND);
+                this.link.close();
+            }
+        } catch (IOException x) {
+        }
     }
 
     /** Set the event dispatcher for this connection object. Before using the
