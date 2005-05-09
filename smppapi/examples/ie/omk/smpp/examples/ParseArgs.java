@@ -97,7 +97,7 @@ public class ParseArgs {
 	try {
 	    String[] s = args[0].split(":");
 	    a.put(HOSTNAME, s[0]);
-	    if (args.length > 1) {
+	    if (s.length > 1) {
 	        a.put(PORT, s[1]);
 	    }
 
