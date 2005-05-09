@@ -54,7 +54,7 @@ public class SMPPPacketTest extends TestCase {
 
     /** Test that setting a value and then getting that value are the same.
      */
-    /*public void testSetters() {
+    public void testSetters() {
 	try {
 	    SMPPPacket p = new GenericNack();
 
@@ -162,12 +162,12 @@ public class SMPPPacketTest extends TestCase {
 	    fail("InvalidParameterValueException");
 	}
     }
-*/
+
 
     /** Test the decoding of a packet. Test the decoding of a packet that
      * consists of a header, mandatory body parameters and optional parameters.
      */
-    /*public void testFullDecode() {
+    public void testFullDecode() {
 	try {
 	    SubmitSM sm = new SubmitSM();
 	    sm.setSequenceNum(70);
@@ -196,7 +196,7 @@ public class SMPPPacketTest extends TestCase {
 	    x.printStackTrace(System.err);
 	    fail("Failing due to exception.");
 	}
-    }*/
+    }
     
     public void testDefaultEncSetMessage() {
         try {
