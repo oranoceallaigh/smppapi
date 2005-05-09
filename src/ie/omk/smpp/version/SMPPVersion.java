@@ -27,10 +27,11 @@ import ie.omk.smpp.Address;
 import ie.omk.smpp.util.AlphabetEncoding;
 import ie.omk.smpp.util.MessageEncoding;
 
-
-/** Class representing an SMPP protocol version. Instances of this object are
+/**
+ * Class representing an SMPP protocol version. Instances of this object are
  * used by the rest of the API to determine is an SMPP message is supported by a
  * certain version of the protocol.
+ * 
  * @since 0.3.0
  * @author Oran Kelly
  */
@@ -39,14 +40,14 @@ public abstract class SMPPVersion {
     /** Constant representing the message payload mandatory parameter. */
     public static final int MESSAGE_PAYLOAD = 5;
 
-
     /** Static SMPPVersion instance representing version SMPP v3.3. */
     public static final SMPPVersion V33 = new SMPPVersion33();
 
     /** Static SMPPVersion instance representing version SMPP v3.4. */
     public static final SMPPVersion V34 = new SMPPVersion34();
-    
-    /** Integer representing this version number. The SMPP specification states
+
+    /**
+     * Integer representing this version number. The SMPP specification states
      * integer values that represent protocol revisions. These values are used
      * mainly in the bind_* and bind response messages. Integer value 0x33
      * represents version 3.3 of the protocol, integer value 0x34 represents
@@ -55,146 +56,175 @@ public abstract class SMPPVersion {
      */
     private int versionID = 0;
 
-    /** Descriptive text for this protocol version. This value is used only to
+    /**
+     * Descriptive text for this protocol version. This value is used only to
      * return a representative string from toString.
      */
     private String versionString = null;
 
-    /** Create a new SMPPVersion object.
+    /**
+     * Create a new SMPPVersion object.
      */
     protected SMPPVersion(int versionID, String versionString) {
-	this.versionID = versionID;
-	this.versionString = versionString;
+        this.versionID = versionID;
+        this.versionString = versionString;
     }
 
-    /** Get an object representing the default version of the API, which is 3.4.
+    /**
+     * Get an object representing the default version of the API, which is 3.4.
      */
     public static final SMPPVersion getDefaultVersion() {
-	return (V34);
+        return (V34);
     }
 
     public static final SMPPVersion getVersion(int id) throws VersionException {
-	if (id == V33.getVersionID())
-	    return (V33);
-	else if (id == V34.getVersionID())
-	    return (V34);
-	else
-	    throw new VersionException("Unknown version id: 0x" + Integer.toHexString(id));
+        if (id == V33.getVersionID())
+            return (V33);
+        else if (id == V34.getVersionID())
+            return (V34);
+        else
+            throw new VersionException("Unknown version id: 0x"
+                    + Integer.toHexString(id));
     }
 
-    /** Get the integer value for this protocol version object.
+    /**
+     * Get the integer value for this protocol version object.
      */
     public int getVersionID() {
-	return (versionID);
+        return (versionID);
     }
 
-    /** Check if a version is older than this one. If <code>ver</code> is equal
+    /**
+     * Check if a version is older than this one. If <code>ver</code> is equal
      * to this version, false will be returned.
      */
     public boolean isOlder(SMPPVersion ver) {
-	return (ver.versionID < this.versionID);
+        return (ver.versionID < this.versionID);
     }
 
-    /** Check if a version is newer than this one. If <code>ver</code> is equal
+    /**
+     * Check if a version is newer than this one. If <code>ver</code> is equal
      * to this version, false will be returned.
      */
     public boolean isNewer(SMPPVersion ver) {
-	return (ver.versionID > this.versionID);
+        return (ver.versionID > this.versionID);
     }
 
-    /** Test another SMPPVersion object for equality with this one.
+    /**
+     * Test another SMPPVersion object for equality with this one.
      */
     public boolean equals(Object obj) {
-	if (obj instanceof SMPPVersion) {
-	    return (((SMPPVersion)obj).versionID == this.versionID);
-	} else {
-	    return (false);
-	}
+        if (obj instanceof SMPPVersion) {
+            return (((SMPPVersion) obj).versionID == this.versionID);
+        } else {
+            return (false);
+        }
     }
 
-    /** Test <code>versionNum</code> is the numeric representation of this SMPP
+    /**
+     * Test <code>versionNum</code> is the numeric representation of this SMPP
      * version.
      */
     public boolean equals(int versionNum) {
-	return (versionNum == this.versionID);
+        return (versionNum == this.versionID);
     }
 
-    /** Return a descriptive string of this protocol version.
+    /**
+     * Return a descriptive string of this protocol version.
      */
     public String toString() {
-	return (versionString);
+        return (versionString);
     }
 
-    /** Get the maximum allowed length for a particular field.
-     * XXX allow an exception to be thrown for unidentified fields.
+    /**
+     * Get the maximum allowed length for a particular field. XXX allow an
+     * exception to be thrown for unidentified fields.
      */
     public abstract int getMaxLength(int field);
 
-    /** Determine if a particular command is supported by this protocol version.
+    /**
+     * Determine if a particular command is supported by this protocol version.
      * This method takes any valid SMPP command ID (for both requests and
      * responses) and returns true or false based on whether the protocol
      * version this object represents supports that command or not.
-     * @param commandID the SMPP command ID to check support for.
+     * 
+     * @param commandID
+     *            the SMPP command ID to check support for.
      */
     public abstract boolean isSupported(int commandID);
 
-    /** Determine if this SMPP version supports optional parameters.
-     * @return true if optional parameters are supported, false if
-     * they are not.
+    /**
+     * Determine if this SMPP version supports optional parameters.
+     * 
+     * @return true if optional parameters are supported, false if they are not.
      */
     public abstract boolean isSupportOptionalParams();
-    
-    /** Validate and SMPP address for this SMPP version number.
+
+    /**
+     * Validate and SMPP address for this SMPP version number.
      */
     public abstract boolean validateAddress(Address s);
 
-    /** Validate the ESM class mandatory parameter.
+    /**
+     * Validate the ESM class mandatory parameter.
      */
     public abstract boolean validateEsmClass(int c);
 
-    /** Validate the Protocol ID mandatory parameter.
+    /**
+     * Validate the Protocol ID mandatory parameter.
      */
     public abstract boolean validateProtocolID(int id);
 
-    /** Validate the data coding mandatory parameter.
+    /**
+     * Validate the data coding mandatory parameter.
      */
     public abstract boolean validateDataCoding(int dc);
 
-    /** Validate the default message ID mandatory parameter.
+    /**
+     * Validate the default message ID mandatory parameter.
      */
     public abstract boolean validateDefaultMsg(int id);
 
-    /** Validate the message text length.
+    /**
+     * Validate the message text length.
      */
-    public abstract boolean validateMessageText(String text, AlphabetEncoding alphabet);
+    public abstract boolean validateMessageText(String text,
+            AlphabetEncoding alphabet);
 
-    /** Validate the length of the message bytes.
+    /**
+     * Validate the length of the message bytes.
      */
-    public abstract boolean validateMessage(byte[] message, MessageEncoding encoding);
+    public abstract boolean validateMessage(byte[] message,
+            MessageEncoding encoding);
 
-    /** Validate the service type mandatory parameter.
+    /**
+     * Validate the service type mandatory parameter.
      */
     public abstract boolean validateServiceType(String type);
 
-    /** Validate the message ID mandatory parameter.
+    /**
+     * Validate the message ID mandatory parameter.
      */
     public abstract boolean validateMessageId(String id);
 
-    /** Validate the message state mandatory parameter. The message state and
+    /**
+     * Validate the message state mandatory parameter. The message state and
      * message status are the same. The name of the parameter changed between
      * version 3.3 and version 3.4. The semantics, however, remain the same.
      */
     public final boolean validateMessageStatus(int st) {
-	return (validateMessageState(st));
+        return (validateMessageState(st));
     }
 
-    /** Validate the message state mandatory parameter. The message state and
+    /**
+     * Validate the message state mandatory parameter. The message state and
      * message status are the same. The name of the parameter changed between
      * version 3.3 and version 3.4. The semantics, however, remain the same.
      */
     public abstract boolean validateMessageState(int state);
 
-    /** Validate the error code mandatory parameter.
+    /**
+     * Validate the error code mandatory parameter.
      */
     public abstract boolean validateErrorCode(int code);
 

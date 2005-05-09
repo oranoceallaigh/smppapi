@@ -39,10 +39,12 @@ import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Link implementation which returns packets which have previously been added
- * to it. This implementation is useful for testing applications by first setting
- * up the link by adding packets to it which is will later return when used by
- * a <code>Connection</code> object. For example:
+/**
+ * Link implementation which returns packets which have previously been added to
+ * it. This implementation is useful for testing applications by first setting
+ * up the link by adding packets to it which is will later return when used by a
+ * <code>Connection</code> object. For example:
+ * 
  * <pre>
  * ObjectLink ol = new ObjectLink();
  * 
@@ -57,11 +59,12 @@ import java.util.List;
  * conn.bind(id, pass, type);
  * </pre>
  * 
- * This class will always return the packets in the order they are added.
- * If the next packet in line is a response packet, it will wait until a request
- * has been sent before reporting a packet is available to the <code>Connection</code>.
- * If it is a request packet, it will be made available immediately to the
- * <code>Connection</code>.
+ * This class will always return the packets in the order they are added. If the
+ * next packet in line is a response packet, it will wait until a request has
+ * been sent before reporting a packet is available to the
+ * <code>Connection</code>. If it is a request packet, it will be made
+ * available immediately to the <code>Connection</code>.
+ * 
  * @author orank
  */
 public class ObjectLink extends SmscLink {
@@ -79,8 +82,7 @@ public class ObjectLink extends SmscLink {
     private long timeout = 0;
 
     private SequenceNumberScheme numScheme = new DefaultSequenceScheme();
-    
-    
+
     protected void implOpen() throws IOException {
         this.out = new OLByteArrayOutputStream();
     }
@@ -107,7 +109,7 @@ public class ObjectLink extends SmscLink {
     public void setSequenceNumberScheme(SequenceNumberScheme seqNumScheme) {
         this.numScheme = seqNumScheme;
     }
-    
+
     public void write(SMPPPacket pak, boolean withOptional) throws IOException {
         super.write(pak, withOptional);
         if (pak instanceof SMPPRequest) {
@@ -122,19 +124,19 @@ public class ObjectLink extends SmscLink {
 
     public byte[] read(byte[] buf) throws EOFException, IOException {
 
-        Object next = (Object)packets.remove(0);
-        while (! (next instanceof SMPPPacket)) {
+        Object next = (Object) packets.remove(0);
+        while (!(next instanceof SMPPPacket)) {
             if (next instanceof Long) {
-                long delay = ((Number)next).longValue();
+                long delay = ((Number) next).longValue();
                 try {
                     Thread.sleep(delay);
                 } catch (InterruptedException x) {
                 }
             }
-            next = (Object)packets.remove(0);
+            next = (Object) packets.remove(0);
         }
 
-        SMPPPacket pak = (SMPPPacket)next;
+        SMPPPacket pak = (SMPPPacket) next;
         if (pak instanceof SMPPResponse) {
             synchronized (this) {
                 try {
@@ -163,17 +165,20 @@ public class ObjectLink extends SmscLink {
         this.packets.add(pak);
     }
 
-    /** Add a millisecond delay to the stream. The delay only
-     * begins when the <code>read</code> method is called. 
-     * @param milliseconds Number of milliseconds to delay. Values less
-     * than 1 will be ignored.
+    /**
+     * Add a millisecond delay to the stream. The delay only begins when the
+     * <code>read</code> method is called.
+     * 
+     * @param milliseconds
+     *            Number of milliseconds to delay. Values less than 1 will be
+     *            ignored.
      */
     public void addDelay(long milliseconds) {
         if (milliseconds > 0L) {
             this.packets.add(new Long(milliseconds));
         }
     }
-    
+
     private class OLByteArrayOutputStream extends OutputStream {
         private byte[] buf = null;
 

@@ -23,21 +23,20 @@
  */
 package ie.omk.smpp;
 
-/** NotBoundException
-  * @author Oran Kelly
-  * @version 1.0
-  */
-public class NotBoundException
-    extends ie.omk.smpp.SMPPRuntimeException
-{
-    public NotBoundException()
-    {
+/**
+ * NotBoundException
+ * 
+ * @author Oran Kelly
+ * @version 1.0
+ */
+public class NotBoundException extends ie.omk.smpp.SMPPRuntimeException {
+    public NotBoundException() {
     }
 
-    /** Construct a new NotBoundException with specified message.
-      */
-    public NotBoundException(String s)
-    {
-	super(s);
+    /**
+     * Construct a new NotBoundException with specified message.
+     */
+    public NotBoundException(String s) {
+        super(s);
     }
 }
