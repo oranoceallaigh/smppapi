@@ -128,8 +128,8 @@ public class SMPPVersion34 extends SMPPVersion {
 	// Registered delivery flag is split up into various bits for the
 	// purpose of SMPP version 3.4. However, when taken in all their
 	// permutations, the allowed values of this flag range from zero up to
-	// 0x1f (decimal 16). So the following check is valid..
-	return (flag >= 0 && flag <= 16);
+	// 0x1f. So the following check is valid..
+	return (flag >= 0 && flag <= 0x1f);
     }
 
     public boolean validateReplaceIfPresent(int flag) {
