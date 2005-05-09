@@ -427,7 +427,8 @@ public class Connection
     }
 
 
-    /** Set the behaviour of automatically acking ENQUIRE_LINK's from the SMSC.
+    /** Set the behaviour of automatically acking ENQUIRE_LINK's from the SMSC
+      * (only valid in <b>asynchronous</b> mode).
       * By default, the listener thread will automatically ack an enquire_link
       * message from the Smsc so as not to lose the connection.  This
       * can be turned off with this method.
@@ -438,8 +439,11 @@ public class Connection
 	this.ackQryLinks = b;
     }
 
-    /** Set the behaviour of automatically acking Deliver_Sm's from the Smsc.
+    /** Set the behaviour of automatically acking Deliver_Sm's from the Smsc
+      * (only valid in <b>asynchronous</b> mode).
       * By default the listener thread will <b>not</b> acknowledge a message.
+      * Applications which are using the synchronous mode of communication will
+      * always have to handle enquire link requests themselves.
       * @param b true to activate this function, false to deactivate.
       */
     public void autoAckMessages(boolean b)
@@ -447,7 +451,8 @@ public class Connection
 	this.ackDeliverSm = b;
     }
 
-    /** Check is this connection automatically acking Enquire link requests.
+    /** Check is this connection automatically acking Enquire link requests
+      * in asynchronous mode.
       */
     public boolean isAckingLinks()
     {
