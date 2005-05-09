@@ -36,13 +36,14 @@ import java.util.HashMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-/** A synchronous transceiver example. Using sync mode for either a transceiver
+/**
+ * A synchronous transceiver example. Using sync mode for either a transceiver
  * or receiver connection is less useful than using async mode as your
  * application must now poll the connection continuously for incoming delivery
  * messages from the SMSC.
  * 
- * @see ie.omk.smpp.examples.ParseArgs ParseArgs for details on running
- * this class.
+ * @see ie.omk.smpp.examples.ParseArgs ParseArgs for details on running this
+ *      class.
  */
 public class SyncTransceiver {
 
@@ -56,79 +57,82 @@ public class SyncTransceiver {
     }
 
     private void init(String[] args) {
-	try {
-	    myArgs = ParseArgs.parse(args);
+        try {
+            myArgs = ParseArgs.parse(args);
 
-	    int port = Integer.parseInt((String)myArgs.get(ParseArgs.PORT));
+            int port = Integer.parseInt((String) myArgs.get(ParseArgs.PORT));
 
-	    myConnection = new Connection((String)myArgs.get(ParseArgs.HOSTNAME), port);
-	    myConnection.setVersion(SMPPVersion.V34);
-	    myConnection.autoAckLink(true);
-	    myConnection.autoAckMessages(true);
+            myConnection = new Connection((String) myArgs
+                    .get(ParseArgs.HOSTNAME), port);
+            myConnection.setVersion(SMPPVersion.V34);
+            myConnection.autoAckLink(true);
+            myConnection.autoAckMessages(true);
 
-	} catch (Exception x) {
-	    logger.info("Bad command line arguments.");
-	}
+        } catch (Exception x) {
+            logger.info("Bad command line arguments.");
+        }
     }
 
     private void run() {
-	try {
-	    logger.info("Binding to the SMSC");
+        try {
+            logger.info("Binding to the SMSC");
 
-	    // Bind the short way:
-	    BindResp resp = myConnection.bind(Connection.TRANSCEIVER,
-		    (String)myArgs.get(ParseArgs.SYSTEM_ID),
-		    (String)myArgs.get(ParseArgs.PASSWORD),
-		    (String)myArgs.get(ParseArgs.SYSTEM_TYPE),
-		    Integer.parseInt((String)myArgs.get(ParseArgs.ADDRESS_TON)),
-		    Integer.parseInt((String)myArgs.get(ParseArgs.ADDRESS_NPI)),
-		    (String)myArgs.get(ParseArgs.ADDRESS_RANGE));
+            // Bind the short way:
+            BindResp resp = myConnection.bind(Connection.TRANSCEIVER,
+                    (String) myArgs.get(ParseArgs.SYSTEM_ID), (String) myArgs
+                            .get(ParseArgs.PASSWORD), (String) myArgs
+                            .get(ParseArgs.SYSTEM_TYPE), Integer
+                            .parseInt((String) myArgs
+                                    .get(ParseArgs.ADDRESS_TON)), Integer
+                            .parseInt((String) myArgs
+                                    .get(ParseArgs.ADDRESS_NPI)),
+                    (String) myArgs.get(ParseArgs.ADDRESS_RANGE));
 
+            if (resp.getCommandStatus() != 0) {
+                logger.info("SMSC bind failed.");
+                System.exit(1);
+            }
 
-	    if (resp.getCommandStatus() != 0) {
-		logger.info("SMSC bind failed.");
-		System.exit(1);
-	    }
+            logger.info("Bind successful...submitting a message.");
 
-	    logger.info("Bind successful...submitting a message.");
+            // Submit a simple message
+            SubmitSM sm = (SubmitSM) myConnection
+                    .newInstance(SMPPPacket.SUBMIT_SM);
+            sm.setDestination(new Address(0, 0, "3188332314"));
+            sm.setMessageText("This is an example short message.");
+            SubmitSMResp smr = (SubmitSMResp) myConnection.sendRequest(sm);
 
-	    // Submit a simple message
-	    SubmitSM sm = (SubmitSM)myConnection.newInstance(SMPPPacket.SUBMIT_SM);
-	    sm.setDestination(new Address(0, 0, "3188332314"));
-	    sm.setMessageText("This is an example short message.");
-	    SubmitSMResp smr = (SubmitSMResp)myConnection.sendRequest(sm);
+            logger.info("Submitted message ID: " + smr.getMessageId());
 
-	    logger.info("Submitted message ID: " + smr.getMessageId());
+            try {
+                // Wait a while, see if the SMSC delivers anything to us...
+                SMPPPacket p = myConnection.readNextPacket();
+                logger.info("Received a packet!");
+                logger.info(p.toString());
 
-	    try {
-		// Wait a while, see if the SMSC delivers anything to us...
-		SMPPPacket p = myConnection.readNextPacket();
-		logger.info("Received a packet!");
-		logger.info(p.toString());
+                // API should be automatically acking deliver_sm and
+                // enquire_link packets...
+            } catch (java.net.SocketTimeoutException x) {
+                // ah well...
+            }
 
-		// API should be automatically acking deliver_sm and
-		// enquire_link packets...
-	    } catch (java.net.SocketTimeoutException x) {
-		// ah well...
-	    }
+            // Unbind.
+            UnbindResp ubr = myConnection.unbind();
 
-	    // Unbind.
-	    UnbindResp ubr = myConnection.unbind();
-	    
-	    if (ubr.getCommandStatus() == 0) {
-		logger.info("Successfully unbound from the SMSC");
-	    } else {
-		logger.info("There was an error unbinding.");
-	    }
-	} catch (Exception x) {
-	    logger.info("An exception occurred.");
-	    x.printStackTrace(System.err);
-	}
+            if (ubr.getCommandStatus() == 0) {
+                logger.info("Successfully unbound from the SMSC");
+            } else {
+                logger.info("There was an error unbinding.");
+            }
+        } catch (Exception x) {
+            logger.info("An exception occurred.");
+            x.printStackTrace(System.err);
+        }
     }
 
     public static final void main(String[] args) {
-	SyncTransceiver t = new SyncTransceiver();
-	t.init(args);
-	t.run();
+        SyncTransceiver t = new SyncTransceiver();
+        t.init(args);
+        t.run();
     }
 }

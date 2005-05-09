@@ -23,50 +23,57 @@
  */
 package ie.omk.smpp.message.tlv;
 
-/** Encode an octet string to a byte array. This class is encoding byte arrays
- * to byte arrays! Therefore it's just copying bytes around. Not much more to
- * it.
+/**
+ * Encode an octet string to a byte array. This class is encoding byte arrays to
+ * byte arrays! Therefore it's just copying bytes around. Not much more to it.
+ * 
  * @author Oran Kelly &lt;orank@users.sf.net&gt;
  */
 public class OctetEncoder implements Encoder {
 
-    /** OctetEncoder singleton instance.
-     */    
+    /**
+     * OctetEncoder singleton instance.
+     */
     private static final OctetEncoder instance = new OctetEncoder();
 
-    /** Create a new OctetEncoder.
-     */    
+    /**
+     * Create a new OctetEncoder.
+     */
     private OctetEncoder() {
     }
 
-    /** Get the singleton OctetEncoder instance.
+    /**
+     * Get the singleton OctetEncoder instance.
+     * 
      * @return The singleton OctetEncoder instance.
      */
     public static final OctetEncoder getInstance() {
-	return (instance);
+        return (instance);
     }
 
-    public void writeTo(Tag tag, Object value, byte[] b, int offset) throws ArrayIndexOutOfBoundsException {
-	try {
-	    byte[] valBytes = (byte[])value;
-	    System.arraycopy(valBytes, 0, b, offset, valBytes.length);
-	} catch (ClassCastException x) {
-	    throw new BadValueTypeException("Value must be of type byte[]");
-	}
+    public void writeTo(Tag tag, Object value, byte[] b, int offset)
+            throws ArrayIndexOutOfBoundsException {
+        try {
+            byte[] valBytes = (byte[]) value;
+            System.arraycopy(valBytes, 0, b, offset, valBytes.length);
+        } catch (ClassCastException x) {
+            throw new BadValueTypeException("Value must be of type byte[]");
+        }
     }
 
-    public Object readFrom(Tag tag, byte[] b, int offset, int length) throws ArrayIndexOutOfBoundsException {
-	byte[] val = new byte[length];
-	System.arraycopy(b, offset, val, 0, length);
-	return (val);
+    public Object readFrom(Tag tag, byte[] b, int offset, int length)
+            throws ArrayIndexOutOfBoundsException {
+        byte[] val = new byte[length];
+        System.arraycopy(b, offset, val, 0, length);
+        return (val);
     }
 
     public int getValueLength(Tag tag, Object value) {
-	try {
-	    byte[] b = (byte[])value;
-	    return (b.length);
-	} catch (ClassCastException x) {
-	    throw new BadValueTypeException("Value must be of type byte[]");
-	}
+        try {
+            byte[] b = (byte[]) value;
+            return (b.length);
+        } catch (ClassCastException x) {
+            throw new BadValueTypeException("Value must be of type byte[]");
+        }
     }
 }

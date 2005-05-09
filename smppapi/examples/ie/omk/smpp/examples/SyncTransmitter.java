@@ -35,13 +35,12 @@ import java.util.HashMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-/** Example class to submit a message to a SMSC using synchronous
- * communication.
- * This class simply binds to the server, submits a message,
- * and then unbinds.
+/**
+ * Example class to submit a message to a SMSC using synchronous communication.
+ * This class simply binds to the server, submits a message, and then unbinds.
  * 
- * @see ie.omk.smpp.examples.ParseArgs ParseArgs for details on running
- * this class.
+ * @see ie.omk.smpp.examples.ParseArgs ParseArgs for details on running this
+ *      class.
  */
 public class SyncTransmitter {
 
@@ -55,74 +54,77 @@ public class SyncTransmitter {
     }
 
     private void init(String[] args) {
-	try {
-	    myArgs = ParseArgs.parse(args);
+        try {
+            myArgs = ParseArgs.parse(args);
 
-	    int port = Integer.parseInt((String)myArgs.get(ParseArgs.PORT));
+            int port = Integer.parseInt((String) myArgs.get(ParseArgs.PORT));
 
-	    myConnection = new Connection((String)myArgs.get(ParseArgs.HOSTNAME), port);
-	} catch (Exception x) {
-	    logger.info("Bad command line arguments.");
-	}
+            myConnection = new Connection((String) myArgs
+                    .get(ParseArgs.HOSTNAME), port);
+        } catch (Exception x) {
+            logger.info("Bad command line arguments.");
+        }
     }
 
     private void run() {
-	try {
-	    logger.info("Binding to the SMSC");
+        try {
+            logger.info("Binding to the SMSC");
 
-	    // Bind the short way:
-	    BindResp resp = myConnection.bind(Connection.TRANSMITTER,
-		    (String)myArgs.get(ParseArgs.SYSTEM_ID),
-		    (String)myArgs.get(ParseArgs.PASSWORD),
-		    (String)myArgs.get(ParseArgs.SYSTEM_TYPE),
-		    Integer.parseInt((String)myArgs.get(ParseArgs.ADDRESS_TON)),
-		    Integer.parseInt((String)myArgs.get(ParseArgs.ADDRESS_NPI)),
-		    (String)myArgs.get(ParseArgs.ADDRESS_RANGE));
+            // Bind the short way:
+            BindResp resp = myConnection.bind(Connection.TRANSMITTER,
+                    (String) myArgs.get(ParseArgs.SYSTEM_ID), (String) myArgs
+                            .get(ParseArgs.PASSWORD), (String) myArgs
+                            .get(ParseArgs.SYSTEM_TYPE), Integer
+                            .parseInt((String) myArgs
+                                    .get(ParseArgs.ADDRESS_TON)), Integer
+                            .parseInt((String) myArgs
+                                    .get(ParseArgs.ADDRESS_NPI)),
+                    (String) myArgs.get(ParseArgs.ADDRESS_RANGE));
 
+            // The following achieves exactly the same thing:
+            // Bind req =
+            // (Bind)myConnection.newInstance(SMPPPacket.BIND_TRANSMITTER);
+            // req.setSystemType((String)myArgs.get(ParseArgs.SYSTEM_TYPE));
+            // req.setSystemId((String)myArgs.get(ParseArgs.SYSTEM_ID));
+            // req.setPassword((String)myArgs.get(ParseArgs.PASSWORD));
+            // req.setAddressTON(Integer.parseInt((String)myArgs.get(ParseArgs.ADDRESS_TON)));
+            // req.setAddressNPI(Integer.parseInt((String)myArgs.get(ParseArgs.ADDRESS_NPI)));
+            // req.setAddressRange((String)myArgs.get(ParseArgs.ADDRESS_RANGE));
+            // BindResp resp = myConnection.sendRequest(req);
 
-	    // The following achieves exactly the same thing:
-	    // Bind req = (Bind)myConnection.newInstance(SMPPPacket.BIND_TRANSMITTER);
-	    // req.setSystemType((String)myArgs.get(ParseArgs.SYSTEM_TYPE));
-	    // req.setSystemId((String)myArgs.get(ParseArgs.SYSTEM_ID));
-	    // req.setPassword((String)myArgs.get(ParseArgs.PASSWORD));
-	    // req.setAddressTON(Integer.parseInt((String)myArgs.get(ParseArgs.ADDRESS_TON)));
-	    // req.setAddressNPI(Integer.parseInt((String)myArgs.get(ParseArgs.ADDRESS_NPI)));
-	    // req.setAddressRange((String)myArgs.get(ParseArgs.ADDRESS_RANGE));
-	    // BindResp resp = myConnection.sendRequest(req);
+            if (resp.getCommandStatus() != 0) {
+                logger.info("SMSC bind failed.");
+                System.exit(1);
+            }
 
+            logger.info("Bind successful...submitting a message.");
 
-	    if (resp.getCommandStatus() != 0) {
-		logger.info("SMSC bind failed.");
-		System.exit(1);
-	    }
+            // Submit a simple message
+            SubmitSM sm = (SubmitSM) myConnection
+                    .newInstance(SMPPPacket.SUBMIT_SM);
+            sm.setDestination(new Address(0, 0, "3188332314"));
+            sm.setMessageText("This is an example short message.");
+            SubmitSMResp smr = (SubmitSMResp) myConnection.sendRequest(sm);
 
-	    logger.info("Bind successful...submitting a message.");
+            logger.info("Submitted message ID: " + smr.getMessageId());
 
-	    // Submit a simple message
-	    SubmitSM sm = (SubmitSM)myConnection.newInstance(SMPPPacket.SUBMIT_SM);
-	    sm.setDestination(new Address(0, 0, "3188332314"));
-	    sm.setMessageText("This is an example short message.");
-	    SubmitSMResp smr = (SubmitSMResp)myConnection.sendRequest(sm);
+            // Unbind.
+            UnbindResp ubr = myConnection.unbind();
 
-	    logger.info("Submitted message ID: " + smr.getMessageId());
-
-	    // Unbind.
-	    UnbindResp ubr = myConnection.unbind();
-	    
-	    if (ubr.getCommandStatus() == 0) {
-		logger.info("Successfully unbound from the SMSC");
-	    } else {
-		logger.info("There was an error unbinding.");
-	    }
-	} catch (Exception x) {
-	    logger.info("An exception occurred.");
-	    x.printStackTrace(System.err);
-	}
+            if (ubr.getCommandStatus() == 0) {
+                logger.info("Successfully unbound from the SMSC");
+            } else {
+                logger.info("There was an error unbinding.");
+            }
+        } catch (Exception x) {
+            logger.info("An exception occurred.");
+            x.printStackTrace(System.err);
+        }
     }
 
     public static final void main(String[] args) {
-	SyncTransmitter t = new SyncTransmitter();
-	t.init(args);
-	t.run();
+        SyncTransmitter t = new SyncTransmitter();
+        t.init(args);
+        t.run();
     }
 }

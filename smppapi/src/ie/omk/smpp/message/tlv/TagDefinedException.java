@@ -24,38 +24,48 @@
  */
 package ie.omk.smpp.message.tlv;
 
-
-/** Tag has already been defined. This exception is thrown by
- * {@link Tag#defineTag} if an attempt is made to redefine a tag which already
+/**
+ * Tag has already been defined. This exception is thrown by
+ * {@link Tag#defineTag}if an attempt is made to redefine a tag which already
  * has a definition.
+ * 
  * @author Oran Kelly &lt;orank@users.sf.net&gt;
  */
-public class TagDefinedException extends java.lang.RuntimeException
-{
-    /** The value of the tag that was attempted to be redefined.
-     */    
+public class TagDefinedException extends java.lang.RuntimeException {
+    /**
+     * The value of the tag that was attempted to be redefined.
+     */
     private int tagValue = -1;
 
-    /** Create a new TagDefinedException.
-     * @param tagValue The tag for which an attempt as made to redefine.
+    /**
+     * Create a new TagDefinedException.
+     * 
+     * @param tagValue
+     *            The tag for which an attempt as made to redefine.
      */
     public TagDefinedException(int tagValue) {
-	this.tagValue = tagValue;
+        this.tagValue = tagValue;
     }
 
-    /** Create a new TagDefinedException.
-     * @param tagValue The tag for which an attempt as made to redefine.
-     * @param msg The exception message.
+    /**
+     * Create a new TagDefinedException.
+     * 
+     * @param tagValue
+     *            The tag for which an attempt as made to redefine.
+     * @param msg
+     *            The exception message.
      */
     public TagDefinedException(int tagValue, String msg) {
-	super (msg);
-	this.tagValue = tagValue;
+        super(msg);
+        this.tagValue = tagValue;
     }
 
-    /** Get the tag for which an attempt as made to redefine.
+    /**
+     * Get the tag for which an attempt as made to redefine.
+     * 
      * @return The tag for which an attempt as made to redefine.
      */
     public int getTagValue() {
-	return (tagValue);
+        return (tagValue);
     }
 }
