@@ -230,7 +230,7 @@ public class Tag implements java.io.Serializable {
      * already been defined.
      */    
     private Tag(int tag, Class type, Encoder enc, int fixedLength) throws TagDefinedException {
-	this (tag, type, fixedLength, fixedLength);
+	this (tag, type, enc, fixedLength, fixedLength);
     }
 
     /** Create a new Tag.
