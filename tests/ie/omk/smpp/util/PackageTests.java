@@ -40,18 +40,8 @@ public class PackageTests {
             }
         });
 
-        suite.addTest(new EncodingTest("ASCII encoding test") {
-            public void runTest() {
-                testASCIIEncoding();
-            }
-        });
 
-        suite.addTest(new EncodingTest("Latin-1 encoding test") {
-            public void runTest() {
-                testLatinEncoding();
-            }
-        });
-
+        suite.addTestSuite(EncodingTest.class);
         suite.addTestSuite(ie.omk.smpp.util.TestSMPPDate.class);
         suite.addTestSuite(ie.omk.smpp.util.TestAPIConfig.class);
 
