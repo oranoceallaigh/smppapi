@@ -219,7 +219,7 @@
   </target>
 
   <target name="update-changelog" depends="init">
-    <exec executable="cvs2cl.pl">
+    <exec executable="cvs2cl">
       <arg value="--tags" />
       <arg value="--separate-header"/>
       <arg value="--utc"/>
