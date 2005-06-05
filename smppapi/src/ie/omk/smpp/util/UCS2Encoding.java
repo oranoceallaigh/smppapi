@@ -23,48 +23,41 @@
 
 package ie.omk.smpp.util;
 
+import java.io.UnsupportedEncodingException;
+
 public class UCS2Encoding extends ie.omk.smpp.util.AlphabetEncoding {
-    private String encType = "UTF-16BE";
+    private static final String ENCODING = "ISO-10646-UCS-2";
 
     private static final int DCS = 8;
 
-    private static final UCS2Encoding beInstance = new UCS2Encoding(true);
-
-    private static final UCS2Encoding leInstance = new UCS2Encoding(false);
+    private static UCS2Encoding instance = null;
+    
+    static {
+        try {
+            instance = new UCS2Encoding();
+        } catch (UnsupportedEncodingException x) {
+        }
+    }
 
     /**
      * Construct a new UCS2 encoding.
-     * 
-     * @param bigEndian
-     *            true to use UTF-16BE, false to use UTF-16LE.
+     * @throws java.io.UnsupportedEncodingException if the ISO-10646-UCS-2
+     * charset is not supported by the JVM.
      */
-    private UCS2Encoding(boolean bigEndian) {
+    public UCS2Encoding() throws UnsupportedEncodingException {
         super(DCS);
 
-        if (!bigEndian)
-            encType = "UTF-16LE";
+        // Force an exception if the charset is not supported.
+        new String(new byte[0], ENCODING);
     }
 
     /**
-     * Get the singleton instance of the big-endian UCS2Encoding.
+     * Get an instance of the UCS2Encoding.
+     * @throws java.io.UnsupportedEncodingException if the ISO-10646-UCS-2
+     * charset is not supported by the JVM.
      */
-    public static UCS2Encoding getInstance() {
-        return (beInstance);
-    }
-
-    /**
-     * Get the singleton instance of either the big-endian or little-endian
-     * instance of UCS2Encoding.
-     * 
-     * @param bigEndian
-     *            true to get the big-endian instance, false to get the
-     *            little-endian instance.
-     */
-    public static UCS2Encoding getInstance(boolean bigEndian) {
-        if (bigEndian)
-            return (beInstance);
-        else
-            return (leInstance);
+    public static UCS2Encoding getInstance() throws UnsupportedEncodingException {
+        return (instance);
     }
 
     /**
@@ -76,7 +69,7 @@ public class UCS2Encoding extends ie.omk.smpp.util.AlphabetEncoding {
             return ("");
 
         try {
-            return (new String(b, encType));
+            return (new String(b, ENCODING));
         } catch (java.io.UnsupportedEncodingException x) {
             return ("");
         }
@@ -90,7 +83,7 @@ public class UCS2Encoding extends ie.omk.smpp.util.AlphabetEncoding {
             return (new byte[0]);
 
         try {
-            return (s.getBytes(encType));
+            return (s.getBytes(ENCODING));
         } catch (java.io.UnsupportedEncodingException x) {
             return (new byte[0]);
         }
