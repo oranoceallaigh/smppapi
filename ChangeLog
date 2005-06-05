@@ -1,44 +1,319 @@
-2004-10-09 22:02  orank
+2005-06-05 23:19  orank
 
-	* src/ie/omk/smpp/message/AlertNotification.java,
-	src/ie/omk/smpp/message/Bind.java,
+	* build.xml:
+
+	Update name of cvs2cl executable.
+
+2005-06-05 23:17  orank
+
+	* build.xml:
+
+	Make sure ant.jar is available for building the examples.
+
+2005-06-05 23:15  orank
+
+	* .classpath:
+
+	Put resources, log4j and ant on the build classpath.
+
+2005-06-05 23:13  orank
+
+	* build.xml:
+
+	Extract the classpath used for test running into a ref.
+
+2005-06-05 23:12  orank
+
+	* examples.properties, run-examples.xml:
+
+	Ant script and properties for running the examples.
+
+2005-06-05 23:11  orank
+
+	* INSTALL, README:
+
+	Text updates.
+
+2005-06-05 23:06  orank
+
+	* examples/ie/omk/smpp/examples/: AsyncReceiver.java,
+	AsyncReceiver2.java, AsyncTransmitter.java, ParseArgs.java,
+	SMPPAPIExample.java, SyncTransceiver.java, SyncTransmitter.java:
+
+	Make the examples Ant tasks for easier execution.
+
+2005-06-05 21:41  orank
+
+	* tests/ie/omk/smpp/util/: EncodingTest.java, PackageTests.java:
+
+	Update tests for UCS2Encoding and UTF16Encoding.
+
+2005-06-05 21:41  orank
+
+	* src/ie/omk/smpp/util/UCS2Encoding.java:
+
+	1205426: Use "ISO-10646-UCS-2" charset.
+
+2005-06-05 21:38  orank
+
+	* src/ie/omk/smpp/util/UTF16Encoding.java:
+
+	1205426: Move previous UCS2Encoding behaviour into this class.
+
+2005-05-09 21:04  orank
+
+	* examples/ie/omk/smpp/examples/AsyncReceiver.java,
+	examples/ie/omk/smpp/examples/AsyncReceiver2.java,
+	examples/ie/omk/smpp/examples/AsyncTransmitter.java,
+	examples/ie/omk/smpp/examples/ParseArgs.java,
+	examples/ie/omk/smpp/examples/SyncTransceiver.java,
+	examples/ie/omk/smpp/examples/SyncTransmitter.java,
+	src/ie/omk/smpp/message/BindReceiverResp.java,
+	src/ie/omk/smpp/message/QuerySM.java,
+	src/ie/omk/smpp/message/AlertNotification.java,
 	src/ie/omk/smpp/message/BindResp.java,
-	src/ie/omk/smpp/message/DestinationTable.java,
+	src/ie/omk/smpp/message/CancelSM.java,
+	src/ie/omk/smpp/message/CancelSMResp.java,
+	src/ie/omk/smpp/message/InvalidParameterValueException.java,
 	src/ie/omk/smpp/message/SMPPPacket.java,
-	src/ie/omk/smpp/util/APIConfig.java, lib/commons-logging.jar,
+	src/ie/omk/smpp/message/SubmitSM.java,
+	src/ie/omk/smpp/message/SubmitSMResp.java,
+	src/ie/omk/smpp/message/Bind.java,
+	src/ie/omk/smpp/message/BindTransceiverResp.java,
+	src/ie/omk/smpp/message/BindTransmitterResp.java,
+	src/ie/omk/smpp/message/DataSM.java,
+	src/ie/omk/smpp/message/EnquireLinkResp.java,
+	src/ie/omk/smpp/message/QueryLastMsgs.java,
+	src/ie/omk/smpp/message/QueryLastMsgsResp.java,
+	src/ie/omk/smpp/message/QueryMsgDetailsResp.java,
+	src/ie/omk/smpp/message/QuerySMResp.java,
+	src/ie/omk/smpp/message/SMPPRequest.java,
+	src/ie/omk/smpp/message/BindReceiver.java,
+	src/ie/omk/smpp/message/BindTransceiver.java,
+	src/ie/omk/smpp/message/BindTransmitter.java,
+	src/ie/omk/smpp/message/DataSMResp.java,
+	src/ie/omk/smpp/message/DeliverSM.java,
+	src/ie/omk/smpp/message/EnquireLink.java,
+	src/ie/omk/smpp/message/ParamRetrieve.java,
+	src/ie/omk/smpp/message/ParamRetrieveResp.java,
+	src/ie/omk/smpp/message/SMPPResponse.java,
+	src/ie/omk/smpp/message/SmeAddress.java,
+	src/ie/omk/smpp/message/Unbind.java,
+	src/ie/omk/smpp/message/DeliverSMResp.java,
+	src/ie/omk/smpp/message/DestinationTable.java,
+	src/ie/omk/smpp/message/GenericNack.java,
+	src/ie/omk/smpp/message/QueryMsgDetails.java,
+	src/ie/omk/smpp/message/ReplaceSM.java,
+	src/ie/omk/smpp/message/ReplaceSMResp.java,
+	src/ie/omk/smpp/message/SMPPProtocolException.java,
+	src/ie/omk/smpp/message/SubmitMulti.java,
+	src/ie/omk/smpp/message/SubmitMultiResp.java,
+	src/ie/omk/smpp/message/UnbindResp.java,
+	src/ie/omk/smpp/util/ASCIIEncoding.java,
+	src/ie/omk/smpp/util/AlphabetEncoding.java,
+	src/ie/omk/smpp/util/AlphabetFactory.java,
+	src/ie/omk/smpp/util/BinaryEncoding.java,
+	src/ie/omk/smpp/util/DefaultAlphabetEncoding.java,
+	src/ie/omk/smpp/util/DefaultSequenceScheme.java,
+	src/ie/omk/smpp/util/GSMConstants.java,
+	src/ie/omk/smpp/util/HPRoman8Encoding.java,
+	src/ie/omk/smpp/util/MessageEncoding.java,
+	src/ie/omk/smpp/util/SMPPDate.java,
+	src/ie/omk/smpp/util/SequenceNumberScheme.java,
+	src/ie/omk/smpp/util/UCS2Encoding.java,
+	src/ie/omk/smpp/util/APIConfig.java,
+	src/ie/omk/smpp/util/InvalidConfigurationException.java,
+	src/ie/omk/smpp/util/InvalidDateFormatException.java,
+	src/ie/omk/smpp/util/Latin1Encoding.java,
+	src/ie/omk/smpp/util/PacketFactory.java,
+	src/ie/omk/smpp/util/PropertyNotFoundException.java,
+	src/ie/omk/smpp/util/SMPPIO.java,
+	tests/ie/omk/smpp/message/tlv/PackageTests.java,
+	tests/ie/omk/smpp/message/tlv/TLVTests.java,
+	tests/ie/omk/smpp/util/EncodingTest.java,
+	tests/ie/omk/smpp/util/SequenceTest.java,
+	tests/ie/omk/smpp/util/TestAPIConfig.java,
+	tests/ie/omk/smpp/util/TestSMPPDate.java,
+	tests/ie/omk/smpp/util/TestSMPPIO.java,
+	src/ie/omk/smpp/message/tlv/BadValueTypeException.java,
+	src/ie/omk/smpp/message/tlv/BitmaskEncoder.java,
+	src/ie/omk/smpp/message/tlv/Encoder.java,
+	src/ie/omk/smpp/message/tlv/InvalidSizeForValueException.java,
+	src/ie/omk/smpp/message/tlv/NoEncoderException.java,
+	src/ie/omk/smpp/message/tlv/NullEncoder.java,
+	src/ie/omk/smpp/message/tlv/NumberEncoder.java,
+	src/ie/omk/smpp/message/tlv/OctetEncoder.java,
+	src/ie/omk/smpp/message/tlv/StringEncoder.java,
+	src/ie/omk/smpp/message/tlv/TLVTable.java,
+	src/ie/omk/smpp/message/tlv/Tag.java,
+	src/ie/omk/smpp/message/tlv/TagDefinedException.java,
+	src/ie/omk/smpp/net/SmscLink.java,
+	src/ie/omk/smpp/net/StreamLink.java,
+	tests/ie/omk/smpp/message/PackageTests.java,
+	tests/ie/omk/smpp/message/SMPPPacketTest.java,
+	tests/ie/omk/smpp/message/SizeTest.java,
+	tests/ie/omk/smpp/util/PackageTests.java,
+	src/ie/omk/smpp/event/ConnectionObserver.java,
 	src/ie/omk/smpp/event/EventDispatcher.java,
+	src/ie/omk/smpp/event/ReceiverExceptionEvent.java,
+	src/ie/omk/smpp/event/ReceiverExitEvent.java,
+	src/ie/omk/smpp/event/ReceiverStartEvent.java,
+	src/ie/omk/smpp/event/SMPPEvent.java,
 	src/ie/omk/smpp/event/SMPPEventAdapter.java,
 	src/ie/omk/smpp/event/SimpleEventDispatcher.java,
 	src/ie/omk/smpp/event/ThreadedEventDispatcher.java,
-	src/ie/omk/smpp/message/tlv/TLVTable.java,
-	src/ie/omk/smpp/util/AlphabetFactory.java,
-	examples/ie/omk/smpp/examples/AsyncReceiver.java,
-	examples/ie/omk/smpp/examples/AsyncReceiver2.java,
-	examples/ie/omk/smpp/examples/AsyncTransmitter.java,
-	examples/ie/omk/smpp/examples/SyncTransceiver.java,
-	examples/ie/omk/smpp/examples/SyncTransmitter.java,
-	src/ie/omk/smpp/Connection.java, src/ie/omk/smpp/net/SmscLink.java,
-	src/ie/omk/smpp/net/StreamLink.java,
-	src/ie/omk/smpp/net/TcpLink.java, tests/stress_recv.c, .classpath,
-	build.xml:
+	src/ie/omk/smpp/net/ObjectLink.java,
+	src/ie/omk/smpp/net/TcpLink.java,
+	tests/ie/omk/smpp/AddressTest.java,
+	tests/ie/omk/smpp/AllTests.java,
+	tests/ie/omk/smpp/PackageTests.java,
+	tests/ie/omk/smpp/TestConnection.java,
+	src/ie/omk/smpp/Address.java,
+	src/ie/omk/smpp/AlreadyBoundException.java,
+	src/ie/omk/smpp/BadCommandIDException.java,
+	src/ie/omk/smpp/Connection.java, src/ie/omk/smpp/ErrorAddress.java,
+	src/ie/omk/smpp/InvalidOperationException.java,
+	src/ie/omk/smpp/NotBoundException.java,
+	src/ie/omk/smpp/SMPPException.java,
+	src/ie/omk/smpp/SMPPRuntimeException.java,
+	src/ie/omk/smpp/UnsupportedOperationException.java,
+	src/ie/omk/smpp/version/SMPPVersion34.java,
+	tests/ie/omk/TestUtils.java, tests/tests/StressClient.java,
+	src/ie/omk/smpp/version/SMPPVersion.java,
+	src/ie/omk/smpp/version/SMPPVersion33.java,
+	src/ie/omk/smpp/version/VersionException.java:
+
+	Whitespace cleanup (ran Eclipse formatter over source).
+
+2005-05-09 20:59  orank
+
+	* tests/ie/omk/smpp/message/SMPPPacketTest.java:
+
+	Uncomment test methods.
+
+2005-05-09 20:58  orank
+
+	* src/ie/omk/smpp/net/ObjectLink.java:
+
+	New link type useful for testing.
+
+2005-05-09 20:58  orank
+
+	* examples/ie/omk/smpp/examples/ParseArgs.java:
+
+	Code was checking the wrong array length.
+
+2005-05-09 20:55  orank
+
+	* src/ie/omk/smpp/Connection.java:
+
+	1197818: Javadocs should be clear that automatically acking packets
+	is valid only in asynchronous mode.
+
+2005-05-09 20:50  orank
+
+	* src/ie/omk/smpp/message/tlv/Tag.java:
+
+	1184127: Constructor was dropping the enc parameter.
+
+2005-05-09 20:47  orank
+
+	* src/ie/omk/smpp/version/SMPPVersion34.java:
+
+	1184123: 0x1f is not decimal 16!
+
+2005-05-09 20:26  orank
+
+	* src/ie/omk/smpp/Connection.java:
+
+	1116176: Close the network link on a failed bind.
+
+2005-03-04 15:28  orank
+
+	* src/ie/omk/smpp/util/APIConfig.java:
+
+	1116175: getLong(String, int) was catching the incorrect exception.
+
+2004-12-03 17:49  orank
+
+	* build.xml, src/ie/omk/smpp/Connection.java,
+	src/ie/omk/smpp/message/SMPPPacket.java,
+	src/ie/omk/smpp/util/ASCIIEncoding.java,
+	src/ie/omk/smpp/util/Latin1Encoding.java,
+	src/ie/omk/smpp/util/MessageEncoding.java,
+	src/ie/omk/smpp/util/UCS2Encoding.java,
+	tests/ie/omk/smpp/message/SMPPPacketTest.java,
+	tests/ie/omk/smpp/util/EncodingTest.java:
+
+	Properly check the message length for the default alphabet encoding
+
+2004-10-11 21:13  orank
+
+	* src/ie/omk/smpp/util/: DefaultAlphabetEncoding.java,
+	HPRoman8Encoding.java (utags: SMPPAPI_0_3_4):
+
+	Use unicode escapes instead of encoding-specific characters.
+
+2004-10-09 22:29  orank
+
+	* build.xml (tags: SMPPAPI_0_3_4):
+
+	Alter the update-changelog target.
+
+2004-10-09 22:28  orank
+
+	* ChangeLog (tags: SMPPAPI_0_3_4):
+
+	Update ChangeLog
+
+2004-10-09 22:02  orank
+
+	* src/ie/omk/smpp/message/AlertNotification.java (tags:
+	SMPPAPI_0_3_4), src/ie/omk/smpp/message/Bind.java (tags:
+	SMPPAPI_0_3_4), src/ie/omk/smpp/message/BindResp.java (tags:
+	SMPPAPI_0_3_4), src/ie/omk/smpp/message/DestinationTable.java
+	(tags: SMPPAPI_0_3_4), src/ie/omk/smpp/message/SMPPPacket.java
+	(tags: SMPPAPI_0_3_4), src/ie/omk/smpp/util/APIConfig.java (tags:
+	SMPPAPI_0_3_4), lib/commons-logging.jar (tags: SMPPAPI_0_3_4),
+	src/ie/omk/smpp/event/EventDispatcher.java (tags: SMPPAPI_0_3_4),
+	src/ie/omk/smpp/event/SMPPEventAdapter.java (tags: SMPPAPI_0_3_4),
+	src/ie/omk/smpp/event/SimpleEventDispatcher.java (tags:
+	SMPPAPI_0_3_4), src/ie/omk/smpp/event/ThreadedEventDispatcher.java
+	(tags: SMPPAPI_0_3_4), src/ie/omk/smpp/message/tlv/TLVTable.java
+	(tags: SMPPAPI_0_3_4), src/ie/omk/smpp/util/AlphabetFactory.java
+	(tags: SMPPAPI_0_3_4),
+	examples/ie/omk/smpp/examples/AsyncReceiver.java (tags:
+	SMPPAPI_0_3_4), examples/ie/omk/smpp/examples/AsyncReceiver2.java
+	(tags: SMPPAPI_0_3_4),
+	examples/ie/omk/smpp/examples/AsyncTransmitter.java (tags:
+	SMPPAPI_0_3_4), examples/ie/omk/smpp/examples/SyncTransceiver.java
+	(tags: SMPPAPI_0_3_4),
+	examples/ie/omk/smpp/examples/SyncTransmitter.java (tags:
+	SMPPAPI_0_3_4), src/ie/omk/smpp/Connection.java (tags:
+	SMPPAPI_0_3_4), src/ie/omk/smpp/net/SmscLink.java (tags:
+	SMPPAPI_0_3_4), src/ie/omk/smpp/net/StreamLink.java (tags:
+	SMPPAPI_0_3_4), src/ie/omk/smpp/net/TcpLink.java (tags:
+	SMPPAPI_0_3_4), tests/stress_recv.c (tags: SMPPAPI_0_3_4),
+	.classpath (tags: SMPPAPI_0_3_4), build.xml:
 
 	Move to the commons logging API.
 
 2004-10-09 15:56  orank
 
-	* docs/UserGuide.html:
+	* docs/UserGuide.html (tags: SMPPAPI_0_3_4):
 
 	Update documentation.
 
 2004-10-09 15:07  orank
 
-	* src/ie/omk/smpp/version/SMPPVersion33.java,
+	* src/ie/omk/smpp/version/SMPPVersion33.java (tags: SMPPAPI_0_3_4),
 	src/ie/omk/smpp/Connection.java,
 	src/ie/omk/smpp/message/SMPPPacket.java,
 	src/ie/omk/smpp/net/SmscLink.java,
-	src/ie/omk/smpp/version/SMPPVersion.java,
-	src/ie/omk/smpp/version/SMPPVersion34.java,
-	tests/ie/omk/smpp/message/SMPPPacketTest.java:
+	src/ie/omk/smpp/version/SMPPVersion.java (tags: SMPPAPI_0_3_4),
+	src/ie/omk/smpp/version/SMPPVersion34.java (tags: SMPPAPI_0_3_4),
+	tests/ie/omk/smpp/message/SMPPPacketTest.java (tags:
+	SMPPAPI_0_3_4):
 
 	Bug #1043588: Connection should not downgrade version.	Disable
 	optional parameter support rather than downgrading to 3.3.
@@ -62,13 +337,15 @@
 	* examples/ie/omk/smpp/examples/AsyncReceiver.java,
 	examples/ie/omk/smpp/examples/AsyncReceiver2.java,
 	examples/ie/omk/smpp/examples/AsyncTransmitter.java,
-	resources/smppapi.properties, src/ie/omk/smpp/Connection.java,
-	src/ie/omk/smpp/event/ReceiverExitEvent.java,
+	resources/smppapi.properties (tags: SMPPAPI_0_3_4),
+	src/ie/omk/smpp/Connection.java,
+	src/ie/omk/smpp/event/ReceiverExitEvent.java (tags: SMPPAPI_0_3_4),
 	src/ie/omk/smpp/event/SMPPEventAdapter.java,
-	src/ie/omk/smpp/message/DeliverSM.java,
+	src/ie/omk/smpp/message/DeliverSM.java (tags: SMPPAPI_0_3_4),
 	src/ie/omk/smpp/net/SmscLink.java,
 	src/ie/omk/smpp/net/TcpLink.java,
-	src/ie/omk/smpp/util/APIConfig.java, tests/tests/StressClient.java:
+	src/ie/omk/smpp/util/APIConfig.java, tests/tests/StressClient.java
+	(tags: SMPPAPI_0_3_4):
 
 	Implement link and bind timeouts.
 
@@ -77,7 +354,7 @@
 	* build.xml, examples/ie/omk/smpp/examples/AsyncReceiver.java,
 	examples/ie/omk/smpp/examples/AsyncReceiver2.java,
 	examples/ie/omk/smpp/examples/AsyncTransmitter.java,
-	examples/ie/omk/smpp/examples/ParseArgs.java,
+	examples/ie/omk/smpp/examples/ParseArgs.java (tags: SMPPAPI_0_3_4),
 	examples/ie/omk/smpp/examples/SyncTransceiver.java,
 	examples/ie/omk/smpp/examples/SyncTransmitter.java:
 
@@ -91,13 +368,14 @@
 
 2004-07-25 12:08  orank
 
-	* tests/: ie/omk/smpp/AddressTest.java,
-	ie/omk/smpp/TestConnection.java,
+	* tests/: ie/omk/smpp/AddressTest.java (tags: SMPPAPI_0_3_4),
+	ie/omk/smpp/TestConnection.java (tags: SMPPAPI_0_3_4),
 	ie/omk/smpp/message/SMPPPacketTest.java,
-	ie/omk/smpp/message/SizeTest.java,
-	ie/omk/smpp/message/tlv/TLVTests.java,
-	ie/omk/smpp/util/TestSMPPDate.java,
-	ie/omk/smpp/util/TestSMPPIO.java, tests/StressClient.java:
+	ie/omk/smpp/message/SizeTest.java (tags: SMPPAPI_0_3_4),
+	ie/omk/smpp/message/tlv/TLVTests.java (tags: SMPPAPI_0_3_4),
+	ie/omk/smpp/util/TestSMPPDate.java (tags: SMPPAPI_0_3_4),
+	ie/omk/smpp/util/TestSMPPIO.java (tags: SMPPAPI_0_3_4),
+	tests/StressClient.java:
 
 	Source cleanup
 
@@ -109,37 +387,51 @@
 	examples/ie/omk/smpp/examples/ParseArgs.java,
 	examples/ie/omk/smpp/examples/SyncTransceiver.java,
 	examples/ie/omk/smpp/examples/SyncTransmitter.java,
-	src/ie/omk/smpp/message/BindTransceiver.java,
-	src/ie/omk/smpp/message/BindTransmitter.java,
-	src/ie/omk/smpp/message/SMPPResponse.java,
+	src/ie/omk/smpp/message/BindTransceiver.java (tags: SMPPAPI_0_3_4),
+	src/ie/omk/smpp/message/BindTransmitter.java (tags: SMPPAPI_0_3_4),
+	src/ie/omk/smpp/message/SMPPResponse.java (tags: SMPPAPI_0_3_4),
 	src/ie/omk/smpp/Connection.java:
 
 	Javadoc cleanups
 
 2004-07-11 20:28  orank
 
-	* src/ie/omk/smpp/: Address.java, Connection.java,
-	ErrorAddress.java, SMPPException.java, message/Bind.java,
-	message/BindReceiverResp.java, message/BindResp.java,
-	message/BindTransceiverResp.java, message/BindTransmitterResp.java,
-	message/CancelSM.java, message/CancelSMResp.java,
-	message/DataSM.java, message/DataSMResp.java,
-	message/DeliverSM.java, message/DeliverSMResp.java,
-	message/EnquireLink.java, message/EnquireLinkResp.java,
-	message/GenericNack.java, message/ParamRetrieve.java,
-	message/ParamRetrieveResp.java, message/QueryLastMsgs.java,
-	message/QueryLastMsgsResp.java, message/QueryMsgDetails.java,
-	message/QueryMsgDetailsResp.java, message/QuerySM.java,
-	message/QuerySMResp.java, message/ReplaceSM.java,
-	message/ReplaceSMResp.java, message/SMPPPacket.java,
-	message/SMPPResponse.java, message/SubmitMulti.java,
-	message/SubmitMultiResp.java, message/SubmitSM.java,
-	message/SubmitSMResp.java, message/Unbind.java,
-	message/UnbindResp.java, net/SmscLink.java, net/TcpLink.java,
+	* src/ie/omk/smpp/: Address.java (tags: SMPPAPI_0_3_4),
+	Connection.java, ErrorAddress.java (tags: SMPPAPI_0_3_4),
+	SMPPException.java (tags: SMPPAPI_0_3_4), message/Bind.java,
+	message/BindReceiverResp.java (tags: SMPPAPI_0_3_4),
+	message/BindResp.java, message/BindTransceiverResp.java (tags:
+	SMPPAPI_0_3_4), message/BindTransmitterResp.java (tags:
+	SMPPAPI_0_3_4), message/CancelSM.java (tags: SMPPAPI_0_3_4),
+	message/CancelSMResp.java (tags: SMPPAPI_0_3_4),
+	message/DataSM.java (tags: SMPPAPI_0_3_4), message/DataSMResp.java
+	(tags: SMPPAPI_0_3_4), message/DeliverSM.java,
+	message/DeliverSMResp.java (tags: SMPPAPI_0_3_4),
+	message/EnquireLink.java (tags: SMPPAPI_0_3_4),
+	message/EnquireLinkResp.java (tags: SMPPAPI_0_3_4),
+	message/GenericNack.java (tags: SMPPAPI_0_3_4),
+	message/ParamRetrieve.java (tags: SMPPAPI_0_3_4),
+	message/ParamRetrieveResp.java (tags: SMPPAPI_0_3_4),
+	message/QueryLastMsgs.java (tags: SMPPAPI_0_3_4),
+	message/QueryLastMsgsResp.java (tags: SMPPAPI_0_3_4),
+	message/QueryMsgDetails.java (tags: SMPPAPI_0_3_4),
+	message/QueryMsgDetailsResp.java (tags: SMPPAPI_0_3_4),
+	message/QuerySM.java (tags: SMPPAPI_0_3_4),
+	message/QuerySMResp.java (tags: SMPPAPI_0_3_4),
+	message/ReplaceSM.java (tags: SMPPAPI_0_3_4),
+	message/ReplaceSMResp.java (tags: SMPPAPI_0_3_4),
+	message/SMPPPacket.java, message/SMPPResponse.java,
+	message/SubmitMulti.java (tags: SMPPAPI_0_3_4),
+	message/SubmitMultiResp.java (tags: SMPPAPI_0_3_4),
+	message/SubmitSM.java (tags: SMPPAPI_0_3_4),
+	message/SubmitSMResp.java (tags: SMPPAPI_0_3_4),
+	message/Unbind.java (tags: SMPPAPI_0_3_4), message/UnbindResp.java
+	(tags: SMPPAPI_0_3_4), net/SmscLink.java, net/TcpLink.java,
 	version/SMPPVersion.java, event/SMPPEventAdapter.java,
 	event/ThreadedEventDispatcher.java, message/tlv/TLVTable.java,
-	util/APIConfig.java, util/AlphabetEncoding.java,
-	util/PacketFactory.java, util/SMPPDate.java,
+	util/APIConfig.java, util/AlphabetEncoding.java (tags:
+	SMPPAPI_0_3_4), util/PacketFactory.java (tags: SMPPAPI_0_3_4),
+	util/SMPPDate.java (tags: SMPPAPI_0_3_4),
 	version/SMPPVersion33.java, version/SMPPVersion34.java:
 
 	Cleanup the source - remove unused imports and access static fields
@@ -147,7 +439,7 @@
 
 2004-07-11 20:15  orank
 
-	* .classpath, .project:
+	* .classpath, .project (tags: SMPPAPI_0_3_4):
 
 	Check in Eclipse project files.
 
@@ -177,7 +469,8 @@
 
 2004-01-18 19:10  orank
 
-	* src/ie/omk/smpp/message/tlv/Tag.java (tags: SMPPAPI_0_3_3):
+	* src/ie/omk/smpp/message/tlv/Tag.java (tags: SMPPAPI_0_3_4,
+	SMPPAPI_0_3_3):
 
 	854983: tags DEST_SUBADDRESS and SOURCE_SUBADDRESS.  Fixed
 	definitions.
@@ -190,7 +483,7 @@
 
 2003-12-14 14:40  orank
 
-	* build.properties (tags: SMPPAPI_0_3_3), build.xml:
+	* build.properties (tags: SMPPAPI_0_3_4, SMPPAPI_0_3_3), build.xml:
 
 	Add debug option to the build properties
 
@@ -262,14 +555,14 @@
 
 2003-04-20 18:14  orank
 
-	* tests/ie/omk/smpp/util/EncodingTest.java (tags: SMPPAPI_0_3_3,
-	SMPPAPI_0_3_2):
+	* tests/ie/omk/smpp/util/EncodingTest.java (tags: SMPPAPI_0_3_4,
+	SMPPAPI_0_3_3, SMPPAPI_0_3_2):
 
 	Add HPRoman8 encoding test
 
 2003-02-05 20:29  orank
 
-	* INSTALL (tags: SMPPAPI_0_3_3, SMPPAPI_0_3_2):
+	* INSTALL (tags: SMPPAPI_0_3_4, SMPPAPI_0_3_3, SMPPAPI_0_3_2):
 
 	Update install instructions
 
@@ -305,8 +598,9 @@
 
 2002-11-20 10:33  orank
 
-	* tests/ie/omk/smpp/: AllTests.java, message/SMPPPacketTest.java
-	(utags: SMPPAPI_0_3_1, SMPPAPI_0_3_2, SMPPAPI_0_3_3):
+	* tests/ie/omk/smpp/: AllTests.java (tags: SMPPAPI_0_3_4),
+	message/SMPPPacketTest.java (utags: SMPPAPI_0_3_1, SMPPAPI_0_3_2,
+	SMPPAPI_0_3_3):
 
 	Update tests to check the length reported by TLVTable is the same
 	length it serializes to.
@@ -328,14 +622,15 @@
 
 2002-11-20 10:24  orank
 
-	* .cvsignore (tags: SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1):
+	* .cvsignore (tags: SMPPAPI_0_3_4, SMPPAPI_0_3_3, SMPPAPI_0_3_2,
+	SMPPAPI_0_3_1):
 
 	Add ignore file to repository
 
 2002-11-20 09:37  orank
 
-	* docs/: UserGuide.html, overview.html (utags: SMPPAPI_0_3_1,
-	SMPPAPI_0_3_2, SMPPAPI_0_3_3):
+	* docs/: UserGuide.html, overview.html (tags: SMPPAPI_0_3_4)
+	(utags: SMPPAPI_0_3_1, SMPPAPI_0_3_2, SMPPAPI_0_3_3):
 
 	Documentation updates.
 
@@ -344,20 +639,21 @@
 	* src/ie/omk/smpp/: package.html, event/package.html,
 	message/package.html, net/package.html, util/package.html,
 	version/package.html (utags: SMPPAPI_0_3_1, SMPPAPI_0_3_2,
-	SMPPAPI_0_3_3):
+	SMPPAPI_0_3_3, SMPPAPI_0_3_4):
 
 	Add package descriptions for javadoc
 
 2002-11-20 09:11  orank
 
 	* docs/.cvsignore, lib/.cvsignore, tests/.cvsignore (utags:
-	SMPPAPI_0_3_1, SMPPAPI_0_3_2, SMPPAPI_0_3_3):
+	SMPPAPI_0_3_1, SMPPAPI_0_3_2, SMPPAPI_0_3_3, SMPPAPI_0_3_4):
 
 	Add ignore files to repository
 
 2002-11-19 16:10  orank
 
-	* TODO (tags: SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1):
+	* TODO (tags: SMPPAPI_0_3_4, SMPPAPI_0_3_3, SMPPAPI_0_3_2,
+	SMPPAPI_0_3_1):
 
 	update
 
@@ -407,7 +703,7 @@
 
 2002-11-11 16:11  orank
 
-	* lib/junit.jar (tags: SMPPAPI_0_3_3, SMPPAPI_0_3_2,
+	* lib/junit.jar (tags: SMPPAPI_0_3_4, SMPPAPI_0_3_3, SMPPAPI_0_3_2,
 	SMPPAPI_0_3_1):
 
 	Update to JUnit 3.8.1
@@ -441,10 +737,11 @@
 
 2002-11-11 11:04  orank
 
-	* tests/ie/omk/smpp/: PackageTests.java, TestConnection.java,
-	message/PackageTests.java, message/tlv/PackageTests.java,
-	util/PackageTests.java (utags: SMPPAPI_0_3_1, SMPPAPI_0_3_2,
-	SMPPAPI_0_3_3):
+	* tests/ie/omk/smpp/: PackageTests.java (tags: SMPPAPI_0_3_4),
+	TestConnection.java, message/PackageTests.java (tags:
+	SMPPAPI_0_3_4), message/tlv/PackageTests.java (tags:
+	SMPPAPI_0_3_4), util/PackageTests.java (tags: SMPPAPI_0_3_4)
+	(utags: SMPPAPI_0_3_1, SMPPAPI_0_3_2, SMPPAPI_0_3_3):
 
 	Add TestConnection junit test suite.  Update all PackageTest
 	classes to construct a test suite with a name.
@@ -469,8 +766,8 @@
 
 2002-11-11 10:26  orank
 
-	* resources/log4j.properties (tags: SMPPAPI_0_3_3, SMPPAPI_0_3_2,
-	SMPPAPI_0_3_1), Changelog:
+	* resources/log4j.properties (tags: SMPPAPI_0_3_4, SMPPAPI_0_3_3,
+	SMPPAPI_0_3_2, SMPPAPI_0_3_1), Changelog:
 
 	Update
 
@@ -490,8 +787,8 @@
 
 2002-11-11 10:21  orank
 
-	* tests/ie/omk/smpp/util/TestAPIConfig.java (tags: SMPPAPI_0_3_3,
-	SMPPAPI_0_3_2, SMPPAPI_0_3_1):
+	* tests/ie/omk/smpp/util/TestAPIConfig.java (tags: SMPPAPI_0_3_4,
+	SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1):
 
 	Test APIConfig against the CVS properties file.
 
@@ -531,7 +828,8 @@
 
 2002-11-11 10:04  orank
 
-	* README (tags: SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1):
+	* README (tags: SMPPAPI_0_3_4, SMPPAPI_0_3_3, SMPPAPI_0_3_2,
+	SMPPAPI_0_3_1):
 
 	Update
 
@@ -583,32 +881,33 @@
 2002-10-13 16:09  orank
 
 	* src/ie/omk/smpp/: BadCommandIDException.java (tags:
-	SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0),
-	BadCommandStatusException.java, BadInterfaceVersionException.java,
-	Connection.java (tags: SMPPAPI_0_3_0),
-	InvalidAddressException.java, InvalidAddressRangeException.java,
+	SMPPAPI_0_3_4, SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1,
+	SMPPAPI_0_3_0), BadCommandStatusException.java,
+	BadInterfaceVersionException.java, Connection.java (tags:
+	SMPPAPI_0_3_0), InvalidAddressException.java,
+	InvalidAddressRangeException.java,
 	InvalidDestinationCountException.java,
 	InvalidListNameException.java, InvalidMessageIDException.java,
 	InvalidNPIException.java, InvalidReplaceIfPresentException.java,
 	InvalidTONException.java, NoSuchRequestException.java,
 	NumberOutOfRangeException.java, SMPPException.java (tags:
 	SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0),
-	SMPPRuntimeException.java (tags: SMPPAPI_0_3_3, SMPPAPI_0_3_2,
-	SMPPAPI_0_3_1, SMPPAPI_0_3_0), SmppReceiver.java,
+	SMPPRuntimeException.java (tags: SMPPAPI_0_3_4, SMPPAPI_0_3_3,
+	SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0), SmppReceiver.java,
 	SmppTransmitter.java, StringTooLongException.java,
 	UnexpectedInputException.java,
 	UnsupportedSMPPVersionException.java,
 	message/AlertNotification.java (tags: SMPPAPI_0_3_3, SMPPAPI_0_3_2,
 	SMPPAPI_0_3_1, SMPPAPI_0_3_0), message/Bind.java (tags:
 	SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0),
-	message/BindReceiver.java (tags: SMPPAPI_0_3_3, SMPPAPI_0_3_2,
-	SMPPAPI_0_3_1, SMPPAPI_0_3_0), message/BindReceiverResp.java (tags:
-	SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0),
-	message/BindResp.java (tags: SMPPAPI_0_3_3, SMPPAPI_0_3_2,
-	SMPPAPI_0_3_1, SMPPAPI_0_3_0), message/BindTransceiver.java (tags:
-	SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0),
-	message/BindTransceiverResp.java (tags: SMPPAPI_0_3_3,
+	message/BindReceiver.java (tags: SMPPAPI_0_3_4, SMPPAPI_0_3_3,
 	SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0),
+	message/BindReceiverResp.java (tags: SMPPAPI_0_3_3, SMPPAPI_0_3_2,
+	SMPPAPI_0_3_1, SMPPAPI_0_3_0), message/BindResp.java (tags:
+	SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0),
+	message/BindTransceiver.java (tags: SMPPAPI_0_3_3, SMPPAPI_0_3_2,
+	SMPPAPI_0_3_1, SMPPAPI_0_3_0), message/BindTransceiverResp.java
+	(tags: SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0),
 	message/BindTransmitter.java (tags: SMPPAPI_0_3_3, SMPPAPI_0_3_2,
 	SMPPAPI_0_3_1, SMPPAPI_0_3_0), message/BindTransmitterResp.java
 	(tags: SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0),
@@ -627,8 +926,8 @@
 	SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0),
 	message/GenericNack.java (tags: SMPPAPI_0_3_3, SMPPAPI_0_3_2,
 	SMPPAPI_0_3_1, SMPPAPI_0_3_0),
-	message/InvalidParameterValueException.java (tags: SMPPAPI_0_3_3,
-	SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0),
+	message/InvalidParameterValueException.java (tags: SMPPAPI_0_3_4,
+	SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0),
 	message/MsgFlags.java, message/ParamRetrieve.java (tags:
 	SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0),
 	message/ParamRetrieveResp.java (tags: SMPPAPI_0_3_3, SMPPAPI_0_3_2,
@@ -646,49 +945,52 @@
 	message/ReplaceSMResp.java (tags: SMPPAPI_0_3_3, SMPPAPI_0_3_2,
 	SMPPAPI_0_3_1, SMPPAPI_0_3_0), message/SMPPPacket.java (tags:
 	SMPPAPI_0_3_0), message/SMPPProtocolException.java (tags:
+	SMPPAPI_0_3_4, SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1,
+	SMPPAPI_0_3_0), message/SMPPRequest.java (tags: SMPPAPI_0_3_4,
 	SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0),
-	message/SMPPRequest.java (tags: SMPPAPI_0_3_3, SMPPAPI_0_3_2,
-	SMPPAPI_0_3_1, SMPPAPI_0_3_0), message/SMPPResponse.java (tags:
+	message/SMPPResponse.java (tags: SMPPAPI_0_3_3, SMPPAPI_0_3_2,
+	SMPPAPI_0_3_1, SMPPAPI_0_3_0), message/SubmitMulti.java (tags:
 	SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0),
-	message/SubmitMulti.java (tags: SMPPAPI_0_3_3, SMPPAPI_0_3_2,
-	SMPPAPI_0_3_1, SMPPAPI_0_3_0), message/SubmitMultiResp.java (tags:
+	message/SubmitMultiResp.java (tags: SMPPAPI_0_3_3, SMPPAPI_0_3_2,
+	SMPPAPI_0_3_1, SMPPAPI_0_3_0), message/SubmitSM.java (tags:
 	SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0),
-	message/SubmitSM.java (tags: SMPPAPI_0_3_3, SMPPAPI_0_3_2,
-	SMPPAPI_0_3_1, SMPPAPI_0_3_0), message/SubmitSMResp.java (tags:
+	message/SubmitSMResp.java (tags: SMPPAPI_0_3_3, SMPPAPI_0_3_2,
+	SMPPAPI_0_3_1, SMPPAPI_0_3_0), message/Unbind.java (tags:
 	SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0),
-	message/Unbind.java (tags: SMPPAPI_0_3_3, SMPPAPI_0_3_2,
-	SMPPAPI_0_3_1, SMPPAPI_0_3_0), message/UnbindResp.java (tags:
-	SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0),
-	net/SmscLink.java (tags: SMPPAPI_0_3_0), net/TcpLink.java (tags:
-	SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0),
-	util/APIConfig.java (tags: SMPPAPI_0_3_0), util/ASCIIEncoding.java
-	(tags: SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0),
-	util/AlphabetEncoding.java (tags: SMPPAPI_0_3_3, SMPPAPI_0_3_2,
-	SMPPAPI_0_3_1, SMPPAPI_0_3_0), util/AlphabetFactory.java (tags:
-	SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0),
-	util/BinaryEncoding.java (tags: SMPPAPI_0_3_3, SMPPAPI_0_3_2,
-	SMPPAPI_0_3_1, SMPPAPI_0_3_0), util/DefaultAlphabetEncoding.java
-	(tags: SMPPAPI_0_3_1, SMPPAPI_0_3_0),
-	util/DefaultSequenceScheme.java (tags: SMPPAPI_0_3_3,
+	message/UnbindResp.java (tags: SMPPAPI_0_3_3, SMPPAPI_0_3_2,
+	SMPPAPI_0_3_1, SMPPAPI_0_3_0), net/SmscLink.java (tags:
+	SMPPAPI_0_3_0), net/TcpLink.java (tags: SMPPAPI_0_3_3,
+	SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0), util/APIConfig.java
+	(tags: SMPPAPI_0_3_0), util/ASCIIEncoding.java (tags:
+	SMPPAPI_0_3_4, SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1,
+	SMPPAPI_0_3_0), util/AlphabetEncoding.java (tags: SMPPAPI_0_3_3,
 	SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0),
-	util/InvalidConfigurationException.java (tags: SMPPAPI_0_3_3,
-	SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0),
-	util/InvalidDateFormatException.java (tags: SMPPAPI_0_3_3,
-	SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0),
-	util/Latin1Encoding.java (tags: SMPPAPI_0_3_3, SMPPAPI_0_3_2,
-	SMPPAPI_0_3_1, SMPPAPI_0_3_0), util/MessageEncoding.java (tags:
+	util/AlphabetFactory.java (tags: SMPPAPI_0_3_3, SMPPAPI_0_3_2,
+	SMPPAPI_0_3_1, SMPPAPI_0_3_0), util/BinaryEncoding.java (tags:
+	SMPPAPI_0_3_4, SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1,
+	SMPPAPI_0_3_0), util/DefaultAlphabetEncoding.java (tags:
+	SMPPAPI_0_3_1, SMPPAPI_0_3_0), util/DefaultSequenceScheme.java
+	(tags: SMPPAPI_0_3_4, SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1,
+	SMPPAPI_0_3_0), util/InvalidConfigurationException.java (tags:
+	SMPPAPI_0_3_4, SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1,
+	SMPPAPI_0_3_0), util/InvalidDateFormatException.java (tags:
+	SMPPAPI_0_3_4, SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1,
+	SMPPAPI_0_3_0), util/Latin1Encoding.java (tags: SMPPAPI_0_3_4,
 	SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0),
+	util/MessageEncoding.java (tags: SMPPAPI_0_3_4, SMPPAPI_0_3_3,
+	SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0),
 	util/PacketFactory.java (tags: SMPPAPI_0_3_3, SMPPAPI_0_3_2,
 	SMPPAPI_0_3_1, SMPPAPI_0_3_0), util/PropertyNotFoundException.java
-	(tags: SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0),
-	util/SequenceNumberScheme.java (tags: SMPPAPI_0_3_3, SMPPAPI_0_3_2,
-	SMPPAPI_0_3_1, SMPPAPI_0_3_0), util/UCS2Encoding.java (tags:
+	(tags: SMPPAPI_0_3_4, SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1,
+	SMPPAPI_0_3_0), util/SequenceNumberScheme.java (tags:
+	SMPPAPI_0_3_4, SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1,
+	SMPPAPI_0_3_0), util/UCS2Encoding.java (tags: SMPPAPI_0_3_4,
 	SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0),
 	version/SMPPVersion33.java (tags: SMPPAPI_0_3_3, SMPPAPI_0_3_2,
 	SMPPAPI_0_3_1, SMPPAPI_0_3_0), version/SMPPVersion34.java (tags:
 	SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0),
-	version/VersionException.java (tags: SMPPAPI_0_3_3, SMPPAPI_0_3_2,
-	SMPPAPI_0_3_1, SMPPAPI_0_3_0):
+	version/VersionException.java (tags: SMPPAPI_0_3_4, SMPPAPI_0_3_3,
+	SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0):
 
 	Update for SMPP version 3.4 support. Mandatory fields are now
 	properly versioned, all 3.4 primitives are supported.  Removed many
@@ -784,10 +1086,10 @@
 
 2002-08-04 18:38  orank
 
-	* Log4J-LICENSE.txt (tags: SMPPAPI_0_3_3, SMPPAPI_0_3_2,
-	SMPPAPI_0_3_1), lib/junit.jar, lib/log4j-1.2.5.jar (tags:
-	SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1) (utags:
-	SMPPAPI_0_3_0):
+	* Log4J-LICENSE.txt (tags: SMPPAPI_0_3_4, SMPPAPI_0_3_3,
+	SMPPAPI_0_3_2, SMPPAPI_0_3_1), lib/junit.jar, lib/log4j-1.2.5.jar
+	(tags: SMPPAPI_0_3_4, SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1)
+	(utags: SMPPAPI_0_3_0):
 
 	Add required libraries log4j and junit.
 
@@ -810,17 +1112,18 @@
 	* examples/AsyncReceiver.java, examples/AsyncReceiver2.java,
 	examples/AsyncTransmitter.java, src/ie/omk/smpp/Address.java (tags:
 	SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0),
-	src/ie/omk/smpp/AlreadyBoundException.java (tags: SMPPAPI_0_3_3,
-	SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0),
+	src/ie/omk/smpp/AlreadyBoundException.java (tags: SMPPAPI_0_3_4,
+	SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0),
 	src/ie/omk/smpp/Connection.java, src/ie/omk/smpp/ErrorAddress.java
 	(tags: SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0),
-	src/ie/omk/smpp/NotBoundException.java (tags: SMPPAPI_0_3_3,
-	SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0),
+	src/ie/omk/smpp/NotBoundException.java (tags: SMPPAPI_0_3_4,
+	SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0),
 	src/ie/omk/smpp/SmppReceiver.java,
 	src/ie/omk/smpp/SmppTransmitter.java,
 	src/ie/omk/smpp/UnexpectedInputException.java,
 	src/ie/omk/smpp/UnsupportedOperationException.java (tags:
-	SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0),
+	SMPPAPI_0_3_4, SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1,
+	SMPPAPI_0_3_0),
 	src/ie/omk/smpp/UnsupportedSMPPVersionException.java,
 	src/ie/omk/smpp/message/AlertNotification.java,
 	src/ie/omk/smpp/message/Bind.java,
@@ -863,8 +1166,8 @@
 	src/ie/omk/smpp/net/TcpLink.java,
 	src/ie/omk/smpp/util/PacketFactory.java,
 	src/ie/omk/smpp/util/SMPPDate.java,
-	src/ie/omk/smpp/util/SMPPIO.java (tags: SMPPAPI_0_3_3,
-	SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0),
+	src/ie/omk/smpp/util/SMPPIO.java (tags: SMPPAPI_0_3_4,
+	SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0),
 	tests/StressClient.java, tests/ie/omk/smpp/message/SizeTest.java:
 
 	Remove all wildcard imports. Fix exception reporting.
@@ -889,28 +1192,32 @@
 
 2002-07-27 14:59  orank
 
-	* tests/ie/omk/TestUtils.java (tags: SMPPAPI_0_3_3, SMPPAPI_0_3_2,
-	SMPPAPI_0_3_1, SMPPAPI_0_3_0):
+	* tests/ie/omk/TestUtils.java (tags: SMPPAPI_0_3_4, SMPPAPI_0_3_3,
+	SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0):
 
 	Utilities class for junit tests.
 
 2002-07-27 14:53  orank
 
 	* src/ie/omk/smpp/message/tlv/: BadValueTypeException.java (tags:
-	SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1), BitmaskEncoder.java
-	(tags: SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1), Encoder.java
-	(tags: SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1),
-	InvalidSizeForValueException.java (tags: SMPPAPI_0_3_3,
-	SMPPAPI_0_3_2, SMPPAPI_0_3_1), NoEncoderException.java (tags:
-	SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1), NullEncoder.java
-	(tags: SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1),
-	NumberEncoder.java (tags: SMPPAPI_0_3_3, SMPPAPI_0_3_2,
-	SMPPAPI_0_3_1), OctetEncoder.java (tags: SMPPAPI_0_3_3,
-	SMPPAPI_0_3_2, SMPPAPI_0_3_1), StringEncoder.java (tags:
-	SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1), TLVTable.java,
-	Tag.java, TagDefinedException.java (tags: SMPPAPI_0_3_3,
-	SMPPAPI_0_3_2, SMPPAPI_0_3_1), package.html (tags: SMPPAPI_0_3_3,
-	SMPPAPI_0_3_2, SMPPAPI_0_3_1) (utags: SMPPAPI_0_3_0):
+	SMPPAPI_0_3_4, SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1),
+	BitmaskEncoder.java (tags: SMPPAPI_0_3_4, SMPPAPI_0_3_3,
+	SMPPAPI_0_3_2, SMPPAPI_0_3_1), Encoder.java (tags: SMPPAPI_0_3_4,
+	SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1),
+	InvalidSizeForValueException.java (tags: SMPPAPI_0_3_4,
+	SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1),
+	NoEncoderException.java (tags: SMPPAPI_0_3_4, SMPPAPI_0_3_3,
+	SMPPAPI_0_3_2, SMPPAPI_0_3_1), NullEncoder.java (tags:
+	SMPPAPI_0_3_4, SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1),
+	NumberEncoder.java (tags: SMPPAPI_0_3_4, SMPPAPI_0_3_3,
+	SMPPAPI_0_3_2, SMPPAPI_0_3_1), OctetEncoder.java (tags:
+	SMPPAPI_0_3_4, SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1),
+	StringEncoder.java (tags: SMPPAPI_0_3_4, SMPPAPI_0_3_3,
+	SMPPAPI_0_3_2, SMPPAPI_0_3_1), TLVTable.java, Tag.java,
+	TagDefinedException.java (tags: SMPPAPI_0_3_4, SMPPAPI_0_3_3,
+	SMPPAPI_0_3_2, SMPPAPI_0_3_1), package.html (tags: SMPPAPI_0_3_4,
+	SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1) (utags:
+	SMPPAPI_0_3_0):
 
 	Add Javadoc
 
@@ -1019,8 +1326,8 @@
 	(tags: SMPPAPI_0_3_0), message/PackageTests.java (tags:
 	SMPPAPI_0_3_0), message/SizeTest.java, util/EncodingTest.java,
 	util/PackageTests.java, util/SequenceTest.java (tags:
-	SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0),
-	util/TestSMPPIO.java:
+	SMPPAPI_0_3_4, SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1,
+	SMPPAPI_0_3_0), util/TestSMPPIO.java:
 
 	Add JUnit test suite
 
@@ -1053,7 +1360,8 @@
 	src/ie/omk/smpp/InvalidMessageIDException.java,
 	src/ie/omk/smpp/InvalidNPIException.java,
 	src/ie/omk/smpp/InvalidOperationException.java (tags:
-	SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0),
+	SMPPAPI_0_3_4, SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1,
+	SMPPAPI_0_3_0),
 	src/ie/omk/smpp/InvalidReplaceIfPresentException.java,
 	src/ie/omk/smpp/InvalidTONException.java,
 	src/ie/omk/smpp/MessageDetails.java,
@@ -1068,16 +1376,16 @@
 	src/ie/omk/smpp/UnexpectedInputException.java,
 	src/ie/omk/smpp/UnsupportedOperationException.java,
 	src/ie/omk/smpp/UnsupportedSMPPVersionException.java,
-	src/ie/omk/smpp/event/ConnectionObserver.java (tags: SMPPAPI_0_3_3,
-	SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0),
-	src/ie/omk/smpp/event/ReceiverExceptionEvent.java (tags:
+	src/ie/omk/smpp/event/ConnectionObserver.java (tags: SMPPAPI_0_3_4,
 	SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0),
-	src/ie/omk/smpp/event/ReceiverExitEvent.java (tags: SMPPAPI_0_3_3,
-	SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0),
-	src/ie/omk/smpp/event/ReceiverStartEvent.java (tags: SMPPAPI_0_3_3,
-	SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0),
-	src/ie/omk/smpp/event/SMPPEvent.java (tags: SMPPAPI_0_3_3,
-	SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0),
+	src/ie/omk/smpp/event/ReceiverExceptionEvent.java (tags:
+	SMPPAPI_0_3_4, SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1,
+	SMPPAPI_0_3_0), src/ie/omk/smpp/event/ReceiverExitEvent.java (tags:
+	SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0),
+	src/ie/omk/smpp/event/ReceiverStartEvent.java (tags: SMPPAPI_0_3_4,
+	SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0),
+	src/ie/omk/smpp/event/SMPPEvent.java (tags: SMPPAPI_0_3_4,
+	SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0),
 	src/ie/omk/smpp/event/SMPPEventAdapter.java,
 	src/ie/omk/smpp/message/AlertNotification.java,
 	src/ie/omk/smpp/message/Bind.java,
@@ -1112,8 +1420,8 @@
 	src/ie/omk/smpp/message/SMPPPacket.java,
 	src/ie/omk/smpp/message/SMPPRequest.java,
 	src/ie/omk/smpp/message/SMPPResponse.java,
-	src/ie/omk/smpp/message/SmeAddress.java (tags: SMPPAPI_0_3_3,
-	SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0),
+	src/ie/omk/smpp/message/SmeAddress.java (tags: SMPPAPI_0_3_4,
+	SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0),
 	src/ie/omk/smpp/message/SubmitMulti.java,
 	src/ie/omk/smpp/message/SubmitMultiResp.java,
 	src/ie/omk/smpp/message/SubmitSM.java,
@@ -1127,20 +1435,21 @@
 	src/ie/omk/smpp/util/AlphabetFactory.java,
 	src/ie/omk/smpp/util/BinaryEncoding.java,
 	src/ie/omk/smpp/util/DefaultAlphabetEncoding.java,
-	src/ie/omk/smpp/util/GSMConstants.java (tags: SMPPAPI_0_3_3,
-	SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0),
+	src/ie/omk/smpp/util/GSMConstants.java (tags: SMPPAPI_0_3_4,
+	SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0),
 	src/ie/omk/smpp/util/MessageEncoding.java,
 	src/ie/omk/smpp/util/PacketFactory.java,
 	src/ie/omk/smpp/util/SMPPDate.java,
 	src/ie/omk/smpp/util/SMPPIO.java,
 	src/ie/omk/smpp/util/UCS2Encoding.java, tests/Args.java (tags:
 	SMPPAPI_0_3_0), tests/FullSize.java, tests/Makefile (tags:
-	SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0),
-	tests/NullSize.java, tests/SMPPTest.java, tests/SizeTest.java,
-	tests/StressClient.java, tests/TestUtils.java, tests/stress_recv.c
-	(tags: SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1, SMPPAPI_0_3_0),
-	tests/stress_recv.h (tags: SMPPAPI_0_3_3, SMPPAPI_0_3_2,
-	SMPPAPI_0_3_1, SMPPAPI_0_3_0):
+	SMPPAPI_0_3_4, SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1,
+	SMPPAPI_0_3_0), tests/NullSize.java, tests/SMPPTest.java,
+	tests/SizeTest.java, tests/StressClient.java, tests/TestUtils.java,
+	tests/stress_recv.c (tags: SMPPAPI_0_3_3, SMPPAPI_0_3_2,
+	SMPPAPI_0_3_1, SMPPAPI_0_3_0), tests/stress_recv.h (tags:
+	SMPPAPI_0_3_4, SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1,
+	SMPPAPI_0_3_0):
 
 	Fix copyright notice and add CVS Id keyword to all source files.
 
@@ -2211,11 +2520,12 @@
 
 2001-05-09 21:39  orank
 
-	* LICENSE (tags: SMPPAPI_0_3_3, SMPPAPI_0_3_2, SMPPAPI_0_3_1,
-	SMPPAPI_0_3_0, smppapi-0-2-4-1, smppapi-0-2-4, smppapi-0-2-2,
-	smppapi-0-2-1, smppapi-0-2), README (tags: smppapi-0-2-4-1,
-	smppapi-0-2-4, smppapi-0-2-2, smppapi-0-2-1, smppapi-0-2),
-	build.xml, make.sh, src/ie/omk/smpp/MessageDetails.java,
+	* LICENSE (tags: SMPPAPI_0_3_4, SMPPAPI_0_3_3, SMPPAPI_0_3_2,
+	SMPPAPI_0_3_1, SMPPAPI_0_3_0, smppapi-0-2-4-1, smppapi-0-2-4,
+	smppapi-0-2-2, smppapi-0-2-1, smppapi-0-2), README (tags:
+	smppapi-0-2-4-1, smppapi-0-2-4, smppapi-0-2-2, smppapi-0-2-1,
+	smppapi-0-2), build.xml, make.sh,
+	src/ie/omk/smpp/MessageDetails.java,
 	src/ie/omk/smpp/SMPPAPIv3.java, src/ie/omk/smpp/SMPPException.java,
 	src/ie/omk/smpp/SmppConnection.java,
 	src/ie/omk/smpp/SmppReceiver.java,
