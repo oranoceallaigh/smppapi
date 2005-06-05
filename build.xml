@@ -101,6 +101,7 @@
       <classpath>
         <path refid="build.classpath"/>
         <pathelement location="${api-build}"/>
+        <pathelement location="${ant.home}/lib/ant.jar"/>
       </classpath>
     </javac>
   </target>
