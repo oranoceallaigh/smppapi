@@ -85,7 +85,10 @@
              header="&lt;b&gt;&lt;font size=-1&gt;SMPPAPI&lt;/font&gt;&lt;br&gt;documentation&lt;/b&gt;">
       <fileset dir="${api-src}" />
       <fileset dir="${examples-src}" />
-      <classpath refid="build.classpath"/>
+      <classpath>
+          <path refid="build.classpath"/>
+          <pathelement location="${ant.home}/lib/ant.jar"/>
+      </classpath>
     </javadoc>
   </target>
 
@@ -171,7 +174,11 @@
   </target>
 
   <!-- Build the distribution. -->
-  <target name="dist" depends="init,really-clean,all" if="releaseNumber">
+  <target name="dist" depends="init,really-clean,all">
+    <fail unless="releaseNumber">
+        You must supply a value for the "releaseNumber" property.
+    </fail>
+
     <property name="releaseDir" value="${dist}/smppapi-${releaseNumber}"/>
 
     <mkdir dir="${releaseDir}"/>
