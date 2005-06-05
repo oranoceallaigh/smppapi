@@ -36,6 +36,7 @@ import java.util.Date;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.tools.ant.BuildException;
 
 /**
  * Example SMPP receiver using asynchronous communications. This example
@@ -47,17 +48,9 @@ import org.apache.commons.logging.LogFactory;
  * @see ie.omk.smpp.examples.ParseArgs ParseArgs for details on running this
  *      class.
  */
-public class AsyncReceiver2 {
+public class AsyncReceiver2 extends SMPPAPIExample {
 
     private Log logger = LogFactory.getLog(AsyncReceiver2.class);
-
-    // Object to block the main thread on.
-    private Object blocker = new Object();
-
-    // Our receiver connection
-    private Connection myConnection = null;
-
-    private java.util.HashMap myArgs = null;
 
     // time example started at
     private long start = 0;
@@ -79,21 +72,10 @@ public class AsyncReceiver2 {
         logger.info("Elapsed: " + (end - start) + " milliseconds.");
     }
 
-    private void init(String[] args) {
+    public void execute() throws BuildException {
         try {
-            myArgs = ParseArgs.parse(args);
+            myConnection = new Connection(hostName, port, true);
 
-            int port = Integer.parseInt((String) myArgs.get(ParseArgs.PORT));
-
-            myConnection = new Connection((String) myArgs
-                    .get(ParseArgs.HOSTNAME), port, true);
-        } catch (Exception x) {
-            logger.info("Bad command line arguments.");
-        }
-    }
-
-    private void run() {
-        try {
             // Create the observer
             AsyncExampleObserver observer = new AsyncExampleObserver();
 
@@ -108,25 +90,26 @@ public class AsyncReceiver2 {
 
             // bind to the SMSC as a receiver
             logger.info("Binding to the SMSC..");
-            BindResp resp = myConnection.bind(Connection.RECEIVER,
-                    (String) myArgs.get(ParseArgs.SYSTEM_ID), (String) myArgs
-                            .get(ParseArgs.PASSWORD), (String) myArgs
-                            .get(ParseArgs.SYSTEM_TYPE), Integer
-                            .parseInt((String) myArgs
-                                    .get(ParseArgs.ADDRESS_TON)), Integer
-                            .parseInt((String) myArgs
-                                    .get(ParseArgs.ADDRESS_NPI)),
-                    (String) myArgs.get(ParseArgs.ADDRESS_RANGE));
 
-            // block until we're unbound from the SMSC..
-            synchronized (blocker) {
-                blocker.wait();
+            synchronized (this) {
+                BindResp resp = myConnection.bind(
+                        Connection.RECEIVER,
+                        systemID,
+                        password,
+                        systemType,
+                        sourceTON,
+                        sourceNPI,
+                        sourceAddress);
+
+                wait();
             }
 
+            end = System.currentTimeMillis();
+            
             // Close down the network connection.
             myConnection.closeLink();
         } catch (Exception x) {
-            logger.warn("Exception", x);
+            throw new BuildException("Exception running example: " + x.getMessage(), x);
         } finally {
             endReport();
         }
@@ -162,8 +145,10 @@ public class AsyncReceiver2 {
                 } catch (IOException x) {
                     logger.info("IOException closing link:\n" + x.toString());
                 }
-                synchronized (blocker) {
-                    blocker.notify();
+                synchronized (AsyncReceiver2.this) {
+                    // on exiting this block, we're sure that
+                    // the main thread is now sitting in the wait
+                    // call, awaiting the unbind request.
                 }
             }
         }
@@ -205,8 +190,8 @@ public class AsyncReceiver2 {
             }
 
             logger.info("Receiver thread has exited.");
-            synchronized (blocker) {
-                blocker.notify();
+            synchronized (AsyncReceiver2.this) {
+                AsyncReceiver2.this.notify();
             }
         }
 
@@ -219,18 +204,10 @@ public class AsyncReceiver2 {
                     .info("Receiver thread exited abnormally. The following"
                             + " exception was thrown:\n"
                             + ev.getException().toString());
-            synchronized (blocker) {
-                blocker.notify();
+            synchronized (AsyncReceiver2.this) {
+                AsyncReceiver2.this.notify();
             }
         }
 
-    }
-
-    public static void main(String[] clargs) {
-        AsyncReceiver2 a2 = new AsyncReceiver2();
-        a2.init(clargs);
-        a2.run();
-
-        System.exit(0);
     }
 }

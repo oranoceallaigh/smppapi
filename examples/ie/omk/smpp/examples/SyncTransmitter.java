@@ -30,10 +30,9 @@ import ie.omk.smpp.message.SubmitSM;
 import ie.omk.smpp.message.SubmitSMResp;
 import ie.omk.smpp.message.UnbindResp;
 
-import java.util.HashMap;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.tools.ant.BuildException;
 
 /**
  * Example class to submit a message to a SMSC using synchronous communication.
@@ -42,55 +41,25 @@ import org.apache.commons.logging.LogFactory;
  * @see ie.omk.smpp.examples.ParseArgs ParseArgs for details on running this
  *      class.
  */
-public class SyncTransmitter {
-
-    private HashMap myArgs = new HashMap();
-
-    private Connection myConnection = null;
+public class SyncTransmitter extends SMPPAPIExample {
 
     private Log logger = LogFactory.getLog(SyncTransmitter.class);
 
     public SyncTransmitter() {
     }
 
-    private void init(String[] args) {
-        try {
-            myArgs = ParseArgs.parse(args);
-
-            int port = Integer.parseInt((String) myArgs.get(ParseArgs.PORT));
-
-            myConnection = new Connection((String) myArgs
-                    .get(ParseArgs.HOSTNAME), port);
-        } catch (Exception x) {
-            logger.info("Bad command line arguments.");
-        }
-    }
-
-    private void run() {
+    public void execute() throws BuildException {
         try {
             logger.info("Binding to the SMSC");
 
-            // Bind the short way:
-            BindResp resp = myConnection.bind(Connection.TRANSMITTER,
-                    (String) myArgs.get(ParseArgs.SYSTEM_ID), (String) myArgs
-                            .get(ParseArgs.PASSWORD), (String) myArgs
-                            .get(ParseArgs.SYSTEM_TYPE), Integer
-                            .parseInt((String) myArgs
-                                    .get(ParseArgs.ADDRESS_TON)), Integer
-                            .parseInt((String) myArgs
-                                    .get(ParseArgs.ADDRESS_NPI)),
-                    (String) myArgs.get(ParseArgs.ADDRESS_RANGE));
-
-            // The following achieves exactly the same thing:
-            // Bind req =
-            // (Bind)myConnection.newInstance(SMPPPacket.BIND_TRANSMITTER);
-            // req.setSystemType((String)myArgs.get(ParseArgs.SYSTEM_TYPE));
-            // req.setSystemId((String)myArgs.get(ParseArgs.SYSTEM_ID));
-            // req.setPassword((String)myArgs.get(ParseArgs.PASSWORD));
-            // req.setAddressTON(Integer.parseInt((String)myArgs.get(ParseArgs.ADDRESS_TON)));
-            // req.setAddressNPI(Integer.parseInt((String)myArgs.get(ParseArgs.ADDRESS_NPI)));
-            // req.setAddressRange((String)myArgs.get(ParseArgs.ADDRESS_RANGE));
-            // BindResp resp = myConnection.sendRequest(req);
+            BindResp resp = myConnection.bind(
+                    Connection.TRANSMITTER,
+                    systemID,
+                    password,
+                    systemType,
+                    sourceTON,
+                    sourceNPI,
+                    sourceAddress);
 
             if (resp.getCommandStatus() != 0) {
                 logger.info("SMSC bind failed.");
@@ -100,8 +69,7 @@ public class SyncTransmitter {
             logger.info("Bind successful...submitting a message.");
 
             // Submit a simple message
-            SubmitSM sm = (SubmitSM) myConnection
-                    .newInstance(SMPPPacket.SUBMIT_SM);
+            SubmitSM sm = (SubmitSM) myConnection.newInstance(SMPPPacket.SUBMIT_SM);
             sm.setDestination(new Address(0, 0, "3188332314"));
             sm.setMessageText("This is an example short message.");
             SubmitSMResp smr = (SubmitSMResp) myConnection.sendRequest(sm);
@@ -120,11 +88,5 @@ public class SyncTransmitter {
             logger.info("An exception occurred.");
             x.printStackTrace(System.err);
         }
-    }
-
-    public static final void main(String[] args) {
-        SyncTransmitter t = new SyncTransmitter();
-        t.init(args);
-        t.run();
     }
 }
