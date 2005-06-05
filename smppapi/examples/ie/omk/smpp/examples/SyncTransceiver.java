@@ -29,12 +29,10 @@ import ie.omk.smpp.message.SMPPPacket;
 import ie.omk.smpp.message.SubmitSM;
 import ie.omk.smpp.message.SubmitSMResp;
 import ie.omk.smpp.message.UnbindResp;
-import ie.omk.smpp.version.SMPPVersion;
-
-import java.util.HashMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.tools.ant.BuildException;
 
 /**
  * A synchronous transceiver example. Using sync mode for either a transceiver
@@ -45,48 +43,29 @@ import org.apache.commons.logging.LogFactory;
  * @see ie.omk.smpp.examples.ParseArgs ParseArgs for details on running this
  *      class.
  */
-public class SyncTransceiver {
-
-    private HashMap myArgs = new HashMap();
-
-    private Connection myConnection = null;
+public class SyncTransceiver extends SMPPAPIExample {
 
     private Log logger = LogFactory.getLog(SyncTransceiver.class);
 
     public SyncTransceiver() {
     }
 
-    private void init(String[] args) {
+    public void execute() throws BuildException {
         try {
-            myArgs = ParseArgs.parse(args);
-
-            int port = Integer.parseInt((String) myArgs.get(ParseArgs.PORT));
-
-            myConnection = new Connection((String) myArgs
-                    .get(ParseArgs.HOSTNAME), port);
-            myConnection.setVersion(SMPPVersion.V34);
+            myConnection = new Connection(hostName, port);
             myConnection.autoAckLink(true);
             myConnection.autoAckMessages(true);
-
-        } catch (Exception x) {
-            logger.info("Bad command line arguments.");
-        }
-    }
-
-    private void run() {
-        try {
+            
             logger.info("Binding to the SMSC");
 
-            // Bind the short way:
-            BindResp resp = myConnection.bind(Connection.TRANSCEIVER,
-                    (String) myArgs.get(ParseArgs.SYSTEM_ID), (String) myArgs
-                            .get(ParseArgs.PASSWORD), (String) myArgs
-                            .get(ParseArgs.SYSTEM_TYPE), Integer
-                            .parseInt((String) myArgs
-                                    .get(ParseArgs.ADDRESS_TON)), Integer
-                            .parseInt((String) myArgs
-                                    .get(ParseArgs.ADDRESS_NPI)),
-                    (String) myArgs.get(ParseArgs.ADDRESS_RANGE));
+            BindResp resp = myConnection.bind(
+                    Connection.TRANSCEIVER,
+                    systemID,
+                    password,
+                    systemType,
+                    sourceTON,
+                    sourceNPI,
+                    sourceAddress);
 
             if (resp.getCommandStatus() != 0) {
                 logger.info("SMSC bind failed.");
@@ -96,8 +75,7 @@ public class SyncTransceiver {
             logger.info("Bind successful...submitting a message.");
 
             // Submit a simple message
-            SubmitSM sm = (SubmitSM) myConnection
-                    .newInstance(SMPPPacket.SUBMIT_SM);
+            SubmitSM sm = (SubmitSM) myConnection.newInstance(SMPPPacket.SUBMIT_SM);
             sm.setDestination(new Address(0, 0, "3188332314"));
             sm.setMessageText("This is an example short message.");
             SubmitSMResp smr = (SubmitSMResp) myConnection.sendRequest(sm);
@@ -128,11 +106,5 @@ public class SyncTransceiver {
             logger.info("An exception occurred.");
             x.printStackTrace(System.err);
         }
-    }
-
-    public static final void main(String[] args) {
-        SyncTransceiver t = new SyncTransceiver();
-        t.init(args);
-        t.run();
     }
 }

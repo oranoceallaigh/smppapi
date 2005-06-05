@@ -37,10 +37,10 @@ import ie.omk.smpp.message.SubmitSMResp;
 import ie.omk.smpp.util.GSMConstants;
 
 import java.io.IOException;
-import java.util.HashMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.tools.ant.BuildException;
 
 /**
  * Example class to submit a message to a SMSC using asynchronous communication.
@@ -50,13 +50,9 @@ import org.apache.commons.logging.LogFactory;
  * @see ie.omk.smpp.examples.ParseArgs ParseArgs for details on running this
  *      class.
  */
-public class AsyncTransmitter implements ConnectionObserver {
+public class AsyncTransmitter extends SMPPAPIExample implements ConnectionObserver {
 
     private Object blocker = new Object();
-
-    private Connection myConnection = null;
-
-    private HashMap myArgs = new HashMap();
 
     private Log logger = LogFactory.getLog(AsyncTransmitter.class);
 
@@ -147,13 +143,13 @@ public class AsyncTransmitter implements ConnectionObserver {
     // Send a short message to the SMSC
     public void send(Connection myConnection) {
         try {
-            String message = new String("Test Short Message. :-)");
             Address destination = new Address(GSMConstants.GSM_TON_UNKNOWN,
                     GSMConstants.GSM_NPI_UNKNOWN, "87654321");
-            SubmitSM sm = (SubmitSM) myConnection
-                    .newInstance(SMPPPacket.SUBMIT_SM);
+
+            SubmitSM sm = (SubmitSM) myConnection.newInstance(SMPPPacket.SUBMIT_SM);
             sm.setDestination(destination);
-            sm.setMessageText(message);
+            sm.setMessageText("Test Short Message. :-)");
+
             myConnection.sendRequest(sm);
         } catch (IOException x) {
             logger.warn("I/O Exception", x);
@@ -162,21 +158,10 @@ public class AsyncTransmitter implements ConnectionObserver {
         }
     }
 
-    private void init(String[] args) {
+    public void execute() throws BuildException {
         try {
-            myArgs = ParseArgs.parse(args);
-
-            int port = Integer.parseInt((String) myArgs.get(ParseArgs.PORT));
-
-            myConnection = new Connection((String) myArgs
-                    .get(ParseArgs.HOSTNAME), port, true);
-        } catch (Exception x) {
-            System.err.println("Bad command line arguments.");
-        }
-    }
-
-    private void run() {
-        try {
+            myConnection = new Connection(hostName, port, true);
+            
             // Need to add myself to the list of listeners for this connection
             myConnection.addObserver(this);
 
@@ -185,29 +170,20 @@ public class AsyncTransmitter implements ConnectionObserver {
 
             // Bind to the SMSC (as a transmitter)
             logger.info("Binding to the SMSC..");
-            BindResp resp = myConnection.bind(Connection.TRANSMITTER,
-                    (String) myArgs.get(ParseArgs.SYSTEM_ID), (String) myArgs
-                            .get(ParseArgs.PASSWORD), (String) myArgs
-                            .get(ParseArgs.SYSTEM_TYPE), Integer
-                            .parseInt((String) myArgs
-                                    .get(ParseArgs.ADDRESS_TON)), Integer
-                            .parseInt((String) myArgs
-                                    .get(ParseArgs.ADDRESS_NPI)),
-                    (String) myArgs.get(ParseArgs.ADDRESS_RANGE));
+            BindResp resp = myConnection.bind(
+                    Connection.TRANSMITTER,
+                    systemID,
+                    password,
+                    systemType,
+                    sourceTON,
+                    sourceNPI,
+                    sourceAddress);
 
             synchronized (blocker) {
                 blocker.wait();
             }
-        } catch (IOException x) {
-            logger.warn("I/O Exception", x);
-        } catch (InterruptedException x) {
-            logger.warn("Interrupted exception", x);
+        } catch (Exception x) {
+            throw new BuildException("Exception running example: " + x.getMessage(), x);
         }
-    }
-
-    public static void main(String[] clargs) {
-        AsyncTransmitter at = new AsyncTransmitter();
-        at.init(clargs);
-        at.run();
     }
 }

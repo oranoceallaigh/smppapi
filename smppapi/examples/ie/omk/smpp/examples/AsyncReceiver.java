@@ -38,6 +38,7 @@ import java.util.Date;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.tools.ant.BuildException;
 
 /**
  * Example SMPP receiver using asynchronous communications. This example
@@ -47,7 +48,7 @@ import org.apache.commons.logging.LogFactory;
  * @see ie.omk.smpp.examples.ParseArgs ParseArgs for details on running this
  *      class.
  */
-public class AsyncReceiver implements ConnectionObserver {
+public class AsyncReceiver extends SMPPAPIExample implements ConnectionObserver {
 
     private Log logger = LogFactory.getLog(AsyncReceiver.class);
 
@@ -58,10 +59,6 @@ public class AsyncReceiver implements ConnectionObserver {
 
     // End time (either send an unbind or an unbind received).
     private long end = 0;
-
-    private Connection myConnection = null;
-
-    private java.util.HashMap myArgs = null;
 
     // This is called when the connection receives a packet from the SMSC.
     public void update(Connection r, SMPPEvent ev) {
@@ -84,6 +81,12 @@ public class AsyncReceiver implements ConnectionObserver {
                 this.start = System.currentTimeMillis();
                 logger.info("Successfully bound. Waiting for message"
                         + " delivery..");
+
+                synchronized (this) {
+                    // on exiting this block, we're sure that
+                    // the main thread is now sitting in the wait
+                    // call, awaiting the unbind request.
+                }
             }
             break;
 
@@ -108,6 +111,10 @@ public class AsyncReceiver implements ConnectionObserver {
             try {
                 UnbindResp ubr = new UnbindResp((Unbind) pak);
                 myConnection.sendResponse(ubr);
+                
+                synchronized (this) {
+                    notify();
+                }
             } catch (IOException x) {
                 logger.warn("Exception", x);
             } finally {
@@ -119,6 +126,9 @@ public class AsyncReceiver implements ConnectionObserver {
         case SMPPPacket.UNBIND_RESP:
             this.end = System.currentTimeMillis();
             logger.info("\nUnbound.");
+            synchronized (this) {
+                notify();
+            }
             endReport();
             break;
 
@@ -150,21 +160,10 @@ public class AsyncReceiver implements ConnectionObserver {
         logger.info("Elapsed: " + (end - start) + " milliseconds.");
     }
 
-    private void init(String[] args) {
+    public void execute() throws BuildException {
         try {
-            myArgs = ParseArgs.parse(args);
-
-            int port = Integer.parseInt((String) myArgs.get(ParseArgs.PORT));
-
-            myConnection = new Connection((String) myArgs
-                    .get(ParseArgs.HOSTNAME), port, true);
-        } catch (Exception x) {
-            logger.info("Bad command line arguments.");
-        }
-    }
-
-    private void run() {
-        try {
+            myConnection = new Connection(hostName, port, true);
+            
             // Need to add myself to the list of listeners for this connection
             myConnection.addObserver(this);
 
@@ -174,36 +173,24 @@ public class AsyncReceiver implements ConnectionObserver {
 
             // Bind to the SMSC
             logger.info("Binding to the SMSC..");
-            BindResp resp = myConnection.bind(Connection.RECEIVER,
-                    (String) myArgs.get(ParseArgs.SYSTEM_ID), (String) myArgs
-                            .get(ParseArgs.PASSWORD), (String) myArgs
-                            .get(ParseArgs.SYSTEM_TYPE), Integer
-                            .parseInt((String) myArgs
-                                    .get(ParseArgs.ADDRESS_TON)), Integer
-                            .parseInt((String) myArgs
-                                    .get(ParseArgs.ADDRESS_NPI)),
-                    (String) myArgs.get(ParseArgs.ADDRESS_RANGE));
 
-            logger.info("Hit a key to issue an unbind..");
-            System.in.read();
-
-            if (myConnection.getState() == Connection.BOUND) {
-                logger.info("Sending unbind request..");
-                myConnection.unbind();
+            synchronized (this) {
+                BindResp resp = myConnection.bind(
+                        Connection.RECEIVER,
+                        systemID,
+                        password,
+                        systemType,
+                        sourceTON,
+                        sourceNPI,
+                        sourceAddress);
+    
+                logger.info("Waiting for unbind...");
+                wait();
             }
 
-            Thread.sleep(2000);
-
             myConnection.closeLink();
-        } catch (IOException x) {
-            logger.warn("Exception", x);
-        } catch (InterruptedException x) {
+        } catch (Exception x) {
+            throw new BuildException("Exception occurred while running example: " + x.getMessage() , x);
         }
-    }
-
-    public static void main(String[] clargs) {
-        AsyncReceiver ex = new AsyncReceiver();
-        ex.init(clargs);
-        ex.run();
     }
 }
