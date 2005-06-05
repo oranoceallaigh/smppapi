@@ -34,6 +34,14 @@
     <pathelement location="${lib}/commons-logging.jar"/>
   </path>
 
+    <path id="tests.classpath">
+      <pathelement location="${resources}"/>
+      <path refid="build.classpath"/>
+      <pathelement location="${lib}/junit.jar"/>
+      <pathelement location="${lib}/${tests-jar}"/>
+      <pathelement location="${lib}/${api-jar}"/>
+      <pathelement location="${lib}/log4j-1.2.5.jar"/>
+    </path>
 
   <target name="init">
     <tstamp/>
@@ -137,26 +145,14 @@
   <target name="tests" depends="init,api-jar,tests-jar">
     <java classname="junit.textui.TestRunner" fork="true">
       <arg value="ie.omk.smpp.AllTests"/>
-      <classpath>
-        <pathelement location="${resources}"/>
-        <path refid="build.classpath"/>
-        <pathelement location="${lib}/junit.jar"/>
-        <pathelement location="${lib}/${tests-jar}"/>
-        <pathelement location="${lib}/${api-jar}"/>
-      </classpath>
+      <classpath refid="tests.classpath"/>
     </java>
   </target>
 
   <target name="gui-tests" depends="init,api-jar,tests-jar">
     <java classname="junit.swingui.TestRunner" fork="true">
       <arg value="ie.omk.smpp.AllTests"/>
-      <classpath>
-        <pathelement location="${resources}"/>
-        <path refid="build.classpath"/>
-        <pathelement location="${lib}/junit.jar"/>
-        <pathelement location="${lib}/${tests-jar}"/>
-        <pathelement location="${lib}/${api-jar}"/>
-      </classpath>
+      <classpath refid="tests.classpath"/>
     </java>
   </target>
 
