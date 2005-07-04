@@ -608,7 +608,7 @@ public class Connection implements java.lang.Runnable {
      *             if the version in use does not support the request being
      *             sent.
      */
-    protected synchronized SMPPResponse sendRequestInternal(SMPPRequest r)
+    protected SMPPResponse sendRequestInternal(SMPPRequest r)
             throws java.net.SocketTimeoutException, java.io.IOException,
             AlreadyBoundException, VersionException, SMPPProtocolException {
         SMPPResponse resp = null;
@@ -695,7 +695,7 @@ public class Connection implements java.lang.Runnable {
      * @see #readNextPacket
      * @see java.net.SocketTimeoutException
      */
-    protected synchronized SMPPResponse waitForResponsePacket(SMPPPacket req)
+    protected SMPPResponse waitForResponsePacket(SMPPPacket req)
             throws java.net.SocketTimeoutException, java.io.IOException,
             SMPPProtocolException {
         try {
@@ -1186,7 +1186,7 @@ public class Connection implements java.lang.Runnable {
      *             If an I/O error occurs while reading from the network
      *             connection.
      */
-    private synchronized SMPPPacket readNextPacketInternal()
+    private SMPPPacket readNextPacketInternal()
             throws java.io.IOException, SMPPProtocolException {
         try {
             SMPPPacket pak = null;
