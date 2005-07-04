@@ -100,7 +100,7 @@
   <target name="compile-examples" depends="init,compile-api">
     <mkdir dir="${examples-build}"/>
     <javac srcdir="${examples-src}" destdir="${examples-build}"
-        deprecation="true">
+        deprecation="true" debug="true">
       <classpath>
         <path refid="build.classpath"/>
         <pathelement location="${api-build}"/>
