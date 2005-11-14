@@ -52,7 +52,7 @@
         <pathelement location="${lib}/smppapi.jar"/>
         <pathelement location="${lib}/smpp-examples.jar"/>
         <pathelement location="${lib}/commons-logging.jar"/>
-		<!-- The log4j Jar is optional. -->
+        <!-- The log4j Jar is optional. -->
         <pathelement location="${lib}/log4j-1.2.5.jar"/>
         <!--
          - The resources directory contains the smppapi properties and

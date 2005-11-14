@@ -1,236 +1,298 @@
 <!--  Java SMPP API                                                         -->
-<!--  Copyright (C) 1998 - 2002 by Oran Kelly                               -->
-
-<!--  This library is free software; you can redistribute it and/or         -->
-<!--  modify it under the terms of the GNU Lesser General Public            -->
-<!--  License as published by the Free Software Foundation; either          -->
-<!--  version 2.1 of the License, or (at your option) any later version.    -->
-<!--   -->
-<!--  This library is distributed in the hope that it will be useful,       -->
-<!--  but WITHOUT ANY WARRANTY; without even the implied warranty of        -->
-<!--  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU     -->
-<!--  Lesser General Public License for more details.                       -->
-
-<!--  You should have received a copy of the GNU Lesser General Public      -->
-<!--  License along with this library; if not, write to the Free Software   -->
-<!--  Foundation, Inc., 59 Temple Place, Suite 330, Boston,                 -->
-<!--  MA  02111-1307  USA                                                   -->
-
-<!--  A copy of the LGPL can be viewed at                                   -->
-<!--  http://www.gnu.org/copyleft/lesser.html                               -->
+<!--  Copyright (C) 1998 - 2005 by Oran Kelly                               -->
 <!--  Java SMPP API author: orank@users.sf.net                              -->
 <!--  Java SMPP API Homepage: http://smppapi.sourceforge.net/               -->
 
-<!--  $Id$                                                                 -->
+<!--  $Id$ -->
 
-<project name="smppapi" basedir="." default="api-jar">
+<project name="smppapi" basedir="." default="all">
 
-  <!-- Load in the build properties -->
-  <property file="build.properties"/>
+    <!-- Load in the build properties -->
+    <property file="build.properties" />
 
-
-  <!-- Any libraries needed to build the base API go in here. -->
-  <path id="build.classpath">
-    <pathelement location="${lib}/commons-logging.jar"/>
-  </path>
-
-    <path id="tests.classpath">
-      <pathelement location="${resources}"/>
-      <path refid="build.classpath"/>
-      <pathelement location="${lib}/junit.jar"/>
-      <pathelement location="${lib}/${tests-jar}"/>
-      <pathelement location="${lib}/${api-jar}"/>
-      <pathelement location="${lib}/log4j-1.2.5.jar"/>
+    <!-- Any libraries needed to build the base API go in here. -->
+    <path id="build.classpath">
+        <pathelement location="${lib}/commons-logging.jar" />
     </path>
 
-  <target name="init">
-    <tstamp/>
-  </target>
+    <!-- Path for the Emma code coverage utility. -->
+    <path id="emma.classpath">
+        <fileset dir="${build.lib}">
+            <include name="emma.jar"/>
+            <include name="emma_ant.jar"/>
+        </fileset>
+    </path>
 
-  <!-- Build all -->
-  <target name="all" depends="init,jars,docs,tests"/>
+    <!-- Classpath for building the test suite -->
+    <path id="tests.classpath">
+        <pathelement location="${api-build}" />
+        <pathelement location="${resources}" />
+        <path refid="build.classpath" />
+        <pathelement location="${build.lib}/junit.jar" />
+        <pathelement location="${lib}/log4j-1.2.5.jar" />
+    </path>
+        
+    <!-- Classpath for running the test suite -->
+    <path id="runtests.classpath">
+        <pathelement location="${coverage-build}" />
+        <pathelement location="${tests-build}" />
+        <path refid="tests.classpath"/>
+        <path refid="emma.classpath"/>
+    </path>
+    
+    <!-- Classpath for running the checkstyle task. -->
+    <path id="checkstyle.classpath">
+        <fileset dir="${build.lib}">
+            <include name="checkstyle-4.0-beta6.jar"/>
+            <include name="checkstyle-optional-4.0-beta6.jar"/>
+            <include name="commons-beanutils-core.jar"/>
+            <include name="commons-cli.jar"/>
+            <include name="commons-collections.jar"/>
+            <include name="antlr.jar"/>
+        </fileset>
+        <fileset dir="${lib}">
+            <include name="commons-logging.jar"/>
+            <include name="log4j-1.2.5.jar"/>
+        </fileset>
+    </path>
+    
+    <taskdef resource="checkstyletask.properties" classpathref="checkstyle.classpath"/>
+    <taskdef resource="emma_ant.properties" classpathref="emma.classpath"/>
+    
+    <target name="init">
+        <tstamp />
+    </target>
 
-  <!-- Build the API -->
-  <target name="compile-api" depends="init">
-    <mkdir dir="${api-build}"/>
-    <javac srcdir="${api-src}" destdir="${api-build}" deprecation="true"
-      debug="${build.debug}">
-      <classpath refid="build.classpath"/>
-    </javac>
-  </target>
+    <!-- Build everything: compile the API, examples and tests, run -->
+    <!-- Checkstyle, the Unit test suite and generate the code coverage -->
+    <!-- report. -->
+    <target name="all" depends="init,jars,docs,api-checkstyle,tests,tests-coverage"
+            description="Do everything!."/>
 
-  <!-- Build the smppapi Jar file -->
-  <target name="api-jar" depends="init,compile-api">
-    <jar jarfile="${lib}/${api-jar}">
-      <fileset dir="${api-build}"/>
-    </jar>
-  </target>
+    <!-- Build the API -->
+    <target name="compile-api" depends="init" description="Compile the API source.">
+        <mkdir dir="${api-build}" />
+        <javac srcdir="${api-src}" destdir="${api-build}" deprecation="true" debug="${build.debug}">
+            <classpath refid="build.classpath" />
+        </javac>
+    </target>
 
-  <target name="clean-api" depends="init">
-    <delete dir="${api-build}"/>
-    <delete file="${lib}/${api-jar}"/>
-  </target>
+    <!-- Build the smppapi Jar file -->
+    <target name="api-jar" depends="init,compile-api" description="Build the API Jar file.">
+        <jar jarfile="${lib}/${api-jar}">
+            <fileset dir="${api-build}" />
+        </jar>
+    </target>
 
-  <!-- Build the javadoc files -->
-  <target name="docs" depends="init">
-    <mkdir dir="${apiDoc}"/>
-    <javadoc packagenames="ie.omk.smpp.*"
-             destdir="${apiDoc}"
-             Overview="docs/overview.html"
-             protected="true"
-             version="true"
-             author="true"
-             Windowtitle="Java SMPP API documentation"
-             bottom="&lt;font size=-1&gt;&lt;i&gt;&amp;copy; Copyright 2002 by Oran Kelly&lt;/i&gt;&lt;/font&gt;"
-             header="&lt;b&gt;&lt;font size=-1&gt;SMPPAPI&lt;/font&gt;&lt;br&gt;documentation&lt;/b&gt;">
-      <fileset dir="${api-src}" />
-      <fileset dir="${examples-src}" />
-      <classpath>
-          <path refid="build.classpath"/>
-          <pathelement location="${ant.home}/lib/ant.jar"/>
-      </classpath>
-    </javadoc>
-  </target>
+    <target name="clean-api" depends="init" description="Clean the API build files.">
+        <delete dir="${api-build}" />
+        <delete file="${lib}/${api-jar}" />
+    </target>
 
-  <target name="clean-docs" depends="init">
-    <delete dir="${apiDoc}"/>
-  </target>
+    <target name="api-checkstyle" depends="init,run-checkstyle,checkstyle-report" description="Run Checkstyle on the API source."/>
+    
+    <target name="run-checkstyle" depends="init">
+        <mkdir dir="${checkstyle-report-xml}"/>
+        <checkstyle config="${tests-src}/checkstyle.xml" failonviolation="false">
+            <fileset dir="${api-src}" includes="**/*.java"/>
+            <formatter type="xml" tofile="${checkstyle-report-xml}/checkstyle-report.xml"/>
+        </checkstyle>
+    </target>
+    
+    <target name="checkstyle-report" depends="init" description="Generate the HTML Checkstyle report.">
+        <mkdir dir="${checkstyle-report-html}"/>
+        <style in="${checkstyle-report-xml}/checkstyle-report.xml"
+               out="${checkstyle-report-html}/checkstyle-report.html"
+               style="${build.lib}/checkstyle-frames.xsl"/>
+        <echo>Checkstyle report is at file://${basedir}/${checkstyle-report-html}/index.html</echo>
+    </target>
+    
+    <!-- Build the javadoc files -->
+    <target name="docs" depends="init" description="Generate the API JavaDoc">
+        <mkdir dir="${apiDoc}" />
+        <javadoc packagenames="ie.omk.smpp.*" destdir="${apiDoc}" Overview="docs/overview.html" protected="true" version="true" author="true" Windowtitle="Java SMPP API documentation" bottom="&lt;font size=-1&gt;&lt;i&gt;&amp;copy; Copyright 2002 by Oran Kelly&lt;/i&gt;&lt;/font&gt;" header="&lt;b&gt;&lt;font size=-1&gt;SMPPAPI&lt;/font&gt;&lt;br&gt;documentation&lt;/b&gt;">
+            <fileset dir="${api-src}" />
+            <fileset dir="${examples-src}" />
+            <classpath>
+                <path refid="build.classpath" />
+                <pathelement location="${ant.home}/lib/ant.jar" />
+            </classpath>
+        </javadoc>
+    </target>
 
-  <!-- Build the examples -->
-  <target name="compile-examples" depends="init,compile-api">
-    <mkdir dir="${examples-build}"/>
-    <javac srcdir="${examples-src}" destdir="${examples-build}"
-        deprecation="true" debug="true">
-      <classpath>
-        <path refid="build.classpath"/>
-        <pathelement location="${api-build}"/>
-        <pathelement location="${ant.home}/lib/ant.jar"/>
-      </classpath>
-    </javac>
-  </target>
+    <target name="clean-docs" depends="init" description="Clean the generated JavaDoc files.">
+        <delete dir="${apiDoc}" />
+    </target>
 
-  <target name="clean-examples" depends="init">
-    <delete dir="${examples-build}"/>
-    <delete file="${lib}/${examples-jar}"/>
-  </target>
+    <!-- Build the examples -->
+    <target name="compile-examples" depends="init,compile-api" description="Compile the examples source.">
+        <mkdir dir="${examples-build}" />
+        <javac srcdir="${examples-src}" destdir="${examples-build}" deprecation="true" debug="true">
+            <classpath>
+                <path refid="build.classpath" />
+                <pathelement location="${api-build}" />
+                <pathelement location="${ant.home}/lib/ant.jar" />
+            </classpath>
+        </javac>
+    </target>
 
-  <!-- Build the examples jar -->
-  <target name="examples-jar" depends="init,compile-examples,api-jar">
-    <jar jarfile="${lib}/${examples-jar}">
-      <fileset dir="${examples-build}"/>
-    </jar>
-  </target>
+    <target name="clean-examples" depends="init" description="Clean up the examples build files.">
+        <delete dir="${examples-build}" />
+        <delete file="${lib}/${examples-jar}" />
+    </target>
+
+    <!-- Build the examples jar -->
+    <target name="examples-jar" depends="init,compile-examples,api-jar" description="Build the examples Jar file.">
+        <jar jarfile="${lib}/${examples-jar}">
+            <fileset dir="${examples-build}" />
+        </jar>
+    </target>
 
 
-  <!-- Build the tests -->
-  <target name="compile-tests" depends="init,compile-api">
-    <mkdir dir="${tests-build}"/>
-    <javac srcdir="${tests-src}" destdir="${tests-build}" deprecation="true"
-      debug="true">
-      <classpath>
-        <pathelement location="${lib}/junit.jar"/>
-        <pathelement location="${api-build}"/>
-        <pathelement location="${examples-build}"/>
-      </classpath>
-    </javac>
-  </target>
+    <!-- Build the tests -->
+    <target name="compile-tests" depends="init,compile-api" description="Compile the unit test source.">
+        <mkdir dir="${tests-build}" />
+        <javac srcdir="${tests-src}" destdir="${tests-build}" deprecation="true" debug="true">
+            <classpath refid="tests.classpath"/>
+        </javac>
+    </target>
 
-  <target name="clean-tests" depends="init">
-    <delete dir="${tests-build}"/>
-    <delete file="${lib}/${tests-jar}"/>
-  </target>
+    <target name="clean-tests" depends="init" description="Clean up the tests build files.">
+        <delete dir="${tests-build}" />
+    </target>
 
-  <target name="tests-jar" depends="init,compile-tests,api-jar">
-    <jar jarfile="${lib}/${tests-jar}">
-      <fileset dir="${tests-build}"/>
-    </jar>
-  </target>
 
-  <target name="tests" depends="init,api-jar,tests-jar">
-    <java classname="junit.textui.TestRunner" fork="true">
-      <arg value="ie.omk.smpp.AllTests"/>
-      <classpath refid="tests.classpath"/>
-    </java>
-  </target>
+    <target name="tests" depends="init,run-testsuite,tests-report" description="Run the unit test suite"/>
 
-  <target name="gui-tests" depends="init,api-jar,tests-jar">
-    <java classname="junit.swingui.TestRunner" fork="true">
-      <arg value="ie.omk.smpp.AllTests"/>
-      <classpath refid="tests.classpath"/>
-    </java>
-  </target>
+    <target name="run-testsuite" depends="init,compile-api,compile-tests">
+        <mkdir dir="${tests-report-xml}"/>
+        <junit fork="true" dir="${basedir}">
+            <classpath refid="runtests.classpath"/>
+            <jvmarg value="-Demma.coverage.out.file=${coverage-report-raw}/coverage.emma" />
+            <jvmarg value="-Demma.coverage.out.merge=true" />
+            <batchtest todir="${tests-report-xml}">
+                <fileset dir="${tests-build}">
+                    <include name="**/*Test.class"/>
+                </fileset>
+            </batchtest>
+            <formatter type="xml"/>
+            <assertions>
+                <enable/>
+            </assertions>
+        </junit>
+    </target>
+    
+    <target name="tests-report" description="Generate HTML unit test report">
+        <mkdir dir="${tests-report-html}"/>
+        <junitreport todir="${tests-report-xml}">
+            <fileset dir="${tests-report-xml}">
+                <include name="**/TEST-*.xml"/>
+                <exclude name="TEST-TestSuites.xml"/>
+            </fileset>
+            <report format="frames" todir="${tests-report-html}"/>
+        </junitreport>
+        <echo>Unit test report is at file://${basedir}/${tests-report-html}/index.html</echo>
+    </target>
 
-  <!-- Build the project jar files -->
-  <target name="jars" depends="init,api-jar,examples-jar,tests-jar"/>
+    <!-- Unit test suite instrumentation tasks -->
+    <target name="coverage-instrumentation" depends="init,compile-api">
+        <mkdir dir="${coverage-build}"/>
+        <mkdir dir="${coverage-report-raw}"/>
+        <emma enabled="true">
+            <instr instrpath="${api-build}" destdir="${coverage-build}"
+                metadatafile="${coverage-report-raw}/metadata.emma" merge="false"/>
+        </emma>
+    </target>
+    
+    <target name="coverage-report" depends="init">
+        <delete dir="${coverage-report-html}"/>
+        <mkdir dir="${coverage-report-html}"/>
+        <emma enabled="true">
+            <report sourcepath="${api-src}">
+                <fileset dir="${coverage-report-raw}" includes="**/*.emma"/>
+                <html outfile="${coverage-report-html}/coverage.html"/>
+            </report>
+        </emma>
+        <echo>Coverage report is at file://${basedir}/${coverage-report-html}/coverage.html</echo>
+    </target>
+    
+    <target name="tests-coverage" depends="init,coverage-instrumentation"
+            description="Generate the unit test coverage report.">
+        <antcall target="run-testsuite"/>
+        <antcall target="coverage-report"/>
+    </target>
+    
+    <!-- Build the project jar files -->
+    <target name="jars" depends="init,api-jar,examples-jar" description="Build all project Jars"/>
 
-  <target name="clean-jars">
-    <delete>
-      <fileset dir="${lib}">
-        <include name="${tests-jar}"/>
-        <include name="${examples-jar}"/>
-        <include name="${api-jar}"/>
-      </fileset>
-    </delete>
-  </target>
+    <target name="clean-jars" description="Clean up all generated Jar files">
+        <delete>
+            <fileset dir="${lib}">
+                <include name="${examples-jar}" />
+                <include name="${api-jar}" />
+            </fileset>
+        </delete>
+    </target>
 
-  <!-- Build the distribution. -->
-  <target name="dist" depends="init,really-clean,all">
-    <fail unless="releaseNumber">
+    <!-- Build the distribution. -->
+    <target name="dist" depends="init,really-clean,all" description="Build a release">
+        <fail unless="releaseNumber">
         You must supply a value for the "releaseNumber" property.
-    </fail>
+        </fail>
 
-    <property name="releaseDir" value="${dist}/smppapi-${releaseNumber}"/>
+        <property name="releaseDir" value="${dist}/smppapi-${releaseNumber}" />
 
-    <mkdir dir="${releaseDir}"/>
+        <mkdir dir="${releaseDir}" />
 
-    <!-- Output Java build version info -->
-    <echo level="info" file="${releaseDir}/BUILDINFO">
-      This SMPPAPI distribution was built on the following:
-      JRE version: ${java.version}
-      JRE vendor: ${java.vendor} (${java.vendor.url})
-      Built on: ${os.name} ${os.version} architecture: ${os.arch}
-    </echo>
+        <!-- Output Java build version info -->
+        <echo level="info" file="${releaseDir}/BUILDINFO">
+This SMPPAPI distribution was built on the following:
+JRE version: ${java.version}
+JRE vendor: ${java.vendor} (${java.vendor.url})
+Built on: ${os.name} ${os.version} architecture: ${os.arch}
+        </echo>
 
-    <copy todir="${releaseDir}" includeemptydirs="no">
-      <fileset dir="." defaultexcludes="true">
-        <exclude name="${build}/**/*.class"/>
-        <exclude name="${dist}/**/*"/>
-        <!-- Vim swap files -->
-        <exclude name="**/.*.sw?"/>
-      </fileset>
-    </copy>
+        <copy todir="${releaseDir}" includeemptydirs="no">
+            <fileset dir="." defaultexcludes="true">
+                <exclude name="${build}/**" />
+                <exclude name="${dist}/**" />
+                <!-- Vim swap files -->
+                <exclude name="**/.*.sw?" />
+            </fileset>
+        </copy>
 
-    <tar tarfile="${dist}/smppapi-${releaseNumber}.tar" basedir="${releaseDir}"/>
-    <gzip src="${dist}/smppapi-${releaseNumber}.tar" zipfile="${dist}/smppapi-${releaseNumber}.tar.gz"/>
-    <delete file="${dist}/smppapi-${releaseNumber}.tar"/>
-  </target>
+        <tar tarfile="${dist}/smppapi-${releaseNumber}.tar" basedir="${releaseDir}" />
+        <gzip src="${dist}/smppapi-${releaseNumber}.tar" zipfile="${dist}/smppapi-${releaseNumber}.tar.gz" />
+        <delete file="${dist}/smppapi-${releaseNumber}.tar" />
+    </target>
 
-  <target name="clean-dist" depends="init">
-    <delete dir="${dist}"/>
-  </target>
+    <target name="clean-dist" depends="init" description="Clean up the distribution directory">
+        <delete dir="${dist}" />
+    </target>
 
-  <!-- Clean up -->
-  <target name="clean" depends="init,clean-dist,clean-docs,clean-tests,clean-examples,clean-api">
-    <delete dir="${build}"/>
-  </target>
+    <!-- Clean up -->
+    <target name="clean" depends="init,clean-dist,clean-docs,clean-tests,clean-examples,clean-api"
+            description="Clean up all build files.">
+        <delete dir="${build}" />
+    </target>
 
-  <!-- Clean everything, including any editor backup files etc. -->
-  <target name="really-clean" depends="init,clean">
-    <delete>
-      <fileset dir="." defaultexcludes="no">
-        <include name="**/*~"/>
-        <include name="**/*.bak"/>
-        <include name="**/*-old"/>
-      </fileset>
-    </delete>
-  </target>
+    <!-- Clean everything, including any editor backup files etc. -->
+    <target name="really-clean" depends="init,clean" description="Clean up all build files as well as any editor backups.">
+        <delete>
+            <fileset dir="." defaultexcludes="no">
+                <include name="**/*~"/>
+                <include name="**/*.bak"/>
+                <include name="**/*-old"/>
+            </fileset>
+        </delete>
+    </target>
 
-  <target name="update-changelog" depends="init">
-    <exec executable="cvs2cl">
-      <arg value="--tags" />
-      <arg value="--separate-header"/>
-      <arg value="--utc"/>
-      <arg value="--prune"/>
-    </exec>
-  </target>
+    <target name="update-changelog" depends="init" description="Run the cvs2cl utility to update the ChangeLog.">
+        <exec executable="cvs2cl">
+            <arg value="--tags" />
+            <arg value="--separate-header"/>
+            <arg value="--utc"/>
+            <arg value="--prune"/>
+        </exec>
+    </target>
 </project>
