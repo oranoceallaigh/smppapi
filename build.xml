@@ -61,6 +61,9 @@
     
     <target name="init">
         <tstamp />
+        <!-- The build assumed you want a debug build unless you override -->
+        <!-- this property (or a distribution is being built). -->
+        <property name="build.debug" value="true"/>
     </target>
 
     <!-- Build everything: compile the API, examples and tests, run -->
@@ -72,21 +75,34 @@
     <!-- Build the API -->
     <target name="compile-api" depends="init" description="Compile the API source.">
         <mkdir dir="${api-build}" />
-        <javac srcdir="${api-src}" destdir="${api-build}" deprecation="true" debug="${build.debug}">
+        <javac srcdir="${api-src}" destdir="${api-build}" source="${build.source}" target="${build.target}"
+               deprecation="true" debug="${build.debug}">
             <classpath refid="build.classpath" />
         </javac>
     </target>
 
     <!-- Build the smppapi Jar file -->
-    <target name="api-jar" depends="init,compile-api" description="Build the API Jar file.">
-        <jar jarfile="${lib}/${api-jar}">
+    <target name="api-jar" depends="init,compile-api,build-manifest" description="Build the API Jar file.">
+        <!-- Set a default Jar name if it has not been previously set -->
+        <property name="api-jar" value="${api-name}.jar"/>
+        <jar jarfile="${lib}/${api-jar}" manifest="${meta-inf-build}/MANIFEST.MF">
             <fileset dir="${api-build}" />
         </jar>
+    </target>
+    <target name="build-manifest" depends="init" if="releaseNumber">
+        <mkdir dir="${meta-inf-build}"/>
+        <copy todir="${meta-inf-build}" file="${meta-inf-src}/MANIFEST.MF">
+            <filterchain>
+                <expandproperties/>
+            </filterchain>
+        </copy>
     </target>
 
     <target name="clean-api" depends="init" description="Clean the API build files.">
         <delete dir="${api-build}" />
-        <delete file="${lib}/${api-jar}" />
+        <delete>
+            <fileset dir="${lib}" includes="${api-name}*.jar" />
+        </delete>
     </target>
 
     <target name="api-checkstyle" depends="init,run-checkstyle,checkstyle-report" description="Run Checkstyle on the API source."/>
@@ -127,7 +143,8 @@
     <!-- Build the examples -->
     <target name="compile-examples" depends="init,compile-api" description="Compile the examples source.">
         <mkdir dir="${examples-build}" />
-        <javac srcdir="${examples-src}" destdir="${examples-build}" deprecation="true" debug="true">
+        <javac srcdir="${examples-src}" destdir="${examples-build}" source="${build.source}" target="${build.target}"
+               deprecation="true" debug="true">
             <classpath>
                 <path refid="build.classpath" />
                 <pathelement location="${api-build}" />
@@ -152,7 +169,8 @@
     <!-- Build the tests -->
     <target name="compile-tests" depends="init,compile-api" description="Compile the unit test source.">
         <mkdir dir="${tests-build}" />
-        <javac srcdir="${tests-src}" destdir="${tests-build}" deprecation="true" debug="true">
+        <javac srcdir="${tests-src}" destdir="${tests-build}" source="${build.source}" target="${build.target}"
+               deprecation="true" debug="true">
             <classpath refid="tests.classpath"/>
         </javac>
     </target>
@@ -235,13 +253,19 @@
     </target>
 
     <!-- Build the distribution. -->
-    <target name="dist" depends="init,really-clean,all" description="Build a release">
+    <!-- This doesn't depend on init so that we can turn off debug building. -->
+    <target name="dist" description="Build a release">
         <fail unless="releaseNumber">
         You must supply a value for the "releaseNumber" property.
         </fail>
 
-        <property name="releaseDir" value="${dist}/smppapi-${releaseNumber}" />
-
+        <property name="build.debug" value="false"/>
+        <property name="releaseDir" value="${dist}/smppapi-${releaseNumber}"/>
+        <property name="api-jar" value="${api-name}-${releaseNumber}.jar"/>
+        <antcall target="dist-internal"/>
+    </target>
+    
+    <target name="dist-internal" depends="init,really-clean,jars,docs">
         <mkdir dir="${releaseDir}" />
 
         <!-- Output Java build version info -->
