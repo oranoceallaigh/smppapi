@@ -200,7 +200,7 @@ public final class SMPPIO {
         int mask = (0xff << sw);
 
         for (int l = 0; l < len; l++) {
-            array[offset + l] = (byte) ((num & mask) >>> sw);
+            b[offset + l] = (byte) ((num & mask) >>> sw);
 
             sw -= 8;
             mask >>>= 8;
