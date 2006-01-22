@@ -1,26 +1,3 @@
-/*
- * Java SMPP API
- * Copyright (C) 1998 - 2002 by Oran Kelly
- * 
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- * 
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * 
- * A copy of the LGPL can be viewed at http://www.gnu.org/copyleft/lesser.html
- * Java SMPP API author: orank@users.sf.net
- * Java SMPP API Homepage: http://smppapi.sourceforge.net/
- * $Id$
- */
 package ie.omk.smpp.message;
 
 import ie.omk.smpp.Address;
@@ -47,7 +24,7 @@ import junit.framework.TestCase;
 public class SizeTest extends TestCase {
 
     // List of all the message types.
-    protected static final Class[] classList = { AlertNotification.class,
+    protected static final Class[] classList = {AlertNotification.class,
             BindReceiver.class, BindReceiverResp.class, BindTransceiver.class,
             BindTransceiverResp.class, BindTransmitter.class,
             BindTransmitterResp.class, CancelSM.class, CancelSMResp.class,
@@ -58,7 +35,7 @@ public class SizeTest extends TestCase {
             QueryMsgDetails.class, QueryMsgDetailsResp.class, QuerySM.class,
             QuerySMResp.class, ReplaceSM.class, ReplaceSMResp.class,
             SubmitMulti.class, SubmitMultiResp.class, SubmitSM.class,
-            SubmitSMResp.class, Unbind.class, UnbindResp.class };
+            SubmitSMResp.class, Unbind.class, UnbindResp.class, };
 
     public SizeTest(String n) {
         super(n);
@@ -117,8 +94,9 @@ public class SizeTest extends TestCase {
 
             try {
                 SMPPPacket p = (SMPPPacket) classList[i].newInstance();
-                if (filled)
+                if (filled) {
                     initialiseFields(p);
+                }
 
                 testPacket(n, p);
             } catch (SMPPException x) {
@@ -330,3 +308,4 @@ public class SizeTest extends TestCase {
         }
     }
 }
+

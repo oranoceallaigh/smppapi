@@ -1,53 +1,17 @@
-/*
- * Java SMPP API
- * Copyright (C) 1998 - 2002 by Oran Kelly
- * 
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- * 
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * 
- * A copy of the LGPL can be viewed at http://www.gnu.org/copyleft/lesser.html
- * Java SMPP API author: orank@users.sf.net
- * Java SMPP API Homepage: http://smppapi.sourceforge.net/
- * $Id$
- */
 package ie.omk.smpp.message.tlv;
 
 /**
  * Value encoder for string types. Operates on the java.lang.String type.
  * 
- * @author Oran Kelly &lt;orank@users.sf.net&gt;
+ * @author Oran Kelly
+ * @version $Id$
  */
 public class StringEncoder implements Encoder {
 
     /**
-     * StringEncoder singleton instance.
-     */
-    private static final StringEncoder instance = new StringEncoder();
-
-    /**
      * Create a new StringEncoder.
      */
-    private StringEncoder() {
-    }
-
-    /**
-     * Get the singleton StringEncoder instance.
-     * 
-     * @return The singleton StringEncoder instance.
-     */
-    public static final StringEncoder getInstance() {
-        return (instance);
+    public StringEncoder() {
     }
 
     public void writeTo(Tag tag, Object value, byte[] b, int offset)
@@ -68,14 +32,15 @@ public class StringEncoder implements Encoder {
             throws ArrayIndexOutOfBoundsException {
         try {
             String s = new String(b, offset, length - 1, "US-ASCII");
-            return (s);
+            return s;
         } catch (java.io.UnsupportedEncodingException x) {
             // Java spec _requires_ US-ASCII support
         }
-        return ("");
+        return "";
     }
 
     public int getValueLength(Tag tag, Object value) {
-        return (value.toString().length() + 1); // 1 for the nul byte
+        return value.toString().length() + 1; // 1 for the nul byte
     }
 }
+

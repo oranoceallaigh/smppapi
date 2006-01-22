@@ -1,25 +1,3 @@
-/*
- * Java SMPP API Copyright (C) 1998 - 2002 by Oran Kelly
- * 
- * This library is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Lesser General Public License as published by the Free
- * Software Foundation; either version 2.1 of the License, or (at your option)
- * any later version.
- * 
- * This library is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
- * details.
- * 
- * You should have received a copy of the GNU Lesser General Public License
- * along with this library; if not, write to the Free Software Foundation, Inc.,
- * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- * 
- * A copy of the LGPL can be viewed at http://www.gnu.org/copyleft/lesser.html
- * Java SMPP API author: orank@users.sf.net Java SMPP API Homepage:
- * http://smppapi.sourceforge.net/ $Id: SMPPVersion34.java,v 1.4 2005/05/09
- * 20:47:25 orank Exp $
- */
 package ie.omk.smpp.version;
 
 import ie.omk.smpp.Address;
@@ -37,89 +15,90 @@ public class SMPPVersion34 extends SMPPVersion {
 
     public boolean isSupported(int commandID) {
         // Turn off the msb, which is used to signify a response packet..
-        commandID &= 0x7fffffff;
-
-        switch (commandID) {
+        switch (commandID & 0x7fffffff) {
         case SMPPPacket.QUERY_LAST_MSGS:
         case SMPPPacket.QUERY_MSG_DETAILS:
         case SMPPPacket.PARAM_RETRIEVE:
-            return (false);
+            return false;
 
         default:
-            return (true);
+            return true;
         }
     }
 
     public boolean isSupportOptionalParams() {
-        return (true);
+        return true;
     }
 
     public int getMaxLength(int field) {
         switch (field) {
         case MESSAGE_PAYLOAD:
-            return (254);
+            return 254;
 
         default:
-            return (Integer.MAX_VALUE);
+            return Integer.MAX_VALUE;
         }
     }
 
     public boolean validateAddress(Address s) {
         int ton = s.getTON();
         int npi = s.getNPI();
-        return ((ton >= 0 && ton <= 0xff) && (npi >= 0 && npi <= 0xff) && s
-                .getAddress().length() <= 20);
+        boolean tonValid = ton >= 0 && ton <= 0xff;
+        boolean npiValid = npi >= 0 && npi <= 0xff;
+        boolean addressValid = s.getAddress().length() <= 20;
+        return tonValid && npiValid && addressValid;
     }
 
     public boolean validateEsmClass(int c) {
-        return (c >= 0 && c <= 0xff);
+        return c >= 0 && c <= 0xff;
     }
 
     public boolean validateProtocolID(int id) {
-        return (id >= 0 && id <= 0xff);
+        return id >= 0 && id <= 0xff;
     }
 
     public boolean validateDataCoding(int dc) {
-        return (dc >= 0 && dc <= 0xff);
+        return dc >= 0 && dc <= 0xff;
     }
 
     public boolean validateDefaultMsg(int id) {
-        return (id >= 0 && id <= 0xff);
+        return id >= 0 && id <= 0xff;
     }
 
     public boolean validateMessageText(String text, AlphabetEncoding alphabet) {
         if (text != null) {
-            return (alphabet.encodeString(text).length <= MAX_MSG_LENGTH);
+            return alphabet.encodeString(text).length <= MAX_MSG_LENGTH;
         } else {
-            return (true);
+            return true;
         }
     }
 
     public boolean validateMessage(byte[] message, MessageEncoding encoding) {
-        if (message != null)
-            return (message.length <= MAX_MSG_LENGTH);
-        else
-            return (true);
+        if (message != null) {
+            return message.length <= MAX_MSG_LENGTH;
+        } else {
+            return true;
+        }
     }
 
     public boolean validateServiceType(String type) {
-        return (type.length() <= 5);
+        return type.length() <= 5;
     }
 
     public boolean validateMessageId(String id) {
-        return (id.length() <= 64);
+        return id.length() <= 64;
     }
 
     public boolean validateMessageState(int st) {
-        return (st >= 0 && st <= 0xff);
+        return st >= 0 && st <= 0xff;
     }
 
     public boolean validateErrorCode(int code) {
-        return (code >= 0 && code <= 0xff);
+        return code >= 0 && code <= 0xff;
     }
 
     public boolean validatePriorityFlag(int flag) {
-        return (flag >= 0 && flag <= 3);
+        return flag >= 0 && flag <= 3;
     }
 
     public boolean validateRegisteredDelivery(int flag) {
@@ -127,49 +106,50 @@ public class SMPPVersion34 extends SMPPVersion {
         // purpose of SMPP version 3.4. However, when taken in all their
         // permutations, the allowed values of this flag range from zero up to
         // 0x1f. So the following check is valid..
-        return (flag >= 0 && flag <= 0x1f);
+        return flag >= 0 && flag <= 0x1f;
     }
 
     public boolean validateReplaceIfPresent(int flag) {
-        return (flag == 0 || flag == 1);
+        return flag == 0 || flag == 1;
     }
 
     public boolean validateNumberOfDests(int num) {
-        return (num >= 0 && num <= 254);
+        return num >= 0 && num <= 254;
     }
 
     public boolean validateNumUnsuccessful(int num) {
-        return (num >= 0 && num <= 255);
+        return num >= 0 && num <= 255;
     }
 
     public boolean validateDistListName(String name) {
-        return (name.length() <= 20);
+        return name.length() <= 20;
     }
 
     public boolean validateSystemId(String sysId) {
-        return (sysId.length() <= 15);
+        return sysId.length() <= 15;
     }
 
     public boolean validatePassword(String password) {
-        return (password.length() <= 8);
+        return password.length() <= 8;
     }
 
     public boolean validateSystemType(String sysType) {
-        return (sysType.length() <= 12);
+        return sysType.length() <= 12;
     }
 
     public boolean validateAddressRange(String addressRange) {
         // Possibly add some checks for allowed characters??
-        return (addressRange.length() <= 40);
+        return addressRange.length() <= 40;
     }
 
     public boolean validateParamName(String paramName) {
         // This is unsupported in 3.4
-        return (false);
+        return false;
     }
 
     public boolean validateParamValue(String paramValue) {
         // This is unsupported in 3.4
-        return (false);
+        return false;
     }
 }
+

@@ -1,26 +1,3 @@
-/*
- * Java SMPP API
- * Copyright (C) 1998 - 2002 by Oran Kelly
- * 
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- * 
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * 
- * A copy of the LGPL can be viewed at http://www.gnu.org/copyleft/lesser.html
- * Java SMPP API author: orank@users.sf.net
- * Java SMPP API Homepage: http://smppapi.sourceforge.net/
- * $Id$
- */
 package ie.omk.smpp.message;
 
 import ie.omk.smpp.Address;
@@ -102,7 +79,7 @@ public class QueryMsgDetailsResp extends ie.omk.smpp.message.SMPPResponse {
     public int addDestination(Address d) {
         synchronized (destinationTable) {
             destinationTable.add(d);
-            return (destinationTable.size());
+            return destinationTable.size();
         }
     }
 
@@ -116,13 +93,14 @@ public class QueryMsgDetailsResp extends ie.omk.smpp.message.SMPPResponse {
      *             if the distribution list name is too long.
      */
     public int addDestination(String d) throws InvalidParameterValueException {
-        if (!version.validateDistListName(d))
+        if (!version.validateDistListName(d)) {
             throw new InvalidParameterValueException(
                     "Distribution list is invalid", d);
+        }
 
         synchronized (destinationTable) {
             destinationTable.add(d);
-            return (destinationTable.size());
+            return destinationTable.size();
         }
     }
 
@@ -132,21 +110,21 @@ public class QueryMsgDetailsResp extends ie.omk.smpp.message.SMPPResponse {
      * @deprecated Use getNumDests.
      */
     public int getNoOfDests() {
-        return (destinationTable.size());
+        return destinationTable.size();
     }
 
     /**
      * Get the current number of destination addresses.
      */
     public int getNumDests() {
-        return (destinationTable.size());
+        return destinationTable.size();
     }
 
     /**
      * Get a handle to the destination table.
      */
     public DestinationTable getDestinationTable() {
-        return (destinationTable);
+        return destinationTable;
     }
 
     public int getBodyLength() {
@@ -163,7 +141,7 @@ public class QueryMsgDetailsResp extends ie.omk.smpp.message.SMPPResponse {
         size += destinationTable.getLength();
 
         // 8 1-byte integers, 5 c-strings
-        return (size + 8 + 5);
+        return size + 8 + 5;
     }
 
     /**
@@ -176,8 +154,9 @@ public class QueryMsgDetailsResp extends ie.omk.smpp.message.SMPPResponse {
      */
     protected void encodeBody(OutputStream out) throws java.io.IOException {
         int smLength = 0;
-        if (message != null)
+        if (message != null) {
             smLength = message.length;
+        }
 
         SMPPIO.writeCString(serviceType, out);
         if (source != null) {
@@ -204,8 +183,9 @@ public class QueryMsgDetailsResp extends ie.omk.smpp.message.SMPPResponse {
         SMPPIO.writeInt(registered, 1, out);
         SMPPIO.writeInt(dataCoding, 1, out);
         SMPPIO.writeInt(smLength, 1, out);
-        if (message != null)
+        if (message != null) {
             out.write(message);
+        }
         SMPPIO.writeCString(getMessageId(), out);
         SMPPIO.writeCString(fd, out);
         SMPPIO.writeInt(messageStatus, 1, out);
@@ -215,8 +195,11 @@ public class QueryMsgDetailsResp extends ie.omk.smpp.message.SMPPResponse {
     public void readBodyFrom(byte[] body, int offset)
             throws SMPPProtocolException {
         try {
-            int numDests = 0, smLength = 0;
-            String delivery, valid, finalD;
+            int numDests = 0;
+            int smLength = 0;
+            String delivery;
+            String valid;
+            String finalD;
 
             serviceType = SMPPIO.readCString(body, offset);
             offset += serviceType.length() + 1;
@@ -236,13 +219,15 @@ public class QueryMsgDetailsResp extends ie.omk.smpp.message.SMPPResponse {
 
             delivery = SMPPIO.readCString(body, offset);
             offset += delivery.length() + 1;
-            if (delivery.length() > 0)
+            if (delivery.length() > 0) {
                 deliveryTime = SMPPDate.parseSMPPDate(delivery);
+            }
 
             valid = SMPPIO.readCString(body, offset);
             offset += valid.length() + 1;
-            if (valid.length() > 0)
+            if (valid.length() > 0) {
                 expiryTime = SMPPDate.parseSMPPDate(valid);
+            }
 
             registered = SMPPIO.bytesToInt(body, offset++, 1);
             dataCoding = SMPPIO.bytesToInt(body, offset++, 1);
@@ -259,8 +244,9 @@ public class QueryMsgDetailsResp extends ie.omk.smpp.message.SMPPResponse {
 
             finalD = SMPPIO.readCString(body, offset);
             offset += finalD.length() + 1;
-            if (finalD.length() > 0)
+            if (finalD.length() > 0) {
                 finalDate = SMPPDate.parseSMPPDate(finalD);
+            }
 
             messageStatus = SMPPIO.bytesToInt(body, offset++, 1);
             errorCode = SMPPIO.bytesToInt(body, offset++, 1);
@@ -277,3 +263,4 @@ public class QueryMsgDetailsResp extends ie.omk.smpp.message.SMPPResponse {
         return new String("query_msg_details_resp");
     }
 }
+

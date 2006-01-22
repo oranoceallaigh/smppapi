@@ -1,26 +1,3 @@
-/*
- * Java SMPP API
- * Copyright (C) 1998 - 2002 by Oran Kelly
- * 
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- * 
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * 
- * A copy of the LGPL can be viewed at http://www.gnu.org/copyleft/lesser.html
- * Java SMPP API author: orank@users.sf.net
- * Java SMPP API Homepage: http://smppapi.sourceforge.net/
- * $Id$
- */
 package ie.omk.smpp.version;
 
 import ie.omk.smpp.Address;
@@ -74,24 +51,25 @@ public abstract class SMPPVersion {
      * Get an object representing the default version of the API, which is 3.4.
      */
     public static final SMPPVersion getDefaultVersion() {
-        return (V34);
+        return V34;
     }
 
     public static final SMPPVersion getVersion(int id) throws VersionException {
-        if (id == V33.getVersionID())
-            return (V33);
-        else if (id == V34.getVersionID())
-            return (V34);
-        else
+        if (id == V33.getVersionID()) {
+            return V33;
+        } else if (id == V34.getVersionID()) {
+            return V34;
+        } else {
             throw new VersionException("Unknown version id: 0x"
                     + Integer.toHexString(id));
+        }
     }
 
     /**
      * Get the integer value for this protocol version object.
      */
     public int getVersionID() {
-        return (versionID);
+        return versionID;
     }
 
     /**
@@ -99,7 +77,7 @@ public abstract class SMPPVersion {
      * to this version, false will be returned.
      */
     public boolean isOlder(SMPPVersion ver) {
-        return (ver.versionID < this.versionID);
+        return ver.versionID < this.versionID;
     }
 
     /**
@@ -107,7 +85,7 @@ public abstract class SMPPVersion {
      * to this version, false will be returned.
      */
     public boolean isNewer(SMPPVersion ver) {
-        return (ver.versionID > this.versionID);
+        return ver.versionID > this.versionID;
     }
 
     /**
@@ -115,25 +93,32 @@ public abstract class SMPPVersion {
      */
     public boolean equals(Object obj) {
         if (obj instanceof SMPPVersion) {
-            return (((SMPPVersion) obj).versionID == this.versionID);
+            return ((SMPPVersion) obj).versionID == this.versionID;
         } else {
-            return (false);
+            return false;
         }
     }
 
+    /**
+     * @return the hash code for this SMPP version.
+     */
+    public int hashCode() {
+        return new Integer(versionID).hashCode();
+    }
+    
     /**
      * Test <code>versionNum</code> is the numeric representation of this SMPP
      * version.
      */
     public boolean equals(int versionNum) {
-        return (versionNum == this.versionID);
+        return versionNum == this.versionID;
     }
 
     /**
      * Return a descriptive string of this protocol version.
      */
     public String toString() {
-        return (versionString);
+        return versionString;
     }
 
     /**
@@ -213,7 +198,7 @@ public abstract class SMPPVersion {
      * version 3.3 and version 3.4. The semantics, however, remain the same.
      */
     public final boolean validateMessageStatus(int st) {
-        return (validateMessageState(st));
+        return validateMessageState(st);
     }
 
     /**
@@ -252,3 +237,4 @@ public abstract class SMPPVersion {
 
     public abstract boolean validateParamValue(String paramValue);
 }
+

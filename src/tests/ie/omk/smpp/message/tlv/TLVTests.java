@@ -1,25 +1,3 @@
-/*
- * Java SMPP API Copyright (C) 1998 - 2002 by Oran Kelly
- * 
- * This library is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Lesser General Public License as published by the Free
- * Software Foundation; either version 2.1 of the License, or (at your option)
- * any later version.
- * 
- * This library is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
- * details.
- * 
- * You should have received a copy of the GNU Lesser General Public License
- * along with this library; if not, write to the Free Software Foundation, Inc.,
- * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- * 
- * A copy of the LGPL can be viewed at http://www.gnu.org/copyleft/lesser.html
- * Java SMPP API author: orank@users.sf.net Java SMPP API Homepage:
- * http://smppapi.sourceforge.net/ $Id: TLVTests.java,v 1.4 2004/07/25 12:08:01
- * orank Exp $
- */
 package ie.omk.smpp.message.tlv;
 
 import ie.omk.smpp.util.SMPPIO;
@@ -54,7 +32,7 @@ public class TLVTests extends TestCase {
         bitSet.set(12);
         bitSet.set(14);
 
-        bitSetExpected = new byte[] { (byte) 0xe4, (byte) 0x50 };
+        bitSetExpected = new byte[] {(byte) 0xe4, (byte) 0x50};
     }
 
     public void testTag() {
@@ -81,10 +59,10 @@ public class TLVTests extends TestCase {
     }
 
     public void testBitmaskSerialization() {
-        BitmaskEncoder enc = BitmaskEncoder.getInstance();
+        BitmaskEncoder enc = new BitmaskEncoder();
 
         byte[] b = new byte[1];
-        byte[] expected = { bitSetExpected[0] };
+        byte[] expected = {bitSetExpected[0]};
         enc.writeTo(Tag.MS_MSG_WAIT_FACILITIES, bitSet, b, 0);
         assertTrue(Arrays.equals(expected, b));
 
@@ -124,7 +102,7 @@ public class TLVTests extends TestCase {
         }
 
         try {
-            byte[] b = { 0x67, 0x67, 0x67 };
+            byte[] b = {0x67, 0x67, 0x67};
             tab.set(Tag.CALLBACK_NUM_ATAG, b);
         } catch (Exception x) {
             fail("Failed to set OctetValue.");
@@ -178,7 +156,7 @@ public class TLVTests extends TestCase {
         // working first!
         //
         TLVTable tab = new TLVTable();
-        byte[] b = { 0x56, 0x67, 0x69 };
+        byte[] b = {0x56, 0x67, 0x69};
         tab.set(Tag.DEST_ADDR_SUBUNIT, new Integer(0x56));
         tab.set(Tag.DEST_TELEMATICS_ID, new Integer(0xe2e1));
         tab.set(Tag.QOS_TIME_TO_LIVE, new Long((long) Integer.MAX_VALUE));
@@ -241,8 +219,8 @@ public class TLVTests extends TestCase {
         // followed by 2 unknowns.
         byte[] b = new byte[256];
 
-        StringEncoder se = StringEncoder.getInstance();
-        NumberEncoder ne = NumberEncoder.getInstance();
+        StringEncoder se = new StringEncoder();
+        NumberEncoder ne = new NumberEncoder();
 
         int p = 0, length = 0;
 
@@ -290,13 +268,13 @@ public class TLVTests extends TestCase {
             assertEquals(tab.get(Tag.ADDITIONAL_STATUS_INFO_TEXT), v);
 
             b = (byte[]) tab.get(0xcafe);
-            byte[] expectedValue = { (byte) 0xfe, (byte) 0xed };
+            byte[] expectedValue = {(byte) 0xfe, (byte) 0xed};
 
             assertTrue(Arrays.equals(b, expectedValue));
 
             b = (byte[]) tab.get(0xbeef);
-            expectedValue = new byte[] { (byte) 0xba, (byte) 0xbe, (byte) 0xde,
-                    (byte) 0xad, (byte) 0x99 };
+            expectedValue = new byte[] {(byte) 0xba, (byte) 0xbe, (byte) 0xde,
+                    (byte) 0xad, (byte) 0x99, };
 
             assertTrue(Arrays.equals(b, expectedValue));
 
@@ -306,3 +284,4 @@ public class TLVTests extends TestCase {
         }
     }
 }
+

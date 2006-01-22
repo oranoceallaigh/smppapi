@@ -1,27 +1,3 @@
-/*
- * Java SMPP API
- * Copyright (C) 1998 - 2002 by Oran Kelly
- * 
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- * 
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * 
- * A copy of the LGPL can be viewed at http://www.gnu.org/copyleft/lesser.html
- * Java SMPP API author: orank@users.sf.net
- * Java SMPP API Homepage: http://smppapi.sourceforge.net/
- *
- * $Id$
- */
 package ie.omk.smpp.message.tlv;
 
 import java.util.BitSet;
@@ -31,7 +7,8 @@ import java.util.Map;
 /**
  * Enumeration class for optional parameter tag values.
  * 
- * @author Oran Kelly &lt;orank@users.sf.net&gt;
+ * @author Oran Kelly
+ * @version $Id$
  */
 public class Tag implements java.io.Serializable {
 
@@ -253,15 +230,17 @@ public class Tag implements java.io.Serializable {
         this.type = type;
         this.minLength = minLength;
         this.maxLength = maxLength;
-        if (enc == null)
+        if (enc == null) {
             this.encoder = getEncoderForType(type);
-        else
+        } else {
             this.encoder = enc;
+        }
 
         synchronized (tagTable) {
-            if (tagTable.containsKey(this.tag))
+            if (tagTable.containsKey(this.tag)) {
                 throw new TagDefinedException(tag, "Tag 0x"
                         + Integer.toHexString(tag) + " is already defined.");
+            }
 
             tagTable.put(this.tag, this);
         }
@@ -276,20 +255,22 @@ public class Tag implements java.io.Serializable {
      */
     private Encoder getEncoderForType(Class type) {
         // If type is null and encoder is null, this is a "no value" tlv type.
-        if (type == null)
-            return (NullEncoder.getInstance());
+        if (type == null) {
+            return new NullEncoder();
+        }
 
-        if (java.lang.Number.class.isAssignableFrom(type))
-            return (NumberEncoder.getInstance());
-        else if (java.lang.String.class.isAssignableFrom(type))
-            return (StringEncoder.getInstance());
-        else if (java.util.BitSet.class.isAssignableFrom(type))
-            return (BitmaskEncoder.getInstance());
-        else if (byte[].class.isAssignableFrom(type))
-            return (OctetEncoder.getInstance());
-        else
+        if (java.lang.Number.class.isAssignableFrom(type)) {
+            return new NumberEncoder();
+        } else if (java.lang.String.class.isAssignableFrom(type)) {
+            return new StringEncoder();
+        } else if (java.util.BitSet.class.isAssignableFrom(type)) {
+            return new BitmaskEncoder();
+        } else if (byte[].class.isAssignableFrom(type)) {
+            return new OctetEncoder();
+        } else {
             throw new NoEncoderException(type, "No encoder for class type "
                     + type.getName());
+        }
     }
 
     /**
@@ -298,7 +279,7 @@ public class Tag implements java.io.Serializable {
      * @return the integer value of this tag.
      */
     public int intValue() {
-        return (tag.intValue());
+        return tag.intValue();
     }
 
     /**
@@ -307,7 +288,7 @@ public class Tag implements java.io.Serializable {
      * @return The allowed length, or the maximum length if a range is set.
      */
     public int getLength() {
-        return (maxLength < 0 ? minLength : maxLength);
+        return maxLength < 0 ? minLength : maxLength;
     }
 
     /**
@@ -316,7 +297,7 @@ public class Tag implements java.io.Serializable {
      * @return the minimum length of a value of this tag type.
      */
     public int getMinLength() {
-        return (minLength);
+        return minLength;
     }
 
     /**
@@ -325,7 +306,7 @@ public class Tag implements java.io.Serializable {
      * @return the maximum length of a value of this tag type.
      */
     public int getMaxLength() {
-        return (maxLength);
+        return maxLength;
     }
 
     /**
@@ -334,7 +315,7 @@ public class Tag implements java.io.Serializable {
      * @return the Java type of values of this tag type.
      */
     public Class getType() {
-        return (type);
+        return type;
     }
 
     /**
@@ -344,10 +325,11 @@ public class Tag implements java.io.Serializable {
      * @return true if <code>obj</code> is Tag and has the same tag value.
      */
     public boolean equals(Object obj) {
-        if (obj instanceof Tag)
-            return (((Tag) obj).tag.equals(this.tag));
-        else
-            return (false);
+        if (obj instanceof Tag) {
+            return ((Tag) obj).tag.equals(this.tag);
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -356,7 +338,7 @@ public class Tag implements java.io.Serializable {
      * @return true if this Tag's integer value is equal to <code>tag</code>.
      */
     public boolean equals(int tag) {
-        return (tag == this.tag.intValue());
+        return tag == this.tag.intValue();
     }
 
     /**
@@ -367,7 +349,7 @@ public class Tag implements java.io.Serializable {
      * @return A hash code for this tag.
      */
     public int hashCode() {
-        return (tag.hashCode());
+        return tag.hashCode();
     }
 
     /**
@@ -377,7 +359,7 @@ public class Tag implements java.io.Serializable {
      * @return This tag's string value.
      */
     public String toString() {
-        return (tag.toString());
+        return tag.toString();
     }
 
     /**
@@ -387,7 +369,7 @@ public class Tag implements java.io.Serializable {
      * @return This tag's hexadecimal representation.
      */
     public String toHexString() {
-        return (Integer.toHexString(tag.intValue()));
+        return Integer.toHexString(tag.intValue());
     }
 
     /**
@@ -396,7 +378,7 @@ public class Tag implements java.io.Serializable {
      * @return the encoder used to encode values of this tag type.
      */
     public Encoder getEncoder() {
-        return (encoder);
+        return encoder;
     }
 
     /**
@@ -411,9 +393,9 @@ public class Tag implements java.io.Serializable {
     public static final Tag getTag(int tagValue) {
         Tag t = (Tag) tagTable.get(new Integer(tagValue));
         if (t == null) {
-            return (Tag.defineTag(tagValue, byte[].class, null, -1, -1));
+            return Tag.defineTag(tagValue, byte[].class, null, -1, -1);
         } else {
-            return (t);
+            return t;
         }
     }
 
@@ -437,7 +419,7 @@ public class Tag implements java.io.Serializable {
      */
     public static final Tag defineTag(int tagValue, Class type, Encoder enc,
             int fixedSize) throws TagDefinedException {
-        return (new Tag(tagValue, type, enc, fixedSize));
+        return new Tag(tagValue, type, enc, fixedSize);
     }
 
     /**
@@ -462,7 +444,7 @@ public class Tag implements java.io.Serializable {
      */
     public static final Tag defineTag(int tagValue, Class type, Encoder enc,
             int minSize, int maxSize) throws TagDefinedException {
-        return (new Tag(tagValue, type, enc, minSize, maxSize));
+        return new Tag(tagValue, type, enc, minSize, maxSize);
     }
 
     /**
@@ -475,13 +457,15 @@ public class Tag implements java.io.Serializable {
      * @return The Tag object that has been undefined.
      */
     public static final Tag undefineTag(Tag tag) {
-        if (tag == null)
-            return (null);
+        if (tag == null) {
+            return null;
+        }
 
         synchronized (tagTable) {
-            return ((Tag) tagTable.remove(tag));
+            return (Tag) tagTable.remove(tag);
         }
     }
 
     // XXX defineTags method that can read definitions from a properties file
 }
+

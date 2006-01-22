@@ -7,13 +7,20 @@
 <module name="FileContentsHolder">
 </module>
 <module name="JavadocMethod">
+<property name="severity" value="ignore"/>
+<property name="scope" value="package"/>
 </module>
 <module name="JavadocStyle">
+<property name="severity" value="ignore"/>
 <property name="excludeScope" value="nothing"/>
 </module>
 <module name="JavadocType">
+<property name="severity" value="ignore"/>
+<property name="scope" value="package"/>
 </module>
 <module name="JavadocVariable">
+<property name="severity" value="ignore"/>
+<property name="scope" value="package"/>
 </module>
 <module name="AbstractClassName">
 </module>
@@ -53,6 +60,9 @@
 <module name="FileLength">
 </module>
 <module name="LineLength">
+<property name="ignorePattern" value="^$|^\s*\*"/>
+<property name="max" value="130"/>
+<property name="tabWidth" value="8"/>
 </module>
 <module name="MethodLength">
 </module>
@@ -96,6 +106,7 @@
 <module name="RightCurly">
 </module>
 <module name="AvoidInlineConditionals">
+<property name="severity" value="ignore"/>
 </module>
 <module name="CovariantEquals">
 </module>
@@ -114,19 +125,14 @@
 <module name="FallThrough">
 </module>
 <module name="FinalLocalVariable">
-</module>
-<module name="HiddenField">
+<property name="severity" value="ignore"/>
 </module>
 <module name="IllegalInstantiation">
 </module>
 <module name="IllegalCatch">
+<property name="severity" value="ignore"/>
 </module>
 <module name="IllegalThrows">
-</module>
-<module name="IllegalToken">
-<property name="tokens" value="POST_INC,POST_DEC,LITERAL_SWITCH"/>
-</module>
-<module name="IllegalTokenText">
 </module>
 <module name="IllegalType">
 <property name="tokens" value="METHOD_DEF,PARAMETER_DEF,VARIABLE_DEF"/>
@@ -136,6 +142,7 @@
 <module name="JUnitTestCase">
 </module>
 <module name="MagicNumber">
+<property name="severity" value="ignore"/>
 </module>
 <module name="MissingCtor">
 </module>
@@ -153,11 +160,7 @@
 </module>
 <module name="PackageDeclaration">
 </module>
-<module name="ParameterAssignment">
-</module>
 <module name="RedundantThrows">
-</module>
-<module name="RequireThis">
 </module>
 <module name="ReturnCount">
 </module>
@@ -208,6 +211,7 @@
 <module name="FinalParameters">
 </module>
 <module name="Indentation">
+<property name="severity" value="ignore"/>
 </module>
 <module name="RequiredRegexp">
 </module>

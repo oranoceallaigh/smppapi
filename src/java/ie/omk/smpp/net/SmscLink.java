@@ -1,26 +1,3 @@
-/*
- * Java SMPP API
- * Copyright (C) 1998 - 2002 by Oran Kelly
- * 
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- * 
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * 
- * A copy of the LGPL can be viewed at http://www.gnu.org/copyleft/lesser.html
- * Java SMPP API author: orank@users.sf.net
- * Java SMPP API Homepage: http://smppapi.sourceforge.net/
- * $Id$
- */
 package ie.omk.smpp.net;
 
 import ie.omk.smpp.message.SMPPPacket;
@@ -48,7 +25,7 @@ import org.apache.commons.logging.LogFactory;
  * receive an incoming packet.
  * 
  * @author Oran Kelly
- * @version 1.0
+ * @version $Id$
  */
 public abstract class SmscLink {
     private static final Log logger = LogFactory.getLog(SmscLink.class);
@@ -86,8 +63,9 @@ public abstract class SmscLink {
                     APIConfig.LINK_AUTO_FLUSH);
         } catch (PropertyNotFoundException x) {
         } finally {
-            if (logger.isDebugEnabled())
+            if (logger.isDebugEnabled()) {
                 logger.debug("autoFlush set to " + autoFlush);
+            }
         }
     }
 
@@ -103,7 +81,8 @@ public abstract class SmscLink {
         implOpen();
 
         String s = null;
-        int inSize = -1, outSize = -1;
+        int inSize = -1;
+        int outSize = -1;
         APIConfig cfg = APIConfig.getInstance();
 
         inSize = getBufferSize(cfg, APIConfig.LINK_BUFFERSIZE_IN);
@@ -114,15 +93,17 @@ public abstract class SmscLink {
             logger.debug("OUT buffer size: " + outSize);
         }
 
-        if (inSize < 1)
+        if (inSize < 1) {
             this.in = new BufferedInputStream(getInputStream());
-        else
+        } else {
             this.in = new BufferedInputStream(getInputStream(), inSize);
+        }
 
-        if (outSize < 1)
+        if (outSize < 1) {
             this.out = new BufferedOutputStream(getOutputStream());
-        else
+        } else {
             this.out = new BufferedOutputStream(getOutputStream(), outSize);
+        }
     }
 
     private final int getBufferSize(APIConfig cfg, String propName) {
@@ -130,18 +111,19 @@ public abstract class SmscLink {
 
         try {
             String s = cfg.getProperty(propName);
-            if (s.toLowerCase().endsWith("k"))
+            if (s.toLowerCase().endsWith("k")) {
                 size = Integer.parseInt(s.substring(0, s.length() - 1)) * 1024;
-            else if (s.toLowerCase().endsWith("m"))
+            } else if (s.toLowerCase().endsWith("m")) {
                 size = Integer.parseInt(s.substring(0, s.length() - 1)) * 1048576;
-            else
+            } else {
                 size = Integer.parseInt(s, 10);
+            }
         } catch (PropertyNotFoundException x) {
         } catch (NumberFormatException x) {
             logger.warn("Bad value for config property " + propName, x);
         }
 
-        return (size);
+        return size;
     }
 
     /**
@@ -183,19 +165,23 @@ public abstract class SmscLink {
 
         if (autoClose) {
             try {
-                if (snoopOut != null)
+                if (snoopOut != null) {
                     snoopOut.close();
-                if (snoopIn != null)
+                }
+                if (snoopIn != null) {
                     snoopIn.close();
+                }
             } catch (IOException x) {
                 logger.warn("Exception while closing snoop streams.", x);
             }
         } else {
             try {
-                if (snoopOut != null)
+                if (snoopOut != null) {
                     snoopOut.flush();
-                if (snoopIn != null)
+                }
+                if (snoopIn != null) {
                     snoopIn.flush();
+                }
             } catch (IOException x) {
                 logger.warn("Exception while flushing snoop streams.", x);
             }
@@ -234,20 +220,23 @@ public abstract class SmscLink {
      */
     public void write(SMPPPacket pak, boolean withOptional)
             throws java.io.IOException {
-        if (out == null)
+        if (out == null) {
             throw new IOException("Link not established.");
+        }
 
         synchronized (writeLock) {
             try {
-                if (snoopOut != null)
+                if (snoopOut != null) {
                     pak.writeTo(snoopOut);
+                }
             } catch (IOException x) {
                 logger.warn("IOException writing to snoop output stream.", x);
             }
 
             pak.writeTo(out);
-            if (autoFlush)
+            if (autoFlush) {
                 out.flush();
+            }
         }
     }
 
@@ -258,8 +247,9 @@ public abstract class SmscLink {
      *             If an exception occurs while flushing the output stream.
      */
     public void flush() throws java.io.IOException {
-        if (out != null)
+        if (out != null) {
             out.flush();
+        }
     }
 
     /**
@@ -271,7 +261,7 @@ public abstract class SmscLink {
      * @see ie.omk.smpp.util.APIConfig
      */
     public boolean getAutoFlush() {
-        return (autoFlush);
+        return autoFlush;
     }
 
     /**
@@ -291,7 +281,7 @@ public abstract class SmscLink {
      * array to read the packet into. If the passed in byte array is too small,
      * a new one will be allocated and returned to the caller.
      * 
-     * @param buf
+     * @param array
      *            a byte array buffer to read the packet into.
      * @return the handle to the passed in buffer or the reallocated one.
      * @throws java.io.EOFException
@@ -301,55 +291,63 @@ public abstract class SmscLink {
      *             If an exception occurs when reading the packet from the input
      *             stream.
      */
-    public byte[] read(byte[] buf) throws java.io.EOFException,
+    public byte[] read(final byte[] array) throws java.io.EOFException,
             java.io.IOException {
-        int ptr = 0, c = 0, cmdLen = 0;
+        int ptr = 0;
+        int c = 0;
+        int cmdLen = 0;
 
-        if (in == null)
+        if (in == null) {
             throw new IOException("Link not established.");
+        }
 
+        byte[] buf = array;
         synchronized (readLock) {
             try {
                 if ((ptr = in.read(buf, 0, 16)) < 4) {
-                    if (ptr == -1)
+                    if (ptr == -1) {
                         throw new EOFException("EOS reached. No data "
                                 + "available");
+                    }
 
                     while (ptr < 4) {
-                        if ((c = in.read(buf, ptr, 16 - ptr)) < 0)
+                        if ((c = in.read(buf, ptr, 16 - ptr)) < 0) {
                             throw new EOFException("EOS reached. No data "
                                     + "available");
+                        }
                         ptr += c;
-                    }
-                }
+                   }
+               }
 
                 cmdLen = SMPPIO.bytesToInt(buf, 0, 4);
                 if (cmdLen > buf.length) {
                     byte[] newbuf = new byte[cmdLen];
                     System.arraycopy(buf, 0, newbuf, 0, ptr);
                     buf = newbuf;
-                }
+               }
 
                 c = in.read(buf, ptr, cmdLen - ptr);
-                if (c == -1)
+                if (c == -1) {
                     throw new EOFException("EOS reached. No data available.");
+                }
 
                 ptr += c;
                 while (ptr < cmdLen) {
-                    if ((c = in.read(buf, ptr, cmdLen - ptr)) < 0)
+                    if ((c = in.read(buf, ptr, cmdLen - ptr)) < 0) {
                         throw new EOFException("EOS reached. No data available");
+                    }
 
                     ptr += c;
-                }
+               }
             } catch (IOException x) {
                 // After the finally clause, make sure the caller still gets the
                 // IOException..
                 throw x;
             } finally {
-                dump(snoopIn, buf, 0, ptr);
+                dump(snoopIn, array, 0, ptr);
             }
         }
-        return (buf);
+        return buf;
     }
 
     /**
@@ -358,11 +356,11 @@ public abstract class SmscLink {
     public final int available() {
         try {
             synchronized (readLock) {
-                return (in.available());
+                return in.available();
             }
         } catch (IOException x) {
             logger.debug("IOException in available", x);
-            return (0);
+            return 0;
         }
     }
 
@@ -380,8 +378,9 @@ public abstract class SmscLink {
      */
     private void dump(OutputStream s, byte[] b, int offset, int len) {
         try {
-            if (s != null)
+            if (s != null) {
                 s.write(b, offset, len);
+            }
         } catch (IOException x) {
             logger.warn("Couldn't write incoming bytes to input snooper.", x);
         }

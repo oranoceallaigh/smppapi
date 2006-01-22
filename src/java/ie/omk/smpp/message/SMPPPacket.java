@@ -1,26 +1,3 @@
-/*
- * Java SMPP API
- * Copyright (C) 1998 - 2002 by Oran Kelly
- * 
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- * 
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * 
- * A copy of the LGPL can be viewed at http://www.gnu.org/copyleft/lesser.html
- * Java SMPP API author: orank@users.sf.net
- * Java SMPP API Homepage: http://smppapi.sourceforge.net/
- * $Id$
- */
 package ie.omk.smpp.message;
 
 import ie.omk.smpp.Address;
@@ -338,7 +315,7 @@ public abstract class SMPPPacket {
      * @see ie.omk.smpp.version.SMPPVersion
      */
     public SMPPVersion getVersion() {
-        return (version);
+        return version;
     }
 
     /**
@@ -350,10 +327,11 @@ public abstract class SMPPPacket {
      * @see ie.omk.smpp.version.SMPPVersion#getDefaultVersion
      */
     public void setVersion(SMPPVersion version) {
-        if (version == null)
+        if (version == null) {
             this.version = SMPPVersion.getDefaultVersion();
-        else
+        } else {
             this.version = version;
+        }
     }
 
     /**
@@ -365,7 +343,7 @@ public abstract class SMPPPacket {
      */
     public final int getCommandLen() {
         // stop overriding this deprecated method.
-        return (getLength());
+        return getLength();
     }
 
     /**
@@ -376,7 +354,7 @@ public abstract class SMPPPacket {
      * @return the number of bytes this packet would encode as.
      */
     public final int getLength() {
-        return (16 + getBodyLength() + tlvTable.getLength());
+        return 16 + getBodyLength() + tlvTable.getLength();
     }
 
     /**
@@ -394,7 +372,7 @@ public abstract class SMPPPacket {
      * @return The Command Id of this packet
      */
     public int getCommandId() {
-        return (commandId);
+        return commandId;
     }
 
     /**
@@ -404,7 +382,7 @@ public abstract class SMPPPacket {
      *         packets)
      */
     public int getCommandStatus() {
-        return (this.commandStatus);
+        return this.commandStatus;
     }
 
     /**
@@ -413,7 +391,7 @@ public abstract class SMPPPacket {
      * @return The sequence number of this SMPP packet
      */
     public int getSequenceNum() {
-        return (this.sequenceNum);
+        return this.sequenceNum;
     }
 
     /**
@@ -431,11 +409,12 @@ public abstract class SMPPPacket {
      */
     public void setSource(Address s) throws InvalidParameterValueException {
         if (s != null) {
-            if (version.validateAddress(s))
+            if (version.validateAddress(s)) {
                 this.source = s;
-            else
+            } else {
                 throw new InvalidParameterValueException("Bad source address.",
                         s);
+            }
         } else {
             this.source = null;
         }
@@ -447,7 +426,7 @@ public abstract class SMPPPacket {
      * @return The source address or null if it is not set.
      */
     public Address getSource() {
-        return (source);
+        return source;
     }
 
     /**
@@ -455,11 +434,12 @@ public abstract class SMPPPacket {
      */
     public void setDestination(Address s) {
         if (s != null) {
-            if (version.validateAddress(s))
+            if (version.validateAddress(s)) {
                 this.destination = s;
-            else
+            } else {
                 throw new InvalidParameterValueException(
                         "Bad destination address.", s);
+            }
         } else {
             this.destination = null;
         }
@@ -471,7 +451,7 @@ public abstract class SMPPPacket {
      * @return The destination address or null if it is not set.
      */
     public Address getDestination() {
-        return (destination);
+        return destination;
     }
 
     /**
@@ -491,11 +471,12 @@ public abstract class SMPPPacket {
      *             flag.
      */
     public void setPriority(int p) throws InvalidParameterValueException {
-        if (version.validatePriorityFlag(p))
+        if (version.validatePriorityFlag(p)) {
             this.priority = p;
-        else
+        } else {
             throw new InvalidParameterValueException("Bad priority flag value",
                     p);
+        }
     }
 
     /**
@@ -515,11 +496,12 @@ public abstract class SMPPPacket {
      *             delivery flag.
      */
     public void setRegistered(int r) throws InvalidParameterValueException {
-        if (version.validateRegisteredDelivery(r))
+        if (version.validateRegisteredDelivery(r)) {
             this.registered = r;
-        else
+        } else {
             throw new InvalidParameterValueException(
                     "Bad registered delivery flag value", r);
+        }
     }
 
     /**
@@ -540,11 +522,12 @@ public abstract class SMPPPacket {
      */
     public void setReplaceIfPresent(int rip)
             throws InvalidParameterValueException {
-        if (version.validateReplaceIfPresent(rip))
+        if (version.validateReplaceIfPresent(rip)) {
             this.replaceIfPresent = rip;
-        else
+        } else {
             throw new InvalidParameterValueException(
                     "Bad replace if present flag value", rip);
+        }
     }
 
     /**
@@ -555,10 +538,11 @@ public abstract class SMPPPacket {
      *             If the value passed is not a valid ESM class.
      */
     public void setEsmClass(int c) throws InvalidParameterValueException {
-        if (version.validateEsmClass(c))
+        if (version.validateEsmClass(c)) {
             this.esmClass = c;
-        else
+        } else {
             throw new InvalidParameterValueException("Bad ESM class", c);
+        }
     }
 
     /**
@@ -579,10 +563,11 @@ public abstract class SMPPPacket {
      *             If the protocol ID supplied is invalid.
      */
     public void setProtocolID(int id) throws InvalidParameterValueException {
-        if (version.validateProtocolID(id))
+        if (version.validateProtocolID(id)) {
             this.protocolID = id;
-        else
+        } else {
             throw new InvalidParameterValueException("Bad Protocol ID", id);
+        }
     }
 
     /**
@@ -599,21 +584,24 @@ public abstract class SMPPPacket {
     public void setDataCoding(int dc) throws InvalidParameterValueException {
         if (version.validateDataCoding(dc)) {
             this.dataCoding = dc;
-            if (dc > 0)
+            if (dc > 0) {
                 this.encoding = MessageEncoding.getEncoding(dc);
-        } else
+            }
+        } else {
             throw new InvalidParameterValueException("Bad data coding", dc);
+        }
     }
 
     /**
      * Set the default message id in the message flags.
      */
     public void setDefaultMsg(int id) throws InvalidParameterValueException {
-        if (version.validateDefaultMsg(id))
+        if (version.validateDefaultMsg(id)) {
             this.defaultMsg = id;
-        else
+        } else {
             throw new InvalidParameterValueException(
                     "Default message ID out of range", id);
+        }
     }
 
     /**
@@ -622,14 +610,14 @@ public abstract class SMPPPacket {
      * @deprecated
      */
     public boolean isRegistered() {
-        return (this.registered > 0);
+        return this.registered > 0;
     }
 
     /**
      * Get the 'registered' flag for the message.
      */
     public int getRegistered() {
-        return (registered);
+        return registered;
     }
 
     /**
@@ -638,14 +626,14 @@ public abstract class SMPPPacket {
      * @deprecated
      */
     public boolean isPriority() {
-        return ((this.priority == 0) ? false : true);
+        return (this.priority == 0) ? false : true;
     }
 
     /**
      * Get the priority flag for the message.
      */
     public int getPriority() {
-        return (priority);
+        return priority;
     }
 
     /**
@@ -654,21 +642,21 @@ public abstract class SMPPPacket {
      * @deprecated
      */
     public boolean isReplaceIfPresent() {
-        return (this.replaceIfPresent > 0);
+        return this.replaceIfPresent > 0;
     }
 
     /**
      * Get the replace if present flag for the message.
      */
     public int getReplaceIfPresent() {
-        return (replaceIfPresent);
+        return replaceIfPresent;
     }
 
     /**
      * Get the ESM class of the message.
      */
     public int getEsmClass() {
-        return (this.esmClass);
+        return this.esmClass;
     }
 
     /**
@@ -677,21 +665,21 @@ public abstract class SMPPPacket {
      * @deprecated getProtocolID
      */
     public int getProtocolId() {
-        return (this.protocolID);
+        return this.protocolID;
     }
 
     /**
      * Get the GSM protocol ID of the message.
      */
     public int getProtocolID() {
-        return (this.protocolID);
+        return this.protocolID;
     }
 
     /**
      * Get the data coding.
      */
     public int getDataCoding() {
-        return (this.dataCoding);
+        return this.dataCoding;
     }
 
     /**
@@ -700,14 +688,14 @@ public abstract class SMPPPacket {
      * @deprecated
      */
     public int getDefaultMsgId() {
-        return (this.defaultMsg);
+        return this.defaultMsg;
     }
 
     /**
      * Get the default message to use.
      */
     public int getDefaultMsg() {
-        return (this.defaultMsg);
+        return this.defaultMsg;
     }
 
     /**
@@ -732,8 +720,9 @@ public abstract class SMPPPacket {
      */
     public void setMessageText(String text)
             throws InvalidParameterValueException {
-        if (!(encoding instanceof AlphabetEncoding))
+        if (!(encoding instanceof AlphabetEncoding)) {
             encoding = AlphabetFactory.getDefaultAlphabet();
+        }
 
         AlphabetEncoding a = (AlphabetEncoding) encoding;
         setMessage(a.encodeString(text), a);
@@ -757,8 +746,9 @@ public abstract class SMPPPacket {
      */
     public void setMessageText(String text, AlphabetEncoding alphabet)
             throws InvalidParameterValueException {
-        if (alphabet == null)
+        if (alphabet == null) {
             throw new NullPointerException("Alphabet cannot be null");
+        }
 
         this.setMessage(alphabet.encodeString(text), alphabet);
     }
@@ -820,15 +810,17 @@ public abstract class SMPPPacket {
 
         // encoding should never be null, but for resilience, we check it here
         // and default back to binary encoding if none is found.
-        if (encoding == null)
+        if (encoding == null) {
             encoding = BinaryEncoding.getInstance();
+        }
 
         dcs = encoding.getDataCoding();
 
         if (message != null) {
-            if ((start < 0) || (len < 0) || message.length < (start + len))
+            if ((start < 0) || (len < 0) || message.length < (start + len)) {
                 throw new ArrayIndexOutOfBoundsException(
                         "Not enough bytes in array");
+            }
 
             int encodedLength = message.length;
             int encodingLength = encoding.getEncodingLength();
@@ -836,10 +828,10 @@ public abstract class SMPPPacket {
                 encodedLength = (len * encodingLength) / 8;
             }
 
-            if (encodedLength > version
-                    .getMaxLength(SMPPVersion.MESSAGE_PAYLOAD))
+            if (encodedLength > version.getMaxLength(SMPPVersion.MESSAGE_PAYLOAD)) {
                 throw new InvalidParameterValueException("Message is too long",
                         message);
+            }
 
             this.message = new byte[len];
             System.arraycopy(message, start, this.message, 0, len);
@@ -861,7 +853,7 @@ public abstract class SMPPPacket {
             b = new byte[this.message.length];
             System.arraycopy(this.message, 0, b, 0, b.length);
         }
-        return (b);
+        return b;
     }
 
     /**
@@ -876,10 +868,11 @@ public abstract class SMPPPacket {
      * @see #setMessageText(java.lang.String, ie.omk.smpp.util.AlphabetEncoding)
      */
     public String getMessageText() {
-        if (encoding instanceof AlphabetEncoding)
-            return (((AlphabetEncoding) encoding).decodeString(this.message));
-        else
-            return (null);
+        if (encoding instanceof AlphabetEncoding) {
+            return ((AlphabetEncoding) encoding).decodeString(this.message);
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -891,7 +884,7 @@ public abstract class SMPPPacket {
      * @see ie.omk.smpp.util.AlphabetEncoding
      */
     public String getMessageText(AlphabetEncoding enc) {
-        return (enc.decodeString(this.message));
+        return enc.decodeString(this.message);
     }
 
     /**
@@ -914,11 +907,12 @@ public abstract class SMPPPacket {
     public void setServiceType(String type)
             throws InvalidParameterValueException {
         if (type != null) {
-            if (version.validateServiceType(type))
+            if (version.validateServiceType(type)) {
                 this.serviceType = type;
-            else
+            } else {
                 throw new InvalidParameterValueException("Bad service type",
                         type);
+            }
         } else {
             this.serviceType = null;
         }
@@ -926,7 +920,7 @@ public abstract class SMPPPacket {
 
     /** Get the service type. */
     public String getServiceType() {
-        return (serviceType);
+        return serviceType;
     }
 
     /**
@@ -954,7 +948,7 @@ public abstract class SMPPPacket {
      * message.
      */
     public SMPPDate getDeliveryTime() {
-        return (deliveryTime);
+        return deliveryTime;
     }
 
     /**
@@ -980,7 +974,7 @@ public abstract class SMPPPacket {
      * Get the current expiry time of the message.
      */
     public SMPPDate getExpiryTime() {
-        return (expiryTime);
+        return expiryTime;
     }
 
     /**
@@ -1009,7 +1003,7 @@ public abstract class SMPPPacket {
      * Get the final date of the message.
      */
     public SMPPDate getFinalDate() {
-        return (finalDate);
+        return finalDate;
     }
 
     /**
@@ -1029,10 +1023,11 @@ public abstract class SMPPPacket {
      */
     public void setMessageId(String id) throws InvalidParameterValueException {
         if (id != null) {
-            if (version.validateMessageId(id))
+            if (version.validateMessageId(id)) {
                 this.messageId = id;
-            else
+            } else {
                 throw new InvalidParameterValueException("Bad message Id", id);
+            }
         } else {
             this.messageId = null;
         }
@@ -1042,7 +1037,7 @@ public abstract class SMPPPacket {
      * Get the message id.
      */
     public String getMessageId() {
-        return (this.messageId);
+        return this.messageId;
     }
 
     /**
@@ -1056,18 +1051,19 @@ public abstract class SMPPPacket {
     // XXX Add in a link to the eventual SMPPConstants file that'll be
     // implemented.
     public void setMessageStatus(int st) throws InvalidParameterValueException {
-        if (version.validateMessageState(st))
+        if (version.validateMessageState(st)) {
             this.messageStatus = st;
-        else
+        } else {
             throw new InvalidParameterValueException("Invalid message state",
                     st);
+        }
     }
 
     /**
      * Get the message status.
      */
     public int getMessageStatus() {
-        return (this.messageStatus);
+        return this.messageStatus;
     }
 
     /**
@@ -1077,17 +1073,18 @@ public abstract class SMPPPacket {
      *            The error code.
      */
     public void setErrorCode(int code) throws InvalidParameterValueException {
-        if (version.validateErrorCode(code))
+        if (version.validateErrorCode(code)) {
             errorCode = code;
-        else
+        } else {
             throw new InvalidParameterValueException("Invalid error code", code);
+        }
     }
 
     /**
      * Get the error code.
      */
     public int getErrorCode() {
-        return (errorCode);
+        return errorCode;
     }
 
     /**
@@ -1096,7 +1093,7 @@ public abstract class SMPPPacket {
      * @see ie.omk.smpp.message.tlv.TLVTable
      */
     public TLVTable getTLVTable() {
-        return (tlvTable);
+        return tlvTable;
     }
 
     /**
@@ -1110,12 +1107,13 @@ public abstract class SMPPPacket {
      */
     public TLVTable setTLVTable(TLVTable table) {
         TLVTable t = this.tlvTable;
-        if (table == null)
+        if (table == null) {
             this.tlvTable = new TLVTable();
-        else
+        } else {
             this.tlvTable = table;
+        }
 
-        return (t);
+        return t;
     }
 
     /**
@@ -1133,7 +1131,7 @@ public abstract class SMPPPacket {
      * @return the previous value of the parameter, or null if it was unset.
      */
     public Object setOptionalParameter(Tag tag, Object value) {
-        return (tlvTable.set(tag, value));
+        return tlvTable.set(tag, value);
     }
 
     /**
@@ -1145,7 +1143,7 @@ public abstract class SMPPPacket {
      *            the tag of the parameter value to get.
      */
     public Object getOptionalParameter(Tag tag) {
-        return (tlvTable.get(tag));
+        return tlvTable.get(tag);
     }
 
     /**
@@ -1158,7 +1156,7 @@ public abstract class SMPPPacket {
      * @return true if the parameter is set, false if it is not.
      */
     public boolean isSet(Tag tag) {
-        return (tlvTable.isSet(tag));
+        return tlvTable.isSet(tag);
     }
 
     /**
@@ -1172,10 +1170,11 @@ public abstract class SMPPPacket {
      * @see ie.omk.smpp.util.DefaultAlphabetEncoding
      */
     public void setAlphabet(AlphabetEncoding enc) {
-        if (enc == null)
+        if (enc == null) {
             this.encoding = AlphabetFactory.getDefaultAlphabet();
-        else
+        } else {
             this.encoding = enc;
+        }
 
         this.dataCoding = enc.getDataCoding();
     }
@@ -1201,17 +1200,18 @@ public abstract class SMPPPacket {
      * Set the message encoding handler class for this packet.
      */
     public void setMessageEncoding(MessageEncoding enc) {
-        if (enc == null)
+        if (enc == null) {
             this.encoding = AlphabetFactory.getDefaultAlphabet();
-        else
+        } else {
             this.encoding = enc;
+        }
     }
 
     /**
      * Get the current message encoding object.
      */
     public MessageEncoding getMessageEncoding() {
-        return (this.encoding);
+        return this.encoding;
     }
 
     /**
@@ -1331,8 +1331,9 @@ public abstract class SMPPPacket {
                 // Read the optional parameters..
                 int bl = getBodyLength();
                 len -= (16 + bl);
-                if (len > 0)
+                if (len > 0) {
                     tlvTable.readFrom(b, ptr + bl, len);
+                }
             }
         } catch (ArrayIndexOutOfBoundsException x) {
             throw new SMPPProtocolException(
@@ -1341,8 +1342,9 @@ public abstract class SMPPPacket {
 
         // Set the message encoding type (if relevant)
         encoding = MessageEncoding.getEncoding(dataCoding);
-        if (encoding == null)
+        if (encoding == null) {
             encoding = AlphabetFactory.getDefaultAlphabet();
+        }
     }
 
     /**
@@ -1358,3 +1360,4 @@ public abstract class SMPPPacket {
     protected abstract void readBodyFrom(byte[] b, int offset)
             throws SMPPProtocolException;
 }
+

@@ -1,26 +1,3 @@
-/*
- * Java SMPP API
- * Copyright (C) 1998 - 2002 by Oran Kelly
- * 
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- * 
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * 
- * A copy of the LGPL can be viewed at http://www.gnu.org/copyleft/lesser.html
- * Java SMPP API author: orank@users.sf.net
- * Java SMPP API Homepage: http://smppapi.sourceforge.net/
- * $Id$
- */
 package ie.omk.smpp.message;
 
 import ie.omk.smpp.util.SMPPIO;
@@ -67,11 +44,12 @@ public abstract class Bind extends ie.omk.smpp.message.SMPPRequest {
      */
     public void setSystemId(String sysId) throws InvalidParameterValueException {
         if (sysId != null) {
-            if (version.validateSystemId(sysId))
+            if (version.validateSystemId(sysId)) {
                 this.sysId = sysId;
-            else
+            } else {
                 throw new InvalidParameterValueException("Invalid system ID",
                         sysId);
+            }
         } else {
             this.sysId = null;
         }
@@ -88,11 +66,12 @@ public abstract class Bind extends ie.omk.smpp.message.SMPPRequest {
     public void setPassword(String password)
             throws InvalidParameterValueException {
         if (password != null) {
-            if (version.validatePassword(password))
+            if (version.validatePassword(password)) {
                 this.password = password;
-            else
+            } else {
                 throw new InvalidParameterValueException("Invalid password",
                         password);
+            }
         } else {
             this.password = null;
         }
@@ -109,11 +88,12 @@ public abstract class Bind extends ie.omk.smpp.message.SMPPRequest {
     public void setSystemType(String sysType)
             throws InvalidParameterValueException {
         if (sysType != null) {
-            if (version.validateSystemType(sysType))
+            if (version.validateSystemType(sysType)) {
                 this.sysType = sysType;
-            else
+            } else {
                 throw new InvalidParameterValueException("Invalid system type",
                         sysType);
+            }
         } else {
             this.sysType = null;
         }
@@ -158,11 +138,12 @@ public abstract class Bind extends ie.omk.smpp.message.SMPPRequest {
     public void setAddressRange(String addressRange)
             throws InvalidParameterValueException {
         if (addressRange != null) {
-            if (version.validateAddressRange(addressRange))
+            if (version.validateAddressRange(addressRange)) {
                 this.addressRange = addressRange;
-            else
+            } else {
                 throw new InvalidParameterValueException(
                         "Invalid address range", addressRange);
+            }
         } else {
             this.addressRange = null;
         }
@@ -170,37 +151,37 @@ public abstract class Bind extends ie.omk.smpp.message.SMPPRequest {
 
     /** Get the system Id */
     public String getSystemId() {
-        return (sysId);
+        return sysId;
     }
 
     /** Get the authentication password */
     public String getPassword() {
-        return (password);
+        return password;
     }
 
     /** Get the current system type */
     public String getSystemType() {
-        return (sysType);
+        return sysType;
     }
 
     /** Get the routing address regular expression */
     public String getAddressRange() {
-        return (addressRange);
+        return addressRange;
     }
 
     /** Get the Type of number */
     public int getAddressTon() {
-        return (addrTon);
+        return addrTon;
     }
 
     /** Get the Numbering plan indicator */
     public int getAddressNpi() {
-        return (addrNpi);
+        return addrNpi;
     }
 
     /** Get the interface version */
     public int getInterfaceVersion() {
-        return (version.getVersionID());
+        return version.getVersionID();
     }
 
     /**
@@ -219,7 +200,7 @@ public abstract class Bind extends ie.omk.smpp.message.SMPPRequest {
                 : 0));
 
         // 3 1-byte integers, 4 c-strings
-        return (len + 3 + 4);
+        return len + 3 + 4;
     }
 
     /**
@@ -274,3 +255,4 @@ public abstract class Bind extends ie.omk.smpp.message.SMPPRequest {
         return new String("bind");
     }
 }
+

@@ -1,26 +1,3 @@
-/*
- * Java SMPP API
- * Copyright (C) 1998 - 2002 by Oran Kelly
- * 
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- * 
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * 
- * A copy of the LGPL can be viewed at http://www.gnu.org/copyleft/lesser.html
- * Java SMPP API author: orank@users.sf.net
- * Java SMPP API Homepage: http://smppapi.sourceforge.net/
- * $Id$
- */
 package ie.omk.smpp.message;
 
 import ie.omk.smpp.Address;
@@ -80,7 +57,7 @@ public class SubmitMultiResp extends ie.omk.smpp.message.SMPPResponse {
 
     /** Get the number of destinations the message was not delivered to. */
     public int getUnsuccessfulCount() {
-        return (unsuccessfulTable.size());
+        return unsuccessfulTable.size();
     }
 
     /**
@@ -93,7 +70,7 @@ public class SubmitMultiResp extends ie.omk.smpp.message.SMPPResponse {
      */
     public int add(ErrorAddress ea) {
         unsuccessfulTable.add(ea);
-        return (unsuccessfulTable.size());
+        return unsuccessfulTable.size();
     }
 
     /**
@@ -106,10 +83,11 @@ public class SubmitMultiResp extends ie.omk.smpp.message.SMPPResponse {
     public int remove(Address a) {
         synchronized (unsuccessfulTable) {
             int i = unsuccessfulTable.indexOf(a);
-            if (i > -1)
+            if (i > -1) {
                 unsuccessfulTable.remove(i);
+            }
 
-            return (unsuccessfulTable.size());
+            return unsuccessfulTable.size();
         }
     }
 
@@ -118,7 +96,7 @@ public class SubmitMultiResp extends ie.omk.smpp.message.SMPPResponse {
      * destination table.
      */
     public java.util.ListIterator tableIterator() {
-        return (unsuccessfulTable.listIterator());
+        return unsuccessfulTable.listIterator();
     }
 
     /**
@@ -134,12 +112,13 @@ public class SubmitMultiResp extends ie.omk.smpp.message.SMPPResponse {
 
         synchronized (unsuccessfulTable) {
             Iterator i = unsuccessfulTable.iterator();
-            while (i.hasNext())
+            while (i.hasNext()) {
                 size += ((ErrorAddress) i.next()).getLength();
+            }
         }
 
         // 1 1-byte integer, 1 c-string
-        return (size + 1 + 1);
+        return size + 1 + 1;
     }
 
     /**
@@ -151,7 +130,8 @@ public class SubmitMultiResp extends ie.omk.smpp.message.SMPPResponse {
      *             If an error occurs writing to the output stream.
      */
     protected void encodeBody(OutputStream out) throws java.io.IOException {
-        int loop, size = 0;
+        int loop;
+        int size = 0;
 
         synchronized (unsuccessfulTable) {
             size = unsuccessfulTable.size();
@@ -159,8 +139,9 @@ public class SubmitMultiResp extends ie.omk.smpp.message.SMPPResponse {
             SMPPIO.writeInt(size, 1, out);
 
             Iterator i = unsuccessfulTable.iterator();
-            while (i.hasNext())
+            while (i.hasNext()) {
                 ((ErrorAddress) i.next()).writeTo(out);
+            }
         }
     }
 
@@ -171,8 +152,9 @@ public class SubmitMultiResp extends ie.omk.smpp.message.SMPPResponse {
 
         int unsuccessfulCount = SMPPIO.bytesToInt(body, offset++, 1);
 
-        if (unsuccessfulCount < 1)
+        if (unsuccessfulCount < 1) {
             return;
+        }
 
         for (int loop = 0; loop < unsuccessfulCount; loop++) {
             ErrorAddress a = new ErrorAddress();
@@ -190,3 +172,4 @@ public class SubmitMultiResp extends ie.omk.smpp.message.SMPPResponse {
         return new String("submit_multi_resp");
     }
 }
+

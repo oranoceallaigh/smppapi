@@ -1,26 +1,3 @@
-/*
- * Java SMPP API
- * Copyright (C) 1998 - 2002 by Oran Kelly
- * 
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- * 
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * 
- * A copy of the LGPL can be viewed at http://www.gnu.org/copyleft/lesser.html
- * Java SMPP API author: orank@users.sf.net
- * Java SMPP API Homepage: http://smppapi.sourceforge.net/
- * $Id$
- */
 package ie.omk.smpp;
 
 import ie.omk.smpp.event.ConnectionObserver;
@@ -64,6 +41,7 @@ import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -87,7 +65,7 @@ import org.apache.commons.logging.LogFactory;
  * </p>
  * 
  * @author Oran Kelly
- * @version 1.0
+ * @version $Id$
  */
 public class Connection implements java.lang.Runnable {
     /** Get the logger for this Connection. */
@@ -135,7 +113,7 @@ public class Connection implements java.lang.Runnable {
      * be added to the packetQueue and subsequent calls to
      * <code>readNextPacket</code> will clear this queue.
      */
-    private ArrayList packetQueue = null;
+    private List packetQueue = null;
 
     /**
      * Object used to notify observers of SMPP events.
@@ -286,8 +264,9 @@ public class Connection implements java.lang.Runnable {
                     .append("receiving exception.");
             logger.error(errorMessage.toString(), x);
         } finally {
-            if (eventDispatcher == null)
+            if (eventDispatcher == null) {
                 eventDispatcher = new SimpleEventDispatcher();
+            }
         }
 
         // Initialise the event dispatcher
@@ -338,7 +317,7 @@ public class Connection implements java.lang.Runnable {
      * @return the default alphabet for this <code>Connection</code>.
      */
     public AlphabetEncoding getDefaultAlphabet() {
-        return (defaultAlphabet);
+        return defaultAlphabet;
     }
 
     /**
@@ -365,13 +344,15 @@ public class Connection implements java.lang.Runnable {
      * @see ie.omk.smpp.version.SMPPVersion
      */
     public void setVersion(SMPPVersion version) throws VersionException {
-        if (getState() != UNBOUND)
+        if (getState() != UNBOUND) {
             throw new VersionException("Cannot set SMPP version after binding");
+        }
 
-        if (version == null)
+        if (version == null) {
             this.interfaceVersion = SMPPVersion.getDefaultVersion();
-        else
+        } else {
             this.interfaceVersion = version;
+        }
     }
 
     /**
@@ -384,7 +365,7 @@ public class Connection implements java.lang.Runnable {
      * automatically sets it's internal version to use down to 3.3.
      */
     public SMPPVersion getVersion() {
-        return (interfaceVersion);
+        return interfaceVersion;
     }
 
     /**
@@ -392,7 +373,7 @@ public class Connection implements java.lang.Runnable {
      * UNBINDING.
      */
     public synchronized int getState() {
-        return (this.state);
+        return this.state;
     }
 
     /**
@@ -407,8 +388,9 @@ public class Connection implements java.lang.Runnable {
         if (!this.link.isConnected()) {
             logger.info("Opening network link.");
             this.link.open();
-            if (this.seqNumScheme != null)
+            if (this.seqNumScheme != null) {
                 this.seqNumScheme.reset();
+            }
         } else {
             logger.debug("openLink called, link already open");
         }
@@ -427,9 +409,10 @@ public class Connection implements java.lang.Runnable {
      * @see ie.omk.smpp.net.SmscLink#close
      */
     public void closeLink() throws IOException {
-        if (getState() != UNBOUND)
+        if (getState() != UNBOUND) {
             throw new IllegalStateException(
                     "Cannot close the link while bound to the SMSC");
+        }
 
         if (this.link.isConnected()) {
             logger.info("Shutting down the network link");
@@ -445,7 +428,7 @@ public class Connection implements java.lang.Runnable {
      * @see #setInterfaceVersion(SMPPVersion)
      */
     public SMPPVersion getInterfaceVersion() {
-        return (this.interfaceVersion);
+        return this.interfaceVersion;
     }
 
     /**
@@ -510,14 +493,14 @@ public class Connection implements java.lang.Runnable {
      * asynchronous mode.
      */
     public boolean isAckingLinks() {
-        return (ackQryLinks);
+        return ackQryLinks;
     }
 
     /**
      * Check is this connection automatically acking delivered messages
      */
     public boolean isAckingMessages() {
-        return (ackDeliverSm);
+        return ackDeliverSm;
     }
 
     /**
@@ -580,9 +563,10 @@ public class Connection implements java.lang.Runnable {
         SMPPResponse resp = null;
         int id = r.getCommandId();
 
-        if (this.state != BOUND)
+        if (this.state != BOUND) {
             throw new NotBoundException("Must be bound to the SMSC before "
                     + "sending packets");
+        }
 
         // Force applications to use bind and unbind
         if (id == SMPPPacket.BIND_RECEIVER || id == SMPPPacket.BIND_TRANSCEIVER
@@ -593,12 +577,13 @@ public class Connection implements java.lang.Runnable {
 
         // Very few request types allowed by a receiver connection.
         if (connectionType == RECEIVER) {
-            if (id != SMPPPacket.ENQUIRE_LINK)
+            if (id != SMPPPacket.ENQUIRE_LINK) {
                 throw new UnsupportedOperationException(
                         "Operation not permitted over receiver connection");
+            }
         }
 
-        return (sendRequestInternal(r));
+        return sendRequestInternal(r);
     }
 
     /**
@@ -614,8 +599,9 @@ public class Connection implements java.lang.Runnable {
         SMPPResponse resp = null;
         int id = r.getCommandId();
 
-        if (link == null)
+        if (link == null) {
             throw new IOException("No SMSC connection.");
+        }
 
         // Check the command is supported by the interface version..
         if (!this.interfaceVersion.isSupported(id)) {
@@ -626,15 +612,17 @@ public class Connection implements java.lang.Runnable {
 
         if (id == SMPPPacket.BIND_TRANSMITTER || id == SMPPPacket.BIND_RECEIVER
                 || id == SMPPPacket.BIND_TRANSCEIVER) {
-            if (this.state != UNBOUND)
+            if (this.state != UNBOUND) {
                 throw new AlreadyBoundException("Already bound to the SMSC");
+            }
 
             openLink();
 
             setState(BINDING);
             if (asyncComms) {
-                if (rcvThread == null)
+                if (rcvThread == null) {
                     createRecvThread();
+                }
 
                 // Set the socket timeout to the bind timeout
                 try {
@@ -644,24 +632,27 @@ public class Connection implements java.lang.Runnable {
                         this.link.setTimeout(bindTimeout);
                         if (logger.isDebugEnabled()) {
                             logger.debug("Set bind timeout to " + bindTimeout);
-                        }
-                    }
-                } catch (UnsupportedOperationException x) {
+                       }
+                   }
+               } catch (UnsupportedOperationException x) {
                     logger
                             .warn("Link does not support read timeouts - bind timeout will not work");
-                }
+               }
 
-                if (!rcvThread.isAlive())
+                if (!rcvThread.isAlive()) {
                     rcvThread.start();
+                }
             }
         } else if (id == SMPPPacket.UNBIND) {
-            if (!asyncComms && packetQueue.size() > 0)
+            if (!asyncComms && packetQueue.size() > 0) {
                 throw new IllegalStateException(
                         "Cannot unbind while there are incoming packets "
                                 + "waiting responses");
+            }
 
-            if (this.state != BOUND)
+            if (this.state != BOUND) {
                 throw new IllegalStateException("Not currently bound");
+            }
 
             setState(UNBINDING);
         }
@@ -669,14 +660,16 @@ public class Connection implements java.lang.Runnable {
         // XXX temporary...this should be removed once it's safe to assume that
         // no packet can be submitted that has been constructed outside the
         // confines of this connection's factory method.
-        if (r.getSequenceNum() == 0 && seqNumScheme != null)
+        if (r.getSequenceNum() == 0 && seqNumScheme != null) {
             r.setSequenceNum(seqNumScheme.nextNumber());
+        }
 
         link.write(r, this.supportOptionalParams);
-        if (!asyncComms)
+        if (!asyncComms) {
             resp = waitForResponsePacket(r);
+        }
 
-        return ((SMPPResponse) resp);
+        return (SMPPResponse) resp;
     }
 
     /**
@@ -710,7 +703,7 @@ public class Connection implements java.lang.Runnable {
                 if ((id & 0x80000000) != 0
                         && resp.getSequenceNum() == expectedSeq) {
                     break;
-                } else {
+               } else {
                     logger.info("Queuing unexpected sequence numbered packet.");
                     if (logger.isDebugEnabled()) {
                         StringBuffer b = new StringBuffer("Expected:").append(
@@ -720,12 +713,12 @@ public class Connection implements java.lang.Runnable {
                                 .append(" type: ").append(
                                         Integer.toString(resp.getCommandId()));
                         logger.debug(b.toString());
-                    }
+                   }
                     packetQueue.add(resp);
-                }
+               }
             }
 
-            return ((SMPPResponse) resp);
+            return (SMPPResponse) resp;
         } catch (java.net.SocketTimeoutException x) {
             // Must set our state and re-throw the exception..
             logger.error("Received a socket timeout exception", x);
@@ -746,13 +739,14 @@ public class Connection implements java.lang.Runnable {
         int ret = 0;
 
         if (!asyncComms) {
-            if (packetQueue.size() > 0)
+            if (packetQueue.size() > 0) {
                 ret = 2;
-            else if (link.available() > 0)
+            } else if (link.available() > 0) {
                 ret = 1;
+            }
         }
 
-        return (ret);
+        return ret;
     }
 
     /**
@@ -767,8 +761,9 @@ public class Connection implements java.lang.Runnable {
     public void sendResponse(SMPPResponse resp) throws java.io.IOException {
         Integer key = null;
 
-        if (link == null)
+        if (link == null) {
             throw new IOException("Connection to SMSC is not valid.");
+        }
 
         try {
             link.write(resp, this.supportOptionalParams);
@@ -779,8 +774,9 @@ public class Connection implements java.lang.Runnable {
         }
 
         if (resp.getCommandId() == SMPPPacket.UNBIND_RESP
-                && resp.getCommandStatus() == 0)
+                && resp.getCommandStatus() == 0) {
             setState(UNBOUND);
+        }
     }
 
     /**
@@ -846,7 +842,7 @@ public class Connection implements java.lang.Runnable {
             String systemType) throws java.io.IOException,
             InvalidParameterValueException, IllegalArgumentException,
             AlreadyBoundException, VersionException, SMPPProtocolException {
-        return (this.bind(type, systemID, password, systemType, 0, 0, null));
+        return this.bind(type, systemID, password, systemType, 0, 0, null);
     }
 
     /**
@@ -937,7 +933,7 @@ public class Connection implements java.lang.Runnable {
         bindReq.setAddressTon(typeOfNum);
         bindReq.setAddressNpi(numberPlan);
         bindReq.setAddressRange(addrRange);
-        return ((BindResp) sendRequestInternal(bindReq));
+        return (BindResp) sendRequestInternal(bindReq);
     }
 
     /**
@@ -963,13 +959,14 @@ public class Connection implements java.lang.Runnable {
      */
     public UnbindResp unbind() throws java.io.IOException, NotBoundException,
             SMPPProtocolException {
-        if ((state != BOUND) || !(link.isConnected()))
+        if ((state != BOUND) || !(link.isConnected())) {
             throw new NotBoundException();
+        }
 
         try {
             logger.info("Unbinding from the SMSC");
             Unbind u = (Unbind) newInstance(SMPPPacket.UNBIND);
-            return ((UnbindResp) sendRequestInternal(u));
+            return (UnbindResp) sendRequestInternal(u);
         } catch (VersionException x) {
             // impossible...every version supports unbind!
             throw new SMPPRuntimeException("Internal smppapi error");
@@ -993,11 +990,13 @@ public class Connection implements java.lang.Runnable {
      */
     public void unbind(UnbindResp ubr) throws java.io.IOException,
             ie.omk.smpp.SMPPException {
-        if (state != UNBINDING)
+        if (state != UNBINDING) {
             throw new NotBoundException("Link is not connected.");
+        }
 
-        if (!(link.isConnected()))
+        if (!(link.isConnected())) {
             throw new AlreadyBoundException("No unbind request received.");
+        }
 
         sendResponse(ubr);
     }
@@ -1025,13 +1024,14 @@ public class Connection implements java.lang.Runnable {
                     // Wait to see if the thread will terminate due to the state
                     // becoming UNBOUND.
                     Thread.sleep(1000);
-                } catch (InterruptedException x) {
+               } catch (InterruptedException x) {
                     logger.debug(
                             "Interrupted exception waiting on receiver to die",
                             x);
-                }
-                if (rcvThread != null)
+               }
+                if (rcvThread != null) {
                     logger.error("Listener thread has not died.");
+                }
 
                 rcvThread = null;
             }
@@ -1075,9 +1075,10 @@ public class Connection implements java.lang.Runnable {
             EnquireLink s = (EnquireLink) newInstance(SMPPPacket.ENQUIRE_LINK);
             SMPPResponse resp = sendRequest(s);
             logger.debug("enquire_link request sent.");
-            if (resp != null)
+            if (resp != null) {
                 logger.debug("enquire_link_response received.");
-            return ((EnquireLinkResp) resp);
+            }
+            return (EnquireLinkResp) resp;
         } catch (BadCommandIDException x) {
             throw new SMPPRuntimeException("Internal smppapi error");
         }
@@ -1088,7 +1089,7 @@ public class Connection implements java.lang.Runnable {
      * TRANSMITTER, RECEIVER or TRANSCEIVER.
      */
     public int getConnectionType() {
-        return (connectionType);
+        return connectionType;
     }
 
     /**
@@ -1097,7 +1098,7 @@ public class Connection implements java.lang.Runnable {
      * @return true if the connection is bound.
      */
     public boolean isBound() {
-        return (state == BOUND);
+        return state == BOUND;
     }
 
     /**
@@ -1116,8 +1117,9 @@ public class Connection implements java.lang.Runnable {
                     "Cannot reset connection while bound");
         }
 
-        if (this.seqNumScheme != null)
+        if (this.seqNumScheme != null) {
             this.seqNumScheme.reset();
+        }
 
         logger.info("Sequence numbering reset.");
     }
@@ -1145,7 +1147,7 @@ public class Connection implements java.lang.Runnable {
      * connection.
      */
     public SequenceNumberScheme getSeqNumScheme() {
-        return (this.seqNumScheme);
+        return this.seqNumScheme;
     }
 
     /**
@@ -1169,10 +1171,11 @@ public class Connection implements java.lang.Runnable {
         if (asyncComms) {
             throw new InvalidOperationException("Asynchronous comms in use.");
         } else {
-            if (packetQueue.size() > 0)
-                return ((SMPPPacket) packetQueue.remove(0));
-            else
-                return (readNextPacketInternal());
+            if (packetQueue.size() > 0) {
+                return (SMPPPacket) packetQueue.remove(0);
+            } else {
+                return readNextPacketInternal();
+            }
         }
     }
 
@@ -1190,7 +1193,8 @@ public class Connection implements java.lang.Runnable {
             throws java.io.IOException, SMPPProtocolException {
         try {
             SMPPPacket pak = null;
-            int id = -1, st = -1;
+            int id = -1;
+            int st = -1;
 
             this.buf = link.read(this.buf);
             id = SMPPIO.bytesToInt(this.buf, 4, 4);
@@ -1208,7 +1212,7 @@ public class Connection implements java.lang.Runnable {
                     b.append(" st:").append(Integer.toString(s));
                     b.append(" sq:").append(Integer.toString(n));
                     logger.debug(b.toString());
-                }
+               }
 
                 // Special case handling for certain packet types..
                 st = pak.getCommandStatus();
@@ -1226,19 +1230,20 @@ public class Connection implements java.lang.Runnable {
                 case SMPPPacket.UNBIND:
                     handleUnbind((Unbind) pak);
                     break;
-                }
+               }
 
                 if (st == 0) {
                     // Fix up the alphabet for this connection type if the
                     // packet needs it. DCS value 0 means the alphabet is in the
                     // default encoding of the SMSC, which varies depending on
                     // implementation.
-                    if (defaultAlphabet != null && pak.getDataCoding() == 0)
+                    if (defaultAlphabet != null && pak.getDataCoding() == 0) {
                         pak.setAlphabet(defaultAlphabet);
-                }
+                    }
+               }
             }
 
-            return (pak);
+            return pak;
         } catch (BadCommandIDException x) {
             throw new SMPPProtocolException("Unrecognised command received", x);
         }
@@ -1274,7 +1279,7 @@ public class Connection implements java.lang.Runnable {
                             .warn(
                                     "I/O Exception shutting down link after failed bind.",
                                     x);
-                }
+               }
             }
 
             return;
@@ -1372,16 +1377,18 @@ public class Connection implements java.lang.Runnable {
      * </p>
      */
     public void setEventDispatcher(EventDispatcher eventDispatcher) {
-        if (eventDispatcher == null)
+        if (eventDispatcher == null) {
             throw new NullPointerException("Event dispatcher cannot be null");
+        }
 
         eventDispatcher.init();
 
         // Copy all current observers to the new event dispatcher..
         synchronized (this.eventDispatcher) {
             Iterator iter = this.eventDispatcher.observerIterator();
-            while (iter.hasNext())
+            while (iter.hasNext()) {
                 eventDispatcher.addObserver((ConnectionObserver) iter.next());
+            }
         }
 
         EventDispatcher old = this.eventDispatcher;
@@ -1402,16 +1409,18 @@ public class Connection implements java.lang.Runnable {
      *            the ConnectionObserver implementation to add.
      */
     public void addObserver(ConnectionObserver ob) {
-        if (eventDispatcher != null)
+        if (eventDispatcher != null) {
             eventDispatcher.addObserver(ob);
+        }
     }
 
     /**
      * Remove a connection observer from this Connection.
      */
     public void removeObserver(ConnectionObserver ob) {
-        if (eventDispatcher != null)
+        if (eventDispatcher != null) {
             eventDispatcher.removeObserver(ob);
+        }
     }
 
     /**
@@ -1419,7 +1428,9 @@ public class Connection implements java.lang.Runnable {
      */
     public void run() {
         SMPPPacket pak = null;
-        int smppEx = 0, id = 0, st = 0;
+        int smppEx = 0;
+        int id = 0;
+        int st = 0;
         SMPPEvent exitEvent = null;
         int tooManyIOEx = 5;
 
@@ -1442,8 +1453,8 @@ public class Connection implements java.lang.Runnable {
                     if (pak == null) {
                         // XXX Send an event to the application??
                         continue;
-                    }
-                } catch (SocketTimeoutException x) {
+                   }
+               } catch (SocketTimeoutException x) {
                     if (state == BINDING) {
                         // bind timeout has expired
                         logger.error("Socket timeout in BINDING state.");
@@ -1451,20 +1462,20 @@ public class Connection implements java.lang.Runnable {
                         ((ReceiverExitEvent) exitEvent)
                                 .setReason(ReceiverExitEvent.BIND_TIMEOUT);
                         setState(UNBOUND);
-                    } else {
+                   } else {
                         // is it okay to ignore this ??
                         logger.info("Ignoring SocketTimeoutException");
-                    }
+                   }
 
                     continue;
-                } catch (EOFException x) {
+               } catch (EOFException x) {
                     // The network connection has disappeared! Wah!
                     logger.error("EOFException received in daemon thread.", x);
 
                     // Will be caught by the general handler lower in this
                     // method.
                     throw x;
-                } catch (IOException x) {
+               } catch (IOException x) {
                     logger.warn("I/O Exception caught", x);
                     ReceiverExceptionEvent ev = new ReceiverExceptionEvent(
                             this, x, state);
@@ -1474,10 +1485,10 @@ public class Connection implements java.lang.Runnable {
                         logger.warn("Too many IOExceptions in receiver thread",
                                 x);
                         throw x;
-                    }
+                   }
 
                     continue;
-                }
+               }
 
                 // Reset smppEx back to zero if we reach here, as packet
                 // reception was successful.
@@ -1489,15 +1500,17 @@ public class Connection implements java.lang.Runnable {
                 // Handle special case packets..
                 switch (id) {
                 case SMPPPacket.DELIVER_SM:
-                    if (ackDeliverSm)
+                    if (ackDeliverSm) {
                         ackDeliverSm((DeliverSM) pak);
+                    }
                     break;
 
                 case SMPPPacket.ENQUIRE_LINK:
-                    if (ackQryLinks)
+                    if (ackQryLinks) {
                         ackEnquireLink((EnquireLink) pak);
+                    }
                     break;
-                }
+               }
 
                 // Tell all the observers about the new packet
                 logger.info("Notifying observers of packet received");
@@ -1515,8 +1528,9 @@ public class Connection implements java.lang.Runnable {
             rcvThread = null;
         }
 
-        if (exitEvent != null)
+        if (exitEvent != null) {
             eventDispatcher.notifyObservers(this, exitEvent);
+        }
 
         // Clean up the event dispatcher.
         eventDispatcher.destroy();
@@ -1548,18 +1562,21 @@ public class Connection implements java.lang.Runnable {
     public SMPPPacket newInstance(int commandId) throws BadCommandIDException,
             VersionException {
 
-        if (!this.interfaceVersion.isSupported(commandId))
+        if (!this.interfaceVersion.isSupported(commandId)) {
             throw new VersionException(
                     "Command is not supported in this SMPP version");
+        }
 
         SMPPPacket response = PacketFactory.newInstance(commandId);
         response.setVersion(this.interfaceVersion);
-        if (this.seqNumScheme != null)
+        if (this.seqNumScheme != null) {
             response.setSequenceNum(this.seqNumScheme.nextNumber());
+        }
 
-        if (defaultAlphabet != null)
+        if (defaultAlphabet != null) {
             response.setAlphabet(defaultAlphabet, 0);
+        }
 
-        return (response);
+        return response;
     }
 }

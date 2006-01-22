@@ -1,26 +1,3 @@
-/*
- * Java SMPP API
- * Copyright (C) 1998 - 2002 by Oran Kelly
- * 
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- * 
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * 
- * A copy of the LGPL can be viewed at http://www.gnu.org/copyleft/lesser.html
- * Java SMPP API author: orank@users.sf.net
- * Java SMPP API Homepage: http://smppapi.sourceforge.net/
- * $Id$
- */
 package ie.omk.smpp.message;
 
 import ie.omk.smpp.Address;
@@ -74,15 +51,17 @@ public class QueryMsgDetails extends ie.omk.smpp.message.SMPPRequest {
     public void setSmLength(int len) {
         smLength = len;
 
-        if (smLength < 0)
+        if (smLength < 0) {
             smLength = 0;
-        if (smLength > 160)
+        }
+        if (smLength > 160) {
             smLength = 160;
+        }
     }
 
     /** Get the number of bytes of the original message being requested. */
     public int getSmLength() {
-        return (smLength);
+        return smLength;
     }
 
     public int getBodyLength() {
@@ -91,7 +70,7 @@ public class QueryMsgDetails extends ie.omk.smpp.message.SMPPRequest {
                 : 3));
 
         // 1 1-byte integer, 1 c-string
-        return (len + 1 + 1);
+        return len + 1 + 1;
     }
 
     /**
@@ -135,3 +114,4 @@ public class QueryMsgDetails extends ie.omk.smpp.message.SMPPRequest {
         return new String("query_msg_details");
     }
 }
+

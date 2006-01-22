@@ -6,7 +6,9 @@ import ie.omk.smpp.util.APIConfig;
 import ie.omk.smpp.util.PropertyNotFoundException;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -24,6 +26,7 @@ import org.apache.commons.logging.LogFactory;
  * the event queue, which will be processed by a thread in the thread pool.
  * 
  * @author Oran Kelly
+ * @version $Id$
  */
 public class ThreadedEventDispatcher implements EventDispatcher, Runnable {
 
@@ -58,7 +61,7 @@ public class ThreadedEventDispatcher implements EventDispatcher, Runnable {
     /**
      * List of observers registered for event delivery.
      */
-    private ArrayList observers = new ArrayList();
+    private List observers = new ArrayList();
 
     /**
      * Create a new threaded event dispatcher object.
@@ -113,8 +116,7 @@ public class ThreadedEventDispatcher implements EventDispatcher, Runnable {
         // dispatcher during event processing. There are probably many other
         // ways this call-back could happen but it shouldn't!
         if (Thread.currentThread().getThreadGroup() == threadPool) {
-            logger
-                    .error("Cannot shut down the thread pool with one of it's own threads.");
+            logger.error("Cannot shut down the thread pool with one of it's own threads.");
             throw new RuntimeException();
         }
 
@@ -133,27 +135,29 @@ public class ThreadedEventDispatcher implements EventDispatcher, Runnable {
                 pool[0] = null;
                 threadPool.enumerate(pool, false);
 
-                if (pool[0] == null)
+                if (pool[0] == null) {
                     break;
-                else
-                    logger
-                            .debug("There's still some threads running. Doing another loop..");
+                } else {
+                    logger.debug("There's still some threads running. Doing another loop..");
+                }
 
                 // Break out if it looks like we're stuck in an infinite loop
-                if (time >= times)
+                if (time >= times) {
                     break;
+                }
 
                 // What's a good time to wait for more threads to terminate?
                 Thread.sleep(waitTime);
                 synchronized (queue) {
                     queue.notifyAll();
-                }
+               }
             } catch (InterruptedException x) {
             }
         }
 
-        if (pool[0] != null)
+        if (pool[0] != null) {
             forceThreadExit();
+        }
     }
 
     private void forceThreadExit() {
@@ -181,15 +185,16 @@ public class ThreadedEventDispatcher implements EventDispatcher, Runnable {
                 logger.debug("Still-active threads:");
                 for (int i = 0; i < pool.length; i++) {
                     logger.debug("  " + pool[i].getName());
-                }
+               }
             }
         }
     }
 
     public void addObserver(ConnectionObserver observer) {
         synchronized (observers) {
-            if (!observers.contains(observer))
+            if (!observers.contains(observer)) {
                 observers.add(observer);
+            }
         }
     }
 
@@ -200,21 +205,22 @@ public class ThreadedEventDispatcher implements EventDispatcher, Runnable {
     }
 
     public Iterator observerIterator() {
-        return (((ArrayList) observers.clone()).iterator());
+        return Collections.unmodifiableList(observers).iterator();
     }
 
     public boolean contains(ConnectionObserver observer) {
         synchronized (observers) {
-            return (observers.contains(observer));
+            return observers.contains(observer);
         }
     }
 
     // notifyObservers is always single-threaded access as there's only 1
     // receiver thread!
     public void notifyObservers(Connection conn, SMPPEvent e) {
-        if (logger.isDebugEnabled())
+        if (logger.isDebugEnabled()) {
             logger.debug("Notifying observers of a new SMPP event "
                     + e.getType());
+        }
 
         queue.put(conn, e);
         if (threadsWaiting > 0) {
@@ -253,24 +259,23 @@ public class ThreadedEventDispatcher implements EventDispatcher, Runnable {
                         threadsWaiting++;
                         queue.wait();
                         threadsWaiting--;
-                    }
+                   }
 
                     nd = queue.get();
+               }
+
+                if (nd == null) {
+                    continue;
                 }
 
-                if (nd == null)
-                    continue;
-
-                // Get a shallow copy of the registered observers and iterate
-                // over it
-                Iterator i = ((ArrayList) observers.clone()).iterator();
-                while (i.hasNext()) {
-                    observer = (ConnectionObserver) i.next();
-                    if (nd.event == null)
+                for (int i = observers.size() - 1; i >= 0; i--) {
+                    observer = (ConnectionObserver) observers.get(i);
+                    if (nd.event == null) {
                         observer.packetReceived(nd.conn, nd.pak);
-                    else
+                    } else {
                         observer.update(nd.conn, nd.event);
-                } // end while
+                    }
+                }
             } // end while
 
             logger.debug("Thread " + Thread.currentThread().getName()
@@ -304,17 +309,20 @@ public class ThreadedEventDispatcher implements EventDispatcher, Runnable {
      */
     private class FIFOQueue {
 
-        private int head = 0, tail = 0;
+        private int head = 0;
+        private int tail = 0;
 
         private NotificationDetails[] queue = null;
 
         public FIFOQueue(int queueSize) {
-            if (queueSize < 1)
+            if (queueSize < 1) {
                 queueSize = 100;
+            }
 
             queue = new NotificationDetails[queueSize];
-            for (int i = 0; i < queueSize; i++)
+            for (int i = 0; i < queueSize; i++) {
                 queue[i] = new NotificationDetails();
+            }
         }
 
         public void put(Connection c, SMPPPacket p) throws QueueFullException {
@@ -323,8 +331,9 @@ public class ThreadedEventDispatcher implements EventDispatcher, Runnable {
             }
 
             queue[tail++].setDetails(c, null, p);
-            if (tail >= queue.length)
+            if (tail >= queue.length) {
                 tail = 0;
+            }
         }
 
         public void put(Connection c, SMPPEvent e) throws QueueFullException {
@@ -333,8 +342,9 @@ public class ThreadedEventDispatcher implements EventDispatcher, Runnable {
             }
 
             queue[tail++].setDetails(c, e, null);
-            if (tail >= queue.length)
+            if (tail >= queue.length) {
                 tail = 0;
+            }
         }
 
         public NotificationDetails get() {
@@ -342,22 +352,24 @@ public class ThreadedEventDispatcher implements EventDispatcher, Runnable {
 
             if (!isEmpty()) {
                 nd = queue[head++];
-                if (head >= queue.length)
+                if (head >= queue.length) {
                     head = 0;
+                }
             }
 
-            return (nd);
+            return nd;
         }
 
         public boolean isEmpty() {
-            return (tail == head);
+            return tail == head;
         }
 
         public boolean isFull() {
-            if (tail > head)
-                return ((tail == queue.length - 1) && head == 0);
-            else
-                return (tail == (head - 1));
+            if (tail > head) {
+                return (tail == queue.length - 1) && head == 0;
+            } else {
+                return tail == (head - 1);
+            }
         }
     }
 
@@ -366,3 +378,4 @@ public class ThreadedEventDispatcher implements EventDispatcher, Runnable {
         }
     }
 }
+

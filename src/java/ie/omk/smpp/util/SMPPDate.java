@@ -1,27 +1,3 @@
-/*
- * Java SMPP API
- * Copyright (C) 1998 - 2002 by Oran Kelly
- * 
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- * 
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * 
- * A copy of the LGPL can be viewed at http://www.gnu.org/copyleft/lesser.html
- * Java SMPP API author: orank@users.sf.net
- * Java SMPP API Homepage: http://smppapi.sourceforge.net/
- * $Id$
- */
-
 package ie.omk.smpp.util;
 
 import java.text.MessageFormat;
@@ -94,8 +70,9 @@ public class SMPPDate implements java.io.Serializable {
      *             if d is null.
      */
     public SMPPDate(Date d) {
-        if (d == null)
+        if (d == null) {
             throw new NullPointerException("Cannot use a null Date");
+        }
 
         Calendar cal = Calendar.getInstance();
         cal.setTime(d);
@@ -109,8 +86,9 @@ public class SMPPDate implements java.io.Serializable {
      *             if cal is null.
      */
     public SMPPDate(Calendar cal) {
-        if (cal == null)
+        if (cal == null) {
             throw new NullPointerException("Cannot use a null Calendar");
+        }
 
         setFields(cal);
     }
@@ -147,8 +125,9 @@ public class SMPPDate implements java.io.Serializable {
         // Time zone calculation
         sign = '+';
         long off = savedTimeZone.getRawOffset();
-        if (off < 0)
+        if (off < 0) {
             sign = '-';
+        }
 
         // Calculate the difference in quarter hours.
         utcOffset = ((int) Math.abs(off) / 900000);
@@ -176,14 +155,14 @@ public class SMPPDate implements java.io.Serializable {
     public Calendar getCalendar() {
         Calendar cal = Calendar.getInstance();
         initCalendar(cal);
-        return (cal);
+        return cal;
     }
 
     /**
      * Get the year, or number of years in a relative time spec.
      */
     public int getYear() {
-        return (year);
+        return year;
     }
 
     /**
@@ -191,7 +170,7 @@ public class SMPPDate implements java.io.Serializable {
      * month 1.
      */
     public int getMonth() {
-        return (month);
+        return month;
     }
 
     /**
@@ -199,7 +178,7 @@ public class SMPPDate implements java.io.Serializable {
      * range [1..31]
      */
     public int getDay() {
-        return (day);
+        return day;
     }
 
     /**
@@ -207,7 +186,7 @@ public class SMPPDate implements java.io.Serializable {
      * range [00..23]
      */
     public int getHour() {
-        return (hour);
+        return hour;
     }
 
     /**
@@ -215,7 +194,7 @@ public class SMPPDate implements java.io.Serializable {
      * in the range [00..59]
      */
     public int getMinute() {
-        return (minute);
+        return minute;
     }
 
     /**
@@ -223,7 +202,7 @@ public class SMPPDate implements java.io.Serializable {
      * in the range [00..59]
      */
     public int getSecond() {
-        return (second);
+        return second;
     }
 
     /**
@@ -231,7 +210,7 @@ public class SMPPDate implements java.io.Serializable {
      * is in the range [0..9]
      */
     public int getTenth() {
-        return (tenth);
+        return tenth;
     }
 
     /**
@@ -240,7 +219,7 @@ public class SMPPDate implements java.io.Serializable {
      * is ahead of or behind UTC. utcOffset is in the range [0..48]
      */
     public int getUtcOffset() {
-        return (utcOffset);
+        return utcOffset;
     }
 
     /**
@@ -251,7 +230,7 @@ public class SMPPDate implements java.io.Serializable {
      * @see #getUtcOffset
      */
     public char getSign() {
-        return (sign);
+        return sign;
     }
 
     /**
@@ -261,7 +240,7 @@ public class SMPPDate implements java.io.Serializable {
      *         represents an absolute time spec.
      */
     public boolean isRelative() {
-        return (sign == 'R');
+        return sign == 'R';
     }
 
     /**
@@ -270,9 +249,9 @@ public class SMPPDate implements java.io.Serializable {
     public boolean equals(Object obj) {
         if (obj instanceof SMPPDate) {
             SMPPDate d = (SMPPDate) obj;
-            return (hashCode == d.hashCode);
+            return hashCode == d.hashCode;
         } else {
-            return (false);
+            return false;
         }
     }
 
@@ -280,7 +259,7 @@ public class SMPPDate implements java.io.Serializable {
      * Get a hashCode for this object.
      */
     public int hashCode() {
-        return (hashCode);
+        return hashCode;
     }
 
     /**
@@ -295,12 +274,13 @@ public class SMPPDate implements java.io.Serializable {
         SMPPDate d = new SMPPDate();
 
         if (s == null || s.length() == 0) {
-            return (d);
+            return d;
         }
 
-        if (s.length() != 16)
+        if (s.length() != 16) {
             throw new InvalidDateFormatException(
                     "Date string is incorrect length", s);
+        }
 
         // get the sign of the UTC offset..
         d.sign = s.charAt(15);
@@ -327,7 +307,7 @@ public class SMPPDate implements java.io.Serializable {
             throw new InvalidDateFormatException("Invalid SMPP date string", s);
         }
 
-        return (d);
+        return d;
     }
 
     /**
@@ -336,11 +316,13 @@ public class SMPPDate implements java.io.Serializable {
      * @return The string representation as defined by the SMPP protocol.
      */
     public String toString() {
-        Object[] args = { new Integer(year), new Integer(month),
+        Object[] args = {new Integer(year), new Integer(month),
                 new Integer(day), new Integer(hour), new Integer(minute),
                 new Integer(second), new Integer(tenth),
-                new Integer(utcOffset), new Character(sign) };
+                new Integer(utcOffset), new Character(sign),
+        };
 
-        return (MessageFormat.format(format, args));
+        return MessageFormat.format(format, args);
     }
 }
+

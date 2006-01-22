@@ -1,27 +1,3 @@
-/*
- * Java SMPP API
- * Copyright (C) 1998 - 2002 by Oran Kelly
- * 
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- * 
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * 
- * A copy of the LGPL can be viewed at http://www.gnu.org/copyleft/lesser.html
- * Java SMPP API author: orank@users.sf.net
- * Java SMPP API Homepage: http://smppapi.sourceforge.net/
- * $Id$
- */
-
 package ie.omk.smpp.util;
 
 import java.io.IOException;
@@ -33,7 +9,11 @@ import java.io.OutputStream;
  * as SMPP types. This class cannot be instantiated...all it's methods are
  * static.
  */
-public class SMPPIO {
+public final class SMPPIO {
+    
+    private SMPPIO() {
+    }
+    
     /**
      * Read an Integer from an InputStream. The integer read from the stream is
      * assumed to be in network byte order (ie Big Endian).
@@ -56,13 +36,14 @@ public class SMPPIO {
 
         for (int loop = 0; loop < (len - p); loop++) {
             int r = in.read(b, p, (len - p));
-            if (r == -1)
+            if (r == -1) {
                 break;
+            }
 
             p += r;
         }
 
-        return (bytesToInt(b, 0, len));
+        return bytesToInt(b, 0, len);
     }
 
     /**
@@ -81,17 +62,19 @@ public class SMPPIO {
 
         int b = in.read();
         while (b != 0) {
-            if (b == -1)
+            if (b == -1) {
                 throw new IOException("End of Input Stream before NULL byte");
+            }
 
             s.append((char) b);
             b = in.read();
         }
 
-        if (s.length() == 0)
-            return (null);
-        else
-            return (s.toString());
+        if (s.length() == 0) {
+            return null;
+        } else {
+            return s.toString();
+        }
     }
 
     /**
@@ -103,15 +86,17 @@ public class SMPPIO {
     public static final String readCString(byte[] b, int offset) {
         try {
             int p = offset;
-            while (b[p] != (byte) 0)
+            while (b[p] != (byte) 0) {
                 p++;
+            }
 
-            if (p > offset)
-                return (new String(b, offset, p - offset, "US-ASCII"));
-            else
-                return ("");
+            if (p > offset) {
+                return new String(b, offset, p - offset, "US-ASCII");
+            } else {
+                return "";
+            }
         } catch (java.io.UnsupportedEncodingException x) {
-            return ("");
+            return "";
         }
     }
 
@@ -131,8 +116,9 @@ public class SMPPIO {
      */
     public static final String readString(InputStream in, int len)
             throws java.io.IOException {
-        if (len < 1)
-            return (null);
+        if (len < 1) {
+            return null;
+        }
 
         byte[] b = new byte[len];
         int l = 0;
@@ -140,17 +126,19 @@ public class SMPPIO {
 
         while (l < len) {
             int r = in.read(b, 0, (len - l));
-            if (r == -1)
+            if (r == -1) {
                 throw new IOException("EOS before NUL byte read.");
+            }
 
             l += r;
             s.append(new String(b, 0, r));
         }
 
-        if (s.length() == 0)
-            return (null);
-        else
-            return (s.toString());
+        if (s.length() == 0) {
+            return null;
+        } else {
+            return s.toString();
+        }
     }
 
     /**
@@ -158,12 +146,13 @@ public class SMPPIO {
      */
     public static final String readString(byte[] b, int offset, int len) {
         try {
-            if (len > 0)
-                return (new String(b, offset, len - offset, "US-ASCII"));
-            else
-                return ("");
+            if (len > 0) {
+                return new String(b, offset, len - offset, "US-ASCII");
+            } else {
+                return "";
+            }
         } catch (java.io.UnsupportedEncodingException x) {
-            return ("");
+            return "";
         }
     }
 
@@ -177,7 +166,7 @@ public class SMPPIO {
      * @return An array of length len containing the byte representation of num.
      */
     public static final byte[] intToBytes(int num, int len) {
-        return (intToBytes(num, len, null, 0));
+        return intToBytes(num, len, null, 0);
     }
 
     /**
@@ -194,15 +183,16 @@ public class SMPPIO {
      * @param len
      *            The length of the integer to convert (that is, the number of
      *            bytes to generate).
-     * @param b
+     * @param array
      *            the byte array to write the integer to.
      * @param offset
      *            the offset in <code>b</code> to write the integer to.
      * @return An array of length len containing the byte representation of num.
      */
-    public static final byte[] intToBytes(int num, int len, byte[] b, int offset) {
+    public static final byte[] intToBytes(int num, int len, byte[] array, int offset) {
 
-        if (b == null) {
+        byte[] b = array;
+        if (array == null) {
             b = new byte[len];
             offset = 0;
         }
@@ -210,13 +200,13 @@ public class SMPPIO {
         int mask = (0xff << sw);
 
         for (int l = 0; l < len; l++) {
-            b[offset + l] = (byte) ((num & mask) >>> sw);
+            array[offset + l] = (byte) ((num & mask) >>> sw);
 
             sw -= 8;
             mask >>>= 8;
         }
 
-        return (b);
+        return b;
     }
 
     /**
@@ -230,7 +220,7 @@ public class SMPPIO {
      * @return An array of length len containing the byte representation of num.
      */
     public static final byte[] longToBytes(long num, int len) {
-        return (longToBytes(num, len, null, 0));
+        return longToBytes(num, len, null, 0);
     }
 
     /**
@@ -254,8 +244,8 @@ public class SMPPIO {
             b = new byte[len];
             offset = 0;
         }
-        long sw = ((len - 1) * 8);
-        long mask = (0xffL << sw);
+        long sw = (len - 1) * 8;
+        long mask = 0xffL << sw;
 
         for (int l = 0; l < len; l++) {
             b[offset + l] = (byte) ((num & mask) >>> sw);
@@ -264,7 +254,7 @@ public class SMPPIO {
             mask >>>= 8;
         }
 
-        return (b);
+        return b;
     }
 
     /**
@@ -289,7 +279,7 @@ public class SMPPIO {
             sw -= 8;
         }
 
-        return (num);
+        return num;
     }
 
     /**
@@ -314,7 +304,7 @@ public class SMPPIO {
             sw -= 8;
         }
 
-        return (num);
+        return num;
     }
 
     /**
@@ -337,7 +327,7 @@ public class SMPPIO {
     }
 
     /**
-     * Write a String to an OutputStream followed by a NUL byte
+     * Write a String to an OutputStream followed by a NUL byte.
      * 
      * @param s
      *            The string to write
@@ -354,7 +344,7 @@ public class SMPPIO {
     }
 
     /**
-     * Write a String of specified length to an OutputStream
+     * Write a String of specified length to an OutputStream.
      * 
      * @param s
      *            The String to write
@@ -368,14 +358,16 @@ public class SMPPIO {
      * @see java.io.OutputStream
      */
     public static void writeString(String s, int len, OutputStream out)
-            throws java.io.IOException {
-        if (s == null)
+    throws java.io.IOException {
+        if (s == null) {
             return;
+        }
 
-        if (len > s.length())
+        if (len > s.length()) {
             writeString(s, out);
-        else
+        } else {
             writeString(s.substring(0, len), out);
+        }
     }
 
     /**
@@ -390,66 +382,10 @@ public class SMPPIO {
      * @see java.io.OutputStream
      */
     public static void writeString(String s, OutputStream out)
-            throws java.io.IOException {
-        if (s == null)
+    throws java.io.IOException {
+        if (s == null) {
             return;
+        }
         out.write(s.getBytes());
     }
-
-    /*
-     * public static final void main(String[] args) { // Integer/byte conversion
-     * tests int[] twoByte_vals = { 0x4512, 0xdead, 0xcafe, 0xfcfc }; byte[][]
-     * twoByte_bytes = { { 0x45, 0x12 }, { (byte)0xde, (byte)0xad }, {
-     * (byte)0xca, (byte)0xfe }, { (byte)0xfc, (byte)0xfc } };
-     * 
-     * int[] threeByte_vals = { 0x112233, 0x432165, 0xf88ee2 }; byte[][]
-     * threeByte_bytes = { { 0x11, 0x22, 0x33 }, { 0x43, 0x21, 0x65 }, {
-     * (byte)0xf8, (byte)0x8e, (byte)0xe2 } };
-     * 
-     * int[] fourByte_vals = { 0xdeadbeef, 0xcafefeed, 0xbeeffeed }; byte[][]
-     * fourByte_bytes = { { (byte)0xde, (byte)0xad, (byte)0xbe, (byte)0xef }, {
-     * (byte)0xca, (byte)0xfe, (byte)0xfe, (byte)0xed }, { (byte)0xbe,
-     * (byte)0xef, (byte)0xfe, (byte)0xed } };
-     * 
-     * boolean passed = true; passed &= b2iTest(twoByte_bytes, twoByte_vals, 2);
-     * passed &= b2iTest(threeByte_bytes, threeByte_vals, 3); passed &=
-     * b2iTest(fourByte_bytes, fourByte_vals, 4);
-     *  // C-string test.. try { String s = "This is a CString test. ASCII chars
-     * only, please!"; byte[] sb = s.getBytes("US-ASCII"); byte[] sb1 = new
-     * byte[sb.length + 1]; byte[] sb2; java.io.ByteArrayOutputStream os = new
-     * java.io.ByteArrayOutputStream();
-     * 
-     * System.arraycopy(sb, 0, sb1, 0, sb.length); sb1[sb.length] = (byte)0;
-     * writeCString(s, os); sb2 = os.toByteArray();
-     * 
-     * String s1 = readCString(sb1, 0); passed &= (s1.equals(s)); passed &=
-     * java.util.Arrays.equals(sb1, sb2); } catch
-     * (java.io.UnsupportedEncodingException x) { passed = false;
-     * System.out.println("Unsupported encoding!");
-     * x.printStackTrace(System.out); } catch (java.io.IOException x) { passed =
-     * false; x.printStackTrace(System.out); }
-     * 
-     * 
-     * if (!passed) System.out.println("Test failed."); else
-     * System.out.println("All tests passed."); } // Run a byte array/integer
-     * conversion test. // @param bArray array of array of bytes representing
-     * the values. // @param vArray array of values. // @param size the number
-     * of bytes per integer. private static final boolean b2iTest(byte[][]
-     * bArray, int[] vArray, int size) { boolean ret = true; for (int i = 0; i <
-     * vArray.length; i++) { int ri = bytesToInt(bArray[i], 0, size); byte[] bo =
-     * intToBytes(vArray[i], size);
-     * 
-     * if (ri != vArray[i]) { ret = false; System.out.println("bytesToInt failed
-     * on " + size + " bytes, pos " + i); System.out.println("\tValue = " +
-     * vArray[i] + ", ri = " + ri); }
-     * 
-     * if (!java.util.Arrays.equals(bo, bArray[i])) { ret = false;
-     * System.out.println("intToBytes failed in " + size + " bytes, pos " + i);
-     * 
-     * System.out.print("Fixed: "); for (int j = 0; j < bo.length; j++) {
-     * System.out.print(Integer.toHexString(new Byte( bo[j]).intValue()&0xff) + "
-     * "); } System.out.print("Generated:"); for (int j = 0; j <
-     * bArray[i].length; j++) { System.out.print(Integer.toHexString(new Byte(
-     * bArray[i][j]).intValue()&0xff) + " "); } } } return (ret); }
-     */
 }

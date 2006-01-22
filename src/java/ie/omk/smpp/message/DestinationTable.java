@@ -1,25 +1,3 @@
-/*
- * Java SMPP API Copyright (C) 1998 - 2002 by Oran Kelly
- * 
- * This library is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Lesser General Public License as published by the Free
- * Software Foundation; either version 2.1 of the License, or (at your option)
- * any later version.
- * 
- * This library is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
- * details.
- * 
- * You should have received a copy of the GNU Lesser General Public License
- * along with this library; if not, write to the Free Software Foundation, Inc.,
- * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- * 
- * A copy of the LGPL can be viewed at http://www.gnu.org/copyleft/lesser.html
- * Java SMPP API author: orank@users.sf.net Java SMPP API Homepage:
- * http://smppapi.sourceforge.net/ $Id: DestinationTable.java,v 1.5 2004/10/09
- * 22:02:41 orank Exp $
- */
 package ie.omk.smpp.message;
 
 import ie.omk.smpp.Address;
@@ -29,12 +7,13 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 import java.util.ListIterator;
 
 import org.apache.commons.logging.LogFactory;
 
-public class DestinationTable {
-    private ArrayList dests = null;
+public class DestinationTable implements Cloneable {
+    private List dests = null;
 
     private int length = 0;
 
@@ -54,36 +33,40 @@ public class DestinationTable {
 
     public synchronized void remove(Address addr) {
         int i = dests.indexOf(addr);
-        if (i > -1)
+        if (i > -1) {
             length -= ((Address) dests.remove(i)).getLength() + 1;
+        }
     }
 
     public synchronized void remove(String distList) {
         int i = dests.indexOf(distList);
-        if (i > -1)
+        if (i > -1) {
             length -= ((String) dests.remove(i)).length() + 2;
+        }
     }
 
     public Iterator iterator() {
-        return (Collections.unmodifiableList(dests).iterator());
+        return Collections.unmodifiableList(dests).iterator();
     }
 
     public ListIterator listIterator() {
-        return (Collections.unmodifiableList(dests).listIterator());
+        return Collections.unmodifiableList(dests).listIterator();
     }
 
     public synchronized Object clone() {
-        DestinationTable dt = new DestinationTable();
-        dt.dests = (ArrayList) this.dests.clone();
-        return (dt);
+        try {
+            return super.clone();
+        } catch (CloneNotSupportedException x) {
+        }
+        return null;
     }
 
     public synchronized int getLength() {
-        return (length);
+        return length;
     }
 
     public int size() {
-        return (dests.size());
+        return dests.size();
     }
 
     public synchronized void writeTo(OutputStream out)
@@ -131,10 +114,12 @@ public class DestinationTable {
         while (i.hasNext()) {
             Object o = i.next();
             length++; // For the destination type flag
-            if (o instanceof Address)
+            if (o instanceof Address) {
                 length += ((Address) o).getLength();
-            else
+            } else {
                 length += ((String) o).length() + 1;
+            }
         }
     }
 }
+

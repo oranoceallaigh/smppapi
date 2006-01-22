@@ -1,26 +1,3 @@
-/*
- * Java SMPP API
- * Copyright (C) 1998 - 2002 by Oran Kelly
- * 
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- * 
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * 
- * A copy of the LGPL can be viewed at http://www.gnu.org/copyleft/lesser.html
- * Java SMPP API author: orank@users.sf.net
- * Java SMPP API Homepage: http://smppapi.sourceforge.net/
- * $Id$
- */
 package ie.omk.smpp.message;
 
 import ie.omk.smpp.Address;
@@ -80,7 +57,7 @@ public class SubmitMulti extends ie.omk.smpp.message.SMPPRequest {
      * table.
      */
     public DestinationTable getDestinationTable() {
-        return (destinationTable);
+        return destinationTable;
     }
 
     /**
@@ -95,7 +72,7 @@ public class SubmitMulti extends ie.omk.smpp.message.SMPPRequest {
     public int addDestination(Address d) {
         synchronized (destinationTable) {
             destinationTable.add(d);
-            return (destinationTable.size());
+            return destinationTable.size();
         }
     }
 
@@ -110,13 +87,14 @@ public class SubmitMulti extends ie.omk.smpp.message.SMPPRequest {
      */
     public int addDestination(String d) throws InvalidParameterValueException {
 
-        if (!version.validateDistListName(d))
+        if (!version.validateDistListName(d)) {
             throw new InvalidParameterValueException(
                     "Distribution list name is invalid", d);
+        }
 
         synchronized (destinationTable) {
             destinationTable.add(d);
-            return (destinationTable.size());
+            return destinationTable.size();
         }
     }
 
@@ -126,14 +104,14 @@ public class SubmitMulti extends ie.omk.smpp.message.SMPPRequest {
      * @deprecated Use getNumDests()
      */
     public int getNoOfDests() {
-        return (destinationTable.size());
+        return destinationTable.size();
     }
 
     /**
      * Get the number of destinations in the destination table.
      */
     public int getNumDests() {
-        return (destinationTable.size());
+        return destinationTable.size();
     }
 
     /**
@@ -142,16 +120,16 @@ public class SubmitMulti extends ie.omk.smpp.message.SMPPRequest {
      * @return Array of Addresses in the destination table (never null)
      */
     /*
-     * public Address[] getDestAddresses() { Address sd[]; int loop = 0;
+     * public Address[] getDestAddresses() {Address sd[]; int loop = 0;
      * 
-     * synchronized (destinationTable) { if(destinationTable.size() == 0) return
+     * synchronized (destinationTable) {if(destinationTable.size() == 0) return
      * (new Address[0]);
      * 
      * sd = new Address[destinationTable.size()]; Iterator i =
      * destinationTable.iterator(); while (i.hasNext()) sd[loop++] =
-     * (Address)i.next(); }
+     * (Address)i.next();}
      * 
-     * return (sd); }
+     * return sd;}
      */
 
     /**
@@ -171,7 +149,7 @@ public class SubmitMulti extends ie.omk.smpp.message.SMPPRequest {
         size += destinationTable.getLength();
 
         // 9 1-byte integers, 4 c-strings
-        return (size + 9 + 3);
+        return size + 9 + 3;
     }
 
     /**
@@ -184,12 +162,12 @@ public class SubmitMulti extends ie.omk.smpp.message.SMPPRequest {
      */
     protected void encodeBody(OutputStream out) throws java.io.IOException {
         int smLength = 0;
-        if (message != null)
+        if (message != null) {
             smLength = message.length;
+        }
 
         // Get a clone of the table that can't be changed while writing..
-        DestinationTable table = (DestinationTable) this.destinationTable
-                .clone();
+        DestinationTable table = (DestinationTable) this.destinationTable.clone();
 
         SMPPIO.writeCString(serviceType, out);
         if (source != null) {
@@ -217,15 +195,18 @@ public class SubmitMulti extends ie.omk.smpp.message.SMPPRequest {
         SMPPIO.writeInt(dataCoding, 1, out);
         SMPPIO.writeInt(defaultMsg, 1, out);
         SMPPIO.writeInt(smLength, 1, out);
-        if (message != null)
+        if (message != null) {
             out.write(message);
+        }
     }
 
     public void readBodyFrom(byte[] body, int offset)
             throws SMPPProtocolException {
         try {
-            int numDests = 0, smLength = 0;
-            String delivery, valid;
+            int numDests = 0;
+            int smLength = 0;
+            String delivery;
+            String valid;
 
             // First the service type
             serviceType = SMPPIO.readCString(body, offset);
@@ -251,13 +232,15 @@ public class SubmitMulti extends ie.omk.smpp.message.SMPPRequest {
 
             delivery = SMPPIO.readCString(body, offset);
             offset += delivery.length() + 1;
-            if (delivery.length() > 0)
+            if (delivery.length() > 0) {
                 deliveryTime = SMPPDate.parseSMPPDate(delivery);
+            }
 
             valid = SMPPIO.readCString(body, offset);
             offset += valid.length() + 1;
-            if (valid.length() > 0)
+            if (valid.length() > 0) {
                 expiryTime = SMPPDate.parseSMPPDate(valid);
+            }
 
             // Registered delivery, replace if present, data coding, default msg
             // and message length
@@ -284,3 +267,4 @@ public class SubmitMulti extends ie.omk.smpp.message.SMPPRequest {
         return new String("submit_multi");
     }
 }
+

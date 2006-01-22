@@ -1,25 +1,3 @@
-/*
- * Java SMPP API Copyright (C) 1998 - 2002 by Oran Kelly
- * 
- * This library is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Lesser General Public License as published by the Free
- * Software Foundation; either version 2.1 of the License, or (at your option)
- * any later version.
- * 
- * This library is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
- * details.
- * 
- * You should have received a copy of the GNU Lesser General Public License
- * along with this library; if not, write to the Free Software Foundation, Inc.,
- * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- * 
- * A copy of the LGPL can be viewed at http://www.gnu.org/copyleft/lesser.html
- * Java SMPP API author: orank@users.sf.net Java SMPP API Homepage:
- * http://smppapi.sourceforge.net/ $Id: SMPPPacketTest.java,v 1.6 2005/05/09
- * 20:59:52 orank Exp $
- */
 package ie.omk.smpp.message;
 
 import ie.omk.smpp.Address;
@@ -94,17 +72,16 @@ public class SMPPPacketTest extends TestCase {
             p.setFinalDate(smppDate);
             assertEquals(smppDate, p.getFinalDate());
 
-            byte[] msg = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
-                    13, 14 };
+            byte[] msg = new byte[] {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14};
             p.setMessage(msg);
             assertTrue(Arrays.equals(msg, p.getMessage()));
 
-            msg = new byte[] { 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 };
-            byte[] subMsg = new byte[] { 16, 17, 18, 19, 20, 21 };
+            msg = new byte[] {15, 16, 17, 18, 19, 20, 21, 22, 23, 24};
+            byte[] subMsg = new byte[] {16, 17, 18, 19, 20, 21};
             p.setMessage(msg, 1, 6, BinaryEncoding.getInstance());
             assertTrue(Arrays.equals(subMsg, p.getMessage()));
 
-            msg = new byte[] { 31, 32, 33, 34, 35 };
+            msg = new byte[] {31, 32, 33, 34, 35};
             p.setMessage(msg, BinaryEncoding.getInstance());
             assertTrue(Arrays.equals(msg, p.getMessage()));
 
@@ -255,11 +232,11 @@ public class SMPPPacketTest extends TestCase {
         }
 
         public String decodeString(byte[] b) {
-            return (new String(b));
+            return new String(b);
         }
 
         public byte[] encodeString(String s) {
-            return (s.getBytes());
+            return s.getBytes();
         }
     }
 
@@ -270,108 +247,109 @@ public class SMPPPacketTest extends TestCase {
         }
 
         public int getMaxLength(int field) {
-            return (1000);
+            return 1000;
         }
 
         public boolean isSupported(int commandID) {
-            return (true);
+            return true;
         }
 
         public boolean isSupportOptionalParams() {
-            return (true);
+            return true;
         }
 
         public boolean validateAddress(Address s) {
-            return (true);
+            return true;
         }
 
         public boolean validateEsmClass(int c) {
-            return (true);
+            return true;
         }
 
         public boolean validateProtocolID(int id) {
-            return (true);
+            return true;
         }
 
         public boolean validateDataCoding(int dc) {
-            return (true);
+            return true;
         }
 
         public boolean validateDefaultMsg(int id) {
-            return (true);
+            return true;
         }
 
         public boolean validateMessageText(String text,
                 AlphabetEncoding alphabet) {
-            return (true);
+            return true;
         }
 
         public boolean validateMessage(byte[] message, MessageEncoding encoding) {
-            return (true);
+            return true;
         }
 
         public boolean validateServiceType(String type) {
-            return (true);
+            return true;
         }
 
         public boolean validateMessageId(String id) {
-            return (true);
+            return true;
         }
 
         public boolean validateMessageState(int state) {
-            return (true);
+            return true;
         }
 
         public boolean validateErrorCode(int code) {
-            return (true);
+            return true;
         }
 
         public boolean validatePriorityFlag(int flag) {
-            return (true);
+            return true;
         }
 
         public boolean validateRegisteredDelivery(int flag) {
-            return (true);
+            return true;
         }
 
         public boolean validateReplaceIfPresent(int flag) {
-            return (true);
+            return true;
         }
 
         public boolean validateNumberOfDests(int num) {
-            return (true);
+            return true;
         }
 
         public boolean validateNumUnsuccessful(int num) {
-            return (true);
+            return true;
         }
 
         public boolean validateDistListName(String name) {
-            return (true);
+            return true;
         }
 
         public boolean validateSystemId(String sysId) {
-            return (true);
+            return true;
         }
 
         public boolean validatePassword(String password) {
-            return (true);
+            return true;
         }
 
         public boolean validateSystemType(String sysType) {
-            return (true);
+            return true;
         }
 
         public boolean validateAddressRange(String addressRange) {
-            return (true);
+            return true;
         }
 
         public boolean validateParamName(String paramName) {
-            return (true);
+            return true;
         }
 
         public boolean validateParamValue(String paramValue) {
-            return (true);
+            return true;
         }
     }
 }
+

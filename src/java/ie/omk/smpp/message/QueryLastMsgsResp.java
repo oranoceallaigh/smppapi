@@ -1,32 +1,10 @@
-/*
- * Java SMPP API
- * Copyright (C) 1998 - 2002 by Oran Kelly
- * 
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- * 
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * 
- * A copy of the LGPL can be viewed at http://www.gnu.org/copyleft/lesser.html
- * Java SMPP API author: orank@users.sf.net
- * Java SMPP API Homepage: http://smppapi.sourceforge.net/
- * $Id$
- */
 package ie.omk.smpp.message;
 
 import ie.omk.smpp.util.SMPPIO;
 
 import java.io.OutputStream;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Vector;
 
 /**
@@ -37,7 +15,7 @@ import java.util.Vector;
  */
 public class QueryLastMsgsResp extends ie.omk.smpp.message.SMPPResponse {
     /** The table of messages returned */
-    private Vector messageTable = new Vector();
+    private List messageTable = new Vector();
 
     /**
      * Construct a new QueryLastMsgsResp.
@@ -78,18 +56,19 @@ public class QueryLastMsgsResp extends ie.omk.smpp.message.SMPPResponse {
      *             if the id is invalid.
      */
     public int addMessageId(String id) {
-        if (!version.validateMessageId(id))
+        if (!version.validateMessageId(id)) {
             throw new InvalidParameterValueException("Invalid message ID", id);
+        }
 
         synchronized (messageTable) {
-            messageTable.addElement(id);
-            return (messageTable.size());
+            messageTable.add(id);
+            return messageTable.size();
         }
     }
 
     /** Get the number of message Ids. */
     public int getMsgCount() {
-        return (messageTable.size());
+        return messageTable.size();
     }
 
     /**
@@ -102,13 +81,15 @@ public class QueryLastMsgsResp extends ie.omk.smpp.message.SMPPResponse {
         int loop = 0;
 
         synchronized (messageTable) {
-            if (messageTable.size() == 0)
+            if (messageTable.size() == 0) {
                 return null;
+            }
 
             ids = new String[messageTable.size()];
             Iterator i = messageTable.iterator();
-            while (i.hasNext())
+            while (i.hasNext()) {
                 ids[loop++] = (String) i.next();
+            }
         }
 
         return ids;
@@ -121,11 +102,12 @@ public class QueryLastMsgsResp extends ie.omk.smpp.message.SMPPResponse {
         int size = 1;
         synchronized (messageTable) {
             Iterator i = messageTable.iterator();
-            while (i.hasNext())
+            while (i.hasNext()) {
                 size += ((String) i.next()).length() + 1;
+            }
         }
 
-        return (size);
+        return size;
     }
 
     /**
@@ -137,26 +119,25 @@ public class QueryLastMsgsResp extends ie.omk.smpp.message.SMPPResponse {
      *             if there's an error writing to the output stream.
      */
     protected void encodeBody(OutputStream out) throws java.io.IOException {
-        String s = null;
         synchronized (messageTable) {
             int size = messageTable.size();
             SMPPIO.writeInt(size, 1, out);
             Iterator i = messageTable.iterator();
-            while (i.hasNext())
+            while (i.hasNext()) {
                 SMPPIO.writeCString((String) i.next(), out);
+            }
         }
     }
 
     public void readBodyFrom(byte[] body, int offset)
             throws SMPPProtocolException {
         int msgCount = 0;
-        long id = 0;
         msgCount = SMPPIO.bytesToInt(body, offset++, 1);
 
         for (int loop = 0; loop < msgCount; loop++) {
             String s = SMPPIO.readCString(body, offset);
             offset += s.length() + 1;
-            messageTable.addElement(s);
+            messageTable.add(s);
         }
     }
 
@@ -168,3 +149,4 @@ public class QueryLastMsgsResp extends ie.omk.smpp.message.SMPPResponse {
         return new String("query_last_msgs_resp");
     }
 }
+

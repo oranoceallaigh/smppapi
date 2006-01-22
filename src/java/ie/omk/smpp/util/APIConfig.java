@@ -1,26 +1,3 @@
-/*
- * Java SMPP API
- * Copyright (C) 1998 - 2002 by Oran Kelly
- * 
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- * 
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * 
- * A copy of the LGPL can be viewed at http://www.gnu.org/copyleft/lesser.html
- * Java SMPP API author: orank@users.sf.net
- * Java SMPP API Homepage: http://smppapi.sourceforge.net/
- * $Id$
- */
 package ie.omk.smpp.util;
 
 import java.io.IOException;
@@ -140,7 +117,7 @@ import org.apache.commons.logging.LogFactory;
  * </table>
  *  
  */
-public class APIConfig extends Properties {
+public final class APIConfig extends Properties {
 
     /**
      * See class description for documentation on the properties.
@@ -206,8 +183,8 @@ public class APIConfig extends Properties {
      * the '/' character except for the last entry which should be a blank
      * string.
      */
-    private static final String[] SEARCH_PATH = { "/", "/ie/", "/ie/omk/",
-            "/ie/omk/smpp/", "" };
+    private static final String[] SEARCH_PATH = {"/", "/ie/", "/ie/omk/",
+            "/ie/omk/smpp/", "", };
 
     /**
      * Name of the resource to load properties from.
@@ -247,10 +224,11 @@ public class APIConfig extends Properties {
                 is = c.getResourceAsStream(propsFile);
             }
 
-            if (is != null)
+            if (is != null) {
                 loadAPIPropertiesFromStream(is);
-            else
+            } else {
                 logger.warn("Could not find API properties to load");
+            }
         } catch (IOException x) {
             logger.warn("Could not load API properties", x);
         }
@@ -287,17 +265,18 @@ public class APIConfig extends Properties {
         try {
             Class c = getClass();
             InputStream is = c.getResourceAsStream(propsFile);
-            if (is != null)
+            if (is != null) {
                 loadAPIPropertiesFromStream(is);
-            else
+            } else {
                 logger.warn("Could not reload API properties. File not found: "
                         + propsFile);
+            }
         } catch (IOException x) {
             logger.warn("Could not reload API properties.", x);
-            return (false);
+            return false;
         }
 
-        return (true);
+        return true;
     }
 
     /**
@@ -309,7 +288,7 @@ public class APIConfig extends Properties {
             instance.loadAPIProperties();
         }
 
-        return (instance);
+        return instance;
     }
 
     /**
@@ -322,10 +301,11 @@ public class APIConfig extends Properties {
      */
     public String getProperty(String property) throws PropertyNotFoundException {
         String val = super.getProperty(property);
-        if (val == null)
+        if (val == null) {
             throw new PropertyNotFoundException(property);
-        else
-            return (val);
+        } else {
+            return val;
+        }
     }
 
     /**
@@ -354,7 +334,7 @@ public class APIConfig extends Properties {
                     property);
         }
 
-        return (s);
+        return s;
     }
 
     /**
@@ -371,11 +351,11 @@ public class APIConfig extends Properties {
     public int getInt(String property, int defaultValue)
             throws InvalidConfigurationException {
         try {
-            return (getInt(property));
+            return getInt(property);
         } catch (PropertyNotFoundException x) {
         }
 
-        return (defaultValue);
+        return defaultValue;
     }
 
     /**
@@ -404,7 +384,7 @@ public class APIConfig extends Properties {
                     property);
         }
 
-        return (i);
+        return i;
     }
 
     /**
@@ -421,11 +401,11 @@ public class APIConfig extends Properties {
     public long getLong(String property, long defaultValue)
             throws InvalidConfigurationException {
         try {
-            return (getLong(property));
+            return getLong(property);
         } catch (PropertyNotFoundException x) {
         }
 
-        return (defaultValue);
+        return defaultValue;
     }
 
     /**
@@ -454,7 +434,7 @@ public class APIConfig extends Properties {
                     property);
         }
 
-        return (l);
+        return l;
     }
 
     /**
@@ -477,11 +457,11 @@ public class APIConfig extends Properties {
     public boolean getBoolean(String property, boolean defaultValue)
             throws InvalidConfigurationException {
         try {
-            return (getBoolean(property));
+            return getBoolean(property);
         } catch (PropertyNotFoundException x) {
         }
 
-        return (defaultValue);
+        return defaultValue;
     }
 
     /**
@@ -506,22 +486,24 @@ public class APIConfig extends Properties {
         try {
             int n = Integer.parseInt(s);
 
-            if (n > 0)
+            if (n > 0) {
                 b = true;
-            else
+            } else {
                 b = false;
+            }
         } catch (NumberFormatException x) {
             // It's not a number..
-            if (s.equals("yes") || s.equals("on") || s.equals("true"))
+            if (s.equals("yes") || s.equals("on") || s.equals("true")) {
                 b = true;
-            else if (s.equals("no") || s.equals("off") || s.equals("false"))
+            } else if (s.equals("no") || s.equals("off") || s.equals("false")) {
                 b = false;
-            else
+            } else {
                 throw new InvalidConfigurationException("Bad property value",
                         property);
+            }
         }
 
-        return (b);
+        return b;
     }
 
     /**
@@ -537,14 +519,15 @@ public class APIConfig extends Properties {
     private int getBase(String n) {
         int base = 10;
 
-        if (n.startsWith("0x") || n.startsWith("0X"))
+        if (n.startsWith("0x") || n.startsWith("0X")) {
             base = 16;
-        else if (n.startsWith("0"))
+        } else if (n.startsWith("0")) {
             base = 8;
-        else if (n.endsWith("b"))
+        } else if (n.endsWith("b")) {
             base = 2;
+        }
 
-        return (base);
+        return base;
     }
 
     /**
@@ -574,6 +557,7 @@ public class APIConfig extends Properties {
             break;
         }
 
-        return (n);
+        return n;
     }
 }
+

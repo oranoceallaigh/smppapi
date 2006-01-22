@@ -1,26 +1,3 @@
-/*
- * Java SMPP API
- * Copyright (C) 1998 - 2002 by Oran Kelly
- * 
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- * 
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * 
- * A copy of the LGPL can be viewed at http://www.gnu.org/copyleft/lesser.html
- * Java SMPP API author: orank@users.sf.net
- * Java SMPP API Homepage: http://smppapi.sourceforge.net/
- * $Id$
- */
 package ie.omk.smpp.net;
 
 import ie.omk.smpp.message.SMPPPacket;
@@ -65,7 +42,7 @@ import java.util.List;
  * <code>Connection</code>. If it is a request packet, it will be made
  * available immediately to the <code>Connection</code>.
  * 
- * @author orank
+ * @version $Id$
  */
 public class ObjectLink extends SmscLink {
 
@@ -83,6 +60,12 @@ public class ObjectLink extends SmscLink {
 
     private SequenceNumberScheme numScheme = new DefaultSequenceScheme();
 
+    /**
+     * Create a new empty ObjectLink.
+     */
+    public ObjectLink() {
+    }
+    
     protected void implOpen() throws IOException {
         this.out = new OLByteArrayOutputStream();
     }
@@ -91,15 +74,15 @@ public class ObjectLink extends SmscLink {
     }
 
     protected OutputStream getOutputStream() throws IOException {
-        return (out);
+        return out;
     }
 
     protected InputStream getInputStream() throws IOException {
-        return (in);
+        return in;
     }
 
     public boolean isConnected() {
-        return (connected);
+        return connected;
     }
 
     public void setTimeout(long timeout) {
@@ -130,8 +113,8 @@ public class ObjectLink extends SmscLink {
                 long delay = ((Number) next).longValue();
                 try {
                     Thread.sleep(delay);
-                } catch (InterruptedException x) {
-                }
+               } catch (InterruptedException x) {
+               }
             }
             next = (Object) packets.remove(0);
         }
@@ -142,10 +125,10 @@ public class ObjectLink extends SmscLink {
                 try {
                     if (requestSent < 1) {
                         this.wait(this.timeout);
-                    }
-                } catch (InterruptedException x) {
+                   }
+               } catch (InterruptedException x) {
                     throw new IOException("No packets available.");
-                }
+               }
             }
 
             // Simulate a timeout..
@@ -158,7 +141,7 @@ public class ObjectLink extends SmscLink {
         out.setBuf(buf, l);
         pak.writeTo(out);
 
-        return (out.getBuf());
+        return out.getBuf();
     }
 
     public void add(SMPPPacket pak) {
@@ -184,6 +167,9 @@ public class ObjectLink extends SmscLink {
 
         int pos = -1;
 
+        public OLByteArrayOutputStream() {
+        }
+        
         public void setBuf(byte[] buf, int minCapacity) {
             if (buf.length < minCapacity) {
                 this.buf = new byte[minCapacity];
@@ -195,7 +181,7 @@ public class ObjectLink extends SmscLink {
         }
 
         public byte[] getBuf() {
-            return (this.buf);
+            return this.buf;
         }
 
         public void close() throws IOException {

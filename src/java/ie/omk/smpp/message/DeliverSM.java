@@ -1,26 +1,3 @@
-/*
- * Java SMPP API
- * Copyright (C) 1998 - 2002 by Oran Kelly
- * 
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- * 
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * 
- * A copy of the LGPL can be viewed at http://www.gnu.org/copyleft/lesser.html
- * Java SMPP API author: orank@users.sf.net
- * Java SMPP API Homepage: http://smppapi.sourceforge.net/
- * $Id$
- */
 package ie.omk.smpp.message;
 
 import ie.omk.smpp.Address;
@@ -111,7 +88,7 @@ public class DeliverSM extends ie.omk.smpp.message.SMPPRequest {
                 : 0));
 
         // 8 1-byte integers, 3 c-strings
-        return (len + 8 + 3);
+        return len + 8 + 3;
     }
 
     /**
@@ -124,8 +101,9 @@ public class DeliverSM extends ie.omk.smpp.message.SMPPRequest {
      */
     protected void encodeBody(OutputStream out) throws java.io.IOException {
         int smLength = 0;
-        if (message != null)
+        if (message != null) {
             smLength = message.length;
+        }
 
         SMPPIO.writeCString(serviceType, out);
 
@@ -158,15 +136,17 @@ public class DeliverSM extends ie.omk.smpp.message.SMPPRequest {
         SMPPIO.writeInt(dataCoding, 1, out);
         SMPPIO.writeInt(defaultMsg, 1, out);
         SMPPIO.writeInt(smLength, 1, out);
-        if (message != null)
+        if (message != null) {
             out.write(message);
+        }
     }
 
     public void readBodyFrom(byte[] body, int offset)
             throws SMPPProtocolException {
         try {
             int smLength = 0;
-            String delivery, valid;
+            String delivery;
+            String valid;
 
             // First the service type
             serviceType = SMPPIO.readCString(body, offset);
@@ -187,13 +167,15 @@ public class DeliverSM extends ie.omk.smpp.message.SMPPRequest {
 
             delivery = SMPPIO.readCString(body, offset);
             offset += delivery.length() + 1;
-            if (delivery.length() > 0)
+            if (delivery.length() > 0) {
                 deliveryTime = SMPPDate.parseSMPPDate(delivery);
+            }
 
             valid = SMPPIO.readCString(body, offset);
             offset += valid.length() + 1;
-            if (valid.length() > 0)
+            if (valid.length() > 0) {
                 expiryTime = SMPPDate.parseSMPPDate(valid);
+            }
 
             // Registered delivery, replace if present, data coding, default msg
             // and message length
@@ -217,9 +199,11 @@ public class DeliverSM extends ie.omk.smpp.message.SMPPRequest {
      * it's just dead handy for debugging!
      */
     public String toString() {
-        if (esmClass == 4 || esmClass == 16)
+        if (esmClass == 4 || esmClass == 16) {
             return new String("delivery receipt");
-        else
+        } else {
             return new String("deliver_sm");
+        }
     }
 }
+

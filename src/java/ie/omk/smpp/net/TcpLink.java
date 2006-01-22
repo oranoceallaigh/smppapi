@@ -1,26 +1,3 @@
-/*
- * Java SMPP API
- * Copyright (C) 1998 - 2002 by Oran Kelly
- * 
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- * 
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * 
- * A copy of the LGPL can be viewed at http://www.gnu.org/copyleft/lesser.html
- * Java SMPP API author: orank@users.sf.net
- * Java SMPP API Homepage: http://smppapi.sourceforge.net/
- * $Id$
- */
 package ie.omk.smpp.net;
 
 import java.io.IOException;
@@ -36,7 +13,7 @@ import org.apache.commons.logging.LogFactory;
  * Implementation of an Smsc link over the tcp/ip protocol
  * 
  * @author Oran Kelly
- * @version 1.0
+ * @version $Id$
  */
 public class TcpLink extends ie.omk.smpp.net.SmscLink {
     private static final Log logger = LogFactory.getLog(TcpLink.class);
@@ -81,10 +58,11 @@ public class TcpLink extends ie.omk.smpp.net.SmscLink {
     public TcpLink(String address, int port)
             throws java.net.UnknownHostException {
         this.addr = InetAddress.getByName(address);
-        if (port < 1)
+        if (port < 1) {
             this.port = DEFAULT_PORT;
-        else
+        } else {
             this.port = port;
+        }
     }
 
     /**
@@ -112,10 +90,11 @@ public class TcpLink extends ie.omk.smpp.net.SmscLink {
     public TcpLink(InetAddress address, int port)
             throws java.net.UnknownHostException {
         this.addr = address;
-        if (port < 1)
+        if (port < 1) {
             this.port = DEFAULT_PORT;
-        else
+        } else {
             this.port = port;
+        }
     }
 
     /**
@@ -167,10 +146,11 @@ public class TcpLink extends ie.omk.smpp.net.SmscLink {
      * @see java.net.Socket#getOutputStream
      */
     protected OutputStream getOutputStream() throws java.io.IOException {
-        if (sock == null)
+        if (sock == null) {
             throw new IOException("Socket connection is not open");
-        else
+        } else {
             return sock.getOutputStream();
+        }
     }
 
     /**
@@ -183,10 +163,11 @@ public class TcpLink extends ie.omk.smpp.net.SmscLink {
      * @see java.net.Socket#getInputStream
      */
     protected InputStream getInputStream() throws java.io.IOException {
-        if (sock == null)
+        if (sock == null) {
             throw new IOException("Socket connection is not open");
-        else
+        } else {
             return sock.getInputStream();
+        }
     }
 
     /**
@@ -195,7 +176,7 @@ public class TcpLink extends ie.omk.smpp.net.SmscLink {
      * @return The address of the SMSC this link is connected to.
      */
     public InetAddress getAddress() {
-        return (addr);
+        return addr;
     }
 
     /**
@@ -205,7 +186,7 @@ public class TcpLink extends ie.omk.smpp.net.SmscLink {
      * @return The service port at the SMSC to connect to.
      */
     public int getPort() {
-        return (port);
+        return port;
     }
 
     /**
@@ -218,10 +199,11 @@ public class TcpLink extends ie.omk.smpp.net.SmscLink {
      *             If the connection is not open.
      */
     public int getConnectedPort() throws java.io.IOException {
-        if (sock == null)
+        if (sock == null) {
             throw new IOException("Socket connection is not open");
-        else
-            return (sock.getPort());
+        } else {
+            return sock.getPort();
+        }
     }
 
     /**
@@ -232,10 +214,11 @@ public class TcpLink extends ie.omk.smpp.net.SmscLink {
      *             If the connection is not open.
      */
     public int getLocalPort() throws java.io.IOException {
-        if (sock == null)
+        if (sock == null) {
             throw new IOException("Socket connection is not open");
-        else
-            return (sock.getLocalPort());
+        } else {
+            return sock.getLocalPort();
+        }
     }
 
     /**
@@ -244,7 +227,7 @@ public class TcpLink extends ie.omk.smpp.net.SmscLink {
      * @return false if unconnected, true if connected.
      */
     public boolean isConnected() {
-        return (connected);
+        return connected;
     }
 
     public void setTimeout(long timeout) {
@@ -260,13 +243,13 @@ public class TcpLink extends ie.omk.smpp.net.SmscLink {
 
     public long getTimeout() {
         try {
-            return ((long) sock.getSoTimeout());
+            return (long) sock.getSoTimeout();
         } catch (Throwable t) {
             if (logger.isDebugEnabled()) {
                 logger.debug("Stack trace:", t);
             }
         }
 
-        return (-1L);
+        return -1L;
     }
 }
