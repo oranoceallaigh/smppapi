@@ -64,6 +64,9 @@
         <!-- The build assumed you want a debug build unless you override -->
         <!-- this property (or a distribution is being built). -->
         <property name="build.debug" value="true"/>
+        
+        <!-- Provide a default releaseNumber -->
+        <property name="releaseNumber" value="${DSTAMP}"/>
     </target>
 
     <!-- Build everything: compile the API, examples and tests, run -->
