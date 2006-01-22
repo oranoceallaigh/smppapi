@@ -1,7 +1,6 @@
 Manifest-Version: 1.0
 Specification-Title: SMPP
 Specification-Version: 3.4
-Specification-Vendor: SMPP Developers Forum
 Implementation-Title: smppapi
 Implementation-Version: ${releaseNumber}
 Implementation-Vendor: http://smppapi.sf.net/
