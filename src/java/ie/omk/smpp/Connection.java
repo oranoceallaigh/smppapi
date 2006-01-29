@@ -1455,6 +1455,10 @@ public class Connection implements java.lang.Runnable {
                         continue;
                    }
                } catch (SocketTimeoutException x) {
+                   if (logger.isDebugEnabled()) {
+                       logger.debug("Caught a socket timeout exception: "
+                               + x.getMessage());
+                   }
                     if (state == BINDING) {
                         // bind timeout has expired
                         logger.error("Socket timeout in BINDING state.");
@@ -1463,8 +1467,8 @@ public class Connection implements java.lang.Runnable {
                                 .setReason(ReceiverExitEvent.BIND_TIMEOUT);
                         setState(UNBOUND);
                    } else {
-                        // is it okay to ignore this ??
-                        logger.info("Ignoring SocketTimeoutException");
+                       eventDispatcher.notifyObservers(this,
+                               new ReceiverExceptionEvent(this, x));
                    }
 
                     continue;
