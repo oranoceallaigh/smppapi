@@ -612,8 +612,11 @@ public class Connection implements java.lang.Runnable {
 
         if (id == SMPPPacket.BIND_TRANSMITTER || id == SMPPPacket.BIND_RECEIVER
                 || id == SMPPPacket.BIND_TRANSCEIVER) {
-            if (this.state != UNBOUND) {
+            if (this.state == BOUND) {
                 throw new AlreadyBoundException("Already bound to the SMSC");
+            } else if (this.state == BINDING) {
+                throw new IllegalStateException(
+                        "Cannot bind while the connection is in binding state");
             }
 
             openLink();
