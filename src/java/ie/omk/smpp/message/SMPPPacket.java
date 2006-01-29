@@ -6,6 +6,7 @@ import ie.omk.smpp.message.tlv.Tag;
 import ie.omk.smpp.util.AlphabetEncoding;
 import ie.omk.smpp.util.AlphabetFactory;
 import ie.omk.smpp.util.BinaryEncoding;
+import ie.omk.smpp.util.EncodingFactory;
 import ie.omk.smpp.util.MessageEncoding;
 import ie.omk.smpp.util.SMPPDate;
 import ie.omk.smpp.util.SMPPIO;
@@ -585,7 +586,7 @@ public abstract class SMPPPacket {
         if (version.validateDataCoding(dc)) {
             this.dataCoding = dc;
             if (dc > 0) {
-                this.encoding = MessageEncoding.getEncoding(dc);
+                this.encoding = EncodingFactory.getInstance().getEncoding(dc);
             }
         } else {
             throw new InvalidParameterValueException("Bad data coding", dc);
@@ -1341,7 +1342,7 @@ public abstract class SMPPPacket {
         }
 
         // Set the message encoding type (if relevant)
-        encoding = MessageEncoding.getEncoding(dataCoding);
+        encoding = EncodingFactory.getInstance().getEncoding(dataCoding);
         if (encoding == null) {
             encoding = AlphabetFactory.getDefaultAlphabet();
         }

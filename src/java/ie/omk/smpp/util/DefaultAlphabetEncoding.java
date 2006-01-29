@@ -67,12 +67,13 @@ public class DefaultAlphabetEncoding extends ie.omk.smpp.util.AlphabetEncoding {
 
     private static final DefaultAlphabetEncoding instance = new DefaultAlphabetEncoding();
 
-    private DefaultAlphabetEncoding() {
+    public DefaultAlphabetEncoding() {
         super(DCS);
     }
 
     /**
      * Get the singleton instance of DefaultAlphabetEncoding.
+     * @deprecated
      */
     public static DefaultAlphabetEncoding getInstance() {
         return instance;

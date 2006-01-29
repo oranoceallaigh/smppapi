@@ -63,10 +63,13 @@ public final class HPRoman8Encoding extends AlphabetEncoding {
             '\u00b1',
     };
 
-    private HPRoman8Encoding() {
+    public HPRoman8Encoding() {
         super(DCS);
     }
 
+    /**
+     * @deprecated
+     */
     public static HPRoman8Encoding getInstance() {
         return instance;
     }

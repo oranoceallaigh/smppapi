@@ -15,7 +15,7 @@ public class UTF16Encoding extends ie.omk.smpp.util.AlphabetEncoding {
      * @param bigEndian
      *            true to use UTF-16BE, false to use UTF-16LE.
      */
-    private UTF16Encoding(boolean bigEndian) {
+    public UTF16Encoding(boolean bigEndian) {
         super(DCS);
 
         if (!bigEndian) {
@@ -25,6 +25,7 @@ public class UTF16Encoding extends ie.omk.smpp.util.AlphabetEncoding {
 
     /**
      * Get the singleton instance of the big-endian UTF16Encoding.
+     * @deprecated
      */
     public static UTF16Encoding getInstance() {
         return beInstance;

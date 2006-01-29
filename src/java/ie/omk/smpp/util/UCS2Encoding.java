@@ -32,6 +32,7 @@ public class UCS2Encoding extends ie.omk.smpp.util.AlphabetEncoding {
      * Get an instance of the UCS2Encoding.
      * @throws java.io.UnsupportedEncodingException if the ISO-10646-UCS-2
      * charset is not supported by the JVM.
+     * @deprecated
      */
     public static UCS2Encoding getInstance() throws UnsupportedEncodingException {
         return instance;

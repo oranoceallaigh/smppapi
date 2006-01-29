@@ -11,12 +11,13 @@ public class Latin1Encoding extends ie.omk.smpp.util.AlphabetEncoding {
     /**
      * Construct a new Latin1Encoding.
      */
-    private Latin1Encoding() {
+    public Latin1Encoding() {
         super(DCS);
     }
 
     /**
      * Get the singleton instance of Latin1Encoding.
+     * @deprecated
      */
     public static Latin1Encoding getInstance() {
         return instance;

@@ -1,16 +1,12 @@
 package ie.omk.smpp.util;
 
-import java.util.Hashtable;
-import java.util.Map;
 
 public abstract class MessageEncoding {
-    private static Map dcMapping = new Hashtable();
 
     private int dataCoding = -1;
 
     protected MessageEncoding(int dataCoding) {
         this.dataCoding = dataCoding;
-        dcMapping.put(new Integer(dataCoding), this);
     }
 
     /**
@@ -18,17 +14,6 @@ public abstract class MessageEncoding {
      */
     public final int getDataCoding() {
         return dataCoding;
-    }
-
-    /**
-     * Get the MessageEncoding handler for data coding <i>dcs </i>.
-     * 
-     * @param dcs
-     *            The data coding value to match.
-     * @return The message encoding type registered, or null if none.
-     */
-    public static final MessageEncoding getEncoding(int dcs) {
-        return (MessageEncoding) dcMapping.get(new Integer(dcs));
     }
 
     /**

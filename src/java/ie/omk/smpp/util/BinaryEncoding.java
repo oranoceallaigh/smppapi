@@ -9,12 +9,13 @@ public class BinaryEncoding extends ie.omk.smpp.util.MessageEncoding {
 
     private static final BinaryEncoding instance = new BinaryEncoding();
 
-    private BinaryEncoding() {
+    public BinaryEncoding() {
         super(DCS);
     }
 
     /**
      * Get the singleton instance of BinaryEncoding.
+     * @deprecated
      */
     public static BinaryEncoding getInstance() {
         return instance;
