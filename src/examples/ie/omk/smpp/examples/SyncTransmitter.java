@@ -30,6 +30,10 @@ public class SyncTransmitter extends SMPPAPIExample {
         try {
             logger.info("Binding to the SMSC");
 
+            myConnection = new Connection(hostName, port);
+            myConnection.autoAckLink(true);
+            myConnection.autoAckMessages(true);
+
             BindResp resp = myConnection.bind(
                     Connection.TRANSMITTER,
                     systemID,
