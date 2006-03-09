@@ -41,7 +41,7 @@ public final class AlphabetFactory {
         return defaultAlphabet;
     }
 
-    private static final void init() {
+    private static void init() {
         String className = "";
         try {
             className = System.getProperty(DEFAULT_ALPHABET_PROPNAME);
@@ -49,13 +49,13 @@ public final class AlphabetFactory {
                 Class alphaClass = Class.forName(className);
                 defaultAlphabet = (AlphabetEncoding) alphaClass.newInstance();
             } else {
-                defaultAlphabet = DefaultAlphabetEncoding.getInstance();
+                defaultAlphabet = new DefaultAlphabetEncoding();
             }
         } catch (Exception x) {
             // Leave the alphabet as DefaultAlphabet
             LogFactory.getLog(AlphabetFactory.class).warn(
                     "Couldn't load default alphabet " + className, x);
-            defaultAlphabet = DefaultAlphabetEncoding.getInstance();
+            defaultAlphabet = new DefaultAlphabetEncoding();
         }
     }
 

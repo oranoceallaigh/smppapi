@@ -400,9 +400,7 @@ public class Tag implements java.io.Serializable {
     }
 
     /**
-     * Define a new tag value type. This method adds a new tag type to the
-     * internal tag table.
-     * 
+     * Define a new tag type which has a fixed length.
      * @param tagValue
      *            the integer value of the tag.
      * @param type
@@ -423,9 +421,7 @@ public class Tag implements java.io.Serializable {
     }
 
     /**
-     * Define a new tag value type. This method adds a new tag type to the
-     * internal tag table.
-     * 
+     * Define a new tag type with minimum and maximum sizes.
      * @param tagValue
      *            the integer value of the tag.
      * @param type

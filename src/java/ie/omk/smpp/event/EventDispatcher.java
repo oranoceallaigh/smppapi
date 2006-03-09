@@ -26,7 +26,7 @@ public interface EventDispatcher {
      * called by the <code>Connection</code> before it makes any attempt to
      * add any observers or deliver any events via the dispatcher.
      */
-    public void init();
+    void init();
 
     /**
      * Event dispatcher clean up. The <code>destroy</code> method will be
@@ -39,7 +39,7 @@ public interface EventDispatcher {
      * to this method.
      * </p>
      */
-    public void destroy();
+    void destroy();
 
     /**
      * Add an observer to this event dispatcher.
@@ -47,7 +47,7 @@ public interface EventDispatcher {
      * @param observer
      *            the observer object to add.
      */
-    public void addObserver(ConnectionObserver observer);
+    void addObserver(ConnectionObserver observer);
 
     /**
      * Remove an observer from this event dispatcher.
@@ -55,14 +55,14 @@ public interface EventDispatcher {
      * @param observer
      *            the observer object to remove from the registered observers.
      */
-    public void removeObserver(ConnectionObserver observer);
+    void removeObserver(ConnectionObserver observer);
 
     /**
      * Get an iterator over the currently registered observers.
      * 
      * @return an iterator object which iterates over all registered observers.
      */
-    public Iterator observerIterator();
+    Iterator observerIterator();
 
     /**
      * Notify all registered observers of an SMPP event.
@@ -70,7 +70,7 @@ public interface EventDispatcher {
      * @param event
      *            the SMPP event to notify observers of.
      */
-    public void notifyObservers(Connection conn, SMPPEvent event);
+    void notifyObservers(Connection conn, SMPPEvent event);
 
     /**
      * Notify all registered observers of a received SMPP packet.
@@ -78,6 +78,6 @@ public interface EventDispatcher {
      * @param packet
      *            the SMPP packet to notify observers of.
      */
-    public void notifyObservers(Connection conn, SMPPPacket packet);
+    void notifyObservers(Connection conn, SMPPPacket packet);
 }
 

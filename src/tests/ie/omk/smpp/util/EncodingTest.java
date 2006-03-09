@@ -21,7 +21,7 @@ public class EncodingTest extends TestCase {
 
         String msg = "Test message";
 
-        ASCIIEncoding ae = ASCIIEncoding.getInstance();
+        ASCIIEncoding ae = ASCIIEncoding.getINSTANCE();
         assertTrue(Arrays.equals(msg_bytes, ae.encodeString(msg)));
         assertEquals(msg, ae.decodeString(msg_bytes));
     }

@@ -15,9 +15,10 @@ public final class HPRoman8Encoding extends AlphabetEncoding {
      */
     private static final int DCS = 0;
 
-    private static final HPRoman8Encoding instance = new HPRoman8Encoding();
+    private static final HPRoman8Encoding INSTANCE = new HPRoman8Encoding();
 
-    private static final char[] CHAR_TABLE = {0, 0, 0, 0, 0, 0, 0, 0,
+    private static final char[] CHAR_TABLE = {
+            0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0,
@@ -71,7 +72,7 @@ public final class HPRoman8Encoding extends AlphabetEncoding {
      * @deprecated
      */
     public static HPRoman8Encoding getInstance() {
-        return instance;
+        return INSTANCE;
     }
 
     public String decodeString(byte[] b) {
@@ -108,7 +109,8 @@ public final class HPRoman8Encoding extends AlphabetEncoding {
                }
             }
             if (search == CHAR_TABLE.length) {
-                enc.write(0x3f); // A '?'
+                // A '?'
+                enc.write(0x3f);
             }
         }
 

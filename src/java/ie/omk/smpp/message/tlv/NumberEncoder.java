@@ -21,8 +21,7 @@ public class NumberEncoder implements Encoder {
     public NumberEncoder() {
     }
 
-    public void writeTo(Tag tag, Object value, byte[] b, int offset)
-            throws ArrayIndexOutOfBoundsException {
+    public void writeTo(Tag tag, Object value, byte[] b, int offset) {
 
         long longVal = 0;
         long mask = 0;
@@ -48,8 +47,7 @@ public class NumberEncoder implements Encoder {
         SMPPIO.longToBytes(longVal, tag.getLength(), b, offset);
     }
 
-    public Object readFrom(Tag tag, byte[] b, int offset, int length)
-            throws ArrayIndexOutOfBoundsException {
+    public Object readFrom(Tag tag, byte[] b, int offset, int length) {
         long val = SMPPIO.bytesToLong(b, offset, length);
 
         if (length <= 4) {

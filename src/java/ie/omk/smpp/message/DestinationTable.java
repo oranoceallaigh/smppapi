@@ -23,12 +23,14 @@ public class DestinationTable implements Cloneable {
 
     synchronized void add(Address addr) {
         dests.add(addr);
-        length += addr.getLength() + 1; // don't forget the dest type flag!
+        // Plus 1 for the dest type flag.
+        length += addr.getLength() + 1;
     }
 
     synchronized void add(String distList) {
         dests.add(distList);
-        length += distList.length() + 2; // nul byte plus dest type flag
+        // nul byte plus dest type flag
+        length += distList.length() + 2;
     }
 
     public synchronized void remove(Address addr) {
@@ -51,14 +53,6 @@ public class DestinationTable implements Cloneable {
 
     public ListIterator listIterator() {
         return Collections.unmodifiableList(dests).listIterator();
-    }
-
-    public synchronized Object clone() {
-        try {
-            return super.clone();
-        } catch (CloneNotSupportedException x) {
-        }
-        return null;
     }
 
     public synchronized int getLength() {
@@ -107,13 +101,22 @@ public class DestinationTable implements Cloneable {
         calculateLength();
     }
 
+    public Object clone() {
+        try {
+            return super.clone();
+        } catch (CloneNotSupportedException x) {
+            throw new RuntimeException("Clone not supported", x);
+        }
+    }
+    
     private void calculateLength() {
         length = 0;
 
         Iterator i = dests.iterator();
         while (i.hasNext()) {
             Object o = i.next();
-            length++; // For the destination type flag
+            // For the destination type flag
+            length++;
             if (o instanceof Address) {
                 length += ((Address) o).getLength();
             } else {

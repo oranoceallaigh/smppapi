@@ -36,9 +36,8 @@ public class QuerySM extends ie.omk.smpp.message.SMPPRequest {
     }
 
     public int getBodyLength() {
-        int len = (((messageId != null) ? messageId.length() : 0) + ((source != null) ? source
-                .getLength()
-                : 3));
+        int len = ((messageId != null) ? messageId.length() : 0)
+                + ((source != null) ? source.getLength() : 3);
 
         // 1 c-string
         return len + 1;

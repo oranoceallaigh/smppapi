@@ -25,8 +25,6 @@ import org.apache.commons.logging.LogFactory;
  * @version 1.0
  */
 public abstract class SMPPPacket {
-    protected static final Log logger = LogFactory.getLog(SMPPPacket.class);
-
     /** Command Id: Negative Acknowledgement */
     public static final int GENERIC_NACK = 0x80000000;
 

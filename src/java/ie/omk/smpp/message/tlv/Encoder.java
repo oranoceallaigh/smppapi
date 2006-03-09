@@ -64,8 +64,7 @@ public interface Encoder {
      *             if the encoding tries to write beyond the end of the byte
      *             array.
      */
-    void writeTo(Tag tag, Object value, byte[] b, int offset)
-        throws ArrayIndexOutOfBoundsException;
+    void writeTo(Tag tag, Object value, byte[] b, int offset);
 
     /**
      * Decode a value from a byte array.
@@ -83,8 +82,7 @@ public interface Encoder {
      *             if the decoding tries to read beyond the end of the byte
      *             array.
      */
-    Object readFrom(Tag tag, byte[] b, int offset, int length)
-        throws ArrayIndexOutOfBoundsException;
+    Object readFrom(Tag tag, byte[] b, int offset, int length);
 
     /**
      * Calculate the length, in bytes, that the value will encode as. The value

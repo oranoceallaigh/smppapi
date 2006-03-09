@@ -13,7 +13,7 @@ import org.apache.commons.logging.LogFactory;
  * @version $Id$
  */
 public class StreamLink extends ie.omk.smpp.net.SmscLink {
-    private static final Log logger = LogFactory.getLog(StreamLink.class);
+    private static final Log LOGGER = LogFactory.getLog(StreamLink.class);
 
     /** The input side of the link. */
     private InputStream inStream = null;
@@ -47,7 +47,7 @@ public class StreamLink extends ie.omk.smpp.net.SmscLink {
      * Does nothing (the streams should already be open).
      */
     public void implOpen() {
-        logger.debug("Opening stream connection");
+        LOGGER.debug("Opening stream connection");
         connected = true;
     }
 
@@ -56,7 +56,7 @@ public class StreamLink extends ie.omk.smpp.net.SmscLink {
      * streams.
      */
     public void implClose() {
-        logger.debug("Closing stream connection");
+        LOGGER.debug("Closing stream connection");
         connected = false;
     }
 

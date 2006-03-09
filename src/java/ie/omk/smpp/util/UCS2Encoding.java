@@ -7,11 +7,11 @@ public class UCS2Encoding extends ie.omk.smpp.util.AlphabetEncoding {
 
     private static final int DCS = 8;
 
-    private static UCS2Encoding instance = null;
+    private static UCS2Encoding INSTANCE = null;
     
     static {
         try {
-            instance = new UCS2Encoding();
+            INSTANCE = new UCS2Encoding();
         } catch (UnsupportedEncodingException x) {
         }
     }
@@ -35,7 +35,7 @@ public class UCS2Encoding extends ie.omk.smpp.util.AlphabetEncoding {
      * @deprecated
      */
     public static UCS2Encoding getInstance() throws UnsupportedEncodingException {
-        return instance;
+        return INSTANCE;
     }
 
     /**
@@ -43,30 +43,25 @@ public class UCS2Encoding extends ie.omk.smpp.util.AlphabetEncoding {
      * be in UCS2 format.
      */
     public String decodeString(byte[] b) {
-        if (b == null) {
-            return "";
-        }
-
         try {
-            return new String(b, ENCODING);
+            if (b != null) {
+                return new String(b, ENCODING);
+            }
         } catch (java.io.UnsupportedEncodingException x) {
-            return "";
         }
+        return "";
     }
 
     /**
      * Encode a Java String to bytes using UCS2 (UTF-16).
      */
     public byte[] encodeString(String s) {
-        if (s == null) {
-            return new byte[0];
-        }
-
         try {
-            return s.getBytes(ENCODING);
+            if (s != null) {
+                return s.getBytes(ENCODING);
+            }
         } catch (java.io.UnsupportedEncodingException x) {
-            return new byte[0];
         }
+        return new byte[0];
     }
 }
-

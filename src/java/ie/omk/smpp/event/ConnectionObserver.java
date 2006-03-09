@@ -27,7 +27,7 @@ public interface ConnectionObserver {
      * @param packet
      *            the SMPP packet received.
      */
-    public void packetReceived(Connection source, SMPPPacket packet);
+    void packetReceived(Connection source, SMPPPacket packet);
 
     /**
      * Called for all events <b>other </b> than packet reception. This method is
@@ -43,6 +43,6 @@ public interface ConnectionObserver {
      *            the SMPP event type.
      * @see ie.omk.smpp.event.SMPPEvent#getType
      */
-    public void update(Connection source, SMPPEvent event);
+    void update(Connection source, SMPPEvent event);
 }
 

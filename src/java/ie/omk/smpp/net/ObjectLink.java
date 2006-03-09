@@ -105,7 +105,7 @@ public class ObjectLink extends SmscLink {
         }
     }
 
-    public byte[] read(byte[] buf) throws EOFException, IOException {
+    public byte[] read(byte[] buf) throws IOException {
 
         Object next = (Object) packets.remove(0);
         while (!(next instanceof SMPPPacket)) {
@@ -114,6 +114,7 @@ public class ObjectLink extends SmscLink {
                 try {
                     Thread.sleep(delay);
                } catch (InterruptedException x) {
+                   // TODO need to do anything here?
                }
             }
             next = (Object) packets.remove(0);
@@ -125,7 +126,7 @@ public class ObjectLink extends SmscLink {
                 try {
                     if (requestSent < 1) {
                         this.wait(this.timeout);
-                   }
+                    }
                } catch (InterruptedException x) {
                     throw new IOException("No packets available.");
                }
@@ -164,8 +165,7 @@ public class ObjectLink extends SmscLink {
 
     private class OLByteArrayOutputStream extends OutputStream {
         private byte[] buf = null;
-
-        int pos = -1;
+        private int pos = -1;
 
         public OLByteArrayOutputStream() {
         }

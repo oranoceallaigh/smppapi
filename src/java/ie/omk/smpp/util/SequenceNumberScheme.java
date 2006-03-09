@@ -15,14 +15,14 @@ package ie.omk.smpp.util;
  */
 public interface SequenceNumberScheme {
 
-    public static final int PEEK_UNSUPPORTED = -1;
+    static final int PEEK_UNSUPPORTED = -1;
 
     /**
      * Get the next number in this sequence's scheme. An implementation of this
      * interface <b>must </b> guard against multi-threaded access to this method
      * to prevent more than one thread getting the same sequence number.
      */
-    public int nextNumber();
+    int nextNumber();
 
     /**
      * Get the next number in this sequence's scheme without causing it to move
@@ -31,7 +31,7 @@ public interface SequenceNumberScheme {
      * increasing the sequence. Multiple calls to <code>peek</code> will
      * return the same number until a call to <code>nextNumber</code> is made.
      */
-    public int peek();
+    int peek();
 
     /**
      * Get the nth next number in this sequence's scheme without causing it to
@@ -40,11 +40,11 @@ public interface SequenceNumberScheme {
      * numbering scheme does not support this operation, it should always return
      * {@link #PEEK_UNSUPPORTED}to the caller.
      */
-    public int peek(int nth);
+    int peek(int nth);
 
     /**
      * Reset the sequence scheme to the beginning of the sequence.
      */
-    public void reset();
+    void reset();
 }
 

@@ -25,7 +25,7 @@ import org.apache.commons.logging.LogFactory;
  */
 public class SimpleEventDispatcher implements EventDispatcher {
 
-    protected Log logger = LogFactory.getLog(SimpleEventDispatcher.class);
+    private static final Log LOGGER = LogFactory.getLog(SimpleEventDispatcher.class);
 
     /**
      * List of observers registered on this event dispatcher.
@@ -64,7 +64,7 @@ public class SimpleEventDispatcher implements EventDispatcher {
         if (!observers.contains(ob)) {
             observers.add(ob);
         } else {
-            logger.info("Not adding observer because it's already registered");
+            LOGGER.info("Not adding observer because it's already registered");
         }
     }
 
@@ -79,7 +79,7 @@ public class SimpleEventDispatcher implements EventDispatcher {
         if (observers.contains(ob)) {
             observers.remove(observers.indexOf(ob));
         } else {
-            logger.info("Cannot remove an observer that was not added");
+            LOGGER.info("Cannot remove an observer that was not added");
         }
     }
 
@@ -107,6 +107,8 @@ public class SimpleEventDispatcher implements EventDispatcher {
         return observers.contains(ob);
     }
 
+    // TODO: examine the use of an iterator to notify observers - should
+    // be an array or somesuch?
     /**
      * Notify registered observers of an SMPP event.
      * 
@@ -119,7 +121,7 @@ public class SimpleEventDispatcher implements EventDispatcher {
             try {
                 ((ConnectionObserver) i.next()).update(conn, event);
             } catch (Exception x) {
-                logger.warn("An observer exceptioned during update", x);
+                LOGGER.warn("An observer threw an exception during event processing", x);
             }
         }
     }
@@ -136,7 +138,7 @@ public class SimpleEventDispatcher implements EventDispatcher {
             try {
                 ((ConnectionObserver) i.next()).packetReceived(conn, packet);
             } catch (Exception x) {
-                logger.warn("An observer exceptioned during update", x);
+                LOGGER.warn("An observer threw an exception during packet processing", x);
             }
         }
     }

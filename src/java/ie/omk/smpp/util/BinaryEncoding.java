@@ -7,7 +7,7 @@ package ie.omk.smpp.util;
 public class BinaryEncoding extends ie.omk.smpp.util.MessageEncoding {
     private static final int DCS = 4;
 
-    private static final BinaryEncoding instance = new BinaryEncoding();
+    private static final BinaryEncoding INSTANCE = new BinaryEncoding();
 
     public BinaryEncoding() {
         super(DCS);
@@ -18,7 +18,7 @@ public class BinaryEncoding extends ie.omk.smpp.util.MessageEncoding {
      * @deprecated
      */
     public static BinaryEncoding getInstance() {
-        return instance;
+        return INSTANCE;
     }
 }
 

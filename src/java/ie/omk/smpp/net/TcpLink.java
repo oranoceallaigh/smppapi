@@ -16,7 +16,11 @@ import org.apache.commons.logging.LogFactory;
  * @version $Id$
  */
 public class TcpLink extends ie.omk.smpp.net.SmscLink {
-    private static final Log logger = LogFactory.getLog(TcpLink.class);
+    private static final String STACK_TRACE_ERR = "Stack trace:";
+
+    private static final String SOCKET_NOT_OPEN_ERR = "Socket connection is not open";
+
+    private static final Log LOGGER = LogFactory.getLog(TcpLink.class);
 
     /** Default IP port to use if none are specified */
     public static final int DEFAULT_PORT = 5016;
@@ -108,7 +112,7 @@ public class TcpLink extends ie.omk.smpp.net.SmscLink {
      * @see java.net.Socket#Socket(java.net.InetAddress, int)
      */
     protected void implOpen() throws java.io.IOException {
-        logger.info("Opening TCP socket to " + addr + ":" + port);
+        LOGGER.info("Opening TCP socket to " + addr + ":" + port);
         sock = new Socket(addr, port);
         connected = true;
     }
@@ -122,13 +126,13 @@ public class TcpLink extends ie.omk.smpp.net.SmscLink {
      */
     protected void implClose() throws java.io.IOException {
         if (connected && sock != null) {
-            logger.info("Shutting down socket connection");
+            LOGGER.info("Shutting down socket connection");
             try {
                 sock.close();
                 sock = null;
                 connected = false;
             } catch (IOException ix) {
-                logger.warn("I/O exception closing socket", ix);
+                LOGGER.warn("I/O exception closing socket", ix);
                 connected = false;
                 ix.fillInStackTrace();
                 throw ix;
@@ -147,7 +151,7 @@ public class TcpLink extends ie.omk.smpp.net.SmscLink {
      */
     protected OutputStream getOutputStream() throws java.io.IOException {
         if (sock == null) {
-            throw new IOException("Socket connection is not open");
+            throw new IOException(SOCKET_NOT_OPEN_ERR);
         } else {
             return sock.getOutputStream();
         }
@@ -164,7 +168,7 @@ public class TcpLink extends ie.omk.smpp.net.SmscLink {
      */
     protected InputStream getInputStream() throws java.io.IOException {
         if (sock == null) {
-            throw new IOException("Socket connection is not open");
+            throw new IOException(SOCKET_NOT_OPEN_ERR);
         } else {
             return sock.getInputStream();
         }
@@ -200,7 +204,7 @@ public class TcpLink extends ie.omk.smpp.net.SmscLink {
      */
     public int getConnectedPort() throws java.io.IOException {
         if (sock == null) {
-            throw new IOException("Socket connection is not open");
+            throw new IOException(SOCKET_NOT_OPEN_ERR);
         } else {
             return sock.getPort();
         }
@@ -215,7 +219,7 @@ public class TcpLink extends ie.omk.smpp.net.SmscLink {
      */
     public int getLocalPort() throws java.io.IOException {
         if (sock == null) {
-            throw new IOException("Socket connection is not open");
+            throw new IOException(SOCKET_NOT_OPEN_ERR);
         } else {
             return sock.getLocalPort();
         }
@@ -234,9 +238,9 @@ public class TcpLink extends ie.omk.smpp.net.SmscLink {
         try {
             sock.setSoTimeout((int) timeout);
         } catch (Throwable t) {
-            logger.error("Failed to set timeout on socket: " + t.getMessage());
-            if (logger.isDebugEnabled()) {
-                logger.debug("Stack trace:", t);
+            LOGGER.error("Failed to set timeout on socket: " + t.getMessage());
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug(STACK_TRACE_ERR, t);
             }
         }
     }
@@ -245,8 +249,8 @@ public class TcpLink extends ie.omk.smpp.net.SmscLink {
         try {
             return (long) sock.getSoTimeout();
         } catch (Throwable t) {
-            if (logger.isDebugEnabled()) {
-                logger.debug("Stack trace:", t);
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug(STACK_TRACE_ERR, t);
             }
         }
 

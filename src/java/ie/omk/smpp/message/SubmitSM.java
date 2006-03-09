@@ -57,13 +57,12 @@ public class SubmitSM extends ie.omk.smpp.message.SMPPRequest {
      * @return the number of bytes this packet would encode as.
      */
     public int getBodyLength() {
-        int len = (((serviceType != null) ? serviceType.length() : 0)
+        int len = ((serviceType != null) ? serviceType.length() : 0)
                 + ((source != null) ? source.getLength() : 3)
                 + ((destination != null) ? destination.getLength() : 3)
-                + ((deliveryTime != null) ? deliveryTime.toString().length()
-                        : 0)
-                + ((expiryTime != null) ? expiryTime.toString().length() : 0) + ((message != null) ? message.length
-                : 0));
+                + ((deliveryTime != null) ? deliveryTime.toString().length() : 0)
+                + ((expiryTime != null) ? expiryTime.toString().length() : 0)
+                + ((message != null) ? message.length : 0);
 
         // 8 1-byte integers, 3 c-strings
         return len + 8 + 3;

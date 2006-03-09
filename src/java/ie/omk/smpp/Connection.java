@@ -68,9 +68,6 @@ import org.apache.commons.logging.LogFactory;
  * @version $Id$
  */
 public class Connection implements java.lang.Runnable {
-    /** Get the logger for this Connection. */
-    protected Log logger = LogFactory.getLog(Connection.class);
-
     /** SMPP Transmitter connection type. */
     public static final int TRANSMITTER = 1;
 
@@ -96,6 +93,8 @@ public class Connection implements java.lang.Runnable {
      * request or waiting for application to respond to unbind request.
      */
     public static final int UNBINDING = 3;
+
+    private static final Log LOGGER = LogFactory.getLog(Connection.class);
 
     /** Type of this SMPP connection. */
     private int connectionType = 0;
@@ -244,13 +243,13 @@ public class Connection implements java.lang.Runnable {
                 Class cl = Class.forName(className);
                 eventDispatcher = (EventDispatcher) cl.newInstance();
             } else {
-                logger.info("EventDispatcher property value is empty.");
+                LOGGER.info("EventDispatcher property value is empty.");
             }
         } catch (PropertyNotFoundException x) {
-            logger
+            LOGGER
                     .debug("No event dispatcher specified in properties. Using default.");
         } catch (ClassNotFoundException x) {
-            logger
+            LOGGER
                     .error("Cannot locate event dispatcher class " + className,
                             x);
         } catch (Exception x) {
@@ -262,7 +261,7 @@ public class Connection implements java.lang.Runnable {
                     .append("and have a default constructor.\n").append(
                             "Falling back to default implementation after ")
                     .append("receiving exception.");
-            logger.error(errorMessage.toString(), x);
+            LOGGER.error(errorMessage.toString(), x);
         } finally {
             if (eventDispatcher == null) {
                 eventDispatcher = new SimpleEventDispatcher();
@@ -285,7 +284,7 @@ public class Connection implements java.lang.Runnable {
      * nothing otherwise.
      */
     private void createRecvThread() {
-        logger.info("Creating receiver thread");
+        LOGGER.info("Creating receiver thread");
         rcvThread = new Thread(this, "ReceiverDaemon");
         rcvThread.setDaemon(true);
     }
@@ -326,7 +325,7 @@ public class Connection implements java.lang.Runnable {
      * @see ie.omk.smpp.Connection#getState
      */
     private synchronized void setState(int state) {
-        logger.info("Setting state " + state);
+        LOGGER.info("Setting state " + state);
         this.state = state;
     }
 
@@ -386,13 +385,13 @@ public class Connection implements java.lang.Runnable {
      */
     protected void openLink() throws java.io.IOException {
         if (!this.link.isConnected()) {
-            logger.info("Opening network link.");
+            LOGGER.info("Opening network link.");
             this.link.open();
             if (this.seqNumScheme != null) {
                 this.seqNumScheme.reset();
             }
         } else {
-            logger.debug("openLink called, link already open");
+            LOGGER.debug("openLink called, link already open");
         }
     }
 
@@ -415,10 +414,10 @@ public class Connection implements java.lang.Runnable {
         }
 
         if (this.link.isConnected()) {
-            logger.info("Shutting down the network link");
+            LOGGER.info("Shutting down the network link");
             this.link.close();
         } else {
-            logger.debug("closeLink called on an unopen connection");
+            LOGGER.debug("closeLink called on an unopen connection");
         }
     }
 
@@ -456,7 +455,7 @@ public class Connection implements java.lang.Runnable {
      * </table>
      */
     public void setInterfaceVersion(SMPPVersion interfaceVersion) {
-        logger.info("setInterfaceVersion " + interfaceVersion);
+        LOGGER.info("setInterfaceVersion " + interfaceVersion);
         this.interfaceVersion = interfaceVersion;
         this.supportOptionalParams = interfaceVersion.isSupportOptionalParams();
     }
@@ -515,7 +514,7 @@ public class Connection implements java.lang.Runnable {
     public void ackDeliverSm(DeliverSM rq) throws java.io.IOException {
         DeliverSMResp rsp = new DeliverSMResp(rq);
         sendResponse(rsp);
-        logger.info("deliver_sm_resp sent.");
+        LOGGER.info("deliver_sm_resp sent.");
     }
 
     /**
@@ -633,12 +632,12 @@ public class Connection implements java.lang.Runnable {
                             APIConfig.BIND_TIMEOUT, 0L);
                     if (bindTimeout > 0L) {
                         this.link.setTimeout(bindTimeout);
-                        if (logger.isDebugEnabled()) {
-                            logger.debug("Set bind timeout to " + bindTimeout);
+                        if (LOGGER.isDebugEnabled()) {
+                            LOGGER.debug("Set bind timeout to " + bindTimeout);
                        }
                    }
                } catch (UnsupportedOperationException x) {
-                    logger
+                    LOGGER
                             .warn("Link does not support read timeouts - bind timeout will not work");
                }
 
@@ -707,15 +706,15 @@ public class Connection implements java.lang.Runnable {
                         && resp.getSequenceNum() == expectedSeq) {
                     break;
                } else {
-                    logger.info("Queuing unexpected sequence numbered packet.");
-                    if (logger.isDebugEnabled()) {
+                    LOGGER.info("Queuing unexpected sequence numbered packet.");
+                    if (LOGGER.isDebugEnabled()) {
                         StringBuffer b = new StringBuffer("Expected:").append(
                                 Integer.toString(expectedSeq)).append(
                                 " but got ").append(
                                 Integer.toString(resp.getSequenceNum()))
                                 .append(" type: ").append(
                                         Integer.toString(resp.getCommandId()));
-                        logger.debug(b.toString());
+                        LOGGER.debug(b.toString());
                    }
                     packetQueue.add(resp);
                }
@@ -724,7 +723,7 @@ public class Connection implements java.lang.Runnable {
             return (SMPPResponse) resp;
         } catch (java.net.SocketTimeoutException x) {
             // Must set our state and re-throw the exception..
-            logger.error("Received a socket timeout exception", x);
+            LOGGER.error("Received a socket timeout exception", x);
             throw x;
         }
     }
@@ -771,7 +770,7 @@ public class Connection implements java.lang.Runnable {
         try {
             link.write(resp, this.supportOptionalParams);
         } catch (java.net.SocketTimeoutException x) {
-            logger.warn("Got a socket timeout exception", x);
+            LOGGER.warn("Got a socket timeout exception", x);
             setState(UNBOUND);
             throw x;
         }
@@ -780,6 +779,16 @@ public class Connection implements java.lang.Runnable {
                 && resp.getCommandStatus() == 0) {
             setState(UNBOUND);
         }
+    }
+
+    /**
+     * @see #bind(int, String, String, String, int, int, String)
+     */
+    public BindResp bind(int type, String systemID, String password,
+            String systemType) throws java.io.IOException,
+            InvalidParameterValueException, IllegalArgumentException,
+            AlreadyBoundException, VersionException, SMPPProtocolException {
+        return this.bind(type, systemID, password, systemType, 0, 0, null);
     }
 
     /**
@@ -799,19 +808,19 @@ public class Connection implements java.lang.Runnable {
      * <code>Connection</code> will read it. If the version stated by the SMSC
      * is older than the current version setting of the <code>Connection</code>
      * then the <code>Connection</code>'s version will be downgraded to that
-     * of the SMSC's. Otherwise, the current version will be left alone. An SMSC
-     * supporting only version 3.3 of the API will never be able to return this
-     * optional parameter (as they were only introduced in version 3.4). The
-     * <code>Connection</code> will therefore assume the version to be 3.3 if
-     * it does not receive the SC_INTERFACE_VERSION in the bind response packet.
-     * If your SMSC does support a higher version but does not supply the
-     * SC_INTERFACE_VERSION in its bind response, you will need to use
-     * {@link #setInterfaceVersion}after the bind operation is complete.
+     * of the SMSC's. Otherwise, the current version will be left alone.
+     * </p>
+     * <p>
+     * If an SMSC does not supply the SC_INTERFACE_VERSION in its bind
+     * response, then the Connection object will assume that the SMSC
+     * does not support optional parameters. This behaviour is required
+     * by the SMPP v3.4 specification.
      * </p>
      * <p>
      * Note that it is only necessary to supply values for
      * <code>type, systemID</code> and <code>password</code>. The other
-     * arguments may be left at null (or zero, as applicable).
+     * arguments may be left at null (or zero, as applicable) and the SMSC
+     * will use default values for them.
      * </p>
      * 
      * @param type
@@ -842,63 +851,6 @@ public class Connection implements java.lang.Runnable {
      *             response packet violates the SMPP protocol.
      */
     public BindResp bind(int type, String systemID, String password,
-            String systemType) throws java.io.IOException,
-            InvalidParameterValueException, IllegalArgumentException,
-            AlreadyBoundException, VersionException, SMPPProtocolException {
-        return this.bind(type, systemID, password, systemType, 0, 0, null);
-    }
-
-    /**
-     * Bind this connection to the SMSC. An application must bind to an SMSC as
-     * one of transmitter, receiver or transceiver. Binding as transmitter
-     * allows general manipulation of messages at the SMSC including submitting
-     * messages for delivery, cancelling, replacing and querying the state of
-     * previously submitted messages. Binding as a receiver allows an
-     * application to receive all messages previously queued for delivery to
-     * it's address. The transceiver mode, which was added in version 3.4 of the
-     * SMPP protocol, combines the functionality of both transmitter and
-     * receiver into one connection type.
-     * <p>
-     * Note that it is only necessary to supply values for
-     * <code>type, systemID</code> and <code>password</code>. The other
-     * arguments may be left at null (or zero, as applicable).
-     * </p>
-     * 
-     * @param type
-     *            connection type to use, either {@link #TRANSMITTER},
-     *            {@link #RECEIVER}or {@link #TRANSCEIVER}.
-     * @param systemID
-     *            the system ID to identify as to the SMSC.
-     * @param password
-     *            password to use to authenticate to the SMSC.
-     * @param systemType
-     *            the system type to bind as.
-     * @param typeOfNum
-     *            the TON of the address to bind as.
-     * @param numberPlan
-     *            the NPI of the address to bind as.
-     * @param addrRange
-     *            the address range regular expression to bind as.
-     * @return the bind response packet.
-     * @throws java.lang.IllegalArgumentException
-     *             if a bad <code>type</code> value is supplied.
-     * @throws ie.omk.smpp.VersionException
-     *             if an attempt is made to bind as transceiver while using SMPP
-     *             version 3.3.
-     * @throws ie.omk.smpp.InvalidParameterValueException
-     *             If any of systemID, password, system type or address range
-     *             are outside allowed bounds.
-     * @throws java.io.IOException
-     *             If an I/O error occurs while writing the bind packet to the
-     *             output stream.
-     * @throws ie.omk.smpp.AlreadyBoundException
-     *             If the Connection is already bound.
-     * @throws ie.omk.smpp.message.SMPPProtocolException
-     *             If synchronous comms is in use and the incoming bind response
-     *             packet violates the SMPP specification, this exception is
-     *             thrown.
-     */
-    public BindResp bind(int type, String systemID, String password,
             String systemType, int typeOfNum, int numberPlan, String addrRange)
             throws java.io.IOException, InvalidParameterValueException,
             IllegalArgumentException, AlreadyBoundException, VersionException,
@@ -927,7 +879,7 @@ public class Connection implements java.lang.Runnable {
         }
 
         this.connectionType = type;
-        logger.info("Binding to the SMSC as type " + type);
+        LOGGER.info("Binding to the SMSC as type " + type);
 
         bindReq.setVersion(interfaceVersion);
         bindReq.setSystemId(systemID);
@@ -967,7 +919,7 @@ public class Connection implements java.lang.Runnable {
         }
 
         try {
-            logger.info("Unbinding from the SMSC");
+            LOGGER.info("Unbinding from the SMSC");
             Unbind u = (Unbind) newInstance(SMPPPacket.UNBIND);
             return (UnbindResp) sendRequestInternal(u);
         } catch (VersionException x) {
@@ -1017,7 +969,7 @@ public class Connection implements java.lang.Runnable {
      * </p>
      */
     public void force_unbind() {
-        logger.warn("Attempting to force SMPP connection down.");
+        LOGGER.warn("Attempting to force SMPP connection down.");
         try {
             setState(UNBOUND);
 
@@ -1028,12 +980,12 @@ public class Connection implements java.lang.Runnable {
                     // becoming UNBOUND.
                     Thread.sleep(1000);
                } catch (InterruptedException x) {
-                    logger.debug(
+                    LOGGER.debug(
                             "Interrupted exception waiting on receiver to die",
                             x);
                }
                 if (rcvThread != null) {
-                    logger.error("Listener thread has not died.");
+                    LOGGER.error("Listener thread has not died.");
                 }
 
                 rcvThread = null;
@@ -1041,7 +993,7 @@ public class Connection implements java.lang.Runnable {
 
             link.close();
         } catch (Throwable t) {
-            logger.warn("Exception when trying to force unbind", t);
+            LOGGER.warn("Exception when trying to force unbind", t);
         }
         return;
     }
@@ -1056,7 +1008,7 @@ public class Connection implements java.lang.Runnable {
     public void ackEnquireLink(EnquireLink rq) throws java.io.IOException {
         EnquireLinkResp resp = new EnquireLinkResp(rq);
         sendResponse(resp);
-        logger.info("enquire_link_resp sent.");
+        LOGGER.info("enquire_link_resp sent.");
     }
 
     /**
@@ -1077,9 +1029,9 @@ public class Connection implements java.lang.Runnable {
         try {
             EnquireLink s = (EnquireLink) newInstance(SMPPPacket.ENQUIRE_LINK);
             SMPPResponse resp = sendRequest(s);
-            logger.debug("enquire_link request sent.");
+            LOGGER.debug("enquire_link request sent.");
             if (resp != null) {
-                logger.debug("enquire_link_response received.");
+                LOGGER.debug("enquire_link_response received.");
             }
             return (EnquireLinkResp) resp;
         } catch (BadCommandIDException x) {
@@ -1114,7 +1066,7 @@ public class Connection implements java.lang.Runnable {
      */
     public void reset() throws AlreadyBoundException {
         if (state == BOUND) {
-            logger
+            LOGGER
                     .warn("Attempt to reset sequence numbering on a bound connection");
             throw new AlreadyBoundException(
                     "Cannot reset connection while bound");
@@ -1124,7 +1076,7 @@ public class Connection implements java.lang.Runnable {
             this.seqNumScheme.reset();
         }
 
-        logger.info("Sequence numbering reset.");
+        LOGGER.info("Sequence numbering reset.");
     }
 
     /**
@@ -1205,7 +1157,7 @@ public class Connection implements java.lang.Runnable {
 
             if (pak != null) {
                 pak.readFrom(this.buf, 0);
-                if (logger.isDebugEnabled()) {
+                if (LOGGER.isDebugEnabled()) {
                     StringBuffer b = new StringBuffer("Packet Received: ");
                     int l = pak.getLength();
                     int s = pak.getCommandStatus();
@@ -1214,7 +1166,7 @@ public class Connection implements java.lang.Runnable {
                     b.append(" len:").append(Integer.toString(l));
                     b.append(" st:").append(Integer.toString(s));
                     b.append(" sq:").append(Integer.toString(n));
-                    logger.debug(b.toString());
+                    LOGGER.debug(b.toString());
                }
 
                 // Special case handling for certain packet types..
@@ -1268,8 +1220,8 @@ public class Connection implements java.lang.Runnable {
         if (st != 0) {
             // Bind failed. Close the network link and return.
 
-            if (logger.isDebugEnabled()) {
-                logger
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER
                         .debug("Bind response indicates failure. Setting internal state to unbound.");
             }
 
@@ -1277,8 +1229,8 @@ public class Connection implements java.lang.Runnable {
                 setState(UNBOUND);
                 this.link.close();
             } catch (IOException x) {
-                if (logger.isWarnEnabled()) {
-                    logger
+                if (LOGGER.isWarnEnabled()) {
+                    LOGGER
                             .warn(
                                     "I/O Exception shutting down link after failed bind.",
                                     x);
@@ -1295,15 +1247,15 @@ public class Connection implements java.lang.Runnable {
         Number n = (Number) resp.getOptionalParameter(Tag.SC_INTERFACE_VERSION);
         if (n != null) {
             SMPPVersion smscVersion = SMPPVersion.getVersion(n.intValue());
-            if (logger.isDebugEnabled()) {
-                logger.debug("SMSC reports its supported SMPP version as "
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("SMSC reports its supported SMPP version as "
                         + smscVersion.toString());
             }
 
             // Downgrade this connection's version if the SMSC's version is
             // lower.
             if (smscVersion.isOlder(this.interfaceVersion)) {
-                logger.info("Downgrading this connection's SMPP version to "
+                LOGGER.info("Downgrading this connection's SMPP version to "
                         + smscVersion.toString());
                 setInterfaceVersion(smscVersion);
             }
@@ -1311,7 +1263,7 @@ public class Connection implements java.lang.Runnable {
             // Spec requires us to assume the SMSC does not support optional
             // parameters
             this.supportOptionalParams = false;
-            logger
+            LOGGER
                     .warn("Disabling optional parameter support as no sc_interface_version parameter was received");
         }
 
@@ -1321,15 +1273,15 @@ public class Connection implements java.lang.Runnable {
                     APIConfig.LINK_TIMEOUT);
             link.setTimeout(linkTimeout);
 
-            if (logger.isDebugEnabled()) {
-                logger.debug("Set the link timeout to " + linkTimeout);
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Set the link timeout to " + linkTimeout);
             }
         } catch (PropertyNotFoundException x) {
-            if (logger.isDebugEnabled()) {
-                logger.debug("No link timeout specified in configuration");
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("No link timeout specified in configuration");
             }
         } catch (java.lang.UnsupportedOperationException x) {
-            logger
+            LOGGER
                     .warn("Configuration specified a link timeout but the link implementation does not support it");
         }
     }
@@ -1338,7 +1290,7 @@ public class Connection implements java.lang.Runnable {
      * Handle an incoming unbind packet.
      */
     private void handleUnbind(Unbind req) {
-        logger.info("SMSC requested unbind");
+        LOGGER.info("SMSC requested unbind");
         setState(UNBINDING);
     }
 
@@ -1348,7 +1300,7 @@ public class Connection implements java.lang.Runnable {
     private void handleUnbindResp(UnbindResp resp) {
         try {
             if (state == UNBINDING && resp.getCommandStatus() == 0) {
-                logger.info("Successfully unbound");
+                LOGGER.info("Successfully unbound");
                 setState(UNBOUND);
                 this.link.close();
             }
@@ -1437,14 +1389,14 @@ public class Connection implements java.lang.Runnable {
         SMPPEvent exitEvent = null;
         int tooManyIOEx = 5;
 
-        logger.info("Receiver thread started");
+        LOGGER.info("Receiver thread started");
 
         APIConfig cfg = APIConfig.getInstance();
         try {
             tooManyIOEx = cfg.getInt(APIConfig.TOO_MANY_IO_EXCEPTIONS);
         } catch (PropertyNotFoundException x) {
             // just stick with the default
-            logger.debug("Didn't find I/O exception config. Using default of "
+            LOGGER.debug("Didn't find I/O exception config. Using default of "
                     + tooManyIOEx);
         }
 
@@ -1458,13 +1410,13 @@ public class Connection implements java.lang.Runnable {
                         continue;
                    }
                } catch (SocketTimeoutException x) {
-                   if (logger.isDebugEnabled()) {
-                       logger.debug("Caught a socket timeout exception: "
+                   if (LOGGER.isDebugEnabled()) {
+                       LOGGER.debug("Caught a socket timeout exception: "
                                + x.getMessage());
                    }
                     if (state == BINDING) {
                         // bind timeout has expired
-                        logger.error("Socket timeout in BINDING state.");
+                        LOGGER.error("Socket timeout in BINDING state.");
                         exitEvent = new ReceiverExitEvent(this, null, state);
                         ((ReceiverExitEvent) exitEvent)
                                 .setReason(ReceiverExitEvent.BIND_TIMEOUT);
@@ -1477,19 +1429,19 @@ public class Connection implements java.lang.Runnable {
                     continue;
                } catch (EOFException x) {
                     // The network connection has disappeared! Wah!
-                    logger.error("EOFException received in daemon thread.", x);
+                    LOGGER.error("EOFException received in daemon thread.", x);
 
                     // Will be caught by the general handler lower in this
                     // method.
                     throw x;
                } catch (IOException x) {
-                    logger.warn("I/O Exception caught", x);
+                    LOGGER.warn("I/O Exception caught", x);
                     ReceiverExceptionEvent ev = new ReceiverExceptionEvent(
                             this, x, state);
                     eventDispatcher.notifyObservers(this, ev);
                     smppEx++;
                     if (smppEx > tooManyIOEx) {
-                        logger.warn("Too many IOExceptions in receiver thread",
+                        LOGGER.warn("Too many IOExceptions in receiver thread",
                                 x);
                         throw x;
                    }
@@ -1520,14 +1472,14 @@ public class Connection implements java.lang.Runnable {
                }
 
                 // Tell all the observers about the new packet
-                logger.info("Notifying observers of packet received");
+                LOGGER.info("Notifying observers of packet received");
                 eventDispatcher.notifyObservers(this, pak);
             } // end while
 
             // Notify observers that the thread is exiting with no error..
             exitEvent = new ReceiverExitEvent(this, null, state);
         } catch (Exception x) {
-            logger.error("Fatal exception in receiver thread", x);
+            LOGGER.error("Fatal exception in receiver thread", x);
             exitEvent = new ReceiverExitEvent(this, x, state);
             setState(UNBOUND);
         } finally {

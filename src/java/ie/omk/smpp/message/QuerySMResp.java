@@ -55,9 +55,8 @@ public class QuerySMResp extends ie.omk.smpp.message.SMPPResponse {
      * @return the number of bytes this packet would encode as.
      */
     public int getBodyLength() {
-        int len = (((messageId != null) ? messageId.length() : 0) + ((finalDate != null) ? finalDate
-                .toString().length()
-                : 0));
+        int len = ((messageId != null) ? messageId.length() : 0)
+        + ((finalDate != null) ? finalDate.toString().length() : 0);
 
         // 2 1-byte integers, 2 c-strings
         return len + 2 + 2;

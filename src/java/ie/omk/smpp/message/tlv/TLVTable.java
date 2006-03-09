@@ -8,9 +8,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 /**
  * Table of optional parameters (TLVs).
  * <p>
@@ -57,9 +54,6 @@ import org.apache.commons.logging.LogFactory;
  * @version $Id$
  */
 public class TLVTable implements java.io.Serializable {
-
-    private static final Log logger = LogFactory.getLog(TLVTable.class);
-
     /**
      * Map of tag to values.
      */
@@ -91,8 +85,7 @@ public class TLVTable implements java.io.Serializable {
      * @param len
      *            The length in the byte array of all the optional parameters.
      */
-    public void readFrom(byte[] b, int offset, int len)
-            throws ArrayIndexOutOfBoundsException {
+    public void readFrom(byte[] b, int offset, int len) {
         synchronized (map) {
             opts = new byte[len];
             System.arraycopy(b, offset, opts, 0, len);
@@ -109,8 +102,6 @@ public class TLVTable implements java.io.Serializable {
      */
     public void writeTo(OutputStream out) throws IOException {
         synchronized (map) {
-            int len = 0;
-            int offset = 0;
             byte[] buffer = new byte[1024];
 
             Iterator i = map.keySet().iterator();

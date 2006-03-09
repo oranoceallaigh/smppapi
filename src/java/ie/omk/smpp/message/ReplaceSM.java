@@ -39,12 +39,11 @@ public class ReplaceSM extends ie.omk.smpp.message.SMPPRequest {
     }
 
     public int getBodyLength() {
-        int len = (((messageId != null) ? messageId.length() : 0)
+        int len = ((messageId != null) ? messageId.length() : 0)
                 + ((source != null) ? source.getLength() : 3)
-                + ((deliveryTime != null) ? deliveryTime.toString().length()
-                        : 0)
-                + ((expiryTime != null) ? expiryTime.toString().length() : 0) + ((message != null) ? message.length
-                : 0));
+                + ((deliveryTime != null) ? deliveryTime.toString().length() : 0)
+                + ((expiryTime != null) ? expiryTime.toString().length() : 0)
+                + ((message != null) ? message.length : 0);
 
         // 3 1-byte integers, 3 c-strings
         return len + 3 + 3;

@@ -176,7 +176,7 @@ public final class APIConfig extends Properties {
      */
     public static final String BIND_TIMEOUT = "smppapi.connection.bind_timeout";
 
-    private static final Log logger = LogFactory.getLog(APIConfig.class);
+    private static final Log LOGGER = LogFactory.getLog(APIConfig.class);
 
     /**
      * Paths to search for the API properties file. These should always end in
@@ -227,10 +227,10 @@ public final class APIConfig extends Properties {
             if (is != null) {
                 loadAPIPropertiesFromStream(is);
             } else {
-                logger.warn("Could not find API properties to load");
+                LOGGER.warn("Could not find API properties to load");
             }
         } catch (IOException x) {
-            logger.warn("Could not load API properties", x);
+            LOGGER.warn("Could not load API properties", x);
         }
     }
 
@@ -242,11 +242,11 @@ public final class APIConfig extends Properties {
     private void loadAPIPropertiesFromStream(InputStream stream)
             throws IOException {
         load(stream);
-        if (logger.isDebugEnabled()) {
-            logger.debug("Loaded API properties from " + propsFile);
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Loaded API properties from " + propsFile);
             StringWriter w = new StringWriter();
             list(new PrintWriter(w));
-            logger.debug("\n" + w.toString());
+            LOGGER.debug("\n" + w.toString());
         }
     }
 
@@ -260,7 +260,7 @@ public final class APIConfig extends Properties {
      *         otherwise.
      */
     public boolean reloadAPIConfig() {
-        logger.debug("Reloading API config properties.");
+        LOGGER.debug("Reloading API config properties.");
 
         try {
             Class c = getClass();
@@ -268,11 +268,11 @@ public final class APIConfig extends Properties {
             if (is != null) {
                 loadAPIPropertiesFromStream(is);
             } else {
-                logger.warn("Could not reload API properties. File not found: "
+                LOGGER.warn("Could not reload API properties. File not found: "
                         + propsFile);
             }
         } catch (IOException x) {
-            logger.warn("Could not reload API properties.", x);
+            LOGGER.warn("Could not reload API properties.", x);
             return false;
         }
 
@@ -282,7 +282,7 @@ public final class APIConfig extends Properties {
     /**
      * Get the singleton <code>APIConfig</code> instance.
      */
-    public static final APIConfig getInstance() {
+    public static APIConfig getInstance() {
         if (instance == null) {
             instance = new APIConfig();
             instance.loadAPIProperties();

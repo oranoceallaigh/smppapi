@@ -40,11 +40,10 @@ public class CancelSM extends ie.omk.smpp.message.SMPPRequest {
     }
 
     public int getBodyLength() {
-        int len = (((serviceType != null) ? serviceType.length() : 0)
+        int len = ((serviceType != null) ? serviceType.length() : 0)
                 + ((messageId != null) ? messageId.length() : 0)
-                + ((source != null) ? source.getLength() : 3) + ((destination != null) ? destination
-                .getLength()
-                : 3));
+                + ((source != null) ? source.getLength() : 3)
+                + ((destination != null) ? destination.getLength() : 3);
 
         // 2 c-strings
         return len + 2;

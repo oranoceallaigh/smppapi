@@ -108,7 +108,7 @@ public class SubmitMultiResp extends ie.omk.smpp.message.SMPPResponse {
     public int getBodyLength() {
         int loop;
 
-        int size = ((messageId != null) ? messageId.length() : 0);
+        int size = (messageId != null) ? messageId.length() : 0;
 
         synchronized (unsuccessfulTable) {
             Iterator i = unsuccessfulTable.iterator();

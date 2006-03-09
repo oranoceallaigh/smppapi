@@ -8,6 +8,8 @@ import ie.omk.smpp.util.SMPPIO;
 
 import java.io.OutputStream;
 
+import org.apache.commons.logging.LogFactory;
+
 /**
  * Deliver message. This message is sent from the SMSC to a Receiver ESME to
  * deliver a short message. It is also used to notify an ESME that submitted a
@@ -56,8 +58,8 @@ public class DeliverSM extends ie.omk.smpp.message.SMPPRequest {
      * specification.
      */
     public void setDeliveryTime(SMPPDate d) {
-        logger
-                .warn("Setting the delivery time on a deliver_sm is in violation "
+        LogFactory.getLog(DeliverSM.class).warn(
+                "Setting the delivery time on a deliver_sm is in violation "
                         + "of the SMPP specification");
         super.setDeliveryTime(d);
     }
@@ -67,7 +69,8 @@ public class DeliverSM extends ie.omk.smpp.message.SMPPRequest {
      * specification.
      */
     public void setExpiryTime(SMPPDate d) {
-        logger.warn("Setting the expiry time on a deliver_sm is in violation "
+        LogFactory.getLog(DeliverSM.class).warn(
+                "Setting the expiry time on a deliver_sm is in violation "
                 + "of the SMPP specification");
         super.setExpiryTime(d);
     }
@@ -79,13 +82,12 @@ public class DeliverSM extends ie.omk.smpp.message.SMPPRequest {
      * @return the number of bytes this packet would encode as.
      */
     public int getBodyLength() {
-        int len = (((serviceType != null) ? serviceType.length() : 0)
+        int len = ((serviceType != null) ? serviceType.length() : 0)
                 + ((source != null) ? source.getLength() : 3)
                 + ((destination != null) ? destination.getLength() : 3)
-                + ((deliveryTime != null) ? deliveryTime.toString().length()
-                        : 0)
-                + ((expiryTime != null) ? expiryTime.toString().length() : 0) + ((message != null) ? message.length
-                : 0));
+                + ((deliveryTime != null) ? deliveryTime.toString().length() : 0)
+                + ((expiryTime != null) ? expiryTime.toString().length() : 0)
+                + ((message != null) ? message.length : 0);
 
         // 8 1-byte integers, 3 c-strings
         return len + 8 + 3;

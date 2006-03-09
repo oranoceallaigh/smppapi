@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<fileset-config file-format-version="1.1.0" simple-config="false">
-<fileset name="all" enabled="true" check-config-name="Project style" type="project" location="src/tests/checkstyle.xml" description="Project-relative checkstyle configuration."><file-match-pattern match-pattern="^src.java.+.java$" include-pattern="true"/>
-</fileset>
-<filter name="NonSrcDirs" enabled="true"/>
+<fileset-config file-format-version="1.2.0" simple-config="false">
+    <local-check-config name="smppapi checks" location="/smppapi/src/tests/checkstyle.xml" type="project" description="">
+        <additional-data name="protect-config-file" value="false"/>
+    </local-check-config>
+    <filter name="NonSrcDirs" enabled="true"/>
 </fileset-config>

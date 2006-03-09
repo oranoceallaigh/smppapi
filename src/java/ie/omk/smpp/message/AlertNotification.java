@@ -32,9 +32,8 @@ public class AlertNotification extends SMPPRequest {
     }
 
     public int getBodyLength() {
-        return (((source != null) ? source.getLength() : 3) + ((destination != null) ? destination
-                .getLength()
-                : 3));
+        return ((source != null) ? source.getLength() : 3)
+            + ((destination != null) ? destination.getLength() : 3);
     }
 
     public void encodeBody(OutputStream out) throws java.io.IOException {

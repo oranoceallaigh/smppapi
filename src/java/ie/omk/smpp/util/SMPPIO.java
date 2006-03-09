@@ -11,6 +11,8 @@ import java.io.OutputStream;
  */
 public final class SMPPIO {
     
+    private static final String US_ASCII = "US-ASCII";
+
     private SMPPIO() {
     }
     
@@ -28,14 +30,14 @@ public final class SMPPIO {
      *             If EOS is reached before <code>len</code> bytes are read.
      * @see java.io.InputStream
      */
-    public static final int readInt(InputStream in, int len)
+    public static int readInt(InputStream in, int len)
             throws java.io.IOException {
         byte[] b = new byte[len];
         int p = 0;
         int x = 0;
 
         for (int loop = 0; loop < (len - p); loop++) {
-            int r = in.read(b, p, (len - p));
+            int r = in.read(b, p, len - p);
             if (r == -1) {
                 break;
             }
@@ -56,7 +58,7 @@ public final class SMPPIO {
      *             If EOS is reached before a NUL byte
      * @see java.io.InputStream
      */
-    public static final String readCString(InputStream in)
+    public static String readCString(InputStream in)
             throws java.io.IOException {
         StringBuffer s = new StringBuffer();
 
@@ -83,7 +85,8 @@ public final class SMPPIO {
      * @return A java String object representing the read string without the
      *         terminating nul.
      */
-    public static final String readCString(byte[] b, int offset) {
+    public static String readCString(byte[] b, int offset) {
+        String s;
         try {
             int p = offset;
             while (b[p] != (byte) 0) {
@@ -91,13 +94,14 @@ public final class SMPPIO {
             }
 
             if (p > offset) {
-                return new String(b, offset, p - offset, "US-ASCII");
+                s = new String(b, offset, p - offset, US_ASCII);
             } else {
-                return "";
+                s = "";
             }
         } catch (java.io.UnsupportedEncodingException x) {
-            return "";
+            s = "";
         }
+        return s;
     }
 
     /**
@@ -114,46 +118,43 @@ public final class SMPPIO {
      *             If EOS is reached before a NUL byte
      * @see java.io.InputStream
      */
-    public static final String readString(InputStream in, int len)
+    public static String readString(InputStream in, int len)
             throws java.io.IOException {
-        if (len < 1) {
-            return null;
-        }
-
-        byte[] b = new byte[len];
-        int l = 0;
-        StringBuffer s = new StringBuffer();
-
-        while (l < len) {
-            int r = in.read(b, 0, (len - l));
-            if (r == -1) {
-                throw new IOException("EOS before NUL byte read.");
+        String s = null;
+        if (len >= 1) {
+            byte[] b = new byte[len];
+            int l = 0;
+            StringBuffer buf = new StringBuffer();
+    
+            while (l < len) {
+                int r = in.read(b, 0, len - l);
+                if (r == -1) {
+                    throw new IOException("EOS before NUL byte read.");
+                }
+    
+                l += r;
+                buf.append(new String(b, 0, r, US_ASCII));
             }
 
-            l += r;
-            s.append(new String(b, 0, r));
+            if (buf.length() > 0) {
+                s = buf.toString();
+            }
         }
-
-        if (s.length() == 0) {
-            return null;
-        } else {
-            return s.toString();
-        }
+        return s;
     }
 
     /**
      * XXX write the javadoc.
      */
-    public static final String readString(byte[] b, int offset, int len) {
+    public static String readString(byte[] b, int offset, int len) {
+        String s = "";
         try {
             if (len > 0) {
-                return new String(b, offset, len - offset, "US-ASCII");
-            } else {
-                return "";
+                s = new String(b, offset, len - offset, US_ASCII);
             }
         } catch (java.io.UnsupportedEncodingException x) {
-            return "";
         }
+        return s;
     }
 
     /**
@@ -165,7 +166,7 @@ public final class SMPPIO {
      *            The length of the integer to convert
      * @return An array of length len containing the byte representation of num.
      */
-    public static final byte[] intToBytes(int num, int len) {
+    public static byte[] intToBytes(int num, int len) {
         return intToBytes(num, len, null, 0);
     }
 
@@ -189,15 +190,15 @@ public final class SMPPIO {
      *            the offset in <code>b</code> to write the integer to.
      * @return An array of length len containing the byte representation of num.
      */
-    public static final byte[] intToBytes(int num, int len, byte[] array, int offset) {
+    public static byte[] intToBytes(int num, int len, byte[] array, int offset) {
 
         byte[] b = array;
         if (array == null) {
             b = new byte[len];
             offset = 0;
         }
-        int sw = ((len - 1) * 8);
-        int mask = (0xff << sw);
+        int sw = (len - 1) * 8;
+        int mask = 0xff << sw;
 
         for (int l = 0; l < len; l++) {
             b[offset + l] = (byte) ((num & mask) >>> sw);
@@ -219,7 +220,7 @@ public final class SMPPIO {
      *            bytes to generate).
      * @return An array of length len containing the byte representation of num.
      */
-    public static final byte[] longToBytes(long num, int len) {
+    public static byte[] longToBytes(long num, int len) {
         return longToBytes(num, len, null, 0);
     }
 
@@ -237,7 +238,7 @@ public final class SMPPIO {
      *            the offset in <code>b</code> to write the integer to.
      * @return An array of length len containing the byte representation of num.
      */
-    public static final byte[] longToBytes(long num, int len, byte[] b,
+    public static byte[] longToBytes(long num, int len, byte[] b,
             int offset) {
 
         if (b == null) {
@@ -270,7 +271,7 @@ public final class SMPPIO {
      *            The number of bytes to convert into the integer
      * @return An integer value represented by the specified bytes.
      */
-    public static final int bytesToInt(byte[] b, int offset, int size) {
+    public static int bytesToInt(byte[] b, int offset, int size) {
         int num = 0;
         int sw = 8 * (size - 1);
 
@@ -295,7 +296,7 @@ public final class SMPPIO {
      *            The number of bytes to convert into the long
      * @return An long value represented by the specified bytes.
      */
-    public static final long bytesToLong(byte[] b, int offset, int size) {
+    public static long bytesToLong(byte[] b, int offset, int size) {
         long num = 0;
         long sw = 8L * ((long) size - 1L);
 

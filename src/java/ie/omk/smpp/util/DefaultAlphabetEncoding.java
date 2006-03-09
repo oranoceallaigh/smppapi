@@ -47,25 +47,26 @@ public class DefaultAlphabetEncoding extends ie.omk.smpp.util.AlphabetEncoding {
      * 
      * @see #EXTENDED_ESCAPE
      */
-    public static char[] extCharTable = {0, 0, 0, 0, 0, 0, 0, 0, // 0 to 7
-            0, 0, 0, 0, 0, 0, 0, 0, // 8 to 15
-            0, 0, 0, 0, '^', 0, 0, 0, // 16 to 23
-            0, 0, 0, 0, 0, 0, 0, 0, // 24 to 31
-            0, 0, 0, 0, 0, 0, 0, 0, // 32 to 39
-            '{', '}', 0, 0, 0, 0, 0, '\\', // 40 to 47
-            0, 0, 0, 0, 0, 0, 0, 0, // 48 to 55
-            0, 0, 0, 0, '[', '~', ']', 0, // 56 to 63
-            0, 0, 0, 0, 0, 0, 0, 0, // 64 to 71
-            0, 0, 0, 0, 0, 0, 0, 0, // 72 to 79
-            0, 0, 0, 0, 0, 0, 0, 0, // 80 to 87
-            0, 0, 0, 0, 0, 0, 0, 0, // 88 to 95
-            0, 0, 0, 0, 0, '\u20ac', 0, 0, // 96 to 103
-            0, 0, 0, 0, 0, 0, 0, 0, // 104 to 111
-            0, 0, 0, 0, 0, 0, 0, 0, // 112 to 119
-            0, 0, 0, 0, 0, 0, 0, 0, // 120 to 127
+    private static final char[] extCharTable = {
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, '^', 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            '{', '}', 0, 0, 0, 0, 0, '\\',
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, '[', '~', ']', 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, '\u20ac', 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
     };
 
-    private static final DefaultAlphabetEncoding instance = new DefaultAlphabetEncoding();
+    private static final DefaultAlphabetEncoding INSTANCE = new DefaultAlphabetEncoding();
 
     public DefaultAlphabetEncoding() {
         super(DCS);
@@ -76,7 +77,7 @@ public class DefaultAlphabetEncoding extends ie.omk.smpp.util.AlphabetEncoding {
      * @deprecated
      */
     public static DefaultAlphabetEncoding getInstance() {
-        return instance;
+        return INSTANCE;
     }
 
     /**
@@ -179,72 +180,36 @@ public class DefaultAlphabetEncoding extends ie.omk.smpp.util.AlphabetEncoding {
      * return packed;}
      */
 
-    public static void main(String[] args) {
-        try {
-            DefaultAlphabetEncoding alpha = new DefaultAlphabetEncoding();
+    public String toString() {
+        final String fmt1 = "{0,number,###}: {1}  ";
+        final String fmt2 = "{0,number,###}:{1}  ";
 
-            if (args.length > 0 && args[0].equals("-dt")) {
-                dumpTable();
-                System.exit(0);
-            }
-
-            String[] s = {"O", "Or", "Ora", "Oran", "OranK",
-                    "Oran Kelly testing long string",
-                    "[Byte array}should be[ 33 long", };
-
-            for (int i = 0; i < s.length; i++) {
-                byte[] enc = alpha.encodeString(s[i]);
-
-                System.out.println("String \"" + s[i] + "\", size: "
-                        + s[i].length());
-                System.out.println("    ASCII: "
-                        + alpha.showByteArray(s[i].getBytes("US-ASCII")));
-                System.out.println("  Encoded: " + alpha.showByteArray(enc));
-                System.out.println("  Decoded: " + alpha.decodeString(enc));
-            }
-        } catch (Exception x) {
-            x.printStackTrace(System.err);
-        }
-    }
-
-    public String showByteArray(byte[] b) {
-        java.io.StringWriter sw = new java.io.StringWriter();
-
-        for (int i = 0; i < b.length; i++) {
-            sw.write(" 0x" + Integer.toHexString((int) b[i] & 0x00ff));
-        }
-
-        return sw.toString();
-    }
-
-    private static void dumpTable() {
-        String fmt1 = "{0,number,###}: {1}  ";
-        String fmt2 = "{0,number,###}:{1}  ";
-
-        System.out.println("Table size: " + charTable.length);
+        StringBuffer b = new StringBuffer(256);
+        b.append("Table size: ").append(charTable.length).append('\n');
         for (int i = 0; i < 16; i++) {
             for (int j = 0; j < 8; j++) {
                 int pos = i + (16 * j);
 
                 if (charTable[pos] == '\r') {
                     Object[] a = {new Integer(pos), "CR"};
-                    System.out.print(java.text.MessageFormat.format(fmt2, a));
+                    b.append(java.text.MessageFormat.format(fmt2, a));
                     continue;
                } else if (charTable[pos] == '\n') {
                     Object[] a = {new Integer(pos), "LF"};
-                    System.out.print(java.text.MessageFormat.format(fmt2, a));
+                    b.append(java.text.MessageFormat.format(fmt2, a));
                     continue;
                } else if (charTable[pos] == ' ') {
                     Object[] a = {new Integer(pos), "SP"};
-                    System.out.print(java.text.MessageFormat.format(fmt2, a));
+                    b.append(java.text.MessageFormat.format(fmt2, a));
                     continue;
                }
 
                 Object[] a = {new Integer(pos), new Character(charTable[pos])};
-                System.out.print(java.text.MessageFormat.format(fmt1, a));
+                b.append(java.text.MessageFormat.format(fmt1, a));
             }
-            System.out.print("\n");
+            b.append('\n');
         }
+        return b.toString();
     }
 }
 

@@ -107,8 +107,7 @@ public class Address implements java.io.Serializable {
     public boolean equals(Object obj) {
         if (obj instanceof Address) {
             Address a = (Address) obj;
-            return ((a.ton == ton) && (a.npi == npi) && (a.address
-                    .equals(address)));
+            return (a.ton == ton) && (a.npi == npi) && (a.address.equals(address));
         } else {
             return false;
         }
@@ -155,7 +154,8 @@ public class Address implements java.io.Serializable {
     }
 
     public String toString() {
-        return Integer.toString(ton) + ":" + Integer.toString(npi) + ":" + address;
+        return new StringBuffer(25).append(Integer.toString(ton)).append(':')
+            .append(Integer.toString(npi)).append(':').append(address).toString();
     }
 
     /**

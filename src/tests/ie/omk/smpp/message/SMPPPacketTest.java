@@ -177,12 +177,12 @@ public class SMPPPacketTest extends TestCase {
             }
 
             sm.setMessageText(text160.toString(), DefaultAlphabetEncoding
-                    .getInstance());
+                    .getINSTANCE());
 
             sm = new SubmitSM();
             sm.setVersion(SMPPVersion.V34);
             sm.setMessageText(text160.toString(), DefaultAlphabetEncoding
-                    .getInstance());
+                    .getINSTANCE());
         } catch (InvalidParameterValueException x) {
             fail("Message of length 160 was rejected with DefaultAlphabetEncoding");
         }
@@ -203,7 +203,7 @@ public class SMPPPacketTest extends TestCase {
             textLong.append("Message is now too long");
 
             sm.setMessageText(textLong.toString(), DefaultAlphabetEncoding
-                    .getInstance());
+                    .getINSTANCE());
             fail("Message was too long [" + textLong.length()
                     + "], but accepted by SMPPPacket");
         } catch (InvalidParameterValueException x) {
@@ -219,7 +219,7 @@ public class SMPPPacketTest extends TestCase {
                 textLong.append("0123456789");
             }
             sm.setMessageText(textLong.toString(), DefaultAlphabetEncoding
-                    .getInstance());
+                    .getINSTANCE());
             fail("Message was too long [" + textLong.length()
                     + "], but accepted by SMPPPacket");
         } catch (InvalidParameterValueException x) {

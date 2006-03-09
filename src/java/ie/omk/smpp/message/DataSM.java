@@ -49,10 +49,9 @@ public class DataSM extends ie.omk.smpp.message.SMPPRequest {
      * @return the number of bytes this packet would encode as.
      */
     public int getBodyLength() {
-        int len = (((serviceType != null) ? serviceType.length() : 0)
-                + ((source != null) ? source.getLength() : 3) + ((destination != null) ? destination
-                .getLength()
-                : 3));
+        int len = ((serviceType != null) ? serviceType.length() : 0)
+                + ((source != null) ? source.getLength() : 3)
+                + ((destination != null) ? destination.getLength() : 3);
 
         // 3 1-byte integers, 1 c-string
         return len + 4;

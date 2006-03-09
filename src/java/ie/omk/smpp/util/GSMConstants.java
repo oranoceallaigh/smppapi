@@ -124,7 +124,7 @@ public final class GSMConstants {
     /**
      * Get a string for the GSM error code.
      */
-    public static final String getGsmErr(int code) {
+    public static String getGsmErr(int code) {
         initTables();
         String s = (String) errorTable.get(new Integer(code));
         return s == null ? "" : s;

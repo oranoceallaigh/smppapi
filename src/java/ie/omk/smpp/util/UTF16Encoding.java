@@ -3,9 +3,9 @@ package ie.omk.smpp.util;
 public class UTF16Encoding extends ie.omk.smpp.util.AlphabetEncoding {
     private static final int DCS = 8;
 
-    private static final UTF16Encoding beInstance = new UTF16Encoding(true);
+    private static final UTF16Encoding BE_INSTANCE = new UTF16Encoding(true);
 
-    private static final UTF16Encoding leInstance = new UTF16Encoding(false);
+    private static final UTF16Encoding LE_INSTANCE = new UTF16Encoding(false);
 
     private String encType = "UTF-16BE";
 
@@ -28,7 +28,7 @@ public class UTF16Encoding extends ie.omk.smpp.util.AlphabetEncoding {
      * @deprecated
      */
     public static UTF16Encoding getInstance() {
-        return beInstance;
+        return BE_INSTANCE;
     }
 
     /**
@@ -38,12 +38,13 @@ public class UTF16Encoding extends ie.omk.smpp.util.AlphabetEncoding {
      * @param bigEndian
      *            true to get the big-endian instance, false to get the
      *            little-endian instance.
+     * @deprecated
      */
     public static UTF16Encoding getInstance(boolean bigEndian) {
         if (bigEndian) {
-            return beInstance;
+            return BE_INSTANCE;
         } else {
-            return leInstance;
+            return LE_INSTANCE;
         }
     }
 
@@ -52,30 +53,26 @@ public class UTF16Encoding extends ie.omk.smpp.util.AlphabetEncoding {
      * be in UTF16 format.
      */
     public String decodeString(byte[] b) {
-        if (b == null) {
-            return "";
-        }
-
        try {
-            return new String(b, encType);
+           if (b != null) {
+               return new String(b, encType);
+           }
         } catch (java.io.UnsupportedEncodingException x) {
-            return "";
         }
+        return "";
     }
 
     /**
      * Encode a Java String to bytes using UTF16.
      */
     public byte[] encodeString(String s) {
-        if (s == null) {
-            return new byte[0];
-        }
-
         try {
-            return s.getBytes(encType);
+            if (s != null) {
+                return s.getBytes(encType);
+            }
         } catch (java.io.UnsupportedEncodingException x) {
-            return new byte[0];
         }
+        return new byte[0];
     }
 }
 

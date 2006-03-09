@@ -28,7 +28,13 @@ import org.apache.commons.logging.LogFactory;
  * @version $Id$
  */
 public abstract class SmscLink {
-    private static final Log logger = LogFactory.getLog(SmscLink.class);
+    private static final String TIMEOUT_UNSUPPORTED_ERR = "Timeout not supported";
+
+    private static final String END_OF_STREAM_ERR = "EOS reached. No data available";
+
+    private static final String LINK_NOT_UP_ERR = "Link not established.";
+
+    private static final Log LOGGER = LogFactory.getLog(SmscLink.class);
 
     /** The buffered input of the link. */
     private BufferedInputStream in = null;
@@ -52,7 +58,7 @@ public abstract class SmscLink {
      * Set to automatically flush the output stream after every packet. Default
      * is true.
      */
-    protected boolean autoFlush = true;
+    protected boolean autoFlush;
 
     /**
      * Create a new unconnected SmscLink.
@@ -62,9 +68,10 @@ public abstract class SmscLink {
             autoFlush = APIConfig.getInstance().getBoolean(
                     APIConfig.LINK_AUTO_FLUSH);
         } catch (PropertyNotFoundException x) {
+            autoFlush = true;
         } finally {
-            if (logger.isDebugEnabled()) {
-                logger.debug("autoFlush set to " + autoFlush);
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("autoFlush set to " + autoFlush);
             }
         }
     }
@@ -80,7 +87,6 @@ public abstract class SmscLink {
     public final void open() throws java.io.IOException {
         implOpen();
 
-        String s = null;
         int inSize = -1;
         int outSize = -1;
         APIConfig cfg = APIConfig.getInstance();
@@ -88,9 +94,9 @@ public abstract class SmscLink {
         inSize = getBufferSize(cfg, APIConfig.LINK_BUFFERSIZE_IN);
         outSize = getBufferSize(cfg, APIConfig.LINK_BUFFERSIZE_OUT);
 
-        if (logger.isDebugEnabled()) {
-            logger.debug("IN buffer size: " + inSize);
-            logger.debug("OUT buffer size: " + outSize);
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("IN buffer size: " + inSize);
+            LOGGER.debug("OUT buffer size: " + outSize);
         }
 
         if (inSize < 1) {
@@ -106,7 +112,7 @@ public abstract class SmscLink {
         }
     }
 
-    private final int getBufferSize(APIConfig cfg, String propName) {
+    private int getBufferSize(APIConfig cfg, String propName) {
         int size = -1;
 
         try {
@@ -119,8 +125,12 @@ public abstract class SmscLink {
                 size = Integer.parseInt(s, 10);
             }
         } catch (PropertyNotFoundException x) {
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Buffer size is not set in configuration: " + propName
+                        + ", using default.");
+            }
         } catch (NumberFormatException x) {
-            logger.warn("Bad value for config property " + propName, x);
+            LOGGER.warn("Bad value for config property " + propName, x);
         }
 
         return size;
@@ -159,7 +169,7 @@ public abstract class SmscLink {
             autoClose = APIConfig.getInstance().getBoolean(
                     APIConfig.LINK_AUTOCLOSE_SNOOP);
         } catch (PropertyNotFoundException x) {
-            logger.debug(APIConfig.LINK_AUTOCLOSE_SNOOP
+            LOGGER.debug(APIConfig.LINK_AUTOCLOSE_SNOOP
                     + " property not found. Using the default of " + autoClose);
         }
 
@@ -172,7 +182,7 @@ public abstract class SmscLink {
                     snoopIn.close();
                 }
             } catch (IOException x) {
-                logger.warn("Exception while closing snoop streams.", x);
+                LOGGER.warn("Exception while closing snoop streams.", x);
             }
         } else {
             try {
@@ -183,7 +193,7 @@ public abstract class SmscLink {
                     snoopIn.flush();
                 }
             } catch (IOException x) {
-                logger.warn("Exception while flushing snoop streams.", x);
+                LOGGER.warn("Exception while flushing snoop streams.", x);
             }
         }
     }
@@ -221,7 +231,7 @@ public abstract class SmscLink {
     public void write(SMPPPacket pak, boolean withOptional)
             throws java.io.IOException {
         if (out == null) {
-            throw new IOException("Link not established.");
+            throw new IOException(LINK_NOT_UP_ERR);
         }
 
         synchronized (writeLock) {
@@ -230,7 +240,7 @@ public abstract class SmscLink {
                     pak.writeTo(snoopOut);
                 }
             } catch (IOException x) {
-                logger.warn("IOException writing to snoop output stream.", x);
+                LOGGER.warn("IOException writing to snoop output stream.", x);
             }
 
             pak.writeTo(out);
@@ -291,14 +301,13 @@ public abstract class SmscLink {
      *             If an exception occurs when reading the packet from the input
      *             stream.
      */
-    public byte[] read(final byte[] array) throws java.io.EOFException,
-            java.io.IOException {
+    public byte[] read(final byte[] array) throws IOException {
         int ptr = 0;
         int c = 0;
         int cmdLen = 0;
 
         if (in == null) {
-            throw new IOException("Link not established.");
+            throw new IOException(LINK_NOT_UP_ERR);
         }
 
         byte[] buf = array;
@@ -306,14 +315,12 @@ public abstract class SmscLink {
             try {
                 if ((ptr = in.read(buf, 0, 16)) < 4) {
                     if (ptr == -1) {
-                        throw new EOFException("EOS reached. No data "
-                                + "available");
+                        throw new EOFException(END_OF_STREAM_ERR);
                     }
 
                     while (ptr < 4) {
                         if ((c = in.read(buf, ptr, 16 - ptr)) < 0) {
-                            throw new EOFException("EOS reached. No data "
-                                    + "available");
+                            throw new EOFException(END_OF_STREAM_ERR);
                         }
                         ptr += c;
                    }
@@ -359,7 +366,7 @@ public abstract class SmscLink {
                 return in.available();
             }
         } catch (IOException x) {
-            logger.debug("IOException in available", x);
+            LOGGER.debug("IOException in available", x);
             return 0;
         }
     }
@@ -382,7 +389,7 @@ public abstract class SmscLink {
                 s.write(b, offset, len);
             }
         } catch (IOException x) {
-            logger.warn("Couldn't write incoming bytes to input snooper.", x);
+            LOGGER.warn("Couldn't write incoming bytes to input snooper.", x);
         }
     }
 
@@ -419,8 +426,8 @@ public abstract class SmscLink {
      * @throws UnsupportedOperationException if the implementation does not support
      * timeouts.
      */
-    public void setTimeout(long timeout) throws UnsupportedOperationException {
-        throw new UnsupportedOperationException("Timeout not supported");
+    public void setTimeout(long timeout) {
+        throw new UnsupportedOperationException(TIMEOUT_UNSUPPORTED_ERR);
     }
 
     /**
@@ -431,8 +438,8 @@ public abstract class SmscLink {
      * @throws UnsupportedOperationException
      *             if the implementation does not support timeouts.
      */
-    public long getTimeout() throws UnsupportedOperationException {
-        throw new UnsupportedOperationException("Timeout not supported");
+    public long getTimeout() {
+        throw new UnsupportedOperationException(TIMEOUT_UNSUPPORTED_ERR);
     }
 
     /**

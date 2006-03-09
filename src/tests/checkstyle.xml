@@ -105,14 +105,13 @@
 </module>
 <module name="RightCurly">
 </module>
-<module name="AvoidInlineConditionals">
-<property name="severity" value="ignore"/>
-</module>
 <module name="CovariantEquals">
 </module>
 <module name="DefaultComesLast">
 </module>
 <module name="DeclarationOrder">
+  <!-- TODO: reenable -->
+  <property name="severity" value="ignore"/>
 </module>
 <module name="DoubleCheckedLocking">
 </module>
@@ -121,6 +120,8 @@
 <module name="EqualsHashCode">
 </module>
 <module name="ExplicitInitialization">
+  <!-- TODO: reenable -->
+  <property name="severity" value="ignore"/>
 </module>
 <module name="FallThrough">
 </module>
@@ -178,8 +179,6 @@
 </module>
 <module name="UnnecessaryParentheses">
 </module>
-<module name="DesignForExtension">
-</module>
 <module name="FinalClass">
 </module>
 <module name="HideUtilityClassConstructor">
@@ -191,6 +190,8 @@
 <module name="ThrowsCount">
 </module>
 <module name="VisibilityModifier">
+  <!-- TODO: do we want this on an API-wide level? -->
+  <property name="protectedAllowed" value="true"/>
 </module>
 <module name="BooleanExpressionComplexity">
 </module>
@@ -207,8 +208,6 @@
 <module name="ArrayTypeStyle">
 </module>
 <module name="DescendantToken">
-</module>
-<module name="FinalParameters">
 </module>
 <module name="Indentation">
 <property name="severity" value="ignore"/>
@@ -227,6 +226,8 @@
 <module name="PackageHtml">
 </module>
 <module name="StrictDuplicateCode">
+    <!--  TODO: reenable -->
+    <property name="severity" value="ignore"/>
 </module>
 <module name="NewlineAtEndOfFile">
 </module>

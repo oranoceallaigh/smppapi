@@ -4,9 +4,11 @@ package ie.omk.smpp.util;
  * Encoding class representing the ASCII (IA5) alphabet encoding.
  */
 public class ASCIIEncoding extends ie.omk.smpp.util.AlphabetEncoding {
+    private static final String ASCII = "US-ASCII";
+
     private static final int DCS = 1;
 
-    private static final ASCIIEncoding instance = new ASCIIEncoding();
+    private static final ASCIIEncoding INSTANCE = new ASCIIEncoding();
 
     /**
      * Construct a new ASCIIEncoding.
@@ -17,9 +19,10 @@ public class ASCIIEncoding extends ie.omk.smpp.util.AlphabetEncoding {
 
     /**
      * Get the singleton instance of ASCIIEncoding.
+     * @deprecated
      */
     public static ASCIIEncoding getInstance() {
-        return instance;
+        return INSTANCE;
     }
 
     /**
@@ -27,30 +30,26 @@ public class ASCIIEncoding extends ie.omk.smpp.util.AlphabetEncoding {
      * be in ASCII format.
      */
     public String decodeString(byte[] b) {
-        if (b == null) {
-            return "";
-        }
-
         try {
-            return new String(b, "US-ASCII");
+            if (b != null) {
+                return new String(b, ASCII);
+            }
         } catch (java.io.UnsupportedEncodingException x) {
-            return "";
         }
+        return "";
     }
 
     /**
      * Encode a Java String to bytes using the ASCII encoding.
      */
     public byte[] encodeString(String s) {
-        if (s == null) {
-            return new byte[0];
-        }
-
         try {
-            return s.getBytes("US-ASCII");
+            if (s != null) {
+                return s.getBytes(ASCII);
+            }
         } catch (java.io.UnsupportedEncodingException x) {
-            return new byte[0];
         }
+        return new byte[0];
     }
 }
 

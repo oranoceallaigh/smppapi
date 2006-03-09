@@ -7,11 +7,12 @@ package ie.omk.smpp;
  * @version 1.0
  */
 public class BadCommandIDException extends ie.omk.smpp.SMPPException {
-    private int expected = -1;
-
-    private int actual = -1;
+    private final int expected;
+    private final int actual;
 
     public BadCommandIDException() {
+        expected = -1;
+        actual = -1;
     }
 
     /**
@@ -19,11 +20,14 @@ public class BadCommandIDException extends ie.omk.smpp.SMPPException {
      */
     public BadCommandIDException(String s) {
         super(s);
+        expected = -1;
+        actual = -1;
     }
 
     public BadCommandIDException(String msg, int id) {
         super(msg);
-        this.actual = id;
+        actual = id;
+        expected = -1;
     }
 
     /**
@@ -43,14 +47,13 @@ public class BadCommandIDException extends ie.omk.smpp.SMPPException {
      * @return the expected Command id value.
      */
     public int getExpected() {
-        return this.expected;
+        return expected;
     }
 
     /**
      * Get the actual Command id value received.
      */
     public int getActual() {
-        return this.actual;
+        return actual;
     }
 }
-
