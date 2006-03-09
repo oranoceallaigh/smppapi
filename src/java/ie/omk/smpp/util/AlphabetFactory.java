@@ -1,5 +1,9 @@
 package ie.omk.smpp.util;
 
+import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.commons.logging.LogFactory;
 
 /**
@@ -12,10 +16,26 @@ import org.apache.commons.logging.LogFactory;
  * must implement the ie.omk.smpp.util.SMSAlphabet interface.
  */
 public final class AlphabetFactory {
+    private static final Map langToAlphabet = new HashMap();
     private static AlphabetEncoding defaultAlphabet;
 
     private static final String DEFAULT_ALPHABET_PROPNAME = "smpp.default_alphabet";
 
+    static {
+        AlphabetEncoding gsmDefault = new DefaultAlphabetEncoding();
+        try {
+            langToAlphabet.put(null, new UCS2Encoding());
+        } catch (UnsupportedEncodingException x) {
+            langToAlphabet.put(null, new Latin1Encoding());
+        }
+        langToAlphabet.put("en", gsmDefault);
+        langToAlphabet.put("de", gsmDefault);
+        langToAlphabet.put("fr", gsmDefault);
+        langToAlphabet.put("it", gsmDefault);
+        langToAlphabet.put("nl", gsmDefault);
+        langToAlphabet.put("es", gsmDefault);
+    }
+    
     private AlphabetFactory() {
         // AlphabetFactory.Sounds like something off Sesame Street, doesn't it?
         // ;-)
@@ -61,15 +81,18 @@ public final class AlphabetFactory {
 
     /**
      * Get the SMSAlphabet needed for encoding messages in a particular
-     * language. At the moment this ONLY returns an instance of DefaultAlphabet
-     * seeing as that's the only alphabet implemented currently.
+     * language.
      * 
      * @param lang
      *            The ISO code for the language the message is in.
      */
     public static AlphabetEncoding getAlphabet(String lang) {
-        // XXX need to come up with a list of mappings here.
-        return defaultAlphabet;
+        AlphabetEncoding enc = (AlphabetEncoding) langToAlphabet.get(lang);
+        if (enc != null) {
+            return enc;
+        } else {
+            return (AlphabetEncoding) langToAlphabet.get(null);
+        }
     }
 }
 

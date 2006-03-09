@@ -14,6 +14,9 @@ import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 /**
  * Link implementation which returns packets which have previously been added to
  * it. This implementation is useful for testing applications by first setting
@@ -44,6 +47,8 @@ import java.util.List;
  */
 public class ObjectLink extends SmscLink {
 
+    private static final Log LOGGER = LogFactory.getLog(ObjectLink.class);
+    
     private List packets = new ArrayList();
 
     private ByteArrayInputStream in;
@@ -112,7 +117,10 @@ public class ObjectLink extends SmscLink {
                 try {
                     Thread.sleep(delay);
                } catch (InterruptedException x) {
-                   // TODO need to do anything here?
+                   if (LOGGER.isDebugEnabled()) {
+                       LOGGER.debug("Thread was interrupted while delaying "
+                               + " packet reception.");
+                   }
                }
             }
             next = (Object) packets.remove(0);

@@ -398,10 +398,7 @@ public abstract class SMPPPacket {
     }
 
     /**
-     * Set the source address. Not used by all SMPP Packet types.
-     * 
-     * @see ie.omk.smpp.message.SubmitSM
-     * @see ie.omk.smpp.message.DeliverSM XXX Add other packets.
+     * Set the source address..
      */
     public void setSource(Address s) throws InvalidParameterValueException {
         if (s != null) {
@@ -417,8 +414,7 @@ public abstract class SMPPPacket {
     }
 
     /**
-     * Get the source address. Not used by all SMPP Packet types.
-     * 
+     * Get the source address.
      * @return The source address or null if it is not set.
      */
     public Address getSource() {
@@ -426,7 +422,7 @@ public abstract class SMPPPacket {
     }
 
     /**
-     * Set the destination address. Not used by all SMPP Packet types.
+     * Set the destination address.
      */
     public void setDestination(Address s) {
         if (s != null) {
@@ -442,8 +438,7 @@ public abstract class SMPPPacket {
     }
 
     /**
-     * Get the destination address. Not used by all SMPP Packet types.
-     * 
+     * Get the destination address.
      * @return The destination address or null if it is not set.
      */
     public Address getDestination() {
@@ -1043,15 +1038,14 @@ public abstract class SMPPPacket {
      * 
      * @param st
      *            The message status.
+     * @see ie.omk.smpp.util.PacketStatus
      */
-    // XXX Add in a link to the eventual SMPPConstants file that'll be
-    // implemented.
     public void setMessageStatus(int st) throws InvalidParameterValueException {
         if (version.validateMessageState(st)) {
             this.messageStatus = st;
         } else {
-            throw new InvalidParameterValueException("Invalid message state",
-                    st);
+            throw new InvalidParameterValueException(
+                    "Invalid message state", st);
         }
     }
 

@@ -462,7 +462,5 @@ public class Tag implements java.io.Serializable {
             return (Tag) tagTable.remove(tag);
         }
     }
-
-    // XXX defineTags method that can read definitions from a properties file
 }
 

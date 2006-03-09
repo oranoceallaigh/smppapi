@@ -109,7 +109,6 @@ public abstract class Bind extends ie.omk.smpp.message.SMPPRequest {
      */
     public void setAddressTon(int addrTon)
             throws InvalidParameterValueException {
-        // XXX check the TON?
         this.addrTon = addrTon;
     }
 
@@ -123,7 +122,6 @@ public abstract class Bind extends ie.omk.smpp.message.SMPPRequest {
      */
     public void setAddressNpi(int addrNpi)
             throws InvalidParameterValueException {
-        // XXX check the NPI?
         this.addrNpi = addrNpi;
     }
 
@@ -233,9 +231,6 @@ public abstract class Bind extends ie.omk.smpp.message.SMPPRequest {
             sysType = SMPPIO.readCString(body, offset);
             offset += sysType.length() + 1;
 
-            // XXX if this api is used to write a server application, this won't
-            // work for apps that try and bind as a later api version (this api
-            // should be able to negotiate downward).
             int interfaceVer = SMPPIO.bytesToInt(body, offset++, 1);
             version = SMPPVersion.getVersion(interfaceVer);
             addrTon = SMPPIO.bytesToInt(body, offset++, 1);

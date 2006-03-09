@@ -142,7 +142,12 @@ public final class SMPPIO {
     }
 
     /**
-     * XXX write the javadoc.
+     * Read an ASCII string from a byte array.
+     * @param b The byte array to read from.
+     * @param offset The offset into <code>b</code> to begin reading from.
+     * @param len The length of the string to read.
+     * @return A string decoded from <code>b</code> of length <code>len</code>.
+     * ASCII is used to convert the bytes into characters.
      */
     public static String readString(byte[] b, int offset, int len) {
         String s = "";

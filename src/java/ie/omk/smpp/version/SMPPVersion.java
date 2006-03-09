@@ -122,8 +122,7 @@ public abstract class SMPPVersion {
     }
 
     /**
-     * Get the maximum allowed length for a particular field. XXX allow an
-     * exception to be thrown for unidentified fields.
+     * Get the maximum allowed length for a particular field.
      */
     public abstract int getMaxLength(int field);
 

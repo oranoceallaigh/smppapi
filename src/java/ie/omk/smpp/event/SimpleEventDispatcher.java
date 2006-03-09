@@ -19,6 +19,15 @@ import org.apache.commons.logging.LogFactory;
  * blocked, from the <code>Connection</code>'s point of view, until every
  * observer has successfully processed the event.
  * 
+ * <p>
+ * This class is not protected against multi-threaded access. At the beginning
+ * of each event or packet notification a snapshot of the current set of
+ * observers will be taken and used to deliver the event. If an observer
+ * is removed from the list of registered listeners, it is possible that it
+ * may still receive an event notification if it was included in a snapshot
+ * just before it was removed.
+ * </p>
+ * 
  * @author Oran Kelly
  * @version $Id$
  * @see ie.omk.smpp.event.EventDispatcher
@@ -39,7 +48,7 @@ public class SimpleEventDispatcher implements EventDispatcher {
     }
 
     /**
-     * Create a new AbstractEventDispatcher and register one observer on it.
+     * Create a new SimpleEventDispatcher and register one observer on it.
      */
     public SimpleEventDispatcher(ConnectionObserver ob) {
         addObserver(ob);
@@ -60,7 +69,7 @@ public class SimpleEventDispatcher implements EventDispatcher {
      * @param ob
      *            the ConnectionObserver object to add.
      */
-    public synchronized void addObserver(ConnectionObserver ob) {
+    public void addObserver(ConnectionObserver ob) {
         if (!observers.contains(ob)) {
             observers.add(ob);
         } else {
@@ -75,7 +84,7 @@ public class SimpleEventDispatcher implements EventDispatcher {
      * @param ob
      *            The ConnectionObserver object to remove.
      */
-    public synchronized void removeObserver(ConnectionObserver ob) {
+    public void removeObserver(ConnectionObserver ob) {
         if (observers.contains(ob)) {
             observers.remove(observers.indexOf(ob));
         } else {
@@ -91,7 +100,7 @@ public class SimpleEventDispatcher implements EventDispatcher {
      *         event dispatcher.
      */
     public synchronized Iterator observerIterator() {
-        return Collections.unmodifiableList(this.observers).iterator();
+        return Collections.unmodifiableList(observers).iterator();
     }
 
     /**
@@ -103,23 +112,24 @@ public class SimpleEventDispatcher implements EventDispatcher {
      * @return true if the observer is registered with this dispatcher, false
      *         otherwise.
      */
-    public synchronized boolean contains(ConnectionObserver ob) {
+    public boolean contains(ConnectionObserver ob) {
         return observers.contains(ob);
     }
 
-    // TODO: examine the use of an iterator to notify observers - should
-    // be an array or somesuch?
     /**
      * Notify registered observers of an SMPP event.
      * 
+     * @param conn 
+     *            the Connection with which the event is associated.
      * @param event
      *            the SMPP event to notify observers of.
      */
     public void notifyObservers(Connection conn, SMPPEvent event) {
-        Iterator i = observerIterator();
-        while (i.hasNext()) {
+        ConnectionObserver[] obs =
+            (ConnectionObserver[]) observers.toArray(new ConnectionObserver[0]);
+        for (int i = obs.length - 1; i >= 0; i++) {
             try {
-                ((ConnectionObserver) i.next()).update(conn, event);
+                obs[i].update(conn, event);
             } catch (Exception x) {
                 LOGGER.warn("An observer threw an exception during event processing", x);
             }
@@ -129,14 +139,17 @@ public class SimpleEventDispatcher implements EventDispatcher {
     /**
      * Notify registered observers of an incoming SMPP packet.
      * 
+     * @param conn 
+     *            the Connection which the packet was received on.
      * @param packet
      *            the received packet to notify observers of.
      */
     public void notifyObservers(Connection conn, SMPPPacket packet) {
-        Iterator i = observerIterator();
-        while (i.hasNext()) {
+        ConnectionObserver[] obs =
+            (ConnectionObserver[]) observers.toArray(new ConnectionObserver[0]);
+        for (int i = obs.length - 1; i >= 0; i++) {
             try {
-                ((ConnectionObserver) i.next()).packetReceived(conn, packet);
+                obs[i].packetReceived(conn, packet);
             } catch (Exception x) {
                 LOGGER.warn("An observer threw an exception during packet processing", x);
             }

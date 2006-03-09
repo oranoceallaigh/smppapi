@@ -585,8 +585,7 @@ public class Connection implements java.lang.Runnable {
     }
 
     /**
-     * Send a request to the SMSC. XXX complete javadoc for this method.
-     * 
+     * Send a request to the SMSC.
      * @throws ie.omk.smpp.version.VersionException
      *             if the version in use does not support the request being
      *             sent.
@@ -656,13 +655,6 @@ public class Connection implements java.lang.Runnable {
             }
 
             setState(UNBINDING);
-        }
-
-        // XXX temporary...this should be removed once it's safe to assume that
-        // no packet can be submitted that has been constructed outside the
-        // confines of this connection's factory method.
-        if (r.getSequenceNum() == 0 && seqNumScheme != null) {
-            r.setSequenceNum(seqNumScheme.nextNumber());
         }
 
         link.write(r, this.supportOptionalParams);
@@ -1402,7 +1394,7 @@ public class Connection implements java.lang.Runnable {
                 try {
                     pak = readNextPacketInternal();
                     if (pak == null) {
-                        // XXX Send an event to the application??
+                        LOGGER.warn("Received an unidentified packet from the SMSC");
                         continue;
                    }
                } catch (SocketTimeoutException x) {

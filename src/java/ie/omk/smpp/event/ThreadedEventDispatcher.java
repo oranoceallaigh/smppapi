@@ -153,40 +153,18 @@ public class ThreadedEventDispatcher implements EventDispatcher, Runnable {
                     queue.notifyAll();
                }
             } catch (InterruptedException x) {
-                // TODO: check if i need to do anything here.
+                threadPool.interrupt();
+                Thread.yield();
             }
         }
-
-        if (pool[0] != null) {
-            forceThreadExit();
-        }
-    }
-
-    private void forceThreadExit() {
-        LOGGER.debug("Interrupting all remaining dispatcher threads.");
-
-        // this should wake any threads blocked on an object or sleeping..
-        threadPool.interrupt();
-
-        try {
-            // 500 milliseconds - an eternity
-            Thread.sleep(500);
-        } catch (InterruptedException x) {
-        }
-
-        synchronized (queue) {
-            queue.notifyAll();
-        }
-
         if (threadPool.activeCount() > 0) {
-            LOGGER
-                    .error("Some dispatcher threads are refusing to die. I give up.");
+            LOGGER.error(threadPool.activeCount()
+                    + " dispatcher threads refused to die.");
             if (LOGGER.isDebugEnabled()) {
-                Thread[] pool = new Thread[threadPool.activeCount()];
-                threadPool.enumerate(pool, false);
-                LOGGER.debug("Still-active threads:");
+                Thread[] threads = new Thread[threadPool.activeCount()];
+                threadPool.enumerate(threads, false);
                 for (int i = 0; i < pool.length; i++) {
-                    LOGGER.debug("  " + pool[i].getName());
+                    LOGGER.debug(pool[i].getName());
                }
             }
         }
@@ -251,20 +229,26 @@ public class ThreadedEventDispatcher implements EventDispatcher, Runnable {
         ConnectionObserver observer;
 
         try {
-            LOGGER.debug("Thread " + Thread.currentThread().getName()
-                    + " started");
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Thread " + Thread.currentThread().getName()
+                        + " started");
+            }
 
             while (running) {
                 nd = null;
-                synchronized (queue) {
-                    if (queue.isEmpty()) {
-                        threadsWaiting++;
-                        queue.wait();
-                        threadsWaiting--;
+                try {
+                    synchronized (queue) {
+                        if (queue.isEmpty()) {
+                            threadsWaiting++;
+                            queue.wait();
+                            threadsWaiting--;
+                       }
+    
+                        nd = queue.get();
                    }
-
-                    nd = queue.get();
-               }
+                } catch (InterruptedException x) {
+                    continue;
+                }
 
                 if (nd == null) {
                     continue;
