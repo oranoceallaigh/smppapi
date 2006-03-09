@@ -197,13 +197,13 @@ public abstract class SMPPPacket {
     protected SMPPVersion version = SMPPVersion.getDefaultVersion();
 
     /** Command ID. */
-    protected int commandId = 0;
+    protected int commandId;
 
     /** Command status. */
-    protected int commandStatus = 0;
+    protected int commandStatus;
 
     /** Packet sequence number. */
-    protected int sequenceNum = 0;
+    protected int sequenceNum;
 
     /*
      * Almost all packets use one or more of these. These attributes were all
@@ -215,49 +215,49 @@ public abstract class SMPPPacket {
      */
 
     /** Source address */
-    protected Address source = null;
+    protected Address source;
 
     /** Destination address */
-    protected Address destination = null;
+    protected Address destination;
 
     /** The short message data */
-    protected byte[] message = null;
+    protected byte[] message;
 
     /** Service type for this msg */
-    protected String serviceType = null;
+    protected String serviceType;
 
     /** Scheduled delivery time */
-    protected SMPPDate deliveryTime = null;
+    protected SMPPDate deliveryTime;
 
     /** Scheduled expiry time */
-    protected SMPPDate expiryTime = null;
+    protected SMPPDate expiryTime;
 
     /** Date of reaching final state */
-    protected SMPPDate finalDate = null;
+    protected SMPPDate finalDate;
 
     /** Smsc allocated message Id */
-    protected String messageId = null;
+    protected String messageId;
 
     /** Status of message */
-    protected int messageStatus = 0;
+    protected int messageStatus;
 
     /** Error associated with message */
-    protected int errorCode = 0;
+    protected int errorCode;
 
     /** Message priority. */
-    protected int priority = 0;
+    protected int priority;
 
     /** Registered delivery. */
-    protected int registered = 0;
+    protected int registered;
 
     /** Replace if present. */
-    protected int replaceIfPresent = 0;
+    protected int replaceIfPresent;
 
     /** ESM class. */
-    protected int esmClass = 0;
+    protected int esmClass;
 
     /** GSM protocol ID. */
-    protected int protocolID = 0;
+    protected int protocolID;
 
     /** Alphabet to use to encode this message's text. */
     private MessageEncoding encoding = AlphabetFactory.getDefaultAlphabet();
@@ -266,7 +266,7 @@ public abstract class SMPPPacket {
     protected int dataCoding = encoding.getDataCoding();
 
     /** Default message number. */
-    protected int defaultMsg = 0;
+    protected int defaultMsg;
 
     /** Optional parameter table. */
     protected TLVTable tlvTable = new TLVTable();
@@ -338,7 +338,7 @@ public abstract class SMPPPacket {
      * @deprecated
      */
     public final int getCommandLen() {
-        // stop overriding this deprecated method.
+        // TODO stop overriding this deprecated method.
         return getLength();
     }
 

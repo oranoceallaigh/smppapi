@@ -31,27 +31,27 @@ public class SMPPDate implements java.io.Serializable {
     protected static final String FORMAT = "{0,number,00}{1,number,00}{2,number,00}{3,number,00}{4,number,00}"
             + "{5,number,00}{6,number,0}{7,number,00}{8}";
 
-    protected int year = 0;
+    protected int year;
 
-    protected int month = 0;
+    protected int month;
 
-    protected int day = 0;
+    protected int day;
 
-    protected int hour = 0;
+    protected int hour;
 
-    protected int minute = 0;
+    protected int minute;
 
-    protected int second = 0;
+    protected int second;
 
-    protected int tenth = 0;
+    protected int tenth;
 
-    protected int utcOffset = 0;
+    protected int utcOffset;
 
     protected char sign = '+';
 
-    protected int hashCode = 0;
+    protected int hashCode;
 
-    protected TimeZone savedTimeZone = null;
+    protected TimeZone savedTimeZone;
 
     /**
      * Create a new SMPPDate. All fields will be initialised to zero.

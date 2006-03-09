@@ -19,10 +19,10 @@ public abstract class SMPPEvent {
     public static final int RECEIVER_EXCEPTION = 4;
 
     /** The source Connection of this event. */
-    private Connection source = null;
+    private Connection source;
 
     /** The type of this event. */
-    private int type = 0;
+    private int type;
 
     /**
      * Construct a new event. The <code>type</code> parameter should match one

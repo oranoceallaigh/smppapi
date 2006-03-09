@@ -195,7 +195,7 @@ public final class APIConfig extends Properties {
     /**
      * The singleton instance of the API configuration.
      */
-    private static APIConfig instance = null;
+    private static APIConfig instance;
 
     /**
      * The file the properties got loaded from (including path info).

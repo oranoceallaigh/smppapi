@@ -68,7 +68,7 @@ public class TLVTable implements java.io.Serializable {
      * <code>parseAllOpts</code>). When that happens, this array is released
      * for garbage collection.
      */
-    private byte[] opts = null;
+    private byte[] opts;
 
     /**
      * Create a new, empty, TLVTable.

@@ -7,7 +7,7 @@ public class UCS2Encoding extends ie.omk.smpp.util.AlphabetEncoding {
 
     private static final int DCS = 8;
 
-    private static UCS2Encoding INSTANCE = null;
+    private static UCS2Encoding INSTANCE;
     
     static {
         try {

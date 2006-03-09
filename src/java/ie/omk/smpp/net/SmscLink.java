@@ -37,10 +37,10 @@ public abstract class SmscLink {
     private static final Log LOGGER = LogFactory.getLog(SmscLink.class);
 
     /** The buffered input of the link. */
-    private BufferedInputStream in = null;
+    private BufferedInputStream in;
 
     /** The buffered output of the link. */
-    private BufferedOutputStream out = null;
+    private BufferedOutputStream out;
 
     /** Object to use to lock reading. */
     private final Object readLock = new Object();
@@ -49,10 +49,10 @@ public abstract class SmscLink {
     private final Object writeLock = new Object();
 
     /** Incoming bytes snoop stream. */
-    private OutputStream snoopIn = null;
+    private OutputStream snoopIn;
 
     /** Outgoing bytes snoop stream. */
-    private OutputStream snoopOut = null;
+    private OutputStream snoopOut;
 
     /**
      * Set to automatically flush the output stream after every packet. Default

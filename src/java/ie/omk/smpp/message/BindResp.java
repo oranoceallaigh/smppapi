@@ -12,7 +12,7 @@ import java.io.OutputStream;
  */
 public abstract class BindResp extends ie.omk.smpp.message.SMPPResponse {
     /** System Id */
-    private String sysId = null;
+    private String sysId;
 
     /**
      * Construct a new BindResp.

@@ -31,13 +31,13 @@ public abstract class SMPPVersion {
      * version 3.4...it's assumed further major and minor revisions of the SMPP
      * specification will continue this numbering scheme.
      */
-    private int versionID = 0;
+    private int versionID;
 
     /**
      * Descriptive text for this protocol version. This value is used only to
      * return a representative string from toString.
      */
-    private String versionString = null;
+    private String versionString;
 
     /**
      * Create a new SMPPVersion object.

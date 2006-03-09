@@ -12,8 +12,7 @@ import java.util.BitSet;
 public class BitmaskEncoder implements Encoder {
 
     /**
-     * Create a new BitmaskEncoder. This is a singleton pattern, only one will
-     * ever be created.
+     * Create a new BitmaskEncoder.
      */
     public BitmaskEncoder() {
     }

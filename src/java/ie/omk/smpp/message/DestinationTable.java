@@ -13,9 +13,9 @@ import java.util.ListIterator;
 import org.apache.commons.logging.LogFactory;
 
 public class DestinationTable implements Cloneable {
-    private List dests = null;
+    private List dests;
 
-    private int length = 0;
+    private int length;
 
     DestinationTable() {
         dests = new ArrayList();

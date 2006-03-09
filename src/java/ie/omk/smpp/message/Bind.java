@@ -13,22 +13,22 @@ import java.io.OutputStream;
  */
 public abstract class Bind extends ie.omk.smpp.message.SMPPRequest {
     /** System Id */
-    private String sysId = null;
+    private String sysId;
 
     /** Authentication password */
-    private String password = null;
+    private String password;
 
     /** System type */
-    private String sysType = null;
+    private String sysType;
 
     /** Address range for message routing */
-    private String addressRange = null;
+    private String addressRange;
 
     /** Address Type Of Number for message routing */
-    private int addrTon = 0;
+    private int addrTon;
 
     /** Address Numbering Plan Indicator for message routing */
-    private int addrNpi = 0;
+    private int addrNpi;
 
     public Bind(int id) {
         super(id);

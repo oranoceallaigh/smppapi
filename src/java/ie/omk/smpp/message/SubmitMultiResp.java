@@ -22,7 +22,7 @@ import java.util.List;
  */
 public class SubmitMultiResp extends ie.omk.smpp.message.SMPPResponse {
     /** Table of unsuccessful destinations */
-    private List unsuccessfulTable = null;
+    private List unsuccessfulTable;
 
     /**
      * Construct a new Unbind.

@@ -23,6 +23,8 @@
 <property name="scope" value="package"/>
 </module>
 <module name="AbstractClassName">
+    <!--  TODO: reenable  -->
+    <property name="severity" value="ignore"/>
 </module>
 <module name="ConstantName">
 </module>
@@ -120,8 +122,6 @@
 <module name="EqualsHashCode">
 </module>
 <module name="ExplicitInitialization">
-  <!-- TODO: reenable -->
-  <property name="severity" value="ignore"/>
 </module>
 <module name="FallThrough">
 </module>
@@ -162,6 +162,7 @@
 <module name="PackageDeclaration">
 </module>
 <module name="RedundantThrows">
+    <property name="severity" value="ignore"/>
 </module>
 <module name="ReturnCount">
 </module>
@@ -186,8 +187,10 @@
 <module name="InterfaceIsType">
 </module>
 <module name="MutableException">
+    <property name="severity" value="ignore"/>
 </module>
 <module name="ThrowsCount">
+    <property name="severity" value="ignore"/>
 </module>
 <module name="VisibilityModifier">
   <!-- TODO: do we want this on an API-wide level? -->

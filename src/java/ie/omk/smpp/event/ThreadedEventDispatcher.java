@@ -41,7 +41,7 @@ public class ThreadedEventDispatcher implements EventDispatcher, Runnable {
     /**
      * Size of the thread pool.
      */
-    private int poolSize = 0;
+    private int poolSize;
 
     /**
      * Pool of event dispatcher threads.
@@ -51,12 +51,12 @@ public class ThreadedEventDispatcher implements EventDispatcher, Runnable {
     /**
      * FIFO queue of packets and SMPP events.
      */
-    private FIFOQueue queue = null;
+    private FIFOQueue queue;
 
     /**
      * Number of threads currently blocked on the queue.
      */
-    private int threadsWaiting = 0;
+    private int threadsWaiting;
 
     /**
      * List of observers registered for event delivery.

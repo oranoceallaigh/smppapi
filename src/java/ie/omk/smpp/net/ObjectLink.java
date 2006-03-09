@@ -46,15 +46,15 @@ public class ObjectLink extends SmscLink {
 
     private List packets = new ArrayList();
 
-    private ByteArrayInputStream in = null;
+    private ByteArrayInputStream in;
 
-    private OLByteArrayOutputStream out = null;
+    private OLByteArrayOutputStream out;
 
-    private boolean connected = false;
+    private boolean connected;
 
-    private int requestSent = 0;
+    private int requestSent;
 
-    private long timeout = 0;
+    private long timeout;
 
     /**
      * Create a new empty ObjectLink.
@@ -162,7 +162,7 @@ public class ObjectLink extends SmscLink {
     }
 
     private class OLByteArrayOutputStream extends OutputStream {
-        private byte[] buf = null;
+        private byte[] buf;
         private int pos = -1;
 
         public OLByteArrayOutputStream() {

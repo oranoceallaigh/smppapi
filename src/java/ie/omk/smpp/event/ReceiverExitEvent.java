@@ -33,10 +33,10 @@ public class ReceiverExitEvent extends SMPPEvent {
     public static final int EXCEPTION = 2;
 
     /** The exception that caused thread termination. */
-    private Throwable exception = null;
+    private Throwable exception;
 
     /** The state the Connection was in when the thread exited. */
-    private int connectionState = 0;
+    private int connectionState;
 
     /**
      * The reason for the exit.

@@ -13,9 +13,8 @@ import java.util.Map;
 public class Tag implements java.io.Serializable {
 
     /**
-     * Look-up table of statically defined tags. This <b>must </b> be defined
-     * before all the tags as the Tag constructor expects this object to be
-     * created.
+     * Look-up table of statically defined tags. This <b>must</b> be defined
+     * before all the tags as the Tag constructor expects this object to exist.
      */
     private static Map tagTable = new HashMap();
 
@@ -125,7 +124,7 @@ public class Tag implements java.io.Serializable {
     /**
      * Integer value of this tag.
      */
-    private Integer tag = null;
+    private Integer tag;
 
     /**
      * The minimum length a value of this tag type can be.
@@ -140,14 +139,14 @@ public class Tag implements java.io.Serializable {
     /**
      * The Java type a value of this tag type must be.
      */
-    private Class type = null;
+    private Class type;
 
     /**
      * The class used for encoding and decoding values of this tag type.
      * 
      * @see ie.omk.smpp.message.tlv.Encoder
      */
-    private Encoder encoder = null;
+    private Encoder encoder;
 
     /**
      * Create a new Tag. The encoder type will be chosen from the set of known

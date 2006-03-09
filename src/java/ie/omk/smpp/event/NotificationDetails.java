@@ -4,9 +4,9 @@ import ie.omk.smpp.Connection;
 import ie.omk.smpp.message.SMPPPacket;
 
 class NotificationDetails {
-    private Connection connection = null;
-    private SMPPEvent event = null;
-    private SMPPPacket packet = null;
+    private Connection connection;
+    private SMPPEvent event;
+    private SMPPPacket packet;
 
     public NotificationDetails() {
     }

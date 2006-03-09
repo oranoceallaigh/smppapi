@@ -8,7 +8,7 @@ package ie.omk.smpp.message;
  */
 public abstract class SMPPRequest extends SMPPPacket {
     /** false if this packet has been ack'd, true if it has */
-    protected boolean isAckd = false;
+    protected boolean isAckd;
 
     /**
      * Construct a new SMPPRequest with specified id.

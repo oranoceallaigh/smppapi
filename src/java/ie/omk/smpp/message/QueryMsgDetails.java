@@ -25,7 +25,6 @@ public class QueryMsgDetails extends ie.omk.smpp.message.SMPPRequest {
      */
     public QueryMsgDetails() {
         super(QUERY_MSG_DETAILS);
-        smLength = 0;
     }
 
     /**
@@ -37,7 +36,6 @@ public class QueryMsgDetails extends ie.omk.smpp.message.SMPPRequest {
      */
     public QueryMsgDetails(int seqNum) {
         super(QUERY_MSG_DETAILS, seqNum);
-        smLength = 0;
     }
 
     /**

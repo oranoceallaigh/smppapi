@@ -97,10 +97,10 @@ public class Connection implements java.lang.Runnable {
     private static final Log LOGGER = LogFactory.getLog(Connection.class);
 
     /** Type of this SMPP connection. */
-    private int connectionType = 0;
+    private int connectionType;
 
     /** Packet listener thread for Asyncronous comms. */
-    private Thread rcvThread = null;
+    private Thread rcvThread;
 
     /**
      * Queue of incoming packets to deliver to application before reading from
@@ -112,12 +112,12 @@ public class Connection implements java.lang.Runnable {
      * be added to the packetQueue and subsequent calls to
      * <code>readNextPacket</code> will clear this queue.
      */
-    private List packetQueue = null;
+    private List packetQueue;
 
     /**
      * Object used to notify observers of SMPP events.
      */
-    private EventDispatcher eventDispatcher = null;
+    private EventDispatcher eventDispatcher;
 
     /** Byte buffer used in readNextPacketInternal. */
     private byte[] buf = new byte[300];
@@ -126,7 +126,7 @@ public class Connection implements java.lang.Runnable {
     private SequenceNumberScheme seqNumScheme = new DefaultSequenceScheme();
 
     /** The network link (virtual circuit) to the SMSC */
-    private SmscLink link = null;
+    private SmscLink link;
 
     /**
      * SMPP protocol version number.
@@ -157,15 +157,15 @@ public class Connection implements java.lang.Runnable {
      * Automatically acknowledge incoming deliver_sm messages. Only valid for
      * the Receiver
      */
-    protected boolean ackDeliverSm = false;
+    protected boolean ackDeliverSm;
 
     /** Is the user using synchronous are async communication?. */
-    protected boolean asyncComms = false;
+    protected boolean asyncComms;
 
     /**
      * The default alphabet to use for this connection.
      */
-    protected AlphabetEncoding defaultAlphabet = null;
+    protected AlphabetEncoding defaultAlphabet;
 
     /**
      * Initialise a new SMPP connection object. This is a convenience
@@ -704,7 +704,7 @@ public class Connection implements java.lang.Runnable {
                 if ((id & 0x80000000) != 0
                         && resp.getSequenceNum() == expectedSeq) {
                     break;
-               } else {
+                } else {
                     LOGGER.info("Queuing unexpected sequence numbered packet.");
                     if (LOGGER.isDebugEnabled()) {
                         StringBuffer b = new StringBuffer("Expected:").append(
@@ -714,9 +714,9 @@ public class Connection implements java.lang.Runnable {
                                 .append(" type: ").append(
                                         Integer.toString(resp.getCommandId()));
                         LOGGER.debug(b.toString());
-                   }
+                    }
                     packetQueue.add(resp);
-               }
+                }
             }
 
             return (SMPPResponse) resp;

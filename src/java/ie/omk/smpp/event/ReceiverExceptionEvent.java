@@ -14,10 +14,10 @@ import ie.omk.smpp.Connection;
  */
 public class ReceiverExceptionEvent extends SMPPEvent {
     /** The exception that was caught. */
-    private Throwable exception = null;
+    private Throwable exception;
 
     /** The state the Connection was in when the exception was caught. */
-    private int connectionState = 0;
+    private int connectionState;
 
     /**
      * Create a new ReceiverExceptionEvent.

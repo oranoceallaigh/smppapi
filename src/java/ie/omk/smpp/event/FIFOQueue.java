@@ -9,16 +9,14 @@ import ie.omk.smpp.message.SMPPPacket;
  * handled by the relevant ThreadedEventDispatcher methods.
  */
 class FIFOQueue {
-    private int head = 0;
-    private int tail = 0;
-
-    private NotificationDetails[] queue = null;
+    private int head;
+    private int tail;
+    private NotificationDetails[] queue;
 
     public FIFOQueue(int queueSize) {
         if (queueSize < 1) {
             queueSize = 100;
         }
-
         queue = new NotificationDetails[queueSize];
         for (int i = 0; i < queueSize; i++) {
             queue[i] = new NotificationDetails();
@@ -29,7 +27,6 @@ class FIFOQueue {
         if (isFull()) {
             throw new QueueFullException();
         }
-
         queue[tail++].setDetails(c, null, p);
         if (tail >= queue.length) {
             tail = 0;
@@ -40,7 +37,6 @@ class FIFOQueue {
         if (isFull()) {
             throw new QueueFullException();
         }
-
         queue[tail++].setDetails(c, e, null);
         if (tail >= queue.length) {
             tail = 0;
@@ -49,14 +45,12 @@ class FIFOQueue {
 
     public NotificationDetails get() {
         NotificationDetails nd = null;
-
         if (!isEmpty()) {
             nd = queue[head++];
             if (head >= queue.length) {
                 head = 0;
             }
         }
-
         return nd;
     }
 

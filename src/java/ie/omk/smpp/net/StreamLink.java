@@ -16,15 +16,15 @@ public class StreamLink extends ie.omk.smpp.net.SmscLink {
     private static final Log LOGGER = LogFactory.getLog(StreamLink.class);
 
     /** The input side of the link. */
-    private InputStream inStream = null;
+    private InputStream inStream;
 
     /** The output side of the link. */
-    private OutputStream outStream = null;
+    private OutputStream outStream;
 
     /**
      * Says if this connection is open or not.
      */
-    private boolean connected = false;
+    private boolean connected;
 
     /**
      * Create a new StreamLink object.

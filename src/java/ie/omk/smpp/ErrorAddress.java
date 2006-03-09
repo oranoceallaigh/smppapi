@@ -18,7 +18,7 @@ public class ErrorAddress extends Address {
     /**
      * The error code showing why this address failed.
      */
-    private int error = 0;
+    private int error;
 
     /**
      * Create a new ErrorAddress object.

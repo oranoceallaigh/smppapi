@@ -12,7 +12,7 @@ import org.apache.commons.logging.LogFactory;
  * must implement the ie.omk.smpp.util.SMSAlphabet interface.
  */
 public final class AlphabetFactory {
-    private static AlphabetEncoding defaultAlphabet = null;
+    private static AlphabetEncoding defaultAlphabet;
 
     private static final String DEFAULT_ALPHABET_PROPNAME = "smpp.default_alphabet";
 

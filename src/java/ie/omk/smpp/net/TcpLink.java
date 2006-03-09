@@ -26,16 +26,16 @@ public class TcpLink extends ie.omk.smpp.net.SmscLink {
     public static final int DEFAULT_PORT = 5016;
 
     /** The ip address of the SMSC */
-    private InetAddress addr = null;
+    private InetAddress addr;
 
     /** The ip port to connect to */
-    private int port = 0;
+    private int port;
 
     /** The socket corresponding to the virtual connection */
-    private Socket sock = null;
+    private Socket sock;
 
     /** Are we connected? */
-    private boolean connected = false;
+    private boolean connected;
 
     /**
      * Create a new TcpLink
