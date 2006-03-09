@@ -43,8 +43,7 @@
     <!-- Classpath for running the checkstyle task. -->
     <path id="checkstyle.classpath">
         <fileset dir="${build.lib}">
-            <include name="checkstyle-4.0-beta6.jar"/>
-            <include name="checkstyle-optional-4.0-beta6.jar"/>
+            <include name="checkstyle-*.jar"/>
             <include name="commons-beanutils-core.jar"/>
             <include name="commons-cli.jar"/>
             <include name="commons-collections.jar"/>
@@ -114,6 +113,7 @@
     <target name="run-checkstyle" depends="init">
         <mkdir dir="${checkstyle-report-xml}"/>
         <checkstyle config="${tests-src}/checkstyle.xml" failonviolation="false">
+            <classpath refid="build.classpath"/>
             <fileset dir="${api-src}" includes="**/*.java"/>
             <formatter type="xml" tofile="${checkstyle-report-xml}/checkstyle-report.xml"/>
         </checkstyle>
