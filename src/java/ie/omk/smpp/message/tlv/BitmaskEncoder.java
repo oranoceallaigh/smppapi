@@ -43,7 +43,7 @@ public class BitmaskEncoder implements Encoder {
 
         for (int i = 0; i < length; i++) {
             for (int j = 0; j < 8; j++) {
-                if ((b[offset + i] & (byte) (1 << j)) > 0) {
+                if ((b[offset + i] & (byte) (1 << j)) != 0) {
                     bs.set((i * 8) + j);
                 }
             }
