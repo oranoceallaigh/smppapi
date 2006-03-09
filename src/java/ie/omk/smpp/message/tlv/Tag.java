@@ -10,7 +10,7 @@ import java.util.Map;
  * @author Oran Kelly
  * @version $Id$
  */
-public class Tag implements java.io.Serializable {
+public final class Tag implements java.io.Serializable {
 
     /**
      * Look-up table of statically defined tags. This <b>must</b> be defined
@@ -255,23 +255,24 @@ public class Tag implements java.io.Serializable {
      * @return The encoder/decoder for Java type <code>type</code>.
      */
     private Encoder getEncoderForType(Class type) {
+        Encoder encoder;
+        
         // If type is null and encoder is null, this is a "no value" tlv type.
         if (type == null) {
-            return new NullEncoder();
-        }
-
-        if (java.lang.Number.class.isAssignableFrom(type)) {
-            return new NumberEncoder();
+            encoder = new NullEncoder();
+        } else if (java.lang.Number.class.isAssignableFrom(type)) {
+            encoder = new NumberEncoder();
         } else if (java.lang.String.class.isAssignableFrom(type)) {
-            return new StringEncoder();
+            encoder = new StringEncoder();
         } else if (java.util.BitSet.class.isAssignableFrom(type)) {
-            return new BitmaskEncoder();
+            encoder = new BitmaskEncoder();
         } else if (byte[].class.isAssignableFrom(type)) {
-            return new OctetEncoder();
+            encoder = new OctetEncoder();
         } else {
             throw new NoEncoderException(type, "No encoder for class type "
                     + type.getName());
         }
+        return encoder;
     }
 
     /**
@@ -391,7 +392,7 @@ public class Tag implements java.io.Serializable {
      * @return The Tag object representing the tag <code>tagValue</code>.
      *         Will never return <code>null</code>.
      */
-    public static final Tag getTag(int tagValue) {
+    public static Tag getTag(int tagValue) {
         Tag t = (Tag) tagTable.get(new Integer(tagValue));
         if (t == null) {
             return Tag.defineTag(tagValue, byte[].class, null, -1, -1);
@@ -416,7 +417,7 @@ public class Tag implements java.io.Serializable {
      *             equivalent to an already defined tag.
      * @see Encoder
      */
-    public static final Tag defineTag(int tagValue, Class type, Encoder enc,
+    public static Tag defineTag(int tagValue, Class type, Encoder enc,
             int fixedSize) throws TagDefinedException {
         return new Tag(tagValue, type, enc, fixedSize);
     }
@@ -439,7 +440,7 @@ public class Tag implements java.io.Serializable {
      *             equivalent to an already defined tag.
      * @see Encoder
      */
-    public static final Tag defineTag(int tagValue, Class type, Encoder enc,
+    public static Tag defineTag(int tagValue, Class type, Encoder enc,
             int minSize, int maxSize) throws TagDefinedException {
         return new Tag(tagValue, type, enc, minSize, maxSize);
     }
@@ -453,7 +454,7 @@ public class Tag implements java.io.Serializable {
      *            The tag to undefine. null if there was no tag defined already.
      * @return The Tag object that has been undefined.
      */
-    public static final Tag undefineTag(Tag tag) {
+    public static Tag undefineTag(Tag tag) {
         if (tag == null) {
             return null;
         }

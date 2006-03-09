@@ -230,8 +230,7 @@ public class ThreadedEventDispatcher implements EventDispatcher, Runnable {
 
         try {
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Thread " + Thread.currentThread().getName()
-                        + " started");
+                LOGGER.debug("Thread start: " + Thread.currentThread().getName());
             }
 
             while (running) {
@@ -266,8 +265,7 @@ public class ThreadedEventDispatcher implements EventDispatcher, Runnable {
                 }
             } // end while
 
-            LOGGER.debug("Thread " + Thread.currentThread().getName()
-                    + " exiting");
+            LOGGER.debug("Thread exit: " + Thread.currentThread().getName());
         } catch (Exception x) {
             LOGGER.warn("Exception in dispatcher thread", x);
         }

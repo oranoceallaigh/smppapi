@@ -75,7 +75,7 @@ public class ParamRetrieveResp extends ie.omk.smpp.message.SMPPResponse {
     }
 
     public int getBodyLength() {
-        int len = (((paramValue != null) ? paramValue.length() : 0));
+        int len = (paramValue != null) ? paramValue.length() : 0;
 
         // 1 c-string
         return len + 1;

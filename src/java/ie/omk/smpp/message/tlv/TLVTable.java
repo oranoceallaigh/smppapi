@@ -214,9 +214,9 @@ public class TLVTable implements java.io.Serializable {
             int max = tag.getMaxLength();
             int actual = tag.getEncoder().getValueLength(tag, value);
 
-            boolean illegal = (min > -1 && actual < min);
+            boolean illegal = min > -1 && actual < min;
             if (!illegal) {
-                illegal = (max > -1 && actual > max);
+                illegal = max > -1 && actual > max;
             }
 
             if (illegal) {
@@ -266,7 +266,7 @@ public class TLVTable implements java.io.Serializable {
                 val = enc.readFrom(t, opts, p + 4, l);
                 map.put(t, val);
 
-                p += (4 + l);
+                p += 4 + l;
             }
 
             opts = null;
@@ -301,7 +301,7 @@ public class TLVTable implements java.io.Serializable {
                }
             }
 
-            p += (4 + l);
+            p += 4 + l;
             if (p >= opts.length) {
                 break;
             }

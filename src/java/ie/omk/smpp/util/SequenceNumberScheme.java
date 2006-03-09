@@ -15,7 +15,7 @@ package ie.omk.smpp.util;
  */
 public interface SequenceNumberScheme {
 
-    final int PEEK_UNSUPPORTED = -1;
+    int PEEK_UNSUPPORTED = -1;
 
     /**
      * Get the next number in this sequence's scheme. An implementation of this

@@ -13,6 +13,7 @@ public class UCS2Encoding extends ie.omk.smpp.util.AlphabetEncoding {
         try {
             INSTANCE = new UCS2Encoding();
         } catch (UnsupportedEncodingException x) {
+            INSTANCE = null;
         }
     }
 

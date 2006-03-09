@@ -118,6 +118,8 @@ import org.apache.commons.logging.LogFactory;
  *  
  */
 public final class APIConfig extends Properties {
+    private static final String BAD_PROPERTY_VALUE = "Bad property value";
+
     static final long serialVersionUID = 3668742926704484281L;
     
     /**
@@ -331,7 +333,7 @@ public final class APIConfig extends Properties {
                 s = Short.parseShort(n, base);
             }
         } catch (NumberFormatException x) {
-            throw new InvalidConfigurationException("Bad property value",
+            throw new InvalidConfigurationException(BAD_PROPERTY_VALUE,
                     property);
         }
 
@@ -381,7 +383,7 @@ public final class APIConfig extends Properties {
                 i = Integer.parseInt(n, base);
             }
         } catch (NumberFormatException x) {
-            throw new InvalidConfigurationException("Bad property value",
+            throw new InvalidConfigurationException(BAD_PROPERTY_VALUE,
                     property);
         }
 
@@ -431,7 +433,7 @@ public final class APIConfig extends Properties {
                 l = Long.parseLong(n, base);
             }
         } catch (NumberFormatException x) {
-            throw new InvalidConfigurationException("Bad property value",
+            throw new InvalidConfigurationException(BAD_PROPERTY_VALUE,
                     property);
         }
 
@@ -499,7 +501,7 @@ public final class APIConfig extends Properties {
             } else if (s.equals("no") || s.equals("off") || s.equals("false")) {
                 b = false;
             } else {
-                throw new InvalidConfigurationException("Bad property value",
+                throw new InvalidConfigurationException(BAD_PROPERTY_VALUE,
                         property);
             }
         }
@@ -543,22 +545,25 @@ public final class APIConfig extends Properties {
      *         <code>base</code> is specified as 16.
      * @see #getBase
      */
-    private String stripBaseSpecifiers(String n, int base) {
+    private String stripBaseSpecifiers(final String n, final int base) {
+        String stripped;
         switch (base) {
         case 2:
-            n = n.substring(0, n.length() - 1);
+            stripped = n.substring(0, n.length() - 1);
             break;
 
         case 8:
-            n = n.substring(1);
+            stripped = n.substring(1);
             break;
 
         case 16:
-            n = n.substring(2);
+            stripped = n.substring(2);
             break;
+            
+        default:
+            stripped = n;
         }
-
-        return n;
+        return stripped;
     }
 }
 

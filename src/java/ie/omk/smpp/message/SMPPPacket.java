@@ -4,7 +4,6 @@ import ie.omk.smpp.Address;
 import ie.omk.smpp.message.tlv.TLVTable;
 import ie.omk.smpp.message.tlv.Tag;
 import ie.omk.smpp.util.AlphabetEncoding;
-import ie.omk.smpp.util.AlphabetFactory;
 import ie.omk.smpp.util.BinaryEncoding;
 import ie.omk.smpp.util.EncodingFactory;
 import ie.omk.smpp.util.MessageEncoding;
@@ -260,7 +259,7 @@ public abstract class SMPPPacket {
     protected int protocolID;
 
     /** Alphabet to use to encode this message's text. */
-    private MessageEncoding encoding = AlphabetFactory.getDefaultAlphabet();
+    private MessageEncoding encoding = EncodingFactory.getInstance().getDefaultAlphabet();
 
     /** GSM data coding (see GSM 03.38). */
     protected int dataCoding = encoding.getDataCoding();
@@ -443,15 +442,6 @@ public abstract class SMPPPacket {
      */
     public Address getDestination() {
         return destination;
-    }
-
-    /**
-     * Set the 'priority' flag.
-     * 
-     * @deprecated
-     */
-    public void setPriority(boolean b) {
-        this.priority = (b) ? 1 : 0;
     }
 
     /**
@@ -693,9 +683,9 @@ public abstract class SMPPPacket {
      * Set the text of the message. This method sets the message text encoded
      * using the current alphabet for this message. The default alphabet to use
      * is obtained using
-     * {@link ie.omk.smpp.util.AlphabetFactory#getDefaultAlphabet}. If, at some
+     * {@link ie.omk.smpp.util.EncodingFactory#getDefaultAlphabet}. If, at some
      * point, the encoding for the message has been altered to be one other than
-     * a sub-class of {@link ie.omk.smpp.util.AlphabetEncoding}then calls to
+     * a sub-class of {@link ie.omk.smpp.util.AlphabetEncoding} then calls to
      * this method will reset the encoding back to the default. The maximum
      * length of the message is determined by the SMPP version in use. Calling
      * this method affects the data_coding value.
@@ -704,15 +694,13 @@ public abstract class SMPPPacket {
      *            The short message text.
      * @throws ie.omk.smpp.message.InvalidParameterValueException
      *             If the message text is too long.
-     * @see ie.omk.smpp.util.AlphabetEncoding
-     * @see ie.omk.smpp.util.AlphabetEncoding#getDataCoding
-     * @see ie.omk.smpp.util.AlphabetFactory
+     * @see ie.omk.smpp.util.EncodingFactory
      * @see ie.omk.smpp.util.DefaultAlphabetEncoding
      */
     public void setMessageText(String text)
             throws InvalidParameterValueException {
         if (!(encoding instanceof AlphabetEncoding)) {
-            encoding = AlphabetFactory.getDefaultAlphabet();
+            encoding = EncodingFactory.getInstance().getDefaultAlphabet();
         }
 
         AlphabetEncoding a = (AlphabetEncoding) encoding;
@@ -1161,7 +1149,7 @@ public abstract class SMPPPacket {
      */
     public void setAlphabet(AlphabetEncoding enc) {
         if (enc == null) {
-            this.encoding = AlphabetFactory.getDefaultAlphabet();
+            this.encoding = EncodingFactory.getInstance().getDefaultAlphabet();
         } else {
             this.encoding = enc;
         }
@@ -1178,7 +1166,7 @@ public abstract class SMPPPacket {
      */
     public void setAlphabet(AlphabetEncoding enc, int dcs) {
         if (enc == null) {
-            this.encoding = AlphabetFactory.getDefaultAlphabet();
+            this.encoding = EncodingFactory.getInstance().getDefaultAlphabet();
             this.dataCoding = enc.getDataCoding();
         } else {
             this.encoding = enc;
@@ -1191,7 +1179,7 @@ public abstract class SMPPPacket {
      */
     public void setMessageEncoding(MessageEncoding enc) {
         if (enc == null) {
-            this.encoding = AlphabetFactory.getDefaultAlphabet();
+            this.encoding = EncodingFactory.getInstance().getDefaultAlphabet();
         } else {
             this.encoding = enc;
         }
@@ -1211,11 +1199,11 @@ public abstract class SMPPPacket {
      * <code>"SMPP(l:[len], c:[commandId], s:[status], n:[sequence])"</code>
      */
     public String toString() {
-        return (new StringBuffer("SMPP(l:").append(
+        return new StringBuffer("SMPP(l:").append(
                 Integer.toString(getLength())).append(", c:0x").append(
                 Integer.toHexString(commandId)).append(", s:").append(
                 Integer.toString(commandStatus)).append(", n:").append(
-                Integer.toString(sequenceNum)).append(")").toString());
+                Integer.toString(sequenceNum)).append(")").toString();
     }
 
     /**
@@ -1320,7 +1308,7 @@ public abstract class SMPPPacket {
 
                 // Read the optional parameters..
                 int bl = getBodyLength();
-                len -= (16 + bl);
+                len -= 16 + bl;
                 if (len > 0) {
                     tlvTable.readFrom(b, ptr + bl, len);
                 }
@@ -1333,7 +1321,7 @@ public abstract class SMPPPacket {
         // Set the message encoding type (if relevant)
         encoding = EncodingFactory.getInstance().getEncoding(dataCoding);
         if (encoding == null) {
-            encoding = AlphabetFactory.getDefaultAlphabet();
+            encoding = EncodingFactory.getInstance().getDefaultAlphabet();
         }
     }
 

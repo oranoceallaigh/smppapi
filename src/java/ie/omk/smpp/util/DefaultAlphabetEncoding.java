@@ -15,7 +15,7 @@ public class DefaultAlphabetEncoding extends ie.omk.smpp.util.AlphabetEncoding {
     /** Page break (extended table). */
     public static final int PAGE_BREAK = 0x0a;
 
-    private static final char[] charTable = {
+    private static final char[] CHAR_TABLE = {
         '@', '\u00a3', '$', '\u00a5', '\u00e8', '\u00e9', '\u00f9', '\u00ec',
         '\u00f2', '\u00c7', '\n', '\u00d8', '\u00f8', '\r', '\u00c5', '\u00e5',
         '\u0394', '_', '\u03a6', '\u0393', '\u039b', '\u03a9', '\u03a0', '\u03a8',
@@ -42,7 +42,7 @@ public class DefaultAlphabetEncoding extends ie.omk.smpp.util.AlphabetEncoding {
      * 
      * @see #EXTENDED_ESCAPE
      */
-    private static final char[] extCharTable = {
+    private static final char[] EXT_CHAR_TABLE = {
             0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, '^', 0, 0, 0,
@@ -83,16 +83,18 @@ public class DefaultAlphabetEncoding extends ie.omk.smpp.util.AlphabetEncoding {
             return "";
         }
 
-        char[] table = charTable;
+        char[] table = CHAR_TABLE;
         StringBuffer buf = new StringBuffer();
 
         for (int i = 0; i < b.length; i++) {
             int code = (int) b[i] & 0x000000ff;
             if (code == EXTENDED_ESCAPE) {
-                table = extCharTable; // take next char from extension table
+                // take next char from extension table
+                table = EXT_CHAR_TABLE;
             } else {
                 buf.append((code >= table.length) ? '?' : table[code]);
-                table = charTable; // Go back to default table.
+                // Go back to the default table.
+                table = CHAR_TABLE;
             }
         }
 
@@ -112,24 +114,25 @@ public class DefaultAlphabetEncoding extends ie.omk.smpp.util.AlphabetEncoding {
 
         for (int loop = 0; loop < c.length; loop++) {
             int search = 0;
-            for (; search < charTable.length; search++) {
+            for (; search < CHAR_TABLE.length; search++) {
                 if (search == EXTENDED_ESCAPE) {
                     continue;
                 }
 
-                if (c[loop] == charTable[search]) {
+                if (c[loop] == CHAR_TABLE[search]) {
                     enc.write((byte) search);
                     break;
                }
 
-                if (c[loop] == extCharTable[search]) {
+                if (c[loop] == EXT_CHAR_TABLE[search]) {
                     enc.write((byte) EXTENDED_ESCAPE);
                     enc.write((byte) search);
                     break;
                }
             }
-            if (search == charTable.length) {
-                enc.write(0x3f); // A '?'
+            if (search == CHAR_TABLE.length) {
+                // A '?' character.
+                enc.write(0x3f);
             }
         }
 
@@ -195,7 +198,7 @@ public class DefaultAlphabetEncoding extends ie.omk.smpp.util.AlphabetEncoding {
      * @return A new byte array containing the unpacked bytes.
      */
     public byte[] unpack(byte[] packed) {
-        int unpackedLen = ((packed.length * 8) / 7);
+        int unpackedLen = (packed.length * 8) / 7;
         byte[] unpacked = new byte[unpackedLen];
         int pos = 0;
         int i = 0;
@@ -223,20 +226,20 @@ public class DefaultAlphabetEncoding extends ie.omk.smpp.util.AlphabetEncoding {
         final Object[] args = new Object[2];
         
         StringBuffer b = new StringBuffer(256);
-        b.append("Table size: ").append(charTable.length).append('\n');
+        b.append("Table size: ").append(CHAR_TABLE.length).append('\n');
         for (int i = 0; i < 16; i++) {
             for (int j = 0; j < 8; j++) {
                 int pos = i + (16 * j);
                 args[0] = new Integer(pos);
 
-                if (charTable[pos] == '\r') {
+                if (CHAR_TABLE[pos] == '\r') {
                     args[1] = "CR";
-                } else if (charTable[pos] == '\n') {
+                } else if (CHAR_TABLE[pos] == '\n') {
                     args[1] = "LF";
-                } else if (charTable[pos] == ' ') {
+                } else if (CHAR_TABLE[pos] == ' ') {
                     args[1] = "SP";
                 } else {
-                    args[1] = " " + charTable[pos];
+                    args[1] = " " + CHAR_TABLE[pos];
                 }
                 b.append(java.text.MessageFormat.format(fmt, args));
             }

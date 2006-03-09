@@ -14,9 +14,11 @@ import org.apache.commons.logging.LogFactory;
  * API's default alphabet to another is merely a case of setting the
  * "smpp.default_alphabet" System property to the name of another class, which
  * must implement the ie.omk.smpp.util.SMSAlphabet interface.
+ * 
+ * @deprecated Use {@link ie.omk.smpp.util.EncodingFactory}
  */
 public final class AlphabetFactory {
-    private static final Map langToAlphabet = new HashMap();
+    private static final Map LANG_TO_ALPHABET = new HashMap();
     private static AlphabetEncoding defaultAlphabet;
 
     private static final String DEFAULT_ALPHABET_PROPNAME = "smpp.default_alphabet";
@@ -24,16 +26,16 @@ public final class AlphabetFactory {
     static {
         AlphabetEncoding gsmDefault = new DefaultAlphabetEncoding();
         try {
-            langToAlphabet.put(null, new UCS2Encoding());
+            LANG_TO_ALPHABET.put(null, new UCS2Encoding());
         } catch (UnsupportedEncodingException x) {
-            langToAlphabet.put(null, new Latin1Encoding());
+            LANG_TO_ALPHABET.put(null, new Latin1Encoding());
         }
-        langToAlphabet.put("en", gsmDefault);
-        langToAlphabet.put("de", gsmDefault);
-        langToAlphabet.put("fr", gsmDefault);
-        langToAlphabet.put("it", gsmDefault);
-        langToAlphabet.put("nl", gsmDefault);
-        langToAlphabet.put("es", gsmDefault);
+        LANG_TO_ALPHABET.put("en", gsmDefault);
+        LANG_TO_ALPHABET.put("de", gsmDefault);
+        LANG_TO_ALPHABET.put("fr", gsmDefault);
+        LANG_TO_ALPHABET.put("it", gsmDefault);
+        LANG_TO_ALPHABET.put("nl", gsmDefault);
+        LANG_TO_ALPHABET.put("es", gsmDefault);
     }
     
     private AlphabetFactory() {
@@ -87,11 +89,11 @@ public final class AlphabetFactory {
      *            The ISO code for the language the message is in.
      */
     public static AlphabetEncoding getAlphabet(String lang) {
-        AlphabetEncoding enc = (AlphabetEncoding) langToAlphabet.get(lang);
+        AlphabetEncoding enc = (AlphabetEncoding) LANG_TO_ALPHABET.get(lang);
         if (enc != null) {
             return enc;
         } else {
-            return (AlphabetEncoding) langToAlphabet.get(null);
+            return (AlphabetEncoding) LANG_TO_ALPHABET.get(null);
         }
     }
 }

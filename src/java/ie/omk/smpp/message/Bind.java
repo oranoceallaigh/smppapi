@@ -191,11 +191,10 @@ public abstract class Bind extends ie.omk.smpp.message.SMPPRequest {
     public int getBodyLength() {
         // Calculated as the size of the header plus 3 1-byte ints and
         // 4 null-terminators for the strings plus the length of the strings
-        int len = (((sysId != null) ? sysId.length() : 0)
+        int len = ((sysId != null) ? sysId.length() : 0)
                 + ((password != null) ? password.length() : 0)
-                + ((sysType != null) ? sysType.length() : 0) + ((addressRange != null) ? addressRange
-                .length()
-                : 0));
+                + ((sysType != null) ? sysType.length() : 0)
+                + ((addressRange != null) ? addressRange.length() : 0);
 
         // 3 1-byte integers, 4 c-strings
         return len + 3 + 4;

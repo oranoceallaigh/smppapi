@@ -14,7 +14,7 @@ package ie.omk.smpp.message.tlv;
 public class NoEncoderException extends RuntimeException {
     static final long serialVersionUID = 6441311177365899332L;
     
-    public Class type;
+    private final Class type;
 
     /**
      * Create a new NoEncoderException.
@@ -22,7 +22,8 @@ public class NoEncoderException extends RuntimeException {
      * @param type
      *            The Java type that no encoder was found for.
      */
-    public NoEncoderException(java.lang.Class type) {
+    public NoEncoderException(Class type) {
+        this.type = type;
     }
 
     /**
@@ -33,7 +34,12 @@ public class NoEncoderException extends RuntimeException {
      * @param msg
      *            The exception message.
      */
-    public NoEncoderException(java.lang.Class type, String msg) {
+    public NoEncoderException(Class type, String msg) {
         super(msg);
+        this.type = type;
+    }
+    
+    public Class getType() {
+        return type;
     }
 }

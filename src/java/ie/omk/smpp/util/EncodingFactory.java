@@ -32,23 +32,36 @@ import org.apache.commons.logging.LogFactory;
 public class EncodingFactory {
 
     private static final Log LOGGER = LogFactory.getLog(EncodingFactory.class);
+    private static final String DEFAULT_ALPHABET_PROPNAME = "smpp.default_alphabet";
     
     private static final EncodingFactory INSTANCE = new EncodingFactory();
     
     private final Map mappingTable = new HashMap();
+    private final Map langToAlphabet = new HashMap();
+    private AlphabetEncoding defaultAlphabet;
     
     public EncodingFactory() {
-        addEncoding(new DefaultAlphabetEncoding());
+        AlphabetEncoding gsmDefault = new DefaultAlphabetEncoding();
+        addEncoding(gsmDefault);
         addEncoding(new ASCIIEncoding());
         addEncoding(new Latin1Encoding());
         addEncoding(new BinaryEncoding());
+        langToAlphabet.put("en", gsmDefault);
+        langToAlphabet.put("de", gsmDefault);
+        langToAlphabet.put("fr", gsmDefault);
+        langToAlphabet.put("it", gsmDefault);
+        langToAlphabet.put("nl", gsmDefault);
+        langToAlphabet.put("es", gsmDefault);
         try {
             addEncoding(new UCS2Encoding());
+            langToAlphabet.put(null, new UCS2Encoding());
         } catch (UnsupportedEncodingException x) {
+            langToAlphabet.put(null, new Latin1Encoding());
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("JVM does not support UCS2 - encoding will not be used.");
             }
         }
+        initDefaultAlphabet();
     }
     
     /**
@@ -86,5 +99,55 @@ public class EncodingFactory {
      */
     public Iterator getAllEncodings() {
         return mappingTable.values().iterator();
+    }
+    
+    /**
+     * Return the default alphabet for this runtime environment. The default
+     * alphabet is usually {@link DefaultAlphabetEncoding}. This can be altered
+     * by setting the <b>smpp.default_alphabet </b> system property to the name
+     * of an implementation of {@link AlphabetEncoding}.
+     * 
+     * <p>
+     * For example:<br />
+     * <code>java -cp .:smppapi.jar -Dsmpp.default_alphabet=myPackage.MyAlphabet
+     * ...</code>
+     * @return The default alphabet encoding.
+     */
+    public AlphabetEncoding getDefaultAlphabet() {
+        return defaultAlphabet;
+    }
+
+    /**
+     * Get the SMSAlphabet needed for encoding messages in a particular
+     * language.
+     * @param lang
+     *            The ISO code for the language the message is in.
+     */
+    public AlphabetEncoding getAlphabet(String lang) {
+        AlphabetEncoding enc = (AlphabetEncoding) langToAlphabet.get(lang);
+        if (enc != null) {
+            return enc;
+        } else {
+            return (AlphabetEncoding) langToAlphabet.get(null);
+        }
+    }
+
+    /**
+     * Initialise the default alphabet.
+     */
+    private void initDefaultAlphabet() {
+        String className = "";
+        try {
+            className = System.getProperty(DEFAULT_ALPHABET_PROPNAME);
+            if (className != null) {
+                Class alphaClass = Class.forName(className);
+                defaultAlphabet = (AlphabetEncoding) alphaClass.newInstance();
+            }
+        } catch (Exception x) {
+            LOGGER.warn("Couldn't load default alphabet " + className, x);
+        }
+        if (defaultAlphabet == null) {
+            defaultAlphabet = new DefaultAlphabetEncoding();
+        }
     }
 }

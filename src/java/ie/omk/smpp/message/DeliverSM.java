@@ -7,6 +7,7 @@ import ie.omk.smpp.util.SMPPDate;
 import ie.omk.smpp.util.SMPPIO;
 
 import java.io.OutputStream;
+import java.text.MessageFormat;
 
 import org.apache.commons.logging.LogFactory;
 
@@ -35,6 +36,9 @@ import org.apache.commons.logging.LogFactory;
  * @version 1.0
  */
 public class DeliverSM extends ie.omk.smpp.message.SMPPRequest {
+    private static final String SPEC_VIOLATION = "Setting the {0} on a "
+        + "deliver_sm is in violation of the SMPP specification";
+    
     /**
      * Construct a new DeliverSM.
      */
@@ -58,9 +62,8 @@ public class DeliverSM extends ie.omk.smpp.message.SMPPRequest {
      * specification.
      */
     public void setDeliveryTime(SMPPDate d) {
-        LogFactory.getLog(DeliverSM.class).warn(
-                "Setting the delivery time on a deliver_sm is in violation "
-                        + "of the SMPP specification");
+        LogFactory.getLog(DeliverSM.class).warn(MessageFormat.format(
+                SPEC_VIOLATION, new Object[] {"delivery time"}));
         super.setDeliveryTime(d);
     }
 
@@ -69,9 +72,8 @@ public class DeliverSM extends ie.omk.smpp.message.SMPPRequest {
      * specification.
      */
     public void setExpiryTime(SMPPDate d) {
-        LogFactory.getLog(DeliverSM.class).warn(
-                "Setting the expiry time on a deliver_sm is in violation "
-                + "of the SMPP specification");
+        LogFactory.getLog(DeliverSM.class).warn(MessageFormat.format(
+                SPEC_VIOLATION, new Object[] {"expiry time"}));
         super.setExpiryTime(d);
     }
 

@@ -128,15 +128,13 @@ public class QueryMsgDetailsResp extends ie.omk.smpp.message.SMPPResponse {
     }
 
     public int getBodyLength() {
-        int size = (((serviceType != null) ? serviceType.length() : 0)
+        int size = ((serviceType != null) ? serviceType.length() : 0)
                 + ((source != null) ? source.getLength() : 3)
-                + ((deliveryTime != null) ? deliveryTime.toString().length()
-                        : 0)
+                + ((deliveryTime != null) ? deliveryTime.toString().length() : 0)
                 + ((expiryTime != null) ? expiryTime.toString().length() : 0)
                 + ((message != null) ? message.length : 0)
-                + ((messageId != null) ? messageId.length() : 0) + ((finalDate != null) ? finalDate
-                .toString().length()
-                : 0));
+                + ((messageId != null) ? messageId.length() : 0)
+                + ((finalDate != null) ? finalDate.toString().length() : 0);
 
         size += destinationTable.getLength();
 

@@ -313,13 +313,15 @@ public abstract class SmscLink {
         byte[] buf = array;
         synchronized (readLock) {
             try {
-                if ((ptr = in.read(buf, 0, 16)) < 4) {
+                ptr = in.read(buf, 0, 16);
+                if (ptr < 4) {
                     if (ptr == -1) {
                         throw new EOFException(END_OF_STREAM_ERR);
                     }
 
                     while (ptr < 4) {
-                        if ((c = in.read(buf, ptr, 16 - ptr)) < 0) {
+                        c = in.read(buf, ptr, 16 - ptr);
+                        if (c < 0) {
                             throw new EOFException(END_OF_STREAM_ERR);
                         }
                         ptr += c;
@@ -335,13 +337,14 @@ public abstract class SmscLink {
 
                 c = in.read(buf, ptr, cmdLen - ptr);
                 if (c == -1) {
-                    throw new EOFException("EOS reached. No data available.");
+                    throw new EOFException(END_OF_STREAM_ERR);
                 }
 
                 ptr += c;
                 while (ptr < cmdLen) {
-                    if ((c = in.read(buf, ptr, cmdLen - ptr)) < 0) {
-                        throw new EOFException("EOS reached. No data available");
+                    c = in.read(buf, ptr, cmdLen - ptr);
+                    if (c < 0) {
+                        throw new EOFException(END_OF_STREAM_ERR);
                     }
 
                     ptr += c;

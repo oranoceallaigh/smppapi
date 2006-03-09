@@ -64,7 +64,7 @@ public class QueryLastMsgs extends ie.omk.smpp.message.SMPPRequest {
     }
 
     public int getBodyLength() {
-        int len = (((source != null) ? source.getLength() : 3));
+        int len = (source != null) ? source.getLength() : 3;
 
         // 1 1-byte integer
         return len + 1;
