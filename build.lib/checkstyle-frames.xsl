@@ -211,7 +211,7 @@
                 <p>
                     <table width="100%">
                         <!-- For each file create its part -->
-                        <xsl:apply-templates select="file" mode="all.classes">
+                        <xsl:apply-templates select="file[count(error) > 0]" mode="all.classes">
                             <xsl:sort select="@name"/>
                         </xsl:apply-templates>
                     </table>
@@ -227,7 +227,7 @@
                 <th>Name</th>
                 <th>Errors</th>
             </tr>
-            <xsl:apply-templates select="file" mode="filelist">
+            <xsl:apply-templates select="file[count(error) > 0]" mode="filelist">
                 <xsl:sort select="@name"/>
             </xsl:apply-templates>
         </table>
@@ -333,12 +333,23 @@
                             <tr>
                                 <th>Error Description</th>
                                 <th>Line</th>
+                                <th>Check</th>
                             </tr>
                             <xsl:for-each select="../file[@name = $name]/error">
                                 <tr>
                                     <xsl:call-template name="alternated-row"/>
                                     <td><xsl:value-of select="@message"/></td>
                                     <td><xsl:value-of select="@line"/></td>
+                                    <td>
+                                        <xsl:choose>
+                                            <xsl:when test="starts-with(@source, 'com.puppycrawl.tools.checkstyle.checks')">
+                                                <xsl:value-of select="substring(@source, 40)"/>
+                                            </xsl:when>
+                                            <xsl:otherwise>
+                                                <xsl:value-of select="@source"/>
+                                            </xsl:otherwise>
+                                        </xsl:choose>
+                                    </td>
                                 </tr>
                             </xsl:for-each>
                         </table>
@@ -350,7 +361,7 @@
 
     <xsl:template match="checkstyle" mode="summary">
         <h3>Summary</h3>
-        <xsl:variable name="fileCount" select="count(file)"/>
+        <xsl:variable name="fileCount" select="count(file[count(error) > 0])"/>
         <xsl:variable name="errorCount" select="count(file/error)"/>
         <table class="log" border="0" cellpadding="5" cellspacing="2" width="100%">
             <tr>
