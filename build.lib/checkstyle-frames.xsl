@@ -92,7 +92,7 @@
             <head>
                 <title>CheckStyle Audit</title>
             </head>
-            <frameset cols="20%,80%">
+            <frameset cols="30%,70%">
                 <frame src="allclasses-frame.html" name="fileListFrame"/>
                 <frame src="overview-frame.html" name="fileFrame"/>
             </frameset>
