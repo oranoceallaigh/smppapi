@@ -54,6 +54,7 @@
             <include name="commons-logging.jar"/>
             <include name="log4j-1.2.5.jar"/>
         </fileset>
+        <pathelement location="${resources}"/>
     </path>
     
     <taskdef resource="checkstyletask.properties" classpathref="checkstyle.classpath"/>
