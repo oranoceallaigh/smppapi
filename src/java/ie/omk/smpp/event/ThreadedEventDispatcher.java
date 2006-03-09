@@ -272,10 +272,12 @@ public class ThreadedEventDispatcher implements EventDispatcher, Runnable {
 
                 for (int i = observers.size() - 1; i >= 0; i--) {
                     observer = (ConnectionObserver) observers.get(i);
-                    if (nd.event == null) {
-                        observer.packetReceived(nd.conn, nd.pak);
+                    if (nd.hasEvent()) {
+                        observer.packetReceived(
+                                nd.getConnection(), nd.getPacket());
                     } else {
-                        observer.update(nd.conn, nd.event);
+                        observer.update(
+                                nd.getConnection(), nd.getEvent());
                     }
                 }
             } // end while
