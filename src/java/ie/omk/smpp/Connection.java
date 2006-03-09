@@ -559,7 +559,6 @@ public class Connection implements java.lang.Runnable {
             throws java.net.SocketTimeoutException, java.io.IOException,
             AlreadyBoundException, VersionException, SMPPProtocolException,
             UnsupportedOperationException {
-        SMPPResponse resp = null;
         int id = r.getCommandId();
 
         if (this.state != BOUND) {
@@ -761,8 +760,6 @@ public class Connection implements java.lang.Runnable {
      *             the output stream.
      */
     public void sendResponse(SMPPResponse resp) throws java.io.IOException {
-        Integer key = null;
-
         if (link == null) {
             throw new IOException("Connection to SMSC is not valid.");
         }
@@ -1385,7 +1382,6 @@ public class Connection implements java.lang.Runnable {
         SMPPPacket pak = null;
         int smppEx = 0;
         int id = 0;
-        int st = 0;
         SMPPEvent exitEvent = null;
         int tooManyIOEx = 5;
 
@@ -1454,7 +1450,6 @@ public class Connection implements java.lang.Runnable {
                 smppEx = 0;
 
                 id = pak.getCommandId();
-                st = pak.getCommandStatus();
 
                 // Handle special case packets..
                 switch (id) {

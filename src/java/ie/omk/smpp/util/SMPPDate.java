@@ -26,6 +26,8 @@ import java.util.TimeZone;
  * to current SMSC time.
  */
 public class SMPPDate implements java.io.Serializable {
+    static final long serialVersionUID = -2404447252053261604L;
+    
     protected static final String FORMAT = "{0,number,00}{1,number,00}{2,number,00}{3,number,00}{4,number,00}"
             + "{5,number,00}{6,number,0}{7,number,00}{8}";
 

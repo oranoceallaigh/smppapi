@@ -15,9 +15,6 @@ import ie.omk.smpp.version.SMPPVersion;
 import java.io.OutputStream;
 import java.util.Date;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 /**
  * This is the abstract class that all SMPP messages are inherited from.
  * 
@@ -810,7 +807,7 @@ public abstract class SMPPPacket {
         // encoding should never be null, but for resilience, we check it here
         // and default back to binary encoding if none is found.
         if (encoding == null) {
-            encoding = BinaryEncoding.getInstance();
+            encoding = new BinaryEncoding();
         }
 
         dcs = encoding.getDataCoding();

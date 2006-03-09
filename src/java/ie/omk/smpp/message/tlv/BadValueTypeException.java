@@ -9,6 +9,8 @@ package ie.omk.smpp.message.tlv;
  * @version $Id$
  */
 public class BadValueTypeException extends RuntimeException {
+    static final long serialVersionUID = 5894340962605773779L;
+    
     /**
      * Create a new BadValueTypeException.
      */

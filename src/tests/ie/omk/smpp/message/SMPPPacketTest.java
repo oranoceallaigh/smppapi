@@ -78,11 +78,11 @@ public class SMPPPacketTest extends TestCase {
 
             msg = new byte[] {15, 16, 17, 18, 19, 20, 21, 22, 23, 24};
             byte[] subMsg = new byte[] {16, 17, 18, 19, 20, 21};
-            p.setMessage(msg, 1, 6, BinaryEncoding.getInstance());
+            p.setMessage(msg, 1, 6, new BinaryEncoding());
             assertTrue(Arrays.equals(subMsg, p.getMessage()));
 
             msg = new byte[] {31, 32, 33, 34, 35};
-            p.setMessage(msg, BinaryEncoding.getInstance());
+            p.setMessage(msg, new BinaryEncoding());
             assertTrue(Arrays.equals(msg, p.getMessage()));
 
             p.setMessageId("45678");
@@ -95,8 +95,8 @@ public class SMPPPacketTest extends TestCase {
             p.setMessageText(text);
             assertEquals(text, p.getMessageText());
 
-            p.setAlphabet(Latin1Encoding.getInstance());
-            p.setMessageText(text, Latin1Encoding.getInstance());
+            p.setAlphabet(new Latin1Encoding());
+            p.setMessageText(text, new Latin1Encoding());
             assertEquals(text, p.getMessageText());
 
             p.setPriority(2);
@@ -176,13 +176,13 @@ public class SMPPPacketTest extends TestCase {
                 text160.append("0123456789");
             }
 
-            sm.setMessageText(text160.toString(), DefaultAlphabetEncoding
-                    .getINSTANCE());
+            sm.setMessageText(text160.toString(),
+                    new DefaultAlphabetEncoding());
 
             sm = new SubmitSM();
             sm.setVersion(SMPPVersion.V34);
-            sm.setMessageText(text160.toString(), DefaultAlphabetEncoding
-                    .getINSTANCE());
+            sm.setMessageText(text160.toString(),
+                    new DefaultAlphabetEncoding());
         } catch (InvalidParameterValueException x) {
             fail("Message of length 160 was rejected with DefaultAlphabetEncoding");
         }
@@ -202,8 +202,8 @@ public class SMPPPacketTest extends TestCase {
 
             textLong.append("Message is now too long");
 
-            sm.setMessageText(textLong.toString(), DefaultAlphabetEncoding
-                    .getINSTANCE());
+            sm.setMessageText(textLong.toString(),
+                    new DefaultAlphabetEncoding());
             fail("Message was too long [" + textLong.length()
                     + "], but accepted by SMPPPacket");
         } catch (InvalidParameterValueException x) {
@@ -218,8 +218,8 @@ public class SMPPPacketTest extends TestCase {
             for (int i = 0; i < 30; i++) {
                 textLong.append("0123456789");
             }
-            sm.setMessageText(textLong.toString(), DefaultAlphabetEncoding
-                    .getINSTANCE());
+            sm.setMessageText(textLong.toString(),
+                    new DefaultAlphabetEncoding());
             fail("Message was too long [" + textLong.length()
                     + "], but accepted by SMPPPacket");
         } catch (InvalidParameterValueException x) {

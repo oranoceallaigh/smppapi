@@ -13,6 +13,8 @@ import java.io.OutputStream;
  * @author Oran Kelly &lt;orank@users.sf.net&gt;
  */
 public class ErrorAddress extends Address {
+    static final long serialVersionUID = 2352811393926037102L;
+    
     /**
      * The error code showing why this address failed.
      */

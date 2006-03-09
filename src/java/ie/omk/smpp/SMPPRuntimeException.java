@@ -7,6 +7,7 @@ package ie.omk.smpp;
  * @version 1.0
  */
 public class SMPPRuntimeException extends java.lang.RuntimeException {
+    static final long serialVersionUID = 5392381000287167880L;
 
     public SMPPRuntimeException() {
         super();

@@ -34,8 +34,6 @@ public final class SMPPIO {
             throws java.io.IOException {
         byte[] b = new byte[len];
         int p = 0;
-        int x = 0;
-
         for (int loop = 0; loop < (len - p); loop++) {
             int r = in.read(b, p, len - p);
             if (r == -1) {

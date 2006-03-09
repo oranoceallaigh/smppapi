@@ -9,6 +9,8 @@ package ie.omk.smpp.message.tlv;
  * @version $Id$
  */
 public class InvalidSizeForValueException extends RuntimeException {
+    static final long serialVersionUID = -4600629750433218768L;
+    
     /**
      * Create a new InvalidSizeForValueException.
      */

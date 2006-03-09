@@ -96,8 +96,6 @@ public class QueryLastMsgsResp extends ie.omk.smpp.message.SMPPResponse {
     }
 
     public int getBodyLength() {
-        String s = null;
-
         // 1 1-byte integer!
         int size = 1;
         synchronized (messageTable) {

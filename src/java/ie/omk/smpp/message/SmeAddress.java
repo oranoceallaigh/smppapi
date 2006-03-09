@@ -6,6 +6,8 @@ package ie.omk.smpp.message;
  * @deprecated Use {@link ie.omk.smpp.Address}.
  */
 public class SmeAddress extends ie.omk.smpp.Address {
+    static final long serialVersionUID = -7812497043813226780L;
+    
     public SmeAddress() {
     }
 

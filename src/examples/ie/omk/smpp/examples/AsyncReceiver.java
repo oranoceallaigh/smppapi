@@ -4,7 +4,6 @@ import ie.omk.smpp.Connection;
 import ie.omk.smpp.event.ConnectionObserver;
 import ie.omk.smpp.event.ReceiverExitEvent;
 import ie.omk.smpp.event.SMPPEvent;
-import ie.omk.smpp.message.BindResp;
 import ie.omk.smpp.message.DeliverSM;
 import ie.omk.smpp.message.SMPPPacket;
 import ie.omk.smpp.message.Unbind;
@@ -152,7 +151,7 @@ public class AsyncReceiver extends SMPPAPIExample implements ConnectionObserver 
             logger.info("Binding to the SMSC..");
 
             synchronized (this) {
-                BindResp resp = myConnection.bind(
+                myConnection.bind(
                         Connection.RECEIVER,
                         systemID,
                         password,

@@ -3,12 +3,10 @@ package ie.omk.smpp.net;
 import ie.omk.smpp.message.SMPPPacket;
 import ie.omk.smpp.message.SMPPRequest;
 import ie.omk.smpp.message.SMPPResponse;
-import ie.omk.smpp.util.DefaultSequenceScheme;
 import ie.omk.smpp.util.SMPPIO;
 import ie.omk.smpp.util.SequenceNumberScheme;
 
 import java.io.ByteArrayInputStream;
-import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -58,8 +56,6 @@ public class ObjectLink extends SmscLink {
 
     private long timeout = 0;
 
-    private SequenceNumberScheme numScheme = new DefaultSequenceScheme();
-
     /**
      * Create a new empty ObjectLink.
      */
@@ -89,8 +85,10 @@ public class ObjectLink extends SmscLink {
         this.timeout = timeout;
     }
 
+    /**
+     * @deprecated Method does nothing.
+     */
     public void setSequenceNumberScheme(SequenceNumberScheme seqNumScheme) {
-        this.numScheme = seqNumScheme;
     }
 
     public void write(SMPPPacket pak, boolean withOptional) throws IOException {

@@ -7,6 +7,8 @@ package ie.omk.smpp;
  * @version 1.0
  */
 public class SMPPException extends java.lang.Exception {
+    static final long serialVersionUID = -5382146274442716891L;
+    
     public SMPPException() {
         super();
     }

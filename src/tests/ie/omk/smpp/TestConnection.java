@@ -38,7 +38,7 @@ public class TestConnection extends TestCase {
 
             DeliverSM dsm = new DeliverSM();
             dsm.setSequenceNum(1);
-            dsm.setMessage(Latin1Encoding.getInstance().encodeString(
+            dsm.setMessage(new Latin1Encoding().encodeString(
                     TEST_MESSAGE));
             dsm.writeTo(bos);
 
@@ -52,7 +52,7 @@ public class TestConnection extends TestCase {
 
             StreamLink link = new StreamLink(bis, bos);
             Connection conn = new Connection(link);
-            conn.setDefaultAlphabet(Latin1Encoding.getInstance());
+            conn.setDefaultAlphabet(new Latin1Encoding());
 
             SubmitSM sm = (SubmitSM) conn.newInstance(SMPPPacket.SUBMIT_SM);
             sm.setMessageText(TEST_MESSAGE);
@@ -94,16 +94,6 @@ public class TestConnection extends TestCase {
             x.printStackTrace(System.err);
             fail();
         }
-    }
-
-    private void showBytes(byte[] b) {
-        for (int i = 0; i < b.length; i++) {
-            System.out.print(" " + Integer.toHexString((int) b[i] & 0xff));
-            if ((i % 30) == 0) {
-                System.out.print("\n");
-            }
-        }
-        System.out.print("\n");
     }
 }
 

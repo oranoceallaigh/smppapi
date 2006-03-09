@@ -19,6 +19,8 @@ public class Tag implements java.io.Serializable {
      */
     private static Map tagTable = new HashMap();
 
+    static final long serialVersionUID = -418561932897398277L;
+    
     public static final Tag DEST_ADDR_SUBUNIT = new Tag(0x05, Number.class, 1);
 
     public static final Tag DEST_NETWORK_TYPE = new Tag(0x06, Number.class, 1);

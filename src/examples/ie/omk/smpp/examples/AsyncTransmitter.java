@@ -6,7 +6,6 @@ import ie.omk.smpp.SMPPException;
 import ie.omk.smpp.event.ConnectionObserver;
 import ie.omk.smpp.event.ReceiverExitEvent;
 import ie.omk.smpp.event.SMPPEvent;
-import ie.omk.smpp.message.BindResp;
 import ie.omk.smpp.message.BindTransmitterResp;
 import ie.omk.smpp.message.SMPPPacket;
 import ie.omk.smpp.message.SubmitSM;
@@ -147,7 +146,7 @@ public class AsyncTransmitter extends SMPPAPIExample implements ConnectionObserv
 
             // Bind to the SMSC (as a transmitter)
             logger.info("Binding to the SMSC..");
-            BindResp resp = myConnection.bind(
+            myConnection.bind(
                     Connection.TRANSMITTER,
                     systemID,
                     password,

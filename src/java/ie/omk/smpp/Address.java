@@ -12,6 +12,9 @@ import java.io.OutputStream;
  * @see ie.omk.smpp.util.GSMConstants
  */
 public class Address implements java.io.Serializable {
+    
+    static final long serialVersionUID = -1899181032052084902L;
+    
     /** Type of number. */
     private int ton = GSMConstants.GSM_TON_UNKNOWN;
 

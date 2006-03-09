@@ -89,7 +89,7 @@ public class SMPPVersion33 extends SMPPVersion {
     public boolean validateMessageId(String id) {
         try {
             // Message IDs must be valid Hex numbers in v3.3
-            long n = Long.parseLong(id, 16);
+            Long.parseLong(id, 16);
             return id.length() <= 8;
         } catch (NumberFormatException x) {
             return false;

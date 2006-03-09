@@ -7,6 +7,7 @@ package ie.omk.smpp.version;
  * @author Oran Kelly
  */
 public class VersionException extends ie.omk.smpp.SMPPRuntimeException {
+    static final long serialVersionUID = -6347880117047656707L;
 
     public VersionException() {
     }

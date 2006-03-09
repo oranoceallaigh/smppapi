@@ -2,7 +2,8 @@ package ie.omk.smpp.util;
 
 public class InvalidConfigurationException extends
         ie.omk.smpp.SMPPRuntimeException {
-
+    static final long serialVersionUID = 5616081756943055309L;
+    
     private String property = "";
 
     public InvalidConfigurationException() {

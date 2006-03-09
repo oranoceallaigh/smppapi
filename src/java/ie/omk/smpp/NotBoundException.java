@@ -7,6 +7,8 @@ package ie.omk.smpp;
  * @version 1.0
  */
 public class NotBoundException extends ie.omk.smpp.SMPPRuntimeException {
+    static final long serialVersionUID = -3977230990049048741L;
+    
     public NotBoundException() {
     }
 

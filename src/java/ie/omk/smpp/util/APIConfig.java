@@ -118,7 +118,8 @@ import org.apache.commons.logging.LogFactory;
  *  
  */
 public final class APIConfig extends Properties {
-
+    static final long serialVersionUID = 3668742926704484281L;
+    
     /**
      * See class description for documentation on the properties.
      * 

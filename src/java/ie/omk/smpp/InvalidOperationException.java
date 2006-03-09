@@ -7,6 +7,8 @@ package ie.omk.smpp;
  * @version 1.0
  */
 public class InvalidOperationException extends ie.omk.smpp.SMPPException {
+    static final long serialVersionUID = 7624381507606078212L;
+    
     public InvalidOperationException() {
     }
 

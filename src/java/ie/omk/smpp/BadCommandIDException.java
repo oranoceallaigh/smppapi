@@ -7,6 +7,10 @@ package ie.omk.smpp;
  * @version 1.0
  */
 public class BadCommandIDException extends ie.omk.smpp.SMPPException {
+    static final long serialVersionUID = -3690049503805565620L;
+    
+    // TODO: expected versus actual doesn't really make sense. Change
+    // this exception.
     private final int expected;
     private final int actual;
 

@@ -54,6 +54,7 @@ import java.util.Map;
  * @version $Id$
  */
 public class TLVTable implements java.io.Serializable {
+    static final long serialVersionUID = -4113000096792513355L;
     /**
      * Map of tag to values.
      */

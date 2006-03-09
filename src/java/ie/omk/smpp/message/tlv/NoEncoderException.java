@@ -12,7 +12,8 @@ package ie.omk.smpp.message.tlv;
  * @version $Id$
  */
 public class NoEncoderException extends RuntimeException {
-
+    static final long serialVersionUID = 6441311177365899332L;
+    
     public Class type = null;
 
     /**

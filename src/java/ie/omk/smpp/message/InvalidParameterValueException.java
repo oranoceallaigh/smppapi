@@ -19,6 +19,8 @@ public class InvalidParameterValueException extends
 
     public static final int BAD_VALUE_STRING = 7;
 
+    static final long serialVersionUID = 7631862906763821181L;
+
     private Object invalidValue = new Object();
 
     private int invalidValueType = BAD_VALUE_OBJECT;

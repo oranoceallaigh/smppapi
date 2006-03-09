@@ -21,7 +21,7 @@ public class EncodingTest extends TestCase {
 
         String msg = "Test message";
 
-        ASCIIEncoding ae = ASCIIEncoding.getINSTANCE();
+        ASCIIEncoding ae = new ASCIIEncoding();
         assertTrue(Arrays.equals(msg_bytes, ae.encodeString(msg)));
         assertEquals(msg, ae.decodeString(msg_bytes));
     }
@@ -38,14 +38,14 @@ public class EncodingTest extends TestCase {
 
         String msg = "Test message\u00a5\u00a3\u00b3\u00c6";
 
-        Latin1Encoding enc = Latin1Encoding.getInstance();
+        Latin1Encoding enc = new Latin1Encoding();
         assertTrue(Arrays.equals(msg_bytes, enc.encodeString(msg)));
         assertEquals(msg, enc.decodeString(msg_bytes));
     }
 
     public void testHPRomanEncoding() {
 
-        HPRoman8Encoding enc = HPRoman8Encoding.getInstance();
+        HPRoman8Encoding enc = new HPRoman8Encoding();
 
         // The full character table in a string..
         final String msg =
@@ -72,14 +72,14 @@ public class EncodingTest extends TestCase {
     public void testUTF16Encoding() {
         String msg = "A test message \u00e9 \u00f8 \u49ab";
         
-        UTF16Encoding enc = UTF16Encoding.getInstance(true);
+        UTF16Encoding enc = new UTF16Encoding(true);
         byte[] b = enc.encodeString(msg);
         String decStr = enc.decodeString(b);
     
         assertEquals(msg.length() * 2, b.length);
         assertEquals(msg, decStr);
 
-        enc = UTF16Encoding.getInstance(false);
+        enc = new UTF16Encoding(false);
         b = enc.encodeString(msg);
         decStr = enc.decodeString(b);
     
@@ -90,7 +90,7 @@ public class EncodingTest extends TestCase {
     public void testUCS2Encoding() {
         try {
             String msg = "A test message \u00e9 \u00f8 \u49ab";
-            UCS2Encoding enc = UCS2Encoding.getInstance();
+            UCS2Encoding enc = new UCS2Encoding();
             byte[] b = enc.encodeString(msg);
             String decStr = enc.decodeString(b);
             

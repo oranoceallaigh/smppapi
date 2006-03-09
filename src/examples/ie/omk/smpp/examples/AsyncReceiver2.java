@@ -69,7 +69,7 @@ public class AsyncReceiver2 extends SMPPAPIExample {
             logger.info("Binding to the SMSC..");
 
             synchronized (this) {
-                BindResp resp = myConnection.bind(
+                myConnection.bind(
                         Connection.RECEIVER,
                         systemID,
                         password,

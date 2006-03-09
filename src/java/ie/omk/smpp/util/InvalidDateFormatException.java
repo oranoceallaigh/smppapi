@@ -8,7 +8,8 @@ package ie.omk.smpp.util;
  * @since 1.0
  */
 public class InvalidDateFormatException extends ie.omk.smpp.SMPPException {
-
+    static final long serialVersionUID = -5254415730594384146L;
+    
     private String dateString = "";
 
     public InvalidDateFormatException() {

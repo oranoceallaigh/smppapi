@@ -71,7 +71,10 @@ public class TLVTests extends TestCase {
         enc.writeTo(newTag, bitSet, b, 0);
         assertTrue(Arrays.equals(bitSetExpected, b));
 
-        BitSet deser = (BitSet) enc.readFrom(newTag, b, 0, 2);
+        BitSet deser = (BitSet) enc.readFrom(newTag, b, 0, newTag.getLength());
+        System.out.println(bitSet);
+        System.out.println(deser);
+        assertEquals(bitSet, deser);
     }
 
     public void testTLVTableAddParams() {

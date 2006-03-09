@@ -106,8 +106,6 @@ public class SubmitMultiResp extends ie.omk.smpp.message.SMPPResponse {
      * @return the number of bytes this packet would encode as.
      */
     public int getBodyLength() {
-        int loop;
-
         int size = (messageId != null) ? messageId.length() : 0;
 
         synchronized (unsuccessfulTable) {
@@ -130,7 +128,6 @@ public class SubmitMultiResp extends ie.omk.smpp.message.SMPPResponse {
      *             If an error occurs writing to the output stream.
      */
     protected void encodeBody(OutputStream out) throws java.io.IOException {
-        int loop;
         int size = 0;
 
         synchronized (unsuccessfulTable) {

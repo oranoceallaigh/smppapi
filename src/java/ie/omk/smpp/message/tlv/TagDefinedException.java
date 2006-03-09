@@ -9,6 +9,8 @@ package ie.omk.smpp.message.tlv;
  * @version $Id$
  */
 public class TagDefinedException extends java.lang.RuntimeException {
+    static final long serialVersionUID = -2723406909679964988L;
+    
     /**
      * The value of the tag that was attempted to be redefined.
      */
