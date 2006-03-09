@@ -4,18 +4,50 @@ import ie.omk.smpp.Connection;
 import ie.omk.smpp.message.SMPPPacket;
 
 class NotificationDetails {
-    public Connection conn = null;
-
-    public SMPPEvent event = null;
-
-    public SMPPPacket pak = null;
+    private Connection connection = null;
+    private SMPPEvent event = null;
+    private SMPPPacket packet = null;
 
     public NotificationDetails() {
     }
+    
+    public Connection getConnection() {
+        return connection;
+    }
+
+
+    public void setConnection(Connection conn) {
+        this.connection = conn;
+    }
+
+
+    public SMPPEvent getEvent() {
+        return event;
+    }
+
+
+    public void setEvent(SMPPEvent event) {
+        this.event = event;
+    }
+
+
+    public SMPPPacket getPacket() {
+        return packet;
+    }
+
+
+    public void setPacket(SMPPPacket pak) {
+        this.packet = pak;
+    }
+
 
     public void setDetails(Connection c, SMPPEvent e, SMPPPacket p) {
-        conn = c;
+        connection = c;
         event = e;
-        pak = p;
+        packet = p;
+    }
+    
+    public boolean hasEvent() {
+        return event != null;
     }
 }
