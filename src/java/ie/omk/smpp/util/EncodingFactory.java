@@ -1,6 +1,8 @@
 package ie.omk.smpp.util;
 
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -44,8 +46,9 @@ public class EncodingFactory {
         AlphabetEncoding gsmDefault = new DefaultAlphabetEncoding();
         addEncoding(gsmDefault);
         addEncoding(new ASCIIEncoding());
-        addEncoding(new Latin1Encoding());
         addEncoding(new BinaryEncoding());
+        addEncoding(Latin1Encoding.class);
+        addEncoding(UCS2Encoding.class);
         langToAlphabet.put("en", gsmDefault);
         langToAlphabet.put("de", gsmDefault);
         langToAlphabet.put("fr", gsmDefault);
@@ -56,9 +59,11 @@ public class EncodingFactory {
             addEncoding(new UCS2Encoding());
             langToAlphabet.put(null, new UCS2Encoding());
         } catch (UnsupportedEncodingException x) {
-            langToAlphabet.put(null, new Latin1Encoding());
-            if (LOGGER.isDebugEnabled()) {
+            try {
+                langToAlphabet.put(null, new Latin1Encoding());
+            } catch (UnsupportedEncodingException xx) {
                 LOGGER.debug("JVM does not support UCS2 - encoding will not be used.");
+                langToAlphabet.put(null, new ASCIIEncoding());
             }
         }
         initDefaultAlphabet();
@@ -91,6 +96,42 @@ public class EncodingFactory {
      */
     public void addEncoding(final MessageEncoding encoding) {
         mappingTable.put(new Integer(encoding.getDataCoding()), encoding);
+    }
+    
+    /**
+     * Add a message encoding to this factory. The supplied class must be
+     * a sub-class of {@link MessageEncoding} and must have a
+     * no-argument constructor.
+     * @param encodingClass The class of the <code>MessageEncoding</code> to
+     * add.
+     */
+    public void addEncoding(final Class encodingClass) {
+        try {
+            if (!MessageEncoding.class.isAssignableFrom(encodingClass)) {
+                throw new IllegalArgumentException("Not an encoding class: "
+                        + encodingClass);
+            }
+            Constructor c = encodingClass.getConstructor(new Class[0]);
+            addEncoding((MessageEncoding) c.newInstance(new Object[0]));
+        } catch (NoSuchMethodException x) {
+            LOGGER.error(encodingClass.getName() + " does not have a"
+                    + "no-argument constructor", x);
+        } catch (IllegalAccessException x) {
+            LOGGER.error(encodingClass.getName() + " does not have a visible"
+                    + " no-argument constructor", x);
+        } catch (InstantiationException x) {
+            LOGGER.error("Cannot instantiate an instance of " + encodingClass, x);
+        } catch (InvocationTargetException x) {
+            Throwable cause = x.getCause();
+            if (cause instanceof UnsupportedEncodingException) {
+                LOGGER.debug(encodingClass.getName() + " is not supported by the JVM");
+            } else {
+                LOGGER.error(encodingClass.getName() + " constructor threw "
+                        + "an exception", x);
+            }
+        } catch (IllegalArgumentException x) {
+            LOGGER.error("This exception shouldn't happen", x);
+        }
     }
     
     /**

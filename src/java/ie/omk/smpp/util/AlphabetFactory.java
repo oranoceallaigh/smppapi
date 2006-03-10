@@ -28,7 +28,11 @@ public final class AlphabetFactory {
         try {
             LANG_TO_ALPHABET.put(null, new UCS2Encoding());
         } catch (UnsupportedEncodingException x) {
-            LANG_TO_ALPHABET.put(null, new Latin1Encoding());
+            try {
+                LANG_TO_ALPHABET.put(null, new Latin1Encoding());
+            } catch (UnsupportedEncodingException xx) {
+                LANG_TO_ALPHABET.put(null, new ASCIIEncoding());
+            }
         }
         LANG_TO_ALPHABET.put("en", gsmDefault);
         LANG_TO_ALPHABET.put("de", gsmDefault);
