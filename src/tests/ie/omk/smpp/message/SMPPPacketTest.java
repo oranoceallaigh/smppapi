@@ -30,105 +30,99 @@ public class SMPPPacketTest extends TestCase {
     /**
      * Test that setting a value and then getting that value are the same.
      */
-    public void testSetters() {
-        try {
-            SMPPPacket p = new GenericNack();
+    public void testSetters() throws Exception {
+        SMPPPacket p = new GenericNack();
 
-            // Set the version first..this version class doesn't fail anything
-            // for fields too long or invalid values or anything.
-            p.setVersion(myVer);
-            assertEquals(myVer, p.getVersion());
+        // Set the version first..this version class doesn't fail anything
+        // for fields too long or invalid values or anything.
+        p.setVersion(myVer);
+        assertEquals(myVer, p.getVersion());
 
-            p.setAlphabet(myEnc);
-            assertEquals(myEnc, p.getMessageEncoding());
+        p.setAlphabet(myEnc);
+        assertEquals(myEnc, p.getMessageEncoding());
 
-            // XXX add test for setMessageEncoding
+        // XXX add test for setMessageEncoding
 
-            p.setDataCoding(0x9b);
-            assertEquals(0x9b, p.getDataCoding());
+        p.setDataCoding(0x9b);
+        assertEquals(0x9b, p.getDataCoding());
 
-            p.setDefaultMsg(20);
-            assertEquals(20, p.getDefaultMsg());
+        p.setDefaultMsg(20);
+        assertEquals(20, p.getDefaultMsg());
 
-            SMPPDate smppDate = new SMPPDate();
-            p.setDeliveryTime(smppDate);
-            assertEquals(smppDate, p.getDeliveryTime());
+        SMPPDate smppDate = new SMPPDate();
+        p.setDeliveryTime(smppDate);
+        assertEquals(smppDate, p.getDeliveryTime());
 
-            Address dAddr = new Address(1, 2, "12345678");
-            p.setDestination(dAddr);
-            assertEquals(dAddr, p.getDestination());
+        Address dAddr = new Address(1, 2, "12345678");
+        p.setDestination(dAddr);
+        assertEquals(dAddr, p.getDestination());
 
-            p.setErrorCode(78);
-            assertEquals(78, p.getErrorCode());
+        p.setErrorCode(78);
+        assertEquals(78, p.getErrorCode());
 
-            p.setEsmClass(3);
-            assertEquals(3, p.getEsmClass());
+        p.setEsmClass(3);
+        assertEquals(3, p.getEsmClass());
 
-            smppDate = new SMPPDate();
-            p.setExpiryTime(smppDate);
-            assertEquals(smppDate, p.getExpiryTime());
+        smppDate = new SMPPDate();
+        p.setExpiryTime(smppDate);
+        assertEquals(smppDate, p.getExpiryTime());
 
-            smppDate = new SMPPDate();
-            p.setFinalDate(smppDate);
-            assertEquals(smppDate, p.getFinalDate());
+        smppDate = new SMPPDate();
+        p.setFinalDate(smppDate);
+        assertEquals(smppDate, p.getFinalDate());
 
-            byte[] msg = new byte[] {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14};
-            p.setMessage(msg);
-            assertTrue(Arrays.equals(msg, p.getMessage()));
+        byte[] msg = new byte[] {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14};
+        p.setMessage(msg);
+        assertTrue(Arrays.equals(msg, p.getMessage()));
 
-            msg = new byte[] {15, 16, 17, 18, 19, 20, 21, 22, 23, 24};
-            byte[] subMsg = new byte[] {16, 17, 18, 19, 20, 21};
-            p.setMessage(msg, 1, 6, new BinaryEncoding());
-            assertTrue(Arrays.equals(subMsg, p.getMessage()));
+        msg = new byte[] {15, 16, 17, 18, 19, 20, 21, 22, 23, 24};
+        byte[] subMsg = new byte[] {16, 17, 18, 19, 20, 21};
+        p.setMessage(msg, 1, 6, new BinaryEncoding());
+        assertTrue(Arrays.equals(subMsg, p.getMessage()));
 
-            msg = new byte[] {31, 32, 33, 34, 35};
-            p.setMessage(msg, new BinaryEncoding());
-            assertTrue(Arrays.equals(msg, p.getMessage()));
+        msg = new byte[] {31, 32, 33, 34, 35};
+        p.setMessage(msg, new BinaryEncoding());
+        assertTrue(Arrays.equals(msg, p.getMessage()));
 
-            p.setMessageId("45678");
-            assertEquals("45678", p.getMessageId());
+        p.setMessageId("45678");
+        assertEquals("45678", p.getMessageId());
 
-            p.setMessageStatus(6);
-            assertEquals(6, p.getMessageStatus());
+        p.setMessageStatus(6);
+        assertEquals(6, p.getMessageStatus());
 
-            String text = "Text i\u00f1t\u00e8rn\u00e4ti\u00f6nal";
-            p.setMessageText(text);
-            assertEquals(text, p.getMessageText());
+        String text = "Text i\u00f1t\u00e8rn\u00e4ti\u00f6nal";
+        p.setMessageText(text);
+        assertEquals(text, p.getMessageText());
 
-            p.setAlphabet(new Latin1Encoding());
-            p.setMessageText(text, new Latin1Encoding());
-            assertEquals(text, p.getMessageText());
+        p.setAlphabet(new Latin1Encoding());
+        p.setMessageText(text, new Latin1Encoding());
+        assertEquals(text, p.getMessageText());
 
-            p.setPriority(2);
-            assertEquals(2, p.getPriority());
+        p.setPriority(2);
+        assertEquals(2, p.getPriority());
 
-            p.setProtocolID(13);
-            assertEquals(13, p.getProtocolID());
+        p.setProtocolID(13);
+        assertEquals(13, p.getProtocolID());
 
-            p.setRegistered(4);
-            assertEquals(4, p.getRegistered());
+        p.setRegistered(4);
+        assertEquals(4, p.getRegistered());
 
-            p.setReplaceIfPresent(1);
-            assertEquals(1, p.getReplaceIfPresent());
+        p.setReplaceIfPresent(1);
+        assertEquals(1, p.getReplaceIfPresent());
 
-            p.setSequenceNum(56);
-            assertEquals(56, p.getSequenceNum());
+        p.setSequenceNum(56);
+        assertEquals(56, p.getSequenceNum());
 
-            p.setServiceType("stype");
-            assertEquals("stype", p.getServiceType());
+        p.setServiceType("stype");
+        assertEquals("stype", p.getServiceType());
 
-            Address sAddr = new Address(3, 4, "56789");
-            p.setSource(sAddr);
-            assertEquals(sAddr, p.getSource());
+        Address sAddr = new Address(3, 4, "56789");
+        p.setSource(sAddr);
+        assertEquals(sAddr, p.getSource());
 
-            TLVTable tlv = new TLVTable();
-            p.setTLVTable(tlv);
-            assertTrue(tlv == p.getTLVTable());
-
-        } catch (InvalidParameterValueException x) {
-            x.printStackTrace(System.err);
-            fail("InvalidParameterValueException");
-        }
+        TLVTable tlv = new TLVTable();
+        p.setTLVTable(tlv);
+        assertTrue(tlv == p.getTLVTable());
     }
 
     /**
