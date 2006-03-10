@@ -1,16 +1,16 @@
 package ie.omk.smpp.util;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.net.URL;
 import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 /**
- * Internal API configuration. This singleton class holds the configuration for
+ * Internal API configuration. This class holds the configuration for
  * the smppapi. On initialisation, it searches for a file named
  * "smppapi.properties". This file needs to be locatable in the classpath in one
  * of the following locations: /, /ie, /ie/omk, /ie/omk/smpp or the default
@@ -26,15 +26,6 @@ import org.apache.commons.logging.LogFactory;
  * <th width="25%">Property name</th>
  * <th width="25%">Type</th>
  * <th width="50%">Description</th>
- * </tr>
- * 
- * <tr>
- * <td><code>smppapi.net.so_timeout</code></td>
- * <td>Integer</td>
- * <td>This property sets the SO_TIMEOUT property for the sockets used by the
- * {@link ie.omk.smpp.net.TcpLink}objects to connect to the SMSC. Setting this
- * value affects the behavour of any methods that read from the SMSC link. The
- * timeout is specified in milliseconds.</td>
  * </tr>
  * 
  * <tr>
@@ -74,6 +65,15 @@ import org.apache.commons.logging.LogFactory;
  * (the default), the snoop streams will be closed when the link is closed. If
  * false, the snoop streams will be flushed and left open when the link is
  * closed.</td>
+ * </tr>
+ * 
+ * <tr>
+ * <td><code>smppapi.net.link_timeout</code></td>
+ * <td>Long</td>
+ * <td>Sets the timeout in milliseconds for network links. This value affects
+ * how long network reads should block for but its exact interpretation is
+ * link-implementation specific. For <code>TcpLink</code>, this value represents
+ * the <code>SO_TIMEOUT</code> setting on the TCP/IP socket.</td>
  * </tr>
  * 
  * <tr>
@@ -125,7 +125,7 @@ public final class APIConfig extends Properties {
     /**
      * See class description for documentation on the properties.
      * 
-     * @deprecated
+     * @deprecated use LINK_TIMEOUT
      */
     public static final String TCP_SOCKET_TIMEOUT = "smppapi.net.tcp.so_timeout";
 
@@ -200,105 +200,96 @@ public final class APIConfig extends Properties {
     private static APIConfig instance;
 
     /**
-     * The file the properties got loaded from (including path info).
+     * The URL that API properties are loaded from (including path info).
      */
-    private String propsFile = PROPS_RESOURCE;
+    private URL propsURL;
 
     /**
-     * Construct a new APIConfig object. APIConfig follows the singleton
-     * pattern.
+     * Construct a new APIConfig object which reads properties from the
+     * default properties resource.
      */
-    private APIConfig() {
+    public APIConfig() {
+        this.propsURL = getDefaultPropertiesResource();
+    }
+    
+    /**
+     * Construct a new APIConfig object which reads properties from the
+     * specified URL.
+     * @param propertiesURL The URL to read properties from.
+     */
+    public APIConfig(URL propertiesURL) {
+        this.propsURL = propertiesURL;
     }
 
     /**
-     * Load the API properties. This method searches for the properties resource
-     * in a number of places and uses the <code>Class.getResourceAsStream</code>
-     * and the <code>Properties.load</code> method to load them.
-     */
-    private void loadAPIProperties() {
-
-        try {
-            InputStream is = null;
-            Class c = getClass();
-
-            for (int i = 0; i < SEARCH_PATH.length && is == null; i++) {
-                propsFile = SEARCH_PATH[i] + PROPS_RESOURCE;
-                is = c.getResourceAsStream(propsFile);
-            }
-
-            if (is != null) {
-                loadAPIPropertiesFromStream(is);
-            } else {
-                LOGGER.warn("Could not find API properties to load");
-            }
-        } catch (IOException x) {
-            LOGGER.warn("Could not load API properties", x);
-        }
-    }
-
-    /**
-     * Load the properties from a stream. This method actually just calls
-     * <code>Properties.load</code> but includes some useful debugging output
-     * too.
-     */
-    private void loadAPIPropertiesFromStream(InputStream stream)
-            throws IOException {
-        load(stream);
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Loaded API properties from " + propsFile);
-            StringWriter w = new StringWriter();
-            list(new PrintWriter(w));
-            LOGGER.debug("\n" + w.toString());
-        }
-    }
-
-    /**
-     * Cause the API properties to be reloaded. The properties will be read from
-     * the same location as they were initially loaded from. If the resource has
-     * disappeared or is no longer accessible, the properties will not be loaded
-     * and <code>false</code> will be returned to the caller.
+     * Cause the API properties to be reloaded. The properties will be re-read
+     * from the same location as they were initially loaded from. If the
+     * resource has disappeared or is no longer accessible, the properties will
+     * not be loaded and <code>false</code> will be returned to the caller.
      * 
      * @return true if the properties were successfully reloaded, false
      *         otherwise.
      */
     public boolean reloadAPIConfig() {
         LOGGER.debug("Reloading API config properties.");
-
         try {
-            Class c = getClass();
-            InputStream is = c.getResourceAsStream(propsFile);
-            if (is != null) {
-                loadAPIPropertiesFromStream(is);
-            } else {
-                LOGGER.warn("Could not reload API properties. File not found: "
-                        + propsFile);
-            }
+            loadAPIProperties();
         } catch (IOException x) {
             LOGGER.warn("Could not reload API properties.", x);
             return false;
         }
-
         return true;
     }
 
     /**
-     * Get the singleton <code>APIConfig</code> instance.
+     * Get the <code>APIConfig</code> instance. If the
+     * <code>APIConfig</code> instance has not yet been initialised then
+     * this method will cause the configuration to be read from the default
+     * properties resource. The default resource will be searched for at
+     * the following locations in the classpath:
+     * /smppapi.properties
+     * /ie/smppapi.properties
+     * /ie/omk/smppapi.properties
+     * /ie/omk/smpp/smppapi.properties
+     * smppapi.properties
+     * @return An initialised instance of <code>APIConfig</code>.
      */
     public static APIConfig getInstance() {
         if (instance == null) {
-            instance = new APIConfig();
-            instance.loadAPIProperties();
+            try {
+                instance = new APIConfig();
+                instance.loadAPIProperties();
+            } catch (IOException x) {
+                LOGGER.error("Could not load API properties from default resource", x);
+            }
         }
-
         return instance;
     }
 
     /**
+     * Set the URL which <code>APIConfig</code> reads its properties from
+     * and load them.
+     * @param properties
+     */
+    public static void configure(URL properties) {
+        try {
+            if (instance == null) {
+                instance = new APIConfig(properties);
+            } else {
+                instance.propsURL = properties;
+            }
+            instance.loadAPIProperties();
+        } catch (IOException x) {
+            LOGGER.error("Could not load API config from " + properties, x);
+        }
+    }
+    
+    /**
      * Get the value for a property.
      * 
      * @param property
-     *            the name of the property to retrive.
+     *            the name of the property to retrieve.
+     * @return The value for <code>property</code>.
      * @throws ie.omk.smpp.util.PropertyNotFoundException
      *             if <code>property</code> is not found in the configuration.
      */
@@ -312,6 +303,42 @@ public final class APIConfig extends Properties {
     }
 
     /**
+     * Get the value for a property or return a default value if it is not set.
+     * @param property The name of the property to retrieve.
+     * @param defaultValue The value to return if <code>property</code> is not
+     * set.
+     * @return The value for <code>property</code>.
+     */
+    public String getProperty(String property, String defaultValue) {
+        String val = super.getProperty(property);
+        if (val == null) {
+            val = defaultValue;
+        }
+        return val;
+    }
+
+    /**
+     * Get the value of a property, parsed as a <code>short</code>. If the
+     * property is not set, the default value is returned.
+     * @param property The name of the property to retrieve the value for.
+     * @param defaultValue The default value to return if the property is
+     * not set.
+     * @return The value for <code>property</code>.
+     * @throws InvalidConfigurationException If the value cannot be parsed as
+     * a <code>short</code>.
+     */
+    public short getShort(String property, short defaultValue)
+            throws InvalidConfigurationException {
+        short s;
+        try {
+            s = getShort(property);
+        } catch (PropertyNotFoundException x) {
+            s = defaultValue;
+        }
+        return s;
+    }
+    
+    /**
      * Get the value for a property, parsed as a Java <code>short</code>.
      * 
      * @param property
@@ -323,23 +350,15 @@ public final class APIConfig extends Properties {
      */
     public short getShort(String property)
             throws InvalidConfigurationException, PropertyNotFoundException {
-
-        short s = 0;
-        try {
-            String n = getProperty(property);
-            if (n != null) {
-                int base = getBase(n);
-                n = stripBaseSpecifiers(n, base);
-                s = Short.parseShort(n, base);
-            }
-        } catch (NumberFormatException x) {
-            throw new InvalidConfigurationException(BAD_PROPERTY_VALUE,
-                    property);
+        
+        int i = getInt(property);
+        if (i < Short.MIN_VALUE || i > Short.MAX_VALUE) {
+            throw new InvalidConfigurationException("Property value exceeds "
+                    + "valid short range: " + i, property);
         }
-
-        return s;
+        return (short) i;
     }
-
+    
     /**
      * Get the value for a property, parsed as a Java <code>int</code>. If
      * the property is not found, the default value is returned.
@@ -374,20 +393,19 @@ public final class APIConfig extends Properties {
     public int getInt(String property) throws InvalidConfigurationException,
             PropertyNotFoundException {
 
-        int i = 0;
+        long l;
         try {
             String n = getProperty(property);
-            if (n != null) {
-                int base = getBase(n);
-                n = stripBaseSpecifiers(n, base);
-                i = Integer.parseInt(n, base);
+            l = convertToNumber(n);
+            if (l < (long) Integer.MIN_VALUE || l > (long) Integer.MAX_VALUE) {
+                throw new InvalidConfigurationException("Property value exceeds"
+                        + " valid int range: " + l, property);
             }
         } catch (NumberFormatException x) {
             throw new InvalidConfigurationException(BAD_PROPERTY_VALUE,
                     property);
         }
-
-        return i;
+        return (int) l;
     }
 
     /**
@@ -403,12 +421,13 @@ public final class APIConfig extends Properties {
      */
     public long getLong(String property, long defaultValue)
             throws InvalidConfigurationException {
+        long l;
         try {
-            return getLong(property);
+            l = getLong(property);
         } catch (PropertyNotFoundException x) {
+            l = defaultValue;
         }
-
-        return defaultValue;
+        return l;
     }
 
     /**
@@ -424,19 +443,14 @@ public final class APIConfig extends Properties {
     public long getLong(String property) throws InvalidConfigurationException,
             PropertyNotFoundException {
 
-        long l = 0;
+        long l;
         try {
             String n = getProperty(property);
-            if (n != null) {
-                int base = getBase(n);
-                n = stripBaseSpecifiers(n, base);
-                l = Long.parseLong(n, base);
-            }
+            l = convertToNumber(n);
         } catch (NumberFormatException x) {
             throw new InvalidConfigurationException(BAD_PROPERTY_VALUE,
                     property);
         }
-
         return l;
     }
 
@@ -488,7 +502,6 @@ public final class APIConfig extends Properties {
 
         try {
             int n = Integer.parseInt(s);
-
             if (n > 0) {
                 b = true;
             } else {
@@ -496,13 +509,13 @@ public final class APIConfig extends Properties {
             }
         } catch (NumberFormatException x) {
             // It's not a number..
-            if (s.equals("yes") || s.equals("on") || s.equals("true")) {
+            if ("yes".equals(s) || "on".equals(s) || "true".equals(s) || "1".equals(s)) {
                 b = true;
-            } else if (s.equals("no") || s.equals("off") || s.equals("false")) {
+            } else if ("no".equals(s) || "off".equals(s) || "false".equals(s) || "0".equals(s)) {
                 b = false;
             } else {
-                throw new InvalidConfigurationException(BAD_PROPERTY_VALUE,
-                        property);
+                throw new InvalidConfigurationException(
+                        BAD_PROPERTY_VALUE, property, s);
             }
         }
 
@@ -510,60 +523,64 @@ public final class APIConfig extends Properties {
     }
 
     /**
-     * Get the base of a number. Numbers can be specified as hex by prefixing a
-     * '0x' or '0X', as binary if they are trailed by a 'b' or as octal if they
-     * are prefixed with a '0'.
-     * 
-     * @param n
-     *            the string representing a number with some form of base
-     *            specifier.
-     * @return the base of the integer.
+     * Try to locate the default smppapi properties resource.
+     * @return A URL pointing to the default properties resource, or
+     * <code>null</code> if it cannot be found.
      */
-    private int getBase(String n) {
-        int base = 10;
-
-        if (n.startsWith("0x") || n.startsWith("0X")) {
-            base = 16;
-        } else if (n.startsWith("0")) {
-            base = 8;
-        } else if (n.endsWith("b")) {
-            base = 2;
+    private URL getDefaultPropertiesResource() {
+        URL url = null;
+        Class c = getClass();
+        for (int i = 0; i < SEARCH_PATH.length && url == null; i++) {
+            url = c.getResource(SEARCH_PATH[i] + PROPS_RESOURCE);
         }
-
-        return base;
+        return url;
     }
 
     /**
-     * Strip the base specifiers out of a string number.
-     * 
-     * @param n
-     *            the number as a string (including base specifiers).
-     * @param base
-     *            the base of the number.
-     * @return a string containing only the number, base specifiers are removed.
-     *         For example, '0x4a' will cause a return of '4a' if
-     *         <code>base</code> is specified as 16.
-     * @see #getBase
+     * Load the properties.
      */
-    private String stripBaseSpecifiers(final String n, final int base) {
-        String stripped;
-        switch (base) {
-        case 2:
-            stripped = n.substring(0, n.length() - 1);
-            break;
-
-        case 8:
-            stripped = n.substring(1);
-            break;
-
-        case 16:
-            stripped = n.substring(2);
-            break;
-            
-        default:
-            stripped = n;
+    private void loadAPIProperties() throws IOException {
+        if (propsURL != null) {
+            load(propsURL.openStream());
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Loaded API properties from " + propsURL);
+                StringWriter w = new StringWriter();
+                list(new PrintWriter(w));
+                LOGGER.debug("\n" + w.toString());
+            }
         }
-        return stripped;
+    }
+
+    /**
+     * Convert a number string into a <code>long</code>, taking into account
+     * base and multiplication specifiers.
+     * @param num The String representing the number.
+     * @return The parsed number.
+     * @throws NumberFormatException If the String cannot be parsed as a number.
+     */
+    long convertToNumber(final String num) throws NumberFormatException {
+        int base = 10;
+        long multiplier = 1;
+        String s;
+        
+        if (num.startsWith("0x") || num.startsWith("0X")) {
+            base = 16;
+            s = num.substring(2);
+        } else if (num.endsWith("b")) {
+            base = 2;
+            s = num.substring(0, num.length() - 1);
+        } else if (num.endsWith("k")) {
+            multiplier = 1024L;
+            s = num.substring(0, num.length() - 1);
+        } else if (num.endsWith("m")) {
+            multiplier = 1048576L;
+            s = num.substring(0, num.length() - 1);
+        } else if (num.startsWith("0") && num.length() > 1) {
+            base = 8;
+            s = num.substring(1);
+        } else {
+            s = num;
+        }
+        return Long.parseLong(s, base) * multiplier;
     }
 }
-
