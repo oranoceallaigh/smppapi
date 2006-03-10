@@ -37,7 +37,7 @@ public class DefaultAlphabetEncoding extends ie.omk.smpp.util.AlphabetEncoding {
     /**
      * Extended character table. Characters in this table are accessed by the
      * 'escape' character in the base table. It is important that none of the
-     * 'inactive' characters never be matchable with a valid base-table
+     * 'inactive' characters ever be matchable with a valid base-table
      * character as this breaks the encoding loop.
      * 
      * @see #EXTENDED_ESCAPE
