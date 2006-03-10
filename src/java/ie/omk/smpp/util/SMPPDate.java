@@ -28,30 +28,22 @@ import java.util.TimeZone;
 public class SMPPDate implements java.io.Serializable {
     static final long serialVersionUID = -2404447252053261604L;
     
-    protected static final String FORMAT = "{0,number,00}{1,number,00}{2,number,00}{3,number,00}{4,number,00}"
-            + "{5,number,00}{6,number,0}{7,number,00}{8}";
+    private static final String FORMAT =
+        "{0,number,00}{1,number,00}{2,number,00}{3,number,00}{4,number,00}"
+        + "{5,number,00}{6,number,0}{7,number,00}{8}";
 
-    protected int year;
+    private int year;
+    private int month;
+    private int day;
+    private int hour;
+    private int minute;
+    private int second;
+    private int tenth;
+    private int utcOffset;
+    private char sign = '+';
+    private int hashCode;
 
-    protected int month;
-
-    protected int day;
-
-    protected int hour;
-
-    protected int minute;
-
-    protected int second;
-
-    protected int tenth;
-
-    protected int utcOffset;
-
-    protected char sign = '+';
-
-    protected int hashCode;
-
-    protected TimeZone savedTimeZone;
+    private TimeZone savedTimeZone;
 
     /**
      * Create a new SMPPDate. All fields will be initialised to zero.
@@ -225,6 +217,17 @@ public class SMPPDate implements java.io.Serializable {
     }
 
     /**
+     * Get the timezone that this date is in. If this object represents
+     * a relative time definition, then this method will return <code>null
+     * </code>.
+     * @return The timezone of this <code>SMPPDate</code>.
+     * @see #isRelative()
+     */
+    public TimeZone getTimeZone() {
+        return savedTimeZone;
+    }
+    
+    /**
      * Get the UTC offset qualifier. This flag is '+' to indicate that the time
      * spec is ahead of UTC or '-' to indicate it is behind UTC. If the time
      * spec is a relative time spec, this flag will be 'R'.
@@ -251,7 +254,17 @@ public class SMPPDate implements java.io.Serializable {
     public boolean equals(Object obj) {
         if (obj instanceof SMPPDate) {
             SMPPDate d = (SMPPDate) obj;
-            return hashCode == d.hashCode;
+            int diff = (year - d.year)
+                + (month - d.month)
+                + (day - d.day)
+                + (hour - d.hour)
+                + (minute - d.minute)
+                + (second - d.second)
+                + (tenth - d.tenth)
+                + ((int) sign - (int) d.sign);
+            boolean sameTz = savedTimeZone == null ?
+                    d.savedTimeZone == null : savedTimeZone.equals(d.savedTimeZone);
+            return diff == 0 && sameTz && sign == d.sign;
         } else {
             return false;
         }
@@ -278,15 +291,10 @@ public class SMPPDate implements java.io.Serializable {
         if (s == null || s.length() == 0) {
             return d;
         }
-
         if (s.length() != 16) {
             throw new InvalidDateFormatException(
                     "Date string is incorrect length", s);
         }
-
-        // get the sign of the UTC offset..
-        d.sign = s.charAt(15);
-
         try {
             d.year = Integer.parseInt(s.substring(0, 2));
             d.month = Integer.parseInt(s.substring(2, 4));
@@ -294,21 +302,28 @@ public class SMPPDate implements java.io.Serializable {
             d.hour = Integer.parseInt(s.substring(6, 8));
             d.minute = Integer.parseInt(s.substring(8, 10));
             d.second = Integer.parseInt(s.substring(10, 12));
-
+            d.sign = s.charAt(15);
             if (d.sign == 'R') {
                 // time is a relative specification.
                 d.tenth = 0;
                 d.utcOffset = 0;
+                d.savedTimeZone = null;
             } else {
                 d.tenth = Integer.parseInt(s.substring(12, 13));
                 d.utcOffset = Integer.parseInt(s.substring(13, 15));
+                int rawOffset = d.utcOffset * 900000;
+                if (d.sign == '-') {
+                    rawOffset = -rawOffset;
+                }
+                String[] tzs = TimeZone.getAvailableIDs(rawOffset);
+                if (tzs.length > 0) {
+                    d.savedTimeZone = TimeZone.getTimeZone(tzs[0]);
+                }
             }
-
             d.hashCode = d.toString().hashCode();
         } catch (NumberFormatException x) {
             throw new InvalidDateFormatException("Invalid SMPP date string", s);
         }
-
         return d;
     }
 
@@ -327,4 +342,3 @@ public class SMPPDate implements java.io.Serializable {
         return MessageFormat.format(FORMAT, args);
     }
 }
-
