@@ -58,7 +58,7 @@ public abstract class SmscLink {
      * Set to automatically flush the output stream after every packet. Default
      * is true.
      */
-    protected boolean autoFlush;
+    private boolean autoFlush;
 
     /**
      * Create a new unconnected SmscLink.
@@ -138,7 +138,7 @@ public abstract class SmscLink {
 
     /**
      * Implementation-specific link open. This method will be called by the
-     * {@link #open}method. This method is responsible for establishing the
+     * {@link #open} method. This method is responsible for establishing the
      * underlying network connection to the remote SMSC system. For example, The
      * TCP/IP implementation would create and connect a new
      * <code>java.io.Socket</code> to the SMSC host.
@@ -302,59 +302,25 @@ public abstract class SmscLink {
      *             stream.
      */
     public byte[] read(final byte[] array) throws IOException {
-        int ptr = 0;
-        int c = 0;
-        int cmdLen = 0;
-
         if (in == null) {
             throw new IOException(LINK_NOT_UP_ERR);
         }
 
         byte[] buf = array;
+        int count = 0;
         synchronized (readLock) {
             try {
-                ptr = in.read(buf, 0, 16);
-                if (ptr < 4) {
-                    if (ptr == -1) {
-                        throw new EOFException(END_OF_STREAM_ERR);
-                    }
-
-                    while (ptr < 4) {
-                        c = in.read(buf, ptr, 16 - ptr);
-                        if (c < 0) {
-                            throw new EOFException(END_OF_STREAM_ERR);
-                        }
-                        ptr += c;
-                   }
-               }
-
-                cmdLen = SMPPIO.bytesToInt(buf, 0, 4);
+                count = readBytes(buf, 0, 4, 16);
+                int cmdLen = SMPPIO.bytesToInt(buf, 0, 4);
                 if (cmdLen > buf.length) {
                     byte[] newbuf = new byte[cmdLen];
-                    System.arraycopy(buf, 0, newbuf, 0, ptr);
+                    System.arraycopy(buf, 0, newbuf, 0, count);
                     buf = newbuf;
-               }
-
-                c = in.read(buf, ptr, cmdLen - ptr);
-                if (c == -1) {
-                    throw new EOFException(END_OF_STREAM_ERR);
                 }
-
-                ptr += c;
-                while (ptr < cmdLen) {
-                    c = in.read(buf, ptr, cmdLen - ptr);
-                    if (c < 0) {
-                        throw new EOFException(END_OF_STREAM_ERR);
-                    }
-
-                    ptr += c;
-               }
-            } catch (IOException x) {
-                // After the finally clause, make sure the caller still gets the
-                // IOException..
-                throw x;
+                int remaining = cmdLen - count;
+                readBytes(buf, count, remaining, remaining);
             } finally {
-                dump(snoopIn, array, 0, ptr);
+                dump(snoopIn, array, 0, count);
             }
         }
         return buf;
@@ -374,6 +340,34 @@ public abstract class SmscLink {
         }
     }
 
+    /**
+     * Attempt to read the bytes for an SMPP packet from the inbound stream.
+     * @param buf The buffer to read bytes in to.
+     * @param offset The offset into buffer to begin writing bytes from.
+     * @param maxLen The maximum number of bytes to read in.
+     * @param minimum The minimum number of bytes to read before returning. Once
+     * this method has read at least this number of bytes, it will return.
+     * @return The number of bytes read by this method.
+     * @throws IOException
+     */
+    private int readBytes(byte[] buf, int offset, int minimum, int maxLen) throws IOException {
+        assert Thread.holdsLock(readLock);
+        int ptr = in.read(buf, offset, maxLen);
+        if (ptr < minimum) {
+            if (ptr == -1) {
+                throw new EOFException(END_OF_STREAM_ERR);
+            }
+            while (ptr < minimum) {
+                int count = in.read(buf, offset + ptr, maxLen - ptr);
+                if (count < 0) {
+                    throw new EOFException(END_OF_STREAM_ERR);
+                }
+                ptr += count;
+           }
+        }
+        return ptr;
+    }
+    
     /**
      * Dump bytes to an output stream.
      * 
