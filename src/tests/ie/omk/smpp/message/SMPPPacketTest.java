@@ -34,14 +34,12 @@ public class SMPPPacketTest extends TestCase {
         SMPPPacket p = new GenericNack();
 
         // Set the version first..this version class doesn't fail anything
-        // for fields too long or invalid values or anything.
+        // for fields too long or invalid values.
         p.setVersion(myVer);
         assertEquals(myVer, p.getVersion());
 
         p.setAlphabet(myEnc);
         assertEquals(myEnc, p.getMessageEncoding());
-
-        // XXX add test for setMessageEncoding
 
         p.setDataCoding(0x9b);
         assertEquals(0x9b, p.getDataCoding());
@@ -131,36 +129,46 @@ public class SMPPPacketTest extends TestCase {
      */
     public void testFullDecode() {
         try {
-            SubmitSM sm = new SubmitSM();
-            sm.setSequenceNum(70);
-            sm.setSource(new Address(0, 0, "12345678"));
-            sm.setDestination(new Address(0, 0, "87654321"));
-            sm.setProtocolID(7);
-            sm.setMessageText("Test message text");
-            sm.setOptionalParameter(Tag.PAYLOAD_TYPE, new Integer(0));
-            //sm.setOptionalParameter(Tag.PRIVACY_INDICATOR, new Integer(2));
-            //sm.setOptionalParameter(Tag.ALERT_ON_MESSAGE_DELIVERY, null);
-
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            sm.writeTo(out);
-
             SubmitSM sm1 = new SubmitSM();
-            byte[] b1 = out.toByteArray();
-            sm1.readFrom(b1, 0);
+            sm1.setSequenceNum(70);
+            sm1.setSource(new Address(0, 0, "12345678"));
+            sm1.setDestination(new Address(0, 0, "87654321"));
+            sm1.setProtocolID(7);
+            sm1.setMessageText("Test message text");
+            sm1.setOptionalParameter(Tag.PAYLOAD_TYPE, new Integer(0));
+            sm1.setOptionalParameter(Tag.PRIVACY_INDICATOR, new Integer(2));
+            sm1.setOptionalParameter(Tag.ALERT_ON_MESSAGE_DELIVERY, null);
 
-            out.reset();
-            sm1.writeTo(out);
+            ByteArrayOutputStream sm1Out = new ByteArrayOutputStream();
+            sm1.writeTo(sm1Out);
 
-            byte[] b2 = out.toByteArray();
+            SubmitSM sm2 = new SubmitSM();
+            sm2.readFrom(sm1Out.toByteArray(), 0);
 
-            assertTrue(Arrays.equals(b1, b2));
+            assertEquals(sm1.getSequenceNum(), sm2.getSequenceNum());
+            assertEquals(sm1.getSource(), sm2.getSource());
+            assertEquals(sm1.getDestination(), sm2.getDestination());
+            assertEquals(sm1.getProtocolID(), sm2.getProtocolID());
+            assertEquals(sm1.getMessageText(), sm2.getMessageText());
+            assertEquals(sm1.getTLVTable().getLength(), sm2.getTLVTable().getLength());
+            assertEquals(sm1.getOptionalParameter(Tag.PAYLOAD_TYPE),
+                    sm2.getOptionalParameter(Tag.PAYLOAD_TYPE));
+            assertEquals(sm1.getOptionalParameter(Tag.PRIVACY_INDICATOR),
+                    sm2.getOptionalParameter(Tag.PRIVACY_INDICATOR));
+            assertEquals(sm1.getOptionalParameter(Tag.ALERT_ON_MESSAGE_DELIVERY),
+                    sm2.getOptionalParameter(Tag.ALERT_ON_MESSAGE_DELIVERY));
+
+            ByteArrayOutputStream sm2Out = new ByteArrayOutputStream();
+            sm2.writeTo(sm2Out);
+            assertTrue(
+                    Arrays.equals(sm1Out.toByteArray(), sm2Out.toByteArray()));
         } catch (Exception x) {
             x.printStackTrace(System.err);
             fail("Failing due to exception.");
         }
     }
 
-    public void testDefaultEncSetMessage() {
+    public void testDefaultEncodingAccepts160Chars() {
         try {
             SubmitSM sm = new SubmitSM();
             sm.setVersion(SMPPVersion.V33);
@@ -182,7 +190,7 @@ public class SMPPPacketTest extends TestCase {
         }
     }
 
-    public void testDefaultEncTooLong() {
+    public void testDefaultEncodingFailsOnTooManyCharacters() {
 
         SubmitSM sm = new SubmitSM();
         StringBuffer textLong = new StringBuffer(300);
