@@ -24,21 +24,81 @@ import junit.framework.TestCase;
 public class SizeTest extends TestCase {
 
     // List of all the message types.
-    protected static final Class[] classList = {AlertNotification.class,
-            BindReceiver.class, BindReceiverResp.class, BindTransceiver.class,
-            BindTransceiverResp.class, BindTransmitter.class,
-            BindTransmitterResp.class, CancelSM.class, CancelSMResp.class,
-            DataSM.class, DataSMResp.class, DeliverSM.class,
-            DeliverSMResp.class, EnquireLink.class, EnquireLinkResp.class,
-            GenericNack.class, ParamRetrieve.class, ParamRetrieveResp.class,
-            QueryLastMsgs.class, QueryLastMsgsResp.class,
-            QueryMsgDetails.class, QueryMsgDetailsResp.class, QuerySM.class,
-            QuerySMResp.class, ReplaceSM.class, ReplaceSMResp.class,
-            SubmitMulti.class, SubmitMultiResp.class, SubmitSM.class,
-            SubmitSMResp.class, Unbind.class, UnbindResp.class, };
+    private static final Class[] classList = {
+        AlertNotification.class,
+        BindReceiver.class,
+        BindReceiverResp.class,
+        BindTransceiver.class,
+        BindTransceiverResp.class,
+        BindTransmitter.class,
+        BindTransmitterResp.class,
+        CancelSM.class,
+        CancelSMResp.class,
+        DataSM.class,
+        DataSMResp.class,
+        DeliverSM.class,
+        DeliverSMResp.class,
+        EnquireLink.class,
+        EnquireLinkResp.class,
+        GenericNack.class,
+        ParamRetrieve.class,
+        ParamRetrieveResp.class,
+        QueryLastMsgs.class,
+        QueryLastMsgsResp.class,
+        QueryMsgDetails.class,
+        QueryMsgDetailsResp.class,
+        QuerySM.class,
+        QuerySMResp.class,
+        ReplaceSM.class,
+        ReplaceSMResp.class,
+        SubmitMulti.class,
+        SubmitMultiResp.class,
+        SubmitSM.class,
+        SubmitSMResp.class,
+        Unbind.class,
+        UnbindResp.class,
+    };
 
-    public SizeTest(String n) {
-        super(n);
+    public void testPacketsWithDefaultConstructor() {
+        testPacketSizes(false);
+    }
+    
+    public void testPacketsWithFieldsSet() {
+        testPacketSizes(true);
+    }
+    
+    /**
+     * Test that packets report their sizes correctly. The <code>filled</code>
+     * parameter determines if the test run uses all the default values for the
+     * fields as determined by a message's constructor or if the test will fill
+     * in test values for all relevant fields in the message.
+     */
+    private void testPacketSizes(boolean filled) {
+        for (int i = 0; i < classList.length; i++) {
+            String className = classList[i].getName();
+            className = className.substring(className.lastIndexOf('.'));
+
+            try {
+                SMPPPacket p = (SMPPPacket) classList[i].newInstance();
+                if (filled) {
+                    initialiseFields(p);
+                }
+                testPacket(className, p);
+            } catch (SMPPException x) {
+                fail(className + " field initialisation caused an SMPP exception:\n"
+                        + x.toString());
+            } catch (InstantiationException x) {
+                fail(className + " is implemented incorrectly. Exception thrown:\n"
+                        + x.toString());
+            } catch (IllegalAccessException x) {
+                fail(className + " constructor is not public.\n" + x.toString());
+            } catch (ExceptionInInitializerError x) {
+                fail(className + " constructor threw an exception.\n" + x.toString());
+            } catch (SecurityException x) {
+                fail("SecurityException instantiating " + className + "\n"
+                        + x.toString());
+            }
+        }
     }
 
     /**
@@ -66,9 +126,10 @@ public class SizeTest extends TestCase {
             }
             deserialized.readFrom(array, 0);
 
-            assertEquals(n + " serialized.", original.getLength(), array.length);
-            assertEquals(n + " deserialized.", array.length, deserialized
-                    .getLength());
+            assertEquals(n + " serialized length does not match.",
+                    original.getLength(), array.length);
+            assertEquals(n + " deserialized length does not match.",
+                    array.length, deserialized.getLength());
         } catch (BadCommandIDException x) {
             fail(n + " serialization caused BadCommandIDException:\n"
                     + x.toString());
@@ -78,41 +139,6 @@ public class SizeTest extends TestCase {
         } catch (IOException x) {
             fail(n + " serialization caused I/O Exception:\n" + x.toString());
             return;
-        }
-    }
-
-    /**
-     * Test that packets report their sizes correctly. The <code>filled</code>
-     * parameter determines if the test run uses all the default values for the
-     * fields as determined by a message's constructor or if the test will fill
-     * in test values for all relevant fields in the message.
-     */
-    public void testMessageSizes(boolean filled) {
-        for (int i = 0; i < classList.length; i++) {
-            String n = classList[i].getName();
-            n = n.substring(n.lastIndexOf('.'));
-
-            try {
-                SMPPPacket p = (SMPPPacket) classList[i].newInstance();
-                if (filled) {
-                    initialiseFields(p);
-                }
-
-                testPacket(n, p);
-            } catch (SMPPException x) {
-                fail(n + " field initialisation caused an SMPP exception:\n"
-                        + x.toString());
-            } catch (InstantiationException x) {
-                fail(n + " is implemented incorrectly. Exception thrown:\n"
-                        + x.toString());
-            } catch (IllegalAccessException x) {
-                fail(n + " constructor is not public.\n" + x.toString());
-            } catch (ExceptionInInitializerError x) {
-                fail(n + " constructor threw an exception.\n" + x.toString());
-            } catch (SecurityException x) {
-                fail("SecurityException instantiating " + n + "\n"
-                        + x.toString());
-            }
         }
     }
 
@@ -261,13 +287,11 @@ public class SizeTest extends TestCase {
                     GSMConstants.GSM_NPI_UNKNOWN, "991293212"));
             q1.addDestination(new Address(GSMConstants.GSM_TON_UNKNOWN,
                     GSMConstants.GSM_NPI_UNKNOWN, "991293213"));
-            //q1.setProtocolId();
             q1.setPriority(1);
             q1.setDeliveryTime(new SMPPDate());
             q1.setExpiryTime(new SMPPDate());
             q1.setRegistered(1);
             q1.setReplaceIfPresent(1);
-            //q1.setDataCoding();
             q1.setMessageText("This is a short message");
             q1.setMessageId("deadbeef");
             q1.setFinalDate(new SMPPDate());
@@ -308,4 +332,3 @@ public class SizeTest extends TestCase {
         }
     }
 }
-
