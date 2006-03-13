@@ -2,7 +2,8 @@
 How to build
 ------------
 
-To build you'll need a version of Apache Ant installed, or use Eclipse.
+To build you'll need a version of Apache Ant 1.6 or better installed,
+or use Eclipse. J2SE 1.4 or better is required.
 
 You can get Ant from http://ant.apache.org/
 Eclipse can be obtained from http://www.eclipse.org/
@@ -12,7 +13,6 @@ ant all
 
 This will build the Jar files, javadoc documentation and build and run the JUnit
 test suite. The jar files will be placed in the lib sub-directory.
-
 
 The smppapi is developed using the Eclipse IDE and the source tree contains
 all of the relevant project control files.
