@@ -186,6 +186,14 @@
 
     <target name="tests" depends="init,run-testsuite,tests-report" description="Run the unit test suite"/>
 
+    <target name="install-junit" description="Install the JUnit jar in your Ant lib directory">
+        <copy todir="${ant.home}/lib">
+        	<fileset dir="${build.lib}">
+            	<include name="junit.jar"/>
+            </fileset>
+	    </copy>
+    </target>
+
     <target name="run-testsuite" depends="init,compile-api,compile-tests">
         <mkdir dir="${tests-report-xml}"/>
         <junit fork="true" dir="${basedir}">
