@@ -126,11 +126,11 @@ public class TLVTests extends TestCase {
             // Try and set a string that's too long.
             String longString = new String(
                     "111111111111111111111111111111111111111111111111111111111111111111111111111"
-                            + "222222222222222222222222222222222222222222222222222222222222222222222222222"
-                            + "333333333333333333333333333333333333333333333333333333333333333333333333333"
-                            + "444444444444444444444444444444444444444444444444444444444444444444444444444"
-                            + "555555555555555555555555555555555555555555555555555555555555555555555555555"
-                            + "666666666666666666666666666666666666666666666666666666666666666666666666666");
+                    + "222222222222222222222222222222222222222222222222222222222222222222222222222"
+                    + "333333333333333333333333333333333333333333333333333333333333333333333333333"
+                    + "444444444444444444444444444444444444444444444444444444444444444444444444444"
+                    + "555555555555555555555555555555555555555555555555555555555555555555555555555"
+                    + "666666666666666666666666666666666666666666666666666666666666666666666666666");
             tab.set(Tag.ADDITIONAL_STATUS_INFO_TEXT, longString);
             fail("Set a StringValue that was too long.");
         } catch (InvalidSizeForValueException x) {
@@ -192,22 +192,23 @@ public class TLVTests extends TestCase {
                 tab1.parseAllOpts();
             }
 
-            assertEquals(msg, ((Number) tab.get(Tag.DEST_ADDR_SUBUNIT))
-                    .longValue(), ((Number) tab1.get(Tag.DEST_ADDR_SUBUNIT))
-                    .longValue());
-            assertEquals(msg, ((Number) tab.get(Tag.DEST_TELEMATICS_ID))
-                    .longValue(), ((Number) tab1.get(Tag.DEST_TELEMATICS_ID))
-                    .longValue());
-            assertEquals(msg, ((Number) tab.get(Tag.QOS_TIME_TO_LIVE))
-                    .longValue(), ((Number) tab1.get(Tag.QOS_TIME_TO_LIVE))
-                    .longValue());
-            assertEquals(msg, tab.get(Tag.ADDITIONAL_STATUS_INFO_TEXT), tab1
-                    .get(Tag.ADDITIONAL_STATUS_INFO_TEXT));
-            assertTrue(msg, Arrays.equals((byte[]) tab
-                    .get(Tag.CALLBACK_NUM_ATAG), (byte[]) tab1
-                    .get(Tag.CALLBACK_NUM_ATAG)));
-            assertEquals(msg, bitSet, (BitSet) tab
-                    .get(Tag.MS_MSG_WAIT_FACILITIES));
+            assertEquals(msg,
+                    ((Number) tab.get(Tag.DEST_ADDR_SUBUNIT)).longValue(),
+                    ((Number) tab1.get(Tag.DEST_ADDR_SUBUNIT)).longValue());
+            assertEquals(msg,
+                    ((Number) tab.get(Tag.DEST_TELEMATICS_ID)).longValue(),
+                    ((Number) tab1.get(Tag.DEST_TELEMATICS_ID)).longValue());
+            assertEquals(msg,
+                    ((Number) tab.get(Tag.QOS_TIME_TO_LIVE)).longValue(),
+                    ((Number) tab1.get(Tag.QOS_TIME_TO_LIVE)).longValue());
+            assertEquals(msg,
+                    tab.get(Tag.ADDITIONAL_STATUS_INFO_TEXT),
+                    tab1.get(Tag.ADDITIONAL_STATUS_INFO_TEXT));
+            assertTrue(msg,
+                    Arrays.equals((byte[]) tab.get(Tag.CALLBACK_NUM_ATAG),
+                            (byte[]) tab1.get(Tag.CALLBACK_NUM_ATAG)));
+            assertEquals(msg, bitSet,
+                    (BitSet) tab.get(Tag.MS_MSG_WAIT_FACILITIES));
         }
     }
 
