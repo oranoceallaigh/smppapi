@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.net.SocketException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -31,6 +32,9 @@ public class TcpLink extends ie.omk.smpp.net.SmscLink {
     /** The ip port to connect to */
     private int port;
 
+    /** The socket timeout setting. */
+    private long sockTimeout;
+    
     /** The socket corresponding to the virtual connection */
     private Socket sock;
 
@@ -114,6 +118,9 @@ public class TcpLink extends ie.omk.smpp.net.SmscLink {
     protected void implOpen() throws java.io.IOException {
         LOGGER.info("Opening TCP socket to " + addr + ":" + port);
         sock = new Socket(addr, port);
+        if (sockTimeout > 0) {
+            sock.setSoTimeout((int) sockTimeout);
+        }
         connected = true;
     }
 
@@ -236,11 +243,14 @@ public class TcpLink extends ie.omk.smpp.net.SmscLink {
 
     public void setTimeout(long timeout) {
         try {
-            sock.setSoTimeout((int) timeout);
-        } catch (Throwable t) {
-            LOGGER.error("Failed to set timeout on socket: " + t.getMessage());
+            this.sockTimeout = timeout;
+            if (sock != null) {
+                sock.setSoTimeout((int) timeout);
+            }
+        } catch (SocketException x) {
+            LOGGER.error("Failed to set timeout on socket: " + x.getMessage());
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug(STACK_TRACE_ERR, t);
+                LOGGER.debug(STACK_TRACE_ERR, x);
             }
         }
     }
@@ -248,12 +258,11 @@ public class TcpLink extends ie.omk.smpp.net.SmscLink {
     public long getTimeout() {
         try {
             return (long) sock.getSoTimeout();
-        } catch (Throwable t) {
+        } catch (SocketException x) {
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug(STACK_TRACE_ERR, t);
+                LOGGER.debug(STACK_TRACE_ERR, x);
             }
         }
-
         return -1L;
     }
 }
