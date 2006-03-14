@@ -314,6 +314,15 @@ public abstract class SMPPPacket {
     }
 
     /**
+     * Is this command a request packet.
+     * @return <code>true</code> if this packet is an SMPP request, <code>
+     * false</code> if it is a response.
+     */
+    public boolean isRequest() {
+        return false;
+    }
+    
+    /**
      * Set the version handler for this packet. If <code>null</code> is passed
      * in as the version, the default version will be used.
      * 

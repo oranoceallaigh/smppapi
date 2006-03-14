@@ -27,6 +27,10 @@ public abstract class SMPPRequest extends SMPPPacket {
         super(id, seqNum);
     }
 
+    public final boolean isRequest() {
+        return true;
+    }
+    
     /**
      * Check has this request been acknowledged or not.
      */
