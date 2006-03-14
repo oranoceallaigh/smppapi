@@ -797,7 +797,7 @@ public class Connection implements java.lang.Runnable {
                 bindReq = (Bind) newInstance(SMPPPacket.BIND_TRANSMITTER);
                 break;
             case RECEIVER:
-                bindReq = (Bind) newInstance(SMPPPacket.BIND_TRANSCEIVER);
+                bindReq = (Bind) newInstance(SMPPPacket.BIND_RECEIVER);
                 break;
             case TRANSCEIVER:
                 if (this.interfaceVersion.isOlder(SMPPVersion.V34)) {
@@ -1111,9 +1111,8 @@ public class Connection implements java.lang.Runnable {
 
     private void processOutboundPacket(SMPPPacket packet) throws IOException {
         int id = packet.getCommandId();
-        if (interfaceVersion.isSupported(id)) {
+        if (!interfaceVersion.isSupported(id)) {
             StringBuffer err = new StringBuffer(120)
-            .append("SMPP version ")
             .append(interfaceVersion.toString())
             .append(" does not support command ID 0x")
             .append(Integer.toHexString(id));
@@ -1450,7 +1449,6 @@ public class Connection implements java.lang.Runnable {
                 // Reset smppEx back to zero if we reach here, as packet
                 // reception was successful.
                 smppEx = 0;
-                processInboundPacket(pak);
 
                 // Tell all the observers about the new packet
                 LOGGER.info("Notifying observers of packet received");
