@@ -4,7 +4,6 @@ import ie.omk.smpp.Connection;
 import ie.omk.smpp.message.SMPPPacket;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -20,12 +19,12 @@ import org.apache.commons.logging.LogFactory;
  * observer has successfully processed the event.
  * 
  * <p>
- * This class is not protected against multi-threaded access. At the beginning
- * of each event or packet notification a snapshot of the current set of
- * observers will be taken and used to deliver the event. If an observer
- * is removed from the list of registered listeners, it is possible that it
- * may still receive an event notification if it was included in a snapshot
- * just before it was removed.
+ * Adding and removing observers from an instance of this class is protected
+ * against multi-threaded access. However, event and packet notification
+ * is not. If an event notification is currently in progress and another
+ * thread modifies the set of registered observers, then it is possible for
+ * the new observer to receive events before the call to <code>addObserver
+ * </code> is complete.
  * </p>
  * 
  * @author Oran Kelly
@@ -34,23 +33,30 @@ import org.apache.commons.logging.LogFactory;
  */
 public class SimpleEventDispatcher implements EventDispatcher {
 
-    private static final Log LOGGER = LogFactory.getLog(SimpleEventDispatcher.class);
+    /**
+     * Size of array increments.
+     */
+    public static final int INCREMENT = 3;
 
+    private static final Log LOGGER = LogFactory.getLog(SimpleEventDispatcher.class);
+    
     /**
      * List of observers registered on this event dispatcher.
      */
-    protected List observers = new ArrayList();
+    private ConnectionObserver[] observers;
 
     /**
      * Create a new SimpleEventDispatcher.
      */
     public SimpleEventDispatcher() {
+        observers = new ConnectionObserver[INCREMENT];
     }
 
     /**
      * Create a new SimpleEventDispatcher and register one observer on it.
      */
     public SimpleEventDispatcher(ConnectionObserver ob) {
+        observers = new ConnectionObserver[1];
         addObserver(ob);
     }
 
@@ -70,10 +76,17 @@ public class SimpleEventDispatcher implements EventDispatcher {
      *            the ConnectionObserver object to add.
      */
     public void addObserver(ConnectionObserver ob) {
-        if (!observers.contains(ob)) {
-            observers.add(ob);
-        } else {
-            LOGGER.info("Not adding observer because it's already registered");
+        synchronized (observers) {
+            if (indexOf(ob) < 0) {
+                int index = findSlot();
+                if (index < 0) {
+                    growArray(ob);
+                } else {
+                    observers[index] = ob;
+                }
+            } else {
+                LOGGER.info("Not adding observer because it's already registered");
+            }
         }
     }
 
@@ -85,10 +98,13 @@ public class SimpleEventDispatcher implements EventDispatcher {
      *            The ConnectionObserver object to remove.
      */
     public void removeObserver(ConnectionObserver ob) {
-        if (observers.contains(ob)) {
-            observers.remove(observers.indexOf(ob));
-        } else {
-            LOGGER.info("Cannot remove an observer that was not added");
+        synchronized (observers) {
+            int index = indexOf(ob);
+            if (index > -1) {
+                observers[index] = null;
+            } else {
+                LOGGER.info("Cannot remove an observer that was not added");
+            }
         }
     }
 
@@ -99,8 +115,17 @@ public class SimpleEventDispatcher implements EventDispatcher {
      * @return an iterator which iterates the observers registered with this
      *         event dispatcher.
      */
-    public synchronized Iterator observerIterator() {
-        return Collections.unmodifiableList(observers).iterator();
+    public Iterator observerIterator() {
+        List list;
+        synchronized (observers) {
+            list = new ArrayList(observers.length);
+            for (int i = 0; i < observers.length; i++) {
+                if (observers[i] != null) {
+                    list.add(observers[i]);
+                }
+            }
+        }
+        return list.iterator();
     }
 
     /**
@@ -113,7 +138,7 @@ public class SimpleEventDispatcher implements EventDispatcher {
      *         otherwise.
      */
     public boolean contains(ConnectionObserver ob) {
-        return observers.contains(ob);
+        return indexOf(ob) > -1;
     }
 
     /**
@@ -125,13 +150,14 @@ public class SimpleEventDispatcher implements EventDispatcher {
      *            the SMPP event to notify observers of.
      */
     public void notifyObservers(Connection conn, SMPPEvent event) {
-        ConnectionObserver[] obs =
-            (ConnectionObserver[]) observers.toArray(new ConnectionObserver[0]);
-        for (int i = obs.length - 1; i >= 0; i++) {
-            try {
-                obs[i].update(conn, event);
-            } catch (Exception x) {
-                LOGGER.warn("An observer threw an exception during event processing", x);
+        for (int i = 0; i < observers.length; i++) {
+            ConnectionObserver obs = observers[i];
+            if (obs != null) {
+                try {
+                    obs.update(conn, event);
+                } catch (Throwable t) {
+                    LOGGER.warn("An observer threw an exception during event processing", t);
+                }
             }
         }
     }
@@ -145,15 +171,63 @@ public class SimpleEventDispatcher implements EventDispatcher {
      *            the received packet to notify observers of.
      */
     public void notifyObservers(Connection conn, SMPPPacket packet) {
-        ConnectionObserver[] obs =
-            (ConnectionObserver[]) observers.toArray(new ConnectionObserver[0]);
-        for (int i = obs.length - 1; i >= 0; i++) {
-            try {
-                obs[i].packetReceived(conn, packet);
-            } catch (Exception x) {
-                LOGGER.warn("An observer threw an exception during packet processing", x);
+        for (int i = 0; i < observers.length; i++) {
+            ConnectionObserver obs = observers[i];
+            if (obs != null) {
+                try {
+                    obs.packetReceived(conn, packet);
+                } catch (Throwable t) {
+                    LOGGER.warn("An observer threw an exception during packet processing", t);
+                }
             }
         }
     }
+    
+    public int capacity() {
+        return observers.length;
+    }
+    
+    public int size() {
+        int size = 0;
+        synchronized (observers) {
+            for (int i = 0; i < observers.length; i++) {
+                if (observers[i] != null) {
+                    size++;
+                }
+            }
+        }
+        return size;
+    }
+    
+    void growArray(ConnectionObserver ob) {
+        assert Thread.holdsLock(observers);
+        ConnectionObserver[] newArray =
+            new ConnectionObserver[observers.length + INCREMENT];
+        System.arraycopy(observers, 0, newArray, 0, observers.length);
+        newArray[observers.length] = ob;
+        observers = newArray;
+    }
+    
+    private int findSlot() {
+        assert Thread.holdsLock(observers);
+        int i;
+        for (i = 0; i < observers.length; i++) {
+            if (observers[i] == null) {
+                break;
+            }
+        }
+        if (i == observers.length) {
+            i = -1;
+        }
+        return i;
+    }
+    
+    private int indexOf(ConnectionObserver obs) {
+        for (int i = observers.length - 1; i >= 0; i--) {
+            if (observers[i] == obs) {
+                return i;
+            }
+        }
+        return -1;
+    }
 }
-
