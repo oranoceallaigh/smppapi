@@ -119,12 +119,15 @@ public class AsyncReceiver extends SMPPAPIExample implements ConnectionObserver 
             if (ev.getReason() == ReceiverExitEvent.BIND_TIMEOUT) {
                 logger.info("Bind timed out waiting for response.");
             }
-            logger.info("Receiver thread has exited.");
+            logger.info("Receiver thread has exited: " + ev.getReason());
         } else {
             Throwable t = ev.getException();
             logger.info("Receiver thread died due to exception:");
             logger.warn("Exception", t);
             endReport();
+        }
+        synchronized (this) {
+            notify();
         }
     }
 
