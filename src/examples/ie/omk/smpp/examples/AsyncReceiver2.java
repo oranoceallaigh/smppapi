@@ -113,6 +113,12 @@ public class AsyncReceiver2 extends SMPPAPIExample {
 
         // Called when a bind response packet is received.
         public void bindResponse(Connection source, BindResp br) {
+            synchronized (AsyncReceiver2.this) {
+                // on exiting this block, we're sure that
+                // the main thread is now sitting in the wait
+                // call, awaiting the unbind request.
+                logger.info("Bind response received.");
+           }
             if (br.getCommandStatus() == 0) {
                 logger.info("Successfully bound. Awaiting messages..");
             } else {
@@ -121,11 +127,6 @@ public class AsyncReceiver2 extends SMPPAPIExample {
                     myConnection.closeLink();
                } catch (IOException x) {
                     logger.info("IOException closing link:\n" + x.toString());
-               }
-                synchronized (AsyncReceiver2.this) {
-                    // on exiting this block, we're sure that
-                    // the main thread is now sitting in the wait
-                    // call, awaiting the unbind request.
                }
             }
         }
@@ -140,9 +141,7 @@ public class AsyncReceiver2 extends SMPPAPIExample {
                 UnbindResp ubr = new UnbindResp(ubd);
                 myConnection.sendResponse(ubr);
             } catch (IOException x) {
-                logger
-                        .info("IOException while acking unbind.\n"
-                                + x.toString());
+                logger.info("IOException while acking unbind: " + x.toString());
             }
         }
 
