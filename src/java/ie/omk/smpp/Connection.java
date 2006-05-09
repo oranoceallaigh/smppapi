@@ -33,7 +33,6 @@ import ie.omk.smpp.util.SequenceNumberScheme;
 import ie.omk.smpp.version.SMPPVersion;
 import ie.omk.smpp.version.VersionException;
 
-import java.io.EOFException;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -1411,39 +1410,29 @@ public class Connection implements java.lang.Runnable {
                        LOGGER.debug("Caught a socket timeout exception: "
                                + x.getMessage());
                    }
-                    if (state == BINDING) {
-                        // bind timeout has expired
-                        LOGGER.error("Socket timeout in BINDING state.");
-                        exitEvent = new ReceiverExitEvent(this, null, state);
-                        ((ReceiverExitEvent) exitEvent)
-                                .setReason(ReceiverExitEvent.BIND_TIMEOUT);
-                        setState(UNBOUND);
+                   if (state == BINDING) {
+                       // bind timeout has expired
+                       LOGGER.debug("Bind timeout.");
+                       exitEvent = new ReceiverExitEvent(this, null, state);
+                       ((ReceiverExitEvent) exitEvent).setReason(
+                               ReceiverExitEvent.BIND_TIMEOUT);
+                       setState(UNBOUND);
                    } else {
                        eventDispatcher.notifyObservers(this,
                                new ReceiverExceptionEvent(this, x));
                    }
-
-                    continue;
-               } catch (EOFException x) {
-                    // The network connection has disappeared! Wah!
-                    LOGGER.error("EOFException received in daemon thread.", x);
-
-                    // Will be caught by the general handler lower in this
-                    // method.
-                    throw x;
+                   continue;
                } catch (IOException x) {
-                    LOGGER.warn("I/O Exception caught", x);
-                    ReceiverExceptionEvent ev = new ReceiverExceptionEvent(
-                            this, x, state);
-                    eventDispatcher.notifyObservers(this, ev);
-                    smppEx++;
-                    if (smppEx > tooManyIOEx) {
-                        LOGGER.warn("Too many IOExceptions in receiver thread",
-                                x);
-                        throw x;
+                   LOGGER.warn("I/O Exception caught", x);
+                   ReceiverExceptionEvent ev = new ReceiverExceptionEvent(
+                           this, x, state);
+                   eventDispatcher.notifyObservers(this, ev);
+                   smppEx++;
+                   if (smppEx > tooManyIOEx) {
+                       LOGGER.warn("Too many IOExceptions in receiver thread", x);
+                       throw x;
                    }
-
-                    continue;
+                   continue;
                }
 
                 // Reset smppEx back to zero if we reach here, as packet
@@ -1454,11 +1443,12 @@ public class Connection implements java.lang.Runnable {
                 LOGGER.info("Notifying observers of packet received");
                 eventDispatcher.notifyObservers(this, pak);
             } // end while
-
-            // Notify observers that the thread is exiting with no error..
-            exitEvent = new ReceiverExitEvent(this, null, state);
+            if (exitEvent == null) {
+                // Notify observers that the thread is exiting with no error..
+                exitEvent = new ReceiverExitEvent(this, null, state);
+            }
         } catch (Exception x) {
-            LOGGER.error("Fatal exception in receiver thread", x);
+            LOGGER.debug("Fatal exception in receiver thread: " + x.getMessage(), x);
             exitEvent = new ReceiverExitEvent(this, x, state);
             setState(UNBOUND);
         } finally {
