@@ -1327,8 +1327,10 @@ public abstract class SMPPPacket {
                     "Ran out of bytes to read for packet body", x);
         }
 
-        // Set the message encoding type (if relevant)
-        encoding = EncodingFactory.getInstance().getEncoding(dataCoding);
+        // Set the message encoding type
+        if (dataCoding != 0) {
+            encoding = EncodingFactory.getInstance().getEncoding(dataCoding);
+        }
         if (encoding == null) {
             encoding = EncodingFactory.getInstance().getDefaultAlphabet();
         }
