@@ -422,8 +422,22 @@ public abstract class SmscLink {
      * @param timeout the timeout value in milliseconds.
      * @throws UnsupportedOperationException if the implementation does not support
      * timeouts.
+     * @deprecated Use setTimeout(int)
      */
     public void setTimeout(long timeout) {
+        throw new UnsupportedOperationException(TIMEOUT_UNSUPPORTED_ERR);
+    }
+
+    /**
+     * Set the value for read timeout. A link implementation may support timing
+     * out on blocking read operations. This method may be used to set such a
+     * timeout. If the implementation does not support timeouts, it must throw
+     * an <code>UnsuppertedOperationException<code>.
+     * @param timeout the timeout value in milliseconds.
+     * @throws UnsupportedOperationException if the implementation does not support
+     * timeouts.
+     */
+    public void setTimeout(int timeout) {
         throw new UnsupportedOperationException(TIMEOUT_UNSUPPORTED_ERR);
     }
 
@@ -435,7 +449,7 @@ public abstract class SmscLink {
      * @throws UnsupportedOperationException
      *             if the implementation does not support timeouts.
      */
-    public long getTimeout() {
+    public int getTimeout() {
         throw new UnsupportedOperationException(TIMEOUT_UNSUPPORTED_ERR);
     }
 

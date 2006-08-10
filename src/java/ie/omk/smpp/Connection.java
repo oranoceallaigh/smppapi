@@ -1140,10 +1140,10 @@ public class Connection implements java.lang.Runnable {
         
         // Initialise the link timeout to the bind timeout
         try {
-            long bindTimeout = APIConfig.getInstance().getLong(
-                    APIConfig.BIND_TIMEOUT, 0L);
-            if (bindTimeout > 0L) {
-                this.link.setTimeout(bindTimeout);
+            int bindTimeout = APIConfig.getInstance().getInt(
+                    APIConfig.BIND_TIMEOUT, 0);
+            if (bindTimeout > 0) {
+                link.setTimeout(bindTimeout);
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Set bind timeout to " + bindTimeout);
                }
@@ -1268,7 +1268,7 @@ public class Connection implements java.lang.Runnable {
 
         // Set the link timeout
         try {
-            long linkTimeout = APIConfig.getInstance().getLong(
+            int linkTimeout = APIConfig.getInstance().getInt(
                     APIConfig.LINK_TIMEOUT);
             link.setTimeout(linkTimeout);
 

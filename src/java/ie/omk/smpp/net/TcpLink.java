@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketAddress;
 import java.net.SocketException;
 
 import org.apache.commons.logging.Log;
@@ -33,7 +35,7 @@ public class TcpLink extends ie.omk.smpp.net.SmscLink {
     private int port;
 
     /** The socket timeout setting. */
-    private long sockTimeout;
+    private int sockTimeout;
     
     /** The socket corresponding to the virtual connection */
     private Socket sock;
@@ -117,9 +119,11 @@ public class TcpLink extends ie.omk.smpp.net.SmscLink {
      */
     protected void implOpen() throws java.io.IOException {
         LOGGER.info("Opening TCP socket to " + addr + ":" + port);
-        sock = new Socket(addr, port);
+        sock = new Socket();
+        SocketAddress sockAddr = new InetSocketAddress(addr, port);
+        sock.connect(sockAddr, sockTimeout);
         if (sockTimeout > 0) {
-            sock.setSoTimeout((int) sockTimeout);
+            sock.setSoTimeout(sockTimeout);
         }
         connected = true;
     }
@@ -241,11 +245,31 @@ public class TcpLink extends ie.omk.smpp.net.SmscLink {
         return connected;
     }
 
+    /**
+     * Set the socket timeout (SO_TIMEOUT).
+     * @param timeout The timeout to set.
+     */
+    public void setTimeout(int timeout) {
+        try {
+            sockTimeout = timeout;
+            if (sock != null) {
+                sock.setSoTimeout(sockTimeout);
+            }
+        } catch (SocketException x) {
+            LOGGER.error("Failed to set timeout on socket: " + x.getMessage());
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug(STACK_TRACE_ERR, x);
+            }
+        }
+    }
+    /**
+     * @deprecated Use setTimeout(int)
+     */
     public void setTimeout(long timeout) {
         try {
-            this.sockTimeout = timeout;
+            sockTimeout = (int) timeout;
             if (sock != null) {
-                sock.setSoTimeout((int) timeout);
+                sock.setSoTimeout(sockTimeout);
             }
         } catch (SocketException x) {
             LOGGER.error("Failed to set timeout on socket: " + x.getMessage());
@@ -255,14 +279,14 @@ public class TcpLink extends ie.omk.smpp.net.SmscLink {
         }
     }
 
-    public long getTimeout() {
+    public int getTimeout() {
         try {
-            return (long) sock.getSoTimeout();
+            return sock.getSoTimeout();
         } catch (SocketException x) {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug(STACK_TRACE_ERR, x);
             }
         }
-        return -1L;
+        return -1;
     }
 }
