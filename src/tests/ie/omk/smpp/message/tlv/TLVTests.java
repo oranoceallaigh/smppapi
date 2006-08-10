@@ -287,5 +287,19 @@ public class TLVTests extends TestCase {
             fail("Deserialize failed. " + x.getMessage());
         }
     }
+    
+    public void testDefineAndUndefine() throws Exception {
+        final int TAG_VALUE = 9000;
+        assertFalse(Tag.isTagDefined(TAG_VALUE));
+        Tag.defineTag(TAG_VALUE, String.class, null, 30);
+        assertTrue(Tag.isTagDefined(TAG_VALUE));
+        Tag tag = Tag.getTag(TAG_VALUE);
+        assertEquals(String.class, tag.getType());
+        assertEquals(TAG_VALUE, tag.intValue());
+        assertEquals(30, tag.getMaxLength());
+        assertEquals(30, tag.getMinLength());
+        assertEquals(30, tag.getLength());
+        Tag.undefineTag(tag);
+        assertFalse(Tag.isTagDefined(TAG_VALUE));
+    }
 }
-

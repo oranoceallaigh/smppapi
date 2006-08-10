@@ -389,6 +389,10 @@ public final class Tag implements java.io.Serializable {
      * If the tag is not known, a fresh instance of Tag will be returned which
      * uses an octet-string type.
      * 
+     * <p><b>WARNING</b> The behaviour of this method may change to returning
+     * <code>null</code> for an undefined tag. It needs to be determined
+     * which behaviour is the best.</p>
+     * 
      * @return The Tag object representing the tag <code>tagValue</code>.
      *         Will never return <code>null</code>.
      */
@@ -446,6 +450,16 @@ public final class Tag implements java.io.Serializable {
     }
 
     /**
+     * Determine if a tag is defined for a particular tag integer value. 
+     * @param tagValue The integer value of the tag.
+     * @return <code>true</code> if the tag is defined, <code>false</code>
+     * otherwise.
+     */
+    public static boolean isTagDefined(int tagValue) {
+        return tagTable.containsKey(new Integer(tagValue));
+    }
+    
+    /**
      * Undefine a tag. This removes all knoweledge of this tag type from the
      * internal tables. If there is no such tag defined already, this method
      * will do nothing.
@@ -458,10 +472,8 @@ public final class Tag implements java.io.Serializable {
         if (tag == null) {
             return null;
         }
-
         synchronized (tagTable) {
-            return (Tag) tagTable.remove(tag);
+            return (Tag) tagTable.remove(tag.tag);
         }
     }
 }
-
