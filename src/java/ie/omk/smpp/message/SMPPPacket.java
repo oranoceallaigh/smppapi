@@ -810,7 +810,7 @@ public abstract class SMPPPacket {
                         "Not enough bytes in array");
             }
 
-            int encodedLength = message.length;
+            int encodedLength = len;
             int encodingLength = encoding.getEncodingLength();
             if (encodingLength != 8) {
                 encodedLength = (len * encodingLength) / 8;
