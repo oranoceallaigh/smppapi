@@ -59,7 +59,7 @@ public class ObjectLink extends SmscLink {
 
     private int requestSent;
 
-    private long timeout;
+    private int timeout;
 
     /**
      * Create a new empty ObjectLink.
@@ -86,7 +86,7 @@ public class ObjectLink extends SmscLink {
         return connected;
     }
 
-    public void setTimeout(long timeout) {
+    public void setTimeout(int timeout) {
         this.timeout = timeout;
     }
 
@@ -131,7 +131,7 @@ public class ObjectLink extends SmscLink {
             synchronized (this) {
                 try {
                     if (requestSent < 1) {
-                        this.wait(this.timeout);
+                        this.wait((long) timeout);
                     }
                } catch (InterruptedException x) {
                     throw new IOException("No packets available.");
