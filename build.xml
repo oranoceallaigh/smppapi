@@ -297,7 +297,8 @@ Built on: ${os.name} ${os.version} architecture: ${os.arch}
             </fileset>
         </copy>
 
-        <tar tarfile="${dist}/smppapi-${releaseNumber}.tar" basedir="${releaseDir}" />
+        <tar tarfile="${dist}/smppapi-${releaseNumber}.tar" basedir="${dist}" 
+             excludes="smppapi-${releaseNumber}.tar" />
         <gzip src="${dist}/smppapi-${releaseNumber}.tar" zipfile="${dist}/smppapi-${releaseNumber}.tar.gz" />
         <delete file="${dist}/smppapi-${releaseNumber}.tar" />
     </target>
