@@ -32,6 +32,10 @@ public class SMPPDate implements java.io.Serializable {
         "{0,number,00}{1,number,00}{2,number,00}{3,number,00}{4,number,00}"
         + "{5,number,00}{6,number,0}{7,number,00}{8}";
 
+    private static final String SHORT_FORMAT =
+        "{0,number,00}{1,number,00}{2,number,00}{3,number,00}{4,number,00}"
+        + "{5,number,00}";
+
     private int year;
     private int month;
     private int day;
@@ -131,7 +135,9 @@ public class SMPPDate implements java.io.Serializable {
     }
 
     private void initCalendar(Calendar calendar) {
-        calendar.setTimeZone(savedTimeZone);
+        if (savedTimeZone != null) {
+            calendar.setTimeZone(savedTimeZone);
+        }
         calendar.set(Calendar.YEAR, year + 2000);
         calendar.set(Calendar.MONTH, month - 1);
         calendar.set(Calendar.DAY_OF_MONTH, day);
@@ -249,6 +255,18 @@ public class SMPPDate implements java.io.Serializable {
     }
 
     /**
+     * Test if this SMPPDate has timezone information associated with it.
+     * Relative time specs have no timezone information, neither does the
+     * short (12-character) form of the absolute time spec. The short-form
+     * absolute format should only be used by an SMSC - applications should
+     * never create a short-form format to send to the SMSC.
+     * @return
+     */
+    public boolean hasTimezone() {
+        return sign == '+' || sign == '-';
+    }
+    
+    /**
      * Check for equality against another SMPPDate object.
      */
     public boolean equals(Object obj) {
@@ -291,10 +309,11 @@ public class SMPPDate implements java.io.Serializable {
         if (s == null || s.length() == 0) {
             return d;
         }
-        if (s.length() != 16) {
+        if (s.length() != 16 && s.length() != 12) {
             throw new InvalidDateFormatException(
                     "Date string is incorrect length", s);
         }
+        boolean longForm = s.length() == 16;
         try {
             d.year = Integer.parseInt(s.substring(0, 2));
             d.month = Integer.parseInt(s.substring(2, 4));
@@ -302,23 +321,25 @@ public class SMPPDate implements java.io.Serializable {
             d.hour = Integer.parseInt(s.substring(6, 8));
             d.minute = Integer.parseInt(s.substring(8, 10));
             d.second = Integer.parseInt(s.substring(10, 12));
-            d.sign = s.charAt(15);
-            if (d.sign == 'R') {
-                // time is a relative specification.
-                d.tenth = 0;
-                d.utcOffset = 0;
-                d.savedTimeZone = null;
+            if (longForm) {
+                d.sign = s.charAt(15);
+                if (d.sign != 'R') {
+                    d.tenth = Integer.parseInt(s.substring(12, 13));
+                    d.utcOffset = Integer.parseInt(s.substring(13, 15));
+                    int rawOffset = d.utcOffset * 900000;
+                    if (d.sign == '-') {
+                        rawOffset = -rawOffset;
+                    }
+                    String[] tzs = TimeZone.getAvailableIDs(rawOffset);
+                    if (tzs.length > 0) {
+                        d.savedTimeZone = TimeZone.getTimeZone(tzs[0]);
+                    }
+                } else {
+                    d.savedTimeZone = null;
+                }
             } else {
-                d.tenth = Integer.parseInt(s.substring(12, 13));
-                d.utcOffset = Integer.parseInt(s.substring(13, 15));
-                int rawOffset = d.utcOffset * 900000;
-                if (d.sign == '-') {
-                    rawOffset = -rawOffset;
-                }
-                String[] tzs = TimeZone.getAvailableIDs(rawOffset);
-                if (tzs.length > 0) {
-                    d.savedTimeZone = TimeZone.getTimeZone(tzs[0]);
-                }
+                d.sign = (char) 0;
+                d.savedTimeZone = null;
             }
             d.hashCode = d.toString().hashCode();
         } catch (NumberFormatException x) {
@@ -338,7 +359,10 @@ public class SMPPDate implements java.io.Serializable {
                 new Integer(second), new Integer(tenth),
                 new Integer(utcOffset), new Character(sign),
         };
-
-        return MessageFormat.format(FORMAT, args);
+        String format = FORMAT;
+        if (sign == (char) 0) {
+            format = SHORT_FORMAT;
+        }
+        return MessageFormat.format(format, args);
     }
 }

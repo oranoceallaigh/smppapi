@@ -128,6 +128,7 @@ public class TestSMPPDate extends TestCase {
         try {
             final String absolute1 = "050504123211808+";
             final String absolute2 = "050504123211812-";
+            final String absolute3 = "061218111623";
             final String relative = "000000040559000R";
             
             final Calendar absCalendar1 = Calendar.getInstance();
@@ -150,16 +151,39 @@ public class TestSMPPDate extends TestCase {
             absCalendar2.set(Calendar.SECOND, 11);
             absCalendar2.set(Calendar.MILLISECOND, 800);
             
+            final Calendar absCalendar3 = Calendar.getInstance();
+            absCalendar3.set(Calendar.YEAR, 2006);
+            absCalendar3.set(Calendar.MONTH, 11);
+            absCalendar3.set(Calendar.DAY_OF_MONTH, 18);
+            absCalendar3.set(Calendar.HOUR_OF_DAY, 11);
+            absCalendar3.set(Calendar.MINUTE, 16);
+            absCalendar3.set(Calendar.SECOND, 23);
+            
             SMPPDate absDate1 = SMPPDate.parseSMPPDate(absolute1);
             assertEquals(absCalendar1.getTime(), absDate1.getCalendar().getTime());
             assertNotNull(absDate1.getTimeZone());
             assertEquals(2 * 3600000, absDate1.getTimeZone().getRawOffset());
+            assertFalse(absDate1.isRelative());
+            assertTrue(absDate1.hasTimezone());
+            assertEquals(absolute1, absDate1.toString());
+            assertEquals('+', absDate1.getSign());
 
             SMPPDate absDate2 = SMPPDate.parseSMPPDate(absolute2);
             assertEquals(absCalendar2.getTime(), absDate2.getCalendar().getTime());
             assertNotNull(absDate2.getTimeZone());
             assertEquals(3 * -3600000, absDate2.getTimeZone().getRawOffset());
+            assertFalse(absDate2.isRelative());
+            assertTrue(absDate2.hasTimezone());
+            assertEquals(absolute2, absDate2.toString());
+            assertEquals('-', absDate2.getSign());
 
+            SMPPDate absDate3 = SMPPDate.parseSMPPDate(absolute3);
+            assertNull(absDate3.getTimeZone());
+            assertFalse(absDate3.isRelative());
+            assertFalse(absDate3.hasTimezone());
+            assertEquals(absolute3, absDate3.toString());
+            assertEquals((char) 0, absDate3.getSign());
+            
             SMPPDate relDate = SMPPDate.parseSMPPDate(relative);
             assertEquals(0, relDate.getYear());
             assertEquals(0, relDate.getMonth());
@@ -170,6 +194,8 @@ public class TestSMPPDate extends TestCase {
             assertEquals(0, relDate.getTenth());
             assertEquals(0, relDate.getUtcOffset());
             assertNull(relDate.getTimeZone());
+            assertTrue(relDate.isRelative());
+            assertFalse(relDate.hasTimezone());
         } catch (InvalidDateFormatException x) {
             fail("Bad date format: " + x.toString());
         }
