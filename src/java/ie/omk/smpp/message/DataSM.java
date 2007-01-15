@@ -1,29 +1,33 @@
 package ie.omk.smpp.message;
 
 import ie.omk.smpp.Address;
-import ie.omk.smpp.util.GSMConstants;
-import ie.omk.smpp.util.SMPPIO;
 
-import java.io.OutputStream;
+import java.util.List;
 
 /**
  * Transfer data between the SC and an ESME. This message type is used to
  * transfer data both by the SMSC and the ESME. The command can be used as a
- * replacement for both submit_sm and deliver_sm. Relevant inherited fields from
- * SMPPPacket: <br>
- * <ul>
- * serviceType <br>
- * source <br>
- * destination <br>
- * esmClass <br>
- * registered <br>
- * dataCoding <br>
- * </ul>
- * 
- * @author Oran Kelly
- * @version 1.0
+ * replacement for both submit_sm and deliver_sm.
+ * @version $Id$
  */
-public class DataSM extends ie.omk.smpp.message.SMPPRequest {
+public class DataSM extends SMPPPacket {
+    private static final BodyDescriptor BODY_DESCRIPTOR = new BodyDescriptor();
+    private String serviceType;
+    private Address source;
+    private Address destination;
+    private int esmClass;
+    private int registered;
+    private int dataCoding;
+    
+    static {
+        BODY_DESCRIPTOR.add(ParamDescriptor.CSTRING)
+        .add(ParamDescriptor.ADDRESS)
+        .add(ParamDescriptor.ADDRESS)
+        .add(ParamDescriptor.INTEGER1)
+        .add(ParamDescriptor.INTEGER1)
+        .add(ParamDescriptor.INTEGER1);
+    }
+    
     /**
      * Construct a new DataSM
      */
@@ -31,82 +35,52 @@ public class DataSM extends ie.omk.smpp.message.SMPPRequest {
         super(DATA_SM);
     }
 
-    /**
-     * Construct a new DataSM with specified sequence number.
-     * 
-     * @param seqNum
-     *            The sequence number to use
-     * @deprecated
-     */
-    public DataSM(int seqNum) {
-        super(DATA_SM, seqNum);
+    public int getDataCoding() {
+        return dataCoding;
     }
 
-    /**
-     * Return the number of bytes this packet would be encoded as to an
-     * OutputStream.
-     * 
-     * @return the number of bytes this packet would encode as.
-     */
-    public int getBodyLength() {
-        int len = ((serviceType != null) ? serviceType.length() : 0)
-                + ((source != null) ? source.getLength() : 3)
-                + ((destination != null) ? destination.getLength() : 3);
-
-        // 3 1-byte integers, 1 c-string
-        return len + 4;
+    public void setDataCoding(int dataCoding) {
+        this.dataCoding = dataCoding;
     }
 
-    /**
-     * Write a byte representation of this packet to an OutputStream
-     * 
-     * @param out
-     *            The OutputStream to write to
-     * @throws java.io.IOException
-     *             If an error occurs writing to the output stream.
-     */
-    protected void encodeBody(OutputStream out) throws java.io.IOException {
-        SMPPIO.writeCString(serviceType, out);
-        if (source != null) {
-            source.writeTo(out);
-        } else {
-            // Write ton=0(null), npi=0(null), address=\0(nul)
-            new Address(GSMConstants.GSM_TON_UNKNOWN,
-                    GSMConstants.GSM_NPI_UNKNOWN, "").writeTo(out);
-        }
-        if (destination != null) {
-            destination.writeTo(out);
-        } else {
-            // Write ton=0(null), npi=0(null), address=\0(nul)
-            new Address(GSMConstants.GSM_TON_UNKNOWN,
-                    GSMConstants.GSM_NPI_UNKNOWN, "").writeTo(out);
-        }
-
-        SMPPIO.writeInt(esmClass, 1, out);
-        SMPPIO.writeInt(registered, 1, out);
-        SMPPIO.writeInt(dataCoding, 1, out);
+    public Address getDestination() {
+        return destination;
     }
 
-    public void readBodyFrom(byte[] body, int offset)
-            throws SMPPProtocolException {
-        // First the service type
-        serviceType = SMPPIO.readCString(body, offset);
-        offset += serviceType.length() + 1;
+    public void setDestination(Address destination) {
+        this.destination = destination;
+    }
 
-        source = new Address();
-        source.readFrom(body, offset);
-        offset += source.getLength();
+    public int getEsmClass() {
+        return esmClass;
+    }
 
-        destination = new Address();
-        destination.readFrom(body, offset);
-        offset += destination.getLength();
+    public void setEsmClass(int esmClass) {
+        this.esmClass = esmClass;
+    }
 
-        // ESM class, protocol Id, priorityFlag...
-        esmClass = SMPPIO.bytesToInt(body, offset++, 1);
+    public String getServiceType() {
+        return serviceType;
+    }
 
-        // Registered delivery, data coding
-        registered = SMPPIO.bytesToInt(body, offset++, 1);
-        dataCoding = SMPPIO.bytesToInt(body, offset++, 1);
+    public void setServiceType(String serviceType) {
+        this.serviceType = serviceType;
+    }
+
+    public Address getSource() {
+        return source;
+    }
+
+    public void setSource(Address source) {
+        this.source = source;
+    }
+
+    public int getRegistered() {
+        return registered;
+    }
+
+    public void setRegistered(int registered) {
+        this.registered = registered;
     }
 
     /**
@@ -116,5 +90,31 @@ public class DataSM extends ie.omk.smpp.message.SMPPRequest {
     public String toString() {
         return new String("data_sm");
     }
-}
 
+    @Override
+    protected BodyDescriptor getBodyDescriptor() {
+        return BODY_DESCRIPTOR;
+    }
+    
+    @Override
+    protected Object[] getMandatoryParameters() {
+        return new Object[] {
+                serviceType,
+                source,
+                destination,
+                Integer.valueOf(esmClass),
+                Integer.valueOf(registered),
+                Integer.valueOf(dataCoding),
+        };
+    }
+    
+    @Override
+    protected void setMandatoryParameters(List<Object> params) {
+        serviceType = (String) params.get(0);
+        source = (Address) params.get(1);
+        destination = (Address) params.get(2);
+        esmClass = ((Number) params.get(3)).intValue();
+        registered = ((Number) params.get(4)).intValue();
+        dataCoding = ((Number) params.get(5)).intValue();
+    }
+}

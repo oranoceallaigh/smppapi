@@ -4,13 +4,20 @@
 package ie.omk.smpp.examples;
 
 import ie.omk.smpp.Connection;
+import ie.omk.smpp.ConnectionType;
+
+import java.io.IOException;
+import java.net.UnknownHostException;
 
 import org.apache.tools.ant.Task;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author orank
  */
 public class SMPPAPIExample extends Task {
+    private static final Logger LOG = LoggerFactory.getLogger(SMPPAPIExample.class);
     
     protected String hostName = null;
     
@@ -128,5 +135,28 @@ public class SMPPAPIExample extends Task {
     public void setSystemType(String systemType) {
         this.systemType = systemType;
     }
-}
+    
+    protected Connection createConnection() throws UnknownHostException {
+        myConnection = new Connection(hostName, port);
+        return myConnection;
+    }
 
+    protected void closeConnection() {
+        try {
+            myConnection.closeLink();
+        } catch (Exception x) {
+            LOG.error("Could not close the SMSC link", x);
+        }
+    }
+    
+    protected void doBind(ConnectionType connectionType) throws IOException {
+        myConnection.bind(
+                connectionType,
+                systemID,
+                password,
+                systemType,
+                sourceTON,
+                sourceNPI,
+                sourceAddress);
+    }
+}

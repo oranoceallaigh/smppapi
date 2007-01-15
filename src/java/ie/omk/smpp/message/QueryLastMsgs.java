@@ -1,10 +1,8 @@
 package ie.omk.smpp.message;
 
 import ie.omk.smpp.Address;
-import ie.omk.smpp.util.GSMConstants;
-import ie.omk.smpp.util.SMPPIO;
 
-import java.io.OutputStream;
+import java.util.List;
 
 /**
  * Query the last number of messages sent from a certain ESME. Relevant
@@ -16,28 +14,39 @@ import java.io.OutputStream;
  * @author Oran Kelly
  * @version 1.0
  */
-public class QueryLastMsgs extends ie.omk.smpp.message.SMPPRequest {
-    /** Number of messages to look up */
+public class QueryLastMsgs extends SMPPPacket {
+    private static final BodyDescriptor BODY_DESCRIPTOR = new BodyDescriptor();
+    
+    /**
+     * The source address for which to query messages. The last <code>
+     * msgCount</code> messages originating from this source address will
+     * be retrieved.
+     */
+    private Address source;
+
+    /**
+     * Number of messages to look up.
+     */
     private int msgCount;
 
+    static {
+        BODY_DESCRIPTOR.add(ParamDescriptor.ADDRESS)
+        .add(ParamDescriptor.INTEGER1);
+    }
+    
     /**
      * Construct a new QueryLastMsgs.
      */
     public QueryLastMsgs() {
         super(QUERY_LAST_MSGS);
-        msgCount = 0;
     }
 
-    /**
-     * Construct a new QueryLastMsgs with specified sequence number.
-     * 
-     * @param seqNum
-     *            The sequence number to use
-     * @deprecated
-     */
-    public QueryLastMsgs(int seqNum) {
-        super(QUERY_LAST_MSGS, seqNum);
-        msgCount = 0;
+    public Address getSource() {
+        return source;
+    }
+
+    public void setSource(Address source) {
+        this.source = source;
     }
 
     /**
@@ -63,41 +72,6 @@ public class QueryLastMsgs extends ie.omk.smpp.message.SMPPRequest {
         return msgCount;
     }
 
-    public int getBodyLength() {
-        int len = (source != null) ? source.getLength() : 3;
-
-        // 1 1-byte integer
-        return len + 1;
-    }
-
-    /**
-     * Write a byte representation of this packet to an OutputStream
-     * 
-     * @param out
-     *            The OutputStream to write to
-     * @throws java.io.IOException
-     *             if there's an error writing to the output stream.
-     */
-    protected void encodeBody(OutputStream out) throws java.io.IOException {
-        if (source != null) {
-            source.writeTo(out);
-        } else {
-            // Write ton=0(null), npi=0(null), address=\0(nul)
-            new Address(GSMConstants.GSM_TON_UNKNOWN,
-                    GSMConstants.GSM_NPI_UNKNOWN, "").writeTo(out);
-        }
-        SMPPIO.writeInt(msgCount, 1, out);
-    }
-
-    public void readBodyFrom(byte[] body, int offset)
-            throws SMPPProtocolException {
-        source = new Address();
-        source.readFrom(body, offset);
-        offset += source.getLength();
-
-        msgCount = SMPPIO.bytesToInt(body, offset++, 1);
-    }
-
     /**
      * Convert this packet to a String. Not to be interpreted programmatically,
      * it's just dead handy for debugging!
@@ -105,5 +79,23 @@ public class QueryLastMsgs extends ie.omk.smpp.message.SMPPRequest {
     public String toString() {
         return new String("query_last_msgs");
     }
-}
 
+    @Override
+    protected BodyDescriptor getBodyDescriptor() {
+        return BODY_DESCRIPTOR;
+    }
+    
+    @Override
+    protected Object[] getMandatoryParameters() {
+        return new Object[] {
+                source,
+                Integer.valueOf(msgCount),
+        };
+    }
+    
+    @Override
+    protected void setMandatoryParameters(List<Object> params) {
+        source = (Address) params.get(0);
+        msgCount = ((Number) params.get(1)).intValue();
+    }
+}

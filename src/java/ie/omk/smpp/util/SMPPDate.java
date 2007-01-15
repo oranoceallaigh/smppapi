@@ -1,368 +1,216 @@
 package ie.omk.smpp.util;
 
-import java.text.MessageFormat;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.TimeZone;
 
 /**
- * Object to represent a Date in SMPP format. SMPP dates take on a string form
- * of 'YYMMDDhhmmsstnnp' where
+ * Object to represent an SMPP time specification.
+ * There are two types of SMPP time specs: an absolute time and a relative
+ * time. Absolute times specify the exact year, month, day, hour, minute,
+ * second, tenths of a second and timezone. Relative times specify an
+ * offset of years, months, days, hours, minutes and seconds from the
+ * current time. Both types of time formats take the same string form
+ * "YYMMDDhhmmss[tnnp]", where
  * <ul>
- * <li>YY is the representation of year, 00-99. No specification is made how
- * these are interpreted. <b>Important </b>: This API assumes year ranges in the
- * range 2000 - 2099. If you're using some other form of year specification,
- * you'll run into trouble.
- * <li>MM is the month (01-12).
- * <li>DD is the day of the month (01-31)
- * <li>hh is the hour (00-23)
- * <li>mm is the minute (00-59)
- * <li>ss is the second (00-59)
- * <li>t is tenths of second (0-9)
- * <li>nn is the time difference in quarter hours from UTC
+ * <li>YY is the representation of year, 00-99. The specification does not
+ * define how these numbers are converted into actual years for absolute times.
+ * By default, this API simply adds 2000 to this number to get the year.
+ * This can be altered via the {@link SMPPDateFormat} class.</li>
+ * <li>MM is the month (01-12).</li>
+ * <li>DD is the day of the month (01-31)</li>
+ * <li>hh is the hour (00-23)</li>
+ * <li>mm is the minute (00-59)</li>
+ * <li>ss is the second (00-59)</li>
+ * <li>t is tenths of second (0-9)</li>
+ * <li>nn is the time difference in quarter hours from UTC</li>
  * <li>p is one of '+', '-' or 'R'. + indicates the time is ahead of UTC, -
- * </ul>
  * indicates it is behind UTC and R indicates the time specification is relative
- * to current SMSC time.
+ * to current SMSC time.</li>
+ * </ul>
+ * <p>
+ * See section 7.1 of the SMPP v3.4 specification for the official definition
+ * of SMPP time formats.
+ * </p>
+ * @see SMPPDateFormat
+ * @version $Id: $
  */
-public class SMPPDate implements java.io.Serializable {
-    static final long serialVersionUID = -2404447252053261604L;
+public abstract class SMPPDate implements java.io.Serializable {
+    private static final long serialVersionUID = 2;
+
+    protected SMPPDate() {
+    }
+
+    /**
+     * Get a date object representing an absolute time, as represented by
+     * the supplied <code>calendar</code>. This is the same as calling
+     * <code>SMPPDate.getAbsoluteInstance(calendar, true);</code>.
+     * @param calendar A <code>java.util.Calendar</code> instance representing
+     * the desired date, time and timezone for the SMPP time.
+     * @return An SMPPDate object representing the date, time and timezone
+     * specified by <code>calendar</code>.
+     */
+    public static SMPPDate getAbsoluteInstance(Calendar calendar) {
+        return new AbsoluteSMPPDate(calendar);
+    }
     
-    private static final String FORMAT =
-        "{0,number,00}{1,number,00}{2,number,00}{3,number,00}{4,number,00}"
-        + "{5,number,00}{6,number,0}{7,number,00}{8}";
-
-    private static final String SHORT_FORMAT =
-        "{0,number,00}{1,number,00}{2,number,00}{3,number,00}{4,number,00}"
-        + "{5,number,00}";
-
-    private int year;
-    private int month;
-    private int day;
-    private int hour;
-    private int minute;
-    private int second;
-    private int tenth;
-    private int utcOffset;
-    private char sign = '+';
-    private int hashCode;
-
-    private TimeZone savedTimeZone;
-
     /**
-     * Create a new SMPPDate. All fields will be initialised to zero.
+     * Get a date object representing an absolute time, as represented by
+     * the supplied <code>calendar</code>. The returned object will either
+     * use or ignore the timezone information in the calendar object,
+     * depending on whether <code>withTz</code> is <code>true</code> or
+     * <code>false</code>.
+     * @param calendar A <code>java.util.Calendar</code> instance representing
+     * the desired date, time and timezone for the SMPP time.
+     * @param withTz <code>true</code> to return an object that uses the
+     * timezone information specified in the calendar object, <code>false</code>
+     * to return an SMPPDate that does not contain any timezone information.
+     * @return An SMPPDate object representing the date, time and, optionally,
+     * timezone specified by <code>calendar</code>.
      */
-    public SMPPDate() {
-        hashCode = toString().hashCode();
-        savedTimeZone = TimeZone.getDefault();
+    public static SMPPDate getAbsoluteInstance(Calendar calendar, boolean withTz) {
+        return new AbsoluteSMPPDate(calendar, withTz);
     }
-
+    
     /**
-     * Create a new SMPPDate representing an absolute time. The timezone offset
-     * will be set according to the current default timezone (as determined by
-     * the JVM).
-     * 
-     * @param d
-     *            The Date value to intialise this object to.
-     * @throws java.lang.NullPointerException
-     *             if d is null.
+     * Get a date object representing a relative time.
+     * @param years The number of years.
+     * @param months The number of months.
+     * @param days The number of days.
+     * @param hours The number of hours.
+     * @param minutes The number of minutes.
+     * @param seconds The number of seconds.
+     * @return An SMPPDate object representing the relative time specified
+     * by the supplied parameters.
      */
-    public SMPPDate(Date d) {
-        if (d == null) {
-            throw new NullPointerException("Cannot use a null Date");
-        }
-
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(d);
-        setFields(cal);
-    }
-
-    /**
-     * Create a new SMPPDate representing an absolute time.
-     * 
-     * @throws java.lang.NullPointerException
-     *             if cal is null.
-     */
-    public SMPPDate(Calendar cal) {
-        if (cal == null) {
-            throw new NullPointerException("Cannot use a null Calendar");
-        }
-
-        setFields(cal);
-    }
-
-    /**
-     * Create a new SMPPDate representing a relative time.
-     */
-    public SMPPDate(int years, int months, int days, int hours, int minutes,
+    public static SMPPDate getRelativeInstance(int years,
+            int months,
+            int days,
+            int hours,
+            int minutes,
             int seconds) {
-        this.year = years;
-        this.month = months;
-        this.day = days;
-        this.hour = hours;
-        this.minute = minutes;
-        this.second = seconds;
-        this.tenth = 0;
-        this.utcOffset = 0;
-        this.sign = 'R';
-        this.savedTimeZone = null;
-
-        this.hashCode = toString().hashCode();
-    }
-
-    private void setFields(Calendar calendar) {
-        year = calendar.get(Calendar.YEAR) - 2000;
-        month = calendar.get(Calendar.MONTH) + 1;
-        day = calendar.get(Calendar.DAY_OF_MONTH);
-        hour = calendar.get(Calendar.HOUR_OF_DAY);
-        minute = calendar.get(Calendar.MINUTE);
-        second = calendar.get(Calendar.SECOND);
-        tenth = calendar.get(Calendar.MILLISECOND) / 100;
-        savedTimeZone = calendar.getTimeZone();
-
-        // Time zone calculation
-        sign = '+';
-        long off = savedTimeZone.getRawOffset();
-        if (off < 0) {
-            sign = '-';
-        }
-
-        // Calculate the difference in quarter hours.
-        utcOffset = (int) (Math.abs(off) / 900000L);
-
-        // Cache the hashCode
-        hashCode = toString().hashCode();
-    }
-
-    private void initCalendar(Calendar calendar) {
-        if (savedTimeZone != null) {
-            calendar.setTimeZone(savedTimeZone);
-        }
-        calendar.set(Calendar.YEAR, year + 2000);
-        calendar.set(Calendar.MONTH, month - 1);
-        calendar.set(Calendar.DAY_OF_MONTH, day);
-        calendar.set(Calendar.HOUR_OF_DAY, hour);
-        calendar.set(Calendar.MINUTE, minute);
-        calendar.set(Calendar.SECOND, second);
-        calendar.set(Calendar.MILLISECOND, tenth * 100);
+        return new RelativeSMPPDate(years, months, days, hours, minutes, seconds);
     }
 
     /**
-     * Get a calendar object representing the internal time of this SMPPDate. If
-     * this object represents a relative time specification, the information
-     * returned by this method may be nonsensical.
+     * Get a calendar object that represents the time specified by this
+     * SMPPDate. The returned value will be <code>null</code> for relative
+     * SMPP times. Also, for absolute SMPP times that do not contain timezone
+     * information, the returned calendar&apos;s timezone cannot be trusted -
+     * it will simply be initialised to whatever <code>java.util.Calendar</code>
+     * considers its default (usually the timezone of the JVM). 
+     * @return A calendar object, or <code>null</code> if this is a
+     * relative time specification.
      */
     public Calendar getCalendar() {
-        Calendar cal = Calendar.getInstance();
-        initCalendar(cal);
-        return cal;
+        return null;
     }
-
+    
     /**
-     * Get the year, or number of years in a relative time spec.
+     * Get the year part of this time format. The return value from this will
+     * be in the range 0 - 99 for relative times, or will be the full year
+     * (such as <code>2007</code>) for absolute times.
+     * @return The year part of this time format.
      */
-    public int getYear() {
-        return year;
-    }
-
+    public abstract int getYear();
+    
     /**
-     * Get the month, or number of months in a relative time spec. January is
-     * month 1.
+     * Get the month part of this time format. This will always return a value
+     * in the range 1 - 12.
+     * @return The month part of this time format.
      */
-    public int getMonth() {
-        return month;
-    }
-
+    public abstract int getMonth();
+    
     /**
-     * Get the day, or number of days in a relative time spec. Day is in the
-     * range [1..31]
+     * Get the day part of this time format. This will always return a value
+     * in the range 1 - 31.
+     * @return The day part of this time format.
      */
-    public int getDay() {
-        return day;
-    }
-
+    public abstract int getDay();
+    
     /**
-     * Get the hour, or number of hours in a relative time spec. Hour is in the
-     * range [00..23]
+     * Get the hour part of this time format. This will always return a value
+     * in the range 0 - 23.
+     * @return The hour part of this time format.
      */
-    public int getHour() {
-        return hour;
-    }
+    public abstract int getHour();
 
     /**
-     * Get the minute, or number of minutes in a relative time spec. Minute is
-     * in the range [00..59]
+     * Get the minute part of this time format. This will always return a value
+     * in the range 0 - 59.
+     * @return The minute part of this time format.
      */
-    public int getMinute() {
-        return minute;
-    }
+    public abstract int getMinute();
 
     /**
-     * Get the second, or number of seconds in a relative time spec. Second is
-     * in the range [00..59]
+     * Get the second part of this time format. This will always return a value
+     * in the range 0 - 59.
+     * @return The second part of this time format.
      */
-    public int getSecond() {
-        return second;
-    }
+    public abstract int getSecond();
 
     /**
-     * Get the tenths of a second. Always zero in a relative time spec. Tenths
-     * is in the range [0..9]
+     * Get the tenths of a second part of this time format. This will always
+     * return a value in the range 0 - 9.
+     * @return The tenths of a second part of this time format.
      */
     public int getTenth() {
-        return tenth;
+        return 0;
     }
-
+    
     /**
-     * Get the number of quarter-hours from UTC the time spec is offset by. This
-     * value is always positive. Use {@link #getSign}to determine if the time
-     * is ahead of or behind UTC. utcOffset is in the range [0..48]
+     * Get the UTC offset part of this time format. This will always return a
+     * value in the range 0 - 48.
+     * @return The UTC offset part of this time format.
      */
     public int getUtcOffset() {
-        return utcOffset;
+        return 0;
     }
-
+    
     /**
-     * Get the timezone that this date is in. If this object represents
-     * a relative time definition, then this method will return <code>null
-     * </code>.
-     * @return The timezone of this <code>SMPPDate</code>.
-     * @see #isRelative()
+     * Get the timezone of this SMPPDate.
+     * @return The timezone of this SMPPDate object, or <code>null</code> if
+     * there is no timezone.
      */
     public TimeZone getTimeZone() {
-        return savedTimeZone;
+        return null;
     }
     
     /**
-     * Get the UTC offset qualifier. This flag is '+' to indicate that the time
-     * spec is ahead of UTC or '-' to indicate it is behind UTC. If the time
-     * spec is a relative time spec, this flag will be 'R'.
-     * 
-     * @see #getUtcOffset
+     * Get the timezone offset modifier character. For absolute time formats,
+     * this will return one of '+' if the timezone offset is ahead of UTC,
+     * '-' if the timezone offset is behind UTC, or <code>(char) 0</code> if
+     * there is no timezone information.
+     * @return One of '+', '-' or <code>(char) 0</code>.
      */
     public char getSign() {
-        return sign;
-    }
-
-    /**
-     * Test if this SMPPDate represents a relative time specification.
-     * 
-     * @return true is this object represents a relative time spec, false if it
-     *         represents an absolute time spec.
-     */
-    public boolean isRelative() {
-        return sign == 'R';
-    }
-
-    /**
-     * Test if this SMPPDate has timezone information associated with it.
-     * Relative time specs have no timezone information, neither does the
-     * short (12-character) form of the absolute time spec. The short-form
-     * absolute format should only be used by an SMSC - applications should
-     * never create a short-form format to send to the SMSC.
-     * @return
-     */
-    public boolean hasTimezone() {
-        return sign == '+' || sign == '-';
+        return (char) 0;
     }
     
     /**
-     * Check for equality against another SMPPDate object.
+     * Determine if this date object represents an absolute time.
+     * @return <code>true</code> if this object is an absolute time,
+     * <code>false</code> otherwise.
      */
-    public boolean equals(Object obj) {
-        if (obj instanceof SMPPDate) {
-            SMPPDate d = (SMPPDate) obj;
-            int diff = (year - d.year)
-                + (month - d.month)
-                + (day - d.day)
-                + (hour - d.hour)
-                + (minute - d.minute)
-                + (second - d.second)
-                + (tenth - d.tenth)
-                + ((int) sign - (int) d.sign);
-            boolean sameTz = savedTimeZone == null ?
-                    d.savedTimeZone == null : savedTimeZone.equals(d.savedTimeZone);
-            return diff == 0 && sameTz && sign == d.sign;
-        } else {
-            return false;
-        }
+    public boolean isAbsolute() {
+        return false;
     }
-
+    
     /**
-     * Get a hashCode for this object.
+     * Determine if this date object represents a relative time.
+     * @return <code>true</code> if this object is a relative time,
+     * <code>false</code> otherwise.
      */
-    public int hashCode() {
-        return hashCode;
+    public boolean isRelative() {
+        return false;
     }
-
+    
     /**
-     * Parse an SMPP date string. This method returns a handle to a newly
-     * created SMPPDate object with its fields initialised using the values in
-     * the SMPP-formatted date string <code>s</code>.
-     * 
-     * @return a handle to this object.
+     * Determine if this date object has timezone information associated
+     * with it.
+     * @return <code>true</code> if this date object "knows" its timezone,
+     * <code>false</code> if it does not.
      */
-    public static SMPPDate parseSMPPDate(String s)
-            throws InvalidDateFormatException {
-        SMPPDate d = new SMPPDate();
-
-        if (s == null || s.length() == 0) {
-            return d;
-        }
-        if (s.length() != 16 && s.length() != 12) {
-            throw new InvalidDateFormatException(
-                    "Date string is incorrect length", s);
-        }
-        boolean longForm = s.length() == 16;
-        try {
-            d.year = Integer.parseInt(s.substring(0, 2));
-            d.month = Integer.parseInt(s.substring(2, 4));
-            d.day = Integer.parseInt(s.substring(4, 6));
-            d.hour = Integer.parseInt(s.substring(6, 8));
-            d.minute = Integer.parseInt(s.substring(8, 10));
-            d.second = Integer.parseInt(s.substring(10, 12));
-            if (longForm) {
-                d.sign = s.charAt(15);
-                if (d.sign != 'R') {
-                    d.tenth = Integer.parseInt(s.substring(12, 13));
-                    d.utcOffset = Integer.parseInt(s.substring(13, 15));
-                    int rawOffset = d.utcOffset * 900000;
-                    if (d.sign == '-') {
-                        rawOffset = -rawOffset;
-                    }
-                    String[] tzs = TimeZone.getAvailableIDs(rawOffset);
-                    if (tzs.length > 0) {
-                        d.savedTimeZone = TimeZone.getTimeZone(tzs[0]);
-                    }
-                } else {
-                    d.savedTimeZone = null;
-                }
-            } else {
-                d.sign = (char) 0;
-                d.savedTimeZone = null;
-            }
-            d.hashCode = d.toString().hashCode();
-        } catch (NumberFormatException x) {
-            throw new InvalidDateFormatException("Invalid SMPP date string", s);
-        }
-        return d;
-    }
-
-    /**
-     * Make an SMPP protocol string representing this Date object.
-     * 
-     * @return The string representation as defined by the SMPP protocol.
-     */
-    public String toString() {
-        Object[] args = {new Integer(year), new Integer(month),
-                new Integer(day), new Integer(hour), new Integer(minute),
-                new Integer(second), new Integer(tenth),
-                new Integer(utcOffset), new Character(sign),
-        };
-        String format = FORMAT;
-        if (sign == (char) 0) {
-            format = SHORT_FORMAT;
-        }
-        return MessageFormat.format(format, args);
+    public boolean hasTimezone() {
+        return false;
     }
 }

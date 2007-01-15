@@ -14,18 +14,10 @@ public class BindReceiverResp extends ie.omk.smpp.message.BindResp {
         super(BIND_RECEIVER_RESP);
     }
 
-    /**
-     * Create a new BindReceiverResp packet in response to a BindReceiver. This
-     * constructor will set the sequence number to that of the BindReceiver
-     * message.
-     * 
-     * @param r
-     *            The Request packet the response is to
-     */
-    public BindReceiverResp(BindReceiver r) {
-        super(r);
+    public BindReceiverResp(SMPPPacket request) {
+        super(request);
     }
-
+    
     /**
      * Convert this packet to a String. Not to be interpreted programmatically,
      * it's just dead handy for debugging!

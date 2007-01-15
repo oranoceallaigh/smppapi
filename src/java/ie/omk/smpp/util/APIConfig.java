@@ -4,10 +4,12 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Internal API configuration. This class holds the configuration for
@@ -86,6 +88,14 @@ import org.apache.commons.logging.LogFactory;
  * </tr>
  * 
  * <tr>
+ * <td><code>smppapi.connection.defaultEncoding</code></td>
+ * <td>String</td>
+ * <td>The name of a class, which must extend from
+ * {@link ie.omk.smpp.util.MessageEncoding}, that will be used by connections
+ * as their default message encoding.</td>
+ * </tr>
+ * 
+ * <tr>
  * <td><code>smppapi.connection.rcv_daemon.ioex_count</code></td>
  * <td>Integer</td>
  * <td>The number of I/O exceptions the receiver daemon will accept occurring
@@ -114,6 +124,13 @@ import org.apache.commons.logging.LogFactory;
  * <code>ie.omk.smpp.event.ThreadedEventDispatcher</code> class.</td>
  * </tr>
  * 
+ * <tr>
+ * <td><code>smppapi.message.segment_size</code></td>
+ * <td>Integer</td>
+ * <td>The default segment size to use for concatenated short messages
+ * using optional parameters.</td>
+ * </tr>
+ * 
  * </table>
  *  
  */
@@ -123,64 +140,71 @@ public final class APIConfig extends Properties {
     static final long serialVersionUID = 3668742926704484281L;
     
     /**
-     * See class description for documentation on the properties.
-     * 
-     * @deprecated use LINK_TIMEOUT
-     */
-    public static final String TCP_SOCKET_TIMEOUT = "smppapi.net.tcp.so_timeout";
-
-    /**
-     * See class description for documentation on the properties.
+     * @see APIConfig
      */
     public static final String LINK_BUFFERSIZE_IN = "smppapi.net.buffersize_in";
 
     /**
-     * See class description for documentation on the properties.
+     * @see APIConfig
      */
     public static final String LINK_BUFFERSIZE_OUT = "smppapi.net.buffersize_out";
 
     /**
-     * See class description for documentation on the properties.
+     * @see APIConfig
      */
     public static final String LINK_AUTO_FLUSH = "smppapi.net.autoflush";
 
     /**
-     * See class description for documentation on the properties.
+     * @see APIConfig
      */
     public static final String LINK_AUTOCLOSE_SNOOP = "smppapi.net.autoclose_snoop";
 
     /**
-     * See class description for documentation on the properties.
+     * @see APIConfig
      */
     public static final String LINK_TIMEOUT = "smppapi.net.link_timeout";
 
     /**
-     * See class description for documentation on the properties.
+     * @see APIConfig
      */
     public static final String TOO_MANY_IO_EXCEPTIONS = "smppapi.connection.rcv_daemon.ioex_count";
 
     /**
-     * See class description for documentation on the properties.
+     * @see APIConfig
+     */
+    // TODO should remove this again?
+    public static final String ENCODING_CLASS = "smppapi.connection.defaultEncoding";
+    
+    /**
+     * @see APIConfig
      */
     public static final String EVENT_DISPATCHER_CLASS = "smppapi.event.dispatcher";
 
     /**
-     * See class description for documentation on the properties.
+     * @see APIConfig
      */
     public static final String EVENT_THREAD_POOL_SIZE = "smppapi.event.threaded_dispatcher.pool_size";
 
     /**
-     * See class description for documentation on the properties.
+     * @see APIConfig
      */
     public static final String EVENT_THREAD_FIFO_QUEUE_SIZE = "smppapi.event.threaded_dispatcher.queue_size";
 
     /**
-     * See class description for documentation on the properties.
+     * @see APIConfig
      */
     public static final String BIND_TIMEOUT = "smppapi.connection.bind_timeout";
 
-    private static final Log LOGGER = LogFactory.getLog(APIConfig.class);
+    /**
+     * @see APIConfig
+     */
+    public static final String SEGMENT_SIZE = "smppapi.message.segment_size";
+    
+    private static final Logger LOG = LoggerFactory.getLogger(APIConfig.class);
 
+    private static final Map<String, Boolean> BOOLEANS =
+        new HashMap<String, Boolean>();
+    
     /**
      * Paths to search for the API properties file. These should always end in
      * the '/' character except for the last entry which should be a blank
@@ -204,6 +228,17 @@ public final class APIConfig extends Properties {
      */
     private URL propsURL;
 
+    static {
+        BOOLEANS.put("1", Boolean.TRUE);
+        BOOLEANS.put("true", Boolean.TRUE);
+        BOOLEANS.put("on", Boolean.TRUE);
+        BOOLEANS.put("yes", Boolean.TRUE);
+        BOOLEANS.put("0", Boolean.FALSE);
+        BOOLEANS.put("false", Boolean.FALSE);
+        BOOLEANS.put("off", Boolean.FALSE);
+        BOOLEANS.put("no", Boolean.FALSE);
+    }
+    
     /**
      * Construct a new APIConfig object which reads properties from the
      * default properties resource.
@@ -231,11 +266,11 @@ public final class APIConfig extends Properties {
      *         otherwise.
      */
     public boolean reloadAPIConfig() {
-        LOGGER.debug("Reloading API config properties.");
+        LOG.debug("Reloading API config properties.");
         try {
             loadAPIProperties();
         } catch (IOException x) {
-            LOGGER.warn("Could not reload API properties.", x);
+            LOG.warn("Could not reload API properties.", x);
             return false;
         }
         return true;
@@ -260,7 +295,7 @@ public final class APIConfig extends Properties {
                 instance = new APIConfig();
                 instance.loadAPIProperties();
             } catch (IOException x) {
-                LOGGER.error("Could not load API properties from default resource", x);
+                LOG.error("Could not load API properties from default resource", x);
             }
         }
         return instance;
@@ -280,7 +315,8 @@ public final class APIConfig extends Properties {
             }
             instance.loadAPIProperties();
         } catch (IOException x) {
-            LOGGER.error("Could not load API config from " + properties, x);
+            LOG.error("Could not load API config from {}", properties);
+            LOG.error("Stack trace", x);
         }
     }
     
@@ -372,12 +408,13 @@ public final class APIConfig extends Properties {
      */
     public int getInt(String property, int defaultValue)
             throws InvalidConfigurationException {
+        int value;
         try {
-            return getInt(property);
+            value = getInt(property);
         } catch (PropertyNotFoundException x) {
+            value = defaultValue;
         }
-
-        return defaultValue;
+        return value;
     }
 
     /**
@@ -473,12 +510,13 @@ public final class APIConfig extends Properties {
      */
     public boolean getBoolean(String property, boolean defaultValue)
             throws InvalidConfigurationException {
+        boolean value;
         try {
-            return getBoolean(property);
+            value = getBoolean(property);
         } catch (PropertyNotFoundException x) {
+            value = defaultValue;
         }
-
-        return defaultValue;
+        return value;
     }
 
     /**
@@ -497,29 +535,21 @@ public final class APIConfig extends Properties {
      */
     public boolean getBoolean(String property)
             throws InvalidConfigurationException, PropertyNotFoundException {
-        boolean b = false;
         String s = getProperty(property).toLowerCase();
-
-        try {
-            int n = Integer.parseInt(s);
-            if (n > 0) {
-                b = true;
-            } else {
-                b = false;
-            }
-        } catch (NumberFormatException x) {
-            // It's not a number..
-            if ("yes".equals(s) || "on".equals(s) || "true".equals(s) || "1".equals(s)) {
-                b = true;
-            } else if ("no".equals(s) || "off".equals(s) || "false".equals(s) || "0".equals(s)) {
-                b = false;
-            } else {
+        Boolean bool = BOOLEANS.get(s);
+        if (bool == null) {
+            try {
+                if (Integer.parseInt(s) != 0) {
+                    bool = Boolean.TRUE;
+                } else {
+                    bool = Boolean.FALSE;
+                }
+            } catch (NumberFormatException x) {
                 throw new InvalidConfigurationException(
                         BAD_PROPERTY_VALUE, property, s);
             }
         }
-
-        return b;
+        return bool.booleanValue();
     }
 
     /**
@@ -542,11 +572,11 @@ public final class APIConfig extends Properties {
     private void loadAPIProperties() throws IOException {
         if (propsURL != null) {
             load(propsURL.openStream());
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Loaded API properties from " + propsURL);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Loaded API properties from {}", propsURL);
                 StringWriter w = new StringWriter();
                 list(new PrintWriter(w));
-                LOGGER.debug("\n" + w.toString());
+                LOG.debug("\n" + w.toString());
             }
         }
     }
@@ -563,19 +593,21 @@ public final class APIConfig extends Properties {
         long multiplier = 1;
         String s;
         
+        char firstChar = num.charAt(0);
+        char lastChar = num.charAt(num.length() - 1);
         if (num.startsWith("0x") || num.startsWith("0X")) {
             base = 16;
             s = num.substring(2);
-        } else if (num.endsWith("b")) {
+        } else if (lastChar == 'b') {
             base = 2;
             s = num.substring(0, num.length() - 1);
-        } else if (num.endsWith("k")) {
+        } else if (lastChar == 'k') {
             multiplier = 1024L;
             s = num.substring(0, num.length() - 1);
-        } else if (num.endsWith("m")) {
+        } else if (lastChar == 'm') {
             multiplier = 1048576L;
             s = num.substring(0, num.length() - 1);
-        } else if (num.startsWith("0") && num.length() > 1) {
+        } else if (firstChar == '0' && num.length() > 1) {
             base = 8;
             s = num.substring(1);
         } else {

@@ -1,20 +1,24 @@
 package ie.omk.smpp.examples;
 
 import ie.omk.smpp.Connection;
+import ie.omk.smpp.ConnectionType;
+import ie.omk.smpp.TextMessage;
 import ie.omk.smpp.event.ConnectionObserver;
 import ie.omk.smpp.event.ReceiverExitEvent;
 import ie.omk.smpp.event.SMPPEvent;
+import ie.omk.smpp.message.BindResp;
 import ie.omk.smpp.message.DeliverSM;
 import ie.omk.smpp.message.SMPPPacket;
 import ie.omk.smpp.message.Unbind;
 import ie.omk.smpp.message.UnbindResp;
+import ie.omk.smpp.util.AutoResponder;
 
 import java.io.IOException;
 import java.util.Date;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.tools.ant.BuildException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Example SMPP receiver using asynchronous communications. This example
@@ -26,17 +30,19 @@ import org.apache.tools.ant.BuildException;
  */
 public class AsyncReceiver extends SMPPAPIExample implements ConnectionObserver {
 
-    private Log logger = LogFactory.getLog(AsyncReceiver.class);
+    private Logger logger = LoggerFactory.getLogger(AsyncReceiver.class);
 
-    private static int msgCount = 0;
+    // Number of deliver_sm packets received during the session.
+    private int msgCount;
 
     // Start time (once successfully bound).
-    private long start = 0;
+    private long start;
 
-    // End time (either send an unbind or an unbind received).
-    private long end = 0;
+    // End time (once unbound).
+    private long end;
 
-    // This is called when the connection receives a packet from the SMSC.
+    // This is called when the connection receives a non-packet event
+    // from the SMSC.
     public void update(Connection r, SMPPEvent ev) {
         switch (ev.getType()) {
         case SMPPEvent.RECEIVER_EXIT:
@@ -48,83 +54,137 @@ public class AsyncReceiver extends SMPPAPIExample implements ConnectionObserver 
     public void packetReceived(Connection myConnection, SMPPPacket pak) {
         switch (pak.getCommandId()) {
 
-        // Bind transmitter response. Check it's status for success...
+        // Bind receiver response. Check it's status for success...
         case SMPPPacket.BIND_RECEIVER_RESP:
-            if (pak.getCommandStatus() != 0) {
-                logger.info("Error binding to the SMSC. Error = "
-                        + pak.getCommandStatus());
-            } else {
-                this.start = System.currentTimeMillis();
-                logger.info("Successfully bound. Waiting for message"
-                        + " delivery..");
-
-                synchronized (this) {
-                    // on exiting this block, we're sure that
-                    // the main thread is now sitting in the wait
-                    // call, awaiting the unbind request.
-               }
-            }
+            handleBindResponse((BindResp) pak);
             break;
 
         // Submit message response...
         case SMPPPacket.DELIVER_SM:
-            if (pak.getCommandStatus() != 0) {
-                logger.info("Deliver SM with an error! "
-                        + pak.getCommandStatus());
-
-            } else {
-                ++msgCount;
-                logger.info("deliver_sm: "
-                        + Integer.toString(pak.getSequenceNum()) + ": \""
-                        + ((DeliverSM) pak).getMessageText() + "\"");
-            }
+            handleDeliverSm((DeliverSM) pak);
             break;
 
         // Unbind request received from server..
         case SMPPPacket.UNBIND:
-            this.end = System.currentTimeMillis();
-            logger.info("\nSMSC has requested unbind! Responding..");
-            try {
-                UnbindResp ubr = new UnbindResp((Unbind) pak);
-                myConnection.sendResponse(ubr);
-                
-                synchronized (this) {
-                    notify();
-               }
-            } catch (IOException x) {
-                logger.warn("Exception", x);
-            } finally {
-                endReport();
-            }
+            handleUnbind((Unbind) pak);
             break;
 
         // Unbind response..
         case SMPPPacket.UNBIND_RESP:
-            this.end = System.currentTimeMillis();
-            logger.info("\nUnbound.");
-            synchronized (this) {
-                notify();
-            }
-            endReport();
+            handleUnbindResponse((UnbindResp) pak);
             break;
 
         default:
-            logger.info("\nUnexpected packet received! Id = 0x"
-                    + Integer.toHexString(pak.getCommandId()));
+            handleOtherPacket(pak);
         }
     }
 
-    private void receiverExit(Connection myConnection, ReceiverExitEvent ev) {
-        if (ev.getReason() != ReceiverExitEvent.EXCEPTION) {
-            if (ev.getReason() == ReceiverExitEvent.BIND_TIMEOUT) {
+
+    public void execute() throws BuildException {
+        try {
+            createConnection();
+
+            // Automatically respond to enqure_link and deliver_sm requests
+            // from the SMSC
+            AutoResponder autoResponder = new AutoResponder();
+            autoResponder.setAckDeliverSm(true);
+            autoResponder.setAckEnquireLink(true);
+            myConnection.addObserver(autoResponder);
+
+            // Need to add myself to the list of listeners for this connection
+            myConnection.addObserver(this);
+
+            // Bind to the SMSC
+            logger.info("Binding to the SMSC..");
+
+            synchronized (this) {
+                doBind(ConnectionType.RECEIVER);
+                logger.info("Waiting for receiver thread to exit...");
+                wait();
+            }
+        } catch (Exception x) {
+            throw new BuildException("Exception occurred while running example: " + x.getMessage() , x);
+        } finally {
+            closeConnection();
+            end = System.currentTimeMillis();
+            endReport();
+        }
+    }
+
+    private void handleBindResponse(BindResp bindResponse) {
+        if (bindResponse.getCommandStatus() != 0) {
+            logger.info("Error binding to the SMSC. Error = {}",
+                    bindResponse.getCommandStatus());
+            synchronized (this) {
+                notify();
+            }
+        } else {
+            this.start = System.currentTimeMillis();
+            logger.info("Successfully bound. Waiting for message delivery..");
+
+            synchronized (this) {
+                // This code is here to prevent the main thread exiting,
+                // that is all.
+                new String("Dummy code to do nothing in particular").hashCode();
+           }
+        }
+    }
+    
+    private void handleUnbind(Unbind unbind) {
+        logger.info("SMSC has requested unbind! Responding..");
+        try {
+            UnbindResp response = new UnbindResp(unbind);
+            myConnection.sendPacket(response);
+            
+            synchronized (this) {
+                notify();
+            }
+        } catch (IOException x) {
+            logger.error("Got an exception", x);
+        }
+    }
+    
+    private void handleUnbindResponse(UnbindResp unbindResponse) {
+        if (unbindResponse.getCommandStatus() != 0) {
+            logger.error("Got an unbind response with non-zero status: {}",
+                    unbindResponse.getCommandStatus());
+        } else {
+            logger.info("Successfully unbound.");
+            synchronized (this) {
+                notify();
+            }
+        }
+    }
+
+    private void handleDeliverSm(DeliverSM deliverSm) {
+        if (deliverSm.getCommandStatus() != 0) {
+            logger.info("Deliver SM with an error! status code = {}",
+                    deliverSm.getCommandStatus());
+
+        } else {
+            ++msgCount;
+            TextMessage textMessage = new TextMessage(deliverSm);
+            logger.info("deliver_sm: sequence = {}, text = \"{}\"",
+                    deliverSm.getSequenceNum(), textMessage.getMessageText());
+        }
+    }
+
+    private void handleOtherPacket(SMPPPacket packet) {
+        logger.info("Received a packet, commandId = 0x{}, sequence = {}",
+                Integer.toHexString(packet.getCommandId()),
+                packet.getSequenceNum());
+    }
+    
+    private void receiverExit(Connection myConnection, ReceiverExitEvent event) {
+        if (event.getReason() != ReceiverExitEvent.EXCEPTION) {
+            if (event.getReason() == ReceiverExitEvent.BIND_TIMEOUT) {
                 logger.info("Bind timed out waiting for response.");
             }
-            logger.info("Receiver thread has exited: " + ev.getReason());
+            logger.info("Receiver thread has exited: " + event.getReason());
         } else {
-            Throwable t = ev.getException();
+            Throwable t = event.getException();
             logger.info("Receiver thread died due to exception:");
             logger.warn("Exception", t);
-            endReport();
         }
         synchronized (this) {
             notify();
@@ -133,44 +193,9 @@ public class AsyncReceiver extends SMPPAPIExample implements ConnectionObserver 
 
     // Print out a report
     private void endReport() {
-        logger.info("deliver_sm's received: " + msgCount);
-        logger.info("Start time: " + new Date(start).toString());
-        logger.info("End time: " + new Date(end).toString());
-        logger.info("Elapsed: " + (end - start) + " milliseconds.");
-    }
-
-    public void execute() throws BuildException {
-        try {
-            myConnection = new Connection(hostName, port, true);
-            
-            // Need to add myself to the list of listeners for this connection
-            myConnection.addObserver(this);
-
-            // Automatically respond to ENQUIRE_LINK requests from the SMSC
-            myConnection.autoAckLink(true);
-            myConnection.autoAckMessages(true);
-
-            // Bind to the SMSC
-            logger.info("Binding to the SMSC..");
-
-            synchronized (this) {
-                myConnection.bind(
-                        Connection.RECEIVER,
-                        systemID,
-                        password,
-                        systemType,
-                        sourceTON,
-                        sourceNPI,
-                        sourceAddress);
-    
-                logger.info("Waiting for unbind...");
-                wait();
-            }
-
-            myConnection.closeLink();
-        } catch (Exception x) {
-            throw new BuildException("Exception occurred while running example: " + x.getMessage() , x);
-        }
+        logger.info("deliver_sm's received: {}", msgCount);
+        logger.info("Start time: {}", new Date(start));
+        logger.info("End time: {}", new Date(end));
+        logger.info("Elapsed: {} milliseconds.", (end - start));
     }
 }
-

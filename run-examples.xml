@@ -25,11 +25,15 @@
 
     <!-- A good reference for what you need on your classpath to use the API...! -->
     <path id="examples-classpath">
+        <pathelement location="${api-build}"/>
+        <pathelement location="${examples-build}"/>
         <pathelement location="${lib}/smppapi.jar"/>
         <pathelement location="${lib}/smpp-examples.jar"/>
-        <pathelement location="${lib}/commons-logging.jar"/>
-        <!-- The log4j Jar is optional. -->
-        <pathelement location="${lib}/log4j-1.2.5.jar"/>
+        <fileset dir="${lib}">
+            <include name="slf4j-api-*.jar"/>
+            <include name="slf4j-log4j12-*.jar"/>
+            <include name="log4j-1.2.*.jar"/>
+        </fileset>
         <!--
          - The resources directory contains the smppapi properties and
          - log4j configuration file.
@@ -38,7 +42,7 @@
     </path>
     
     <target name="init">
-        <available classname="ie.omk.smpp.examples.AsyncReceiver" property="examplesAvailable"/>
+        <available classname="ie.omk.smpp.examples.AsyncReceiver" classpathref="examples-classpath" property="examplesAvailable"/>
         <fail unless="examplesAvailable">Example classes are not available. Have you built everything yet?</fail>
     </target>
     

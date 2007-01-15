@@ -5,54 +5,45 @@ import ie.omk.smpp.util.SMPPIO;
 
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
 
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.LoggerFactory;
 
+// TODO document
+// TODO: I removed iterator methods - how to make this class useful again?
 public class DestinationTable implements Cloneable {
-    private List dests;
+    private List<Address> addresses = new ArrayList<Address>();
+    private List<String> distributionLists = new ArrayList<String>();
 
     private int length;
 
-    DestinationTable() {
-        dests = new ArrayList();
+    public DestinationTable() {
     }
 
-    synchronized void add(Address addr) {
-        dests.add(addr);
+    public void add(Address addr) {
+        addresses.add(addr);
         // Plus 1 for the dest type flag.
         length += addr.getLength() + 1;
     }
 
-    synchronized void add(String distList) {
-        dests.add(distList);
+    public void add(String distributionList) {
+        distributionLists.add(distributionList);
         // nul byte plus dest type flag
-        length += distList.length() + 2;
+        length += distributionList.length() + 2;
     }
 
-    public synchronized void remove(Address addr) {
-        int i = dests.indexOf(addr);
+    public void remove(Address addr) {
+        int i = addresses.indexOf(addr);
         if (i > -1) {
-            length -= ((Address) dests.remove(i)).getLength() + 1;
+            length -= addresses.remove(i).getLength() + 1;
         }
     }
 
-    public synchronized void remove(String distList) {
-        int i = dests.indexOf(distList);
+    public void remove(String distributionList) {
+        int i = distributionLists.indexOf(distributionList);
         if (i > -1) {
-            length -= ((String) dests.remove(i)).length() + 2;
+            length -= distributionLists.remove(i).length() + 2;
         }
-    }
-
-    public Iterator iterator() {
-        return Collections.unmodifiableList(dests).iterator();
-    }
-
-    public ListIterator listIterator() {
-        return Collections.unmodifiableList(dests).listIterator();
     }
 
     public synchronized int getLength() {
@@ -60,21 +51,17 @@ public class DestinationTable implements Cloneable {
     }
 
     public int size() {
-        return dests.size();
+        return addresses.size() + distributionLists.size();
     }
 
-    public synchronized void writeTo(OutputStream out)
-            throws java.io.IOException {
-        Iterator i = dests.iterator();
-        while (i.hasNext()) {
-            Object o = i.next();
-            if (o instanceof Address) {
-                SMPPIO.writeInt(1, 1, out);
-                ((Address) o).writeTo(out);
-            } else {
-                SMPPIO.writeInt(2, 1, out);
-                SMPPIO.writeCString((String) o, out);
-            }
+    public synchronized void writeTo(OutputStream out) throws java.io.IOException {
+        for (Address address : addresses) {
+            SMPPIO.writeInt(1, 1, out);
+            address.writeTo(out);
+        }
+        for (String list : distributionLists) {
+            SMPPIO.writeInt(2, 1, out);
+            SMPPIO.writeCString(list, out);
         }
     }
 
@@ -86,18 +73,17 @@ public class DestinationTable implements Cloneable {
                 Address a = new Address();
                 a.readFrom(table, offset);
                 offset += a.getLength();
-                dests.add(a);
+                addresses.add(a);
             } else if (type == 2) {
                 // Distribution list name
                 String d = SMPPIO.readCString(table, offset);
                 offset += d.length() + 1;
-                dests.add(d);
+                distributionLists.add(d);
             } else {
-                LogFactory.getLog(DestinationTable.class).warn(
+                LoggerFactory.getLogger(DestinationTable.class).warn(
                         "Unidentified destination type on input.");
             }
         }
-
         calculateLength();
     }
 
@@ -108,21 +94,24 @@ public class DestinationTable implements Cloneable {
             throw new RuntimeException("Clone not supported", x);
         }
     }
+
+    public String toString() {
+        List<Object> list = new ArrayList<Object>();
+        list.addAll(addresses);
+        list.addAll(distributionLists);
+        return list.toString();
+    }
     
     private void calculateLength() {
-        length = 0;
-
-        Iterator i = dests.iterator();
-        while (i.hasNext()) {
-            Object o = i.next();
+        // One byte for all type flags, plus 1 (null) byte for each distribution
+        // list string
+        length = addresses.size() + (distributionLists.size() * 2);
+        for (Address address : addresses) {
             // For the destination type flag
-            length++;
-            if (o instanceof Address) {
-                length += ((Address) o).getLength();
-            } else {
-                length += ((String) o).length() + 1;
-            }
+            length += address.getLength();
+        }
+        for (String list : distributionLists) {
+            length += list.length();
         }
     }
 }
-

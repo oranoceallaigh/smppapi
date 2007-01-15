@@ -1,8 +1,6 @@
 package ie.omk.smpp.message;
 
-import ie.omk.smpp.util.SMPPIO;
-
-import java.io.OutputStream;
+import java.util.List;
 
 /**
  * SMSC response to a ParamRetrieve request. Returns the value of the requested
@@ -11,7 +9,7 @@ import java.io.OutputStream;
  * @author Oran Kelly
  * @version 1.0
  */
-public class ParamRetrieveResp extends ie.omk.smpp.message.SMPPResponse {
+public class ParamRetrieveResp extends SMPPPacket {
     /** String value of the requested parameter */
     private String paramValue;
 
@@ -20,30 +18,17 @@ public class ParamRetrieveResp extends ie.omk.smpp.message.SMPPResponse {
      */
     public ParamRetrieveResp() {
         super(PARAM_RETRIEVE_RESP);
-        paramValue = null;
-    }
-
-    /**
-     * Construct a new BindReceiverResp with specified sequence number.
-     * 
-     * @param seqNum
-     *            The sequence number to use
-     * @deprecated
-     */
-    public ParamRetrieveResp(int seqNum) {
-        super(PARAM_RETRIEVE_RESP, seqNum);
-        paramValue = null;
     }
 
     /**
      * Create a new ParamRetrieveResp packet in response to a BindReceiver. This
      * constructor will set the sequence number to it's expected value.
      * 
-     * @param r
+     * @param request
      *            The Request packet the response is to
      */
-    public ParamRetrieveResp(ParamRetrieve r) {
-        super(r);
+    public ParamRetrieveResp(SMPPPacket request) {
+        super(request);
     }
 
     /**
@@ -74,30 +59,6 @@ public class ParamRetrieveResp extends ie.omk.smpp.message.SMPPResponse {
         return paramValue;
     }
 
-    public int getBodyLength() {
-        int len = (paramValue != null) ? paramValue.length() : 0;
-
-        // 1 c-string
-        return len + 1;
-    }
-
-    /**
-     * Write a byte representation of this packet to an OutputStream
-     * 
-     * @param out
-     *            The OutputStream to write to
-     * @throws java.io.IOException
-     *             if there's an error writing to the output stream.
-     */
-    protected void encodeBody(OutputStream out) throws java.io.IOException {
-        SMPPIO.writeCString(paramValue, out);
-    }
-
-    public void readBodyFrom(byte[] body, int offset)
-            throws SMPPProtocolException {
-        paramValue = SMPPIO.readCString(body, offset);
-    }
-
     /**
      * Convert this packet to a String. Not to be interpreted programmatically,
      * it's just dead handy for debugging!
@@ -105,5 +66,21 @@ public class ParamRetrieveResp extends ie.omk.smpp.message.SMPPResponse {
     public String toString() {
         return new String("param_retrieve_resp");
     }
-}
 
+    @Override
+    protected BodyDescriptor getBodyDescriptor() {
+        return BodyDescriptor.ONE_CSTRING;
+    }
+    
+    @Override
+    protected Object[] getMandatoryParameters() {
+        return new Object[] {
+                paramValue,
+        };
+    }
+
+    @Override
+    protected void setMandatoryParameters(List<Object> params) {
+        paramValue = (String) params.get(0);
+    }
+}

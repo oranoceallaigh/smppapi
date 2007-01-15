@@ -3,61 +3,39 @@ package ie.omk.smpp;
 /**
  * BadCommandIDException
  * 
- * @author Oran Kelly
- * @version 1.0
+ * @version $Id$
  */
-public class BadCommandIDException extends ie.omk.smpp.SMPPException {
-    static final long serialVersionUID = -3690049503805565620L;
+public class BadCommandIDException extends SMPPRuntimeException {
+    private static final long serialVersionUID = 2;
+    private int badId;
     
-    // TODO: expected versus actual doesn't really make sense. Change
-    // this exception.
-    private final int expected;
-    private final int actual;
-
     public BadCommandIDException() {
-        expected = -1;
-        actual = -1;
+        super();
     }
 
-    /**
-     * Construct a new BadCommandIdException with specified message.
-     */
-    public BadCommandIDException(String s) {
-        super(s);
-        expected = -1;
-        actual = -1;
+    public BadCommandIDException(String message, Throwable cause) {
+        super(message, cause);
     }
 
-    public BadCommandIDException(String msg, int id) {
-        super(msg);
-        actual = id;
-        expected = -1;
+    public BadCommandIDException(String message) {
+        super(message);
     }
 
-    /**
-     * Construct a new BadCommandIdException.
-     * 
-     * @param expected
-     *            The expected Command Id value.
-     * @param actual
-     *            The actual Command Id value received.
-     */
-    public BadCommandIDException(int expected, int actual) {
-        this.expected = expected;
-        this.actual = actual;
+    public BadCommandIDException(Throwable cause) {
+        super(cause);
     }
 
-    /**
-     * @return the expected Command id value.
-     */
-    public int getExpected() {
-        return expected;
+    public BadCommandIDException(String message, int badId) {
+        super(message);
+        this.badId = badId;
     }
 
-    /**
-     * Get the actual Command id value received.
-     */
-    public int getActual() {
-        return actual;
+    public BadCommandIDException(String message, Throwable cause, int badId) {
+        super(message, cause);
+        this.badId = badId;
+    }
+
+    public int getBadId() {
+        return badId;
     }
 }

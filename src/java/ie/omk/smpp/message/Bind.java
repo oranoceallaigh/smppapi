@@ -1,9 +1,8 @@
 package ie.omk.smpp.message;
 
-import ie.omk.smpp.util.SMPPIO;
 import ie.omk.smpp.version.SMPPVersion;
 
-import java.io.OutputStream;
+import java.util.List;
 
 /**
  * Abstract parent of BindTransmitter and BindReceiver.
@@ -11,7 +10,8 @@ import java.io.OutputStream;
  * @author Oran Kelly
  * @version 1.0
  */
-public abstract class Bind extends ie.omk.smpp.message.SMPPRequest {
+public abstract class Bind extends SMPPPacket {
+    private static final BodyDescriptor BODY_DESCRIPTOR = new BodyDescriptor();
     /** System Id */
     private String sysId;
 
@@ -30,6 +30,16 @@ public abstract class Bind extends ie.omk.smpp.message.SMPPRequest {
     /** Address Numbering Plan Indicator for message routing */
     private int addrNpi;
 
+    static {
+        BODY_DESCRIPTOR.add(ParamDescriptor.CSTRING)
+        .add(ParamDescriptor.CSTRING)
+        .add(ParamDescriptor.CSTRING)
+        .add(ParamDescriptor.INTEGER1)
+        .add(ParamDescriptor.INTEGER1)
+        .add(ParamDescriptor.INTEGER1)
+        .add(ParamDescriptor.CSTRING);
+    }
+    
     public Bind(int id) {
         super(id);
     }
@@ -183,70 +193,39 @@ public abstract class Bind extends ie.omk.smpp.message.SMPPRequest {
     }
 
     /**
-     * Return the number of bytes this packet would be encoded as to an
-     * OutputStream.
-     * 
-     * @return the number of bytes this packet would encode as.
-     */
-    public int getBodyLength() {
-        // Calculated as the size of the header plus 3 1-byte ints and
-        // 4 null-terminators for the strings plus the length of the strings
-        int len = ((sysId != null) ? sysId.length() : 0)
-                + ((password != null) ? password.length() : 0)
-                + ((sysType != null) ? sysType.length() : 0)
-                + ((addressRange != null) ? addressRange.length() : 0);
-
-        // 3 1-byte integers, 4 c-strings
-        return len + 3 + 4;
-    }
-
-    /**
-     * Write the byte representation of this packet to an OutputStream.
-     * 
-     * @param out
-     *            The output stream to write to
-     * @throws java.io.IOException
-     *             If there is an error writing to the stream.
-     */
-    protected void encodeBody(OutputStream out) throws java.io.IOException {
-        SMPPIO.writeCString(sysId, out);
-        SMPPIO.writeCString(password, out);
-        SMPPIO.writeCString(sysType, out);
-        SMPPIO.writeInt(version.getVersionID(), 1, out);
-        SMPPIO.writeInt(addrTon, 1, out);
-        SMPPIO.writeInt(addrNpi, 1, out);
-        SMPPIO.writeCString(addressRange, out);
-    }
-
-    public void readBodyFrom(byte[] body, int offset)
-            throws SMPPProtocolException {
-        try {
-            sysId = SMPPIO.readCString(body, offset);
-            offset += sysId.length() + 1;
-
-            password = SMPPIO.readCString(body, offset);
-            offset += password.length() + 1;
-
-            sysType = SMPPIO.readCString(body, offset);
-            offset += sysType.length() + 1;
-
-            int interfaceVer = SMPPIO.bytesToInt(body, offset++, 1);
-            version = SMPPVersion.getVersion(interfaceVer);
-            addrTon = SMPPIO.bytesToInt(body, offset++, 1);
-            addrNpi = SMPPIO.bytesToInt(body, offset++, 1);
-            addressRange = SMPPIO.readCString(body, offset);
-        } catch (ie.omk.smpp.version.VersionException x) {
-            throw new SMPPProtocolException(
-                    "Invalid interface version in response", x);
-        }
-    }
-
-    /**
      * Convert this packet to a String. Not to be interpreted programmatically,
      * it's just dead handy for debugging!
      */
     public String toString() {
         return new String("bind");
     }
-}
+    
+    @Override
+    protected BodyDescriptor getBodyDescriptor() {
+        return BODY_DESCRIPTOR;
+    }
 
+    @Override
+    protected Object[] getMandatoryParameters() {
+        return new Object[] {
+                sysId,
+                password,
+                sysType,
+                Integer.valueOf(version.getVersionID()),
+                Integer.valueOf(addrTon),
+                Integer.valueOf(addrNpi),
+                addressRange,
+        };
+    }
+    
+    @Override
+    protected void setMandatoryParameters(List<Object> params) {
+        sysId = (String) params.get(0);
+        password = (String) params.get(1);
+        sysType = (String) params.get(2);
+        version = SMPPVersion.getVersion(((Number) params.get(3)).intValue());
+        addrTon = ((Number) params.get(4)).intValue();
+        addrNpi = ((Number) params.get(5)).intValue();
+        addressRange = (String) params.get(6);
+    }
+}

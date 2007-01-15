@@ -1,10 +1,7 @@
 package ie.omk.smpp.net;
 
 import ie.omk.smpp.message.SMPPPacket;
-import ie.omk.smpp.message.SMPPRequest;
-import ie.omk.smpp.message.SMPPResponse;
 import ie.omk.smpp.util.SMPPIO;
-import ie.omk.smpp.util.SequenceNumberScheme;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -14,8 +11,8 @@ import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Link implementation which returns packets which have previously been added to
@@ -47,9 +44,9 @@ import org.apache.commons.logging.LogFactory;
  */
 public class ObjectLink extends SmscLink {
 
-    private static final Log LOGGER = LogFactory.getLog(ObjectLink.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ObjectLink.class);
     
-    private List packets = new ArrayList();
+    private List<Object> packets = new ArrayList<Object>();
 
     private ByteArrayInputStream in;
 
@@ -90,18 +87,11 @@ public class ObjectLink extends SmscLink {
         this.timeout = timeout;
     }
 
-    /**
-     * @deprecated Method does nothing.
-     */
-    public void setSequenceNumberScheme(SequenceNumberScheme seqNumScheme) {
-    }
-
     public void write(SMPPPacket pak, boolean withOptional) throws IOException {
         super.write(pak, withOptional);
-        if (pak instanceof SMPPRequest) {
+        if (pak.isResponse()) {
             synchronized (this) {
                 requestSent++;
-
                 // Possible a thread is sleeping waiting on a packet..
                 this.notify();
             }
@@ -117,17 +107,15 @@ public class ObjectLink extends SmscLink {
                 try {
                     Thread.sleep(delay);
                } catch (InterruptedException x) {
-                   if (LOGGER.isDebugEnabled()) {
-                       LOGGER.debug("Thread was interrupted while delaying "
-                               + " packet reception.");
-                   }
+                   LOG.debug("Thread was interrupted while delaying "
+                           + " packet reception.");
                }
             }
             next = (Object) packets.remove(0);
         }
 
         SMPPPacket pak = (SMPPPacket) next;
-        if (pak instanceof SMPPResponse) {
+        if (pak.isResponse()) {
             synchronized (this) {
                 try {
                     if (requestSent < 1) {

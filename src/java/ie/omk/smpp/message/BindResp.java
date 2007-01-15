@@ -1,8 +1,6 @@
 package ie.omk.smpp.message;
 
-import ie.omk.smpp.util.SMPPIO;
-
-import java.io.OutputStream;
+import java.util.List;
 
 /**
  * SMSC response to a Bind request.
@@ -10,10 +8,16 @@ import java.io.OutputStream;
  * @author Oran Kelly
  * @version 1.0
  */
-public abstract class BindResp extends ie.omk.smpp.message.SMPPResponse {
+public abstract class BindResp extends SMPPPacket {
+    private static final BodyDescriptor BODY_DESCRIPTOR = new BodyDescriptor();
+    
     /** System Id */
     private String sysId;
 
+    static {
+        BODY_DESCRIPTOR.add(ParamDescriptor.CSTRING);
+    }
+    
     /**
      * Construct a new BindResp.
      */
@@ -21,18 +25,10 @@ public abstract class BindResp extends ie.omk.smpp.message.SMPPResponse {
         super(id);
     }
 
-    /**
-     * Create a new BindResp packet in response to a Bind request. This
-     * constructor will set the sequence number to that if the packet it is in
-     * response to.
-     * 
-     * @param req
-     *            The Request packet the response is to
-     */
-    public BindResp(Bind req) {
-        super(req);
+    protected BindResp(SMPPPacket request) {
+        super(request);
     }
-
+    
     /**
      * Set the system Id
      * 
@@ -61,39 +57,27 @@ public abstract class BindResp extends ie.omk.smpp.message.SMPPResponse {
     }
 
     /**
-     * Return the number of bytes this packet would be encoded as to an
-     * OutputStream.
-     * 
-     * @return the number of bytes this packet would encode as.
-     */
-    public int getBodyLength() {
-        // Length of system ID plus a nul terminator.
-        return ((sysId != null) ? sysId.length() : 0) + 1;
-    }
-
-    /**
-     * Write a byte representation of this packet to an OutputStream
-     * 
-     * @param out
-     *            The OutputStream to write to
-     * @throws java.io.IOException
-     *             if there's an error writing to the output stream.
-     */
-    protected void encodeBody(OutputStream out) throws java.io.IOException {
-        SMPPIO.writeCString(sysId, out);
-    }
-
-    public void readBodyFrom(byte[] body, int offset)
-            throws SMPPProtocolException {
-        sysId = SMPPIO.readCString(body, offset);
-    }
-
-    /**
      * Convert this packet to a String. Not to be interpreted programmatically,
      * it's just dead handy for debugging!
      */
     public String toString() {
         return new String("bind_resp");
     }
-}
 
+    @Override
+    protected BodyDescriptor getBodyDescriptor() {
+        return BODY_DESCRIPTOR;
+    }
+    
+    @Override
+    protected Object[] getMandatoryParameters() {
+        return new Object[] {
+                sysId,
+        };
+    }
+    
+    @Override
+    protected void setMandatoryParameters(List<Object> params) {
+        sysId = (String) params.get(0);
+    }
+}

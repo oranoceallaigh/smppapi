@@ -1,245 +1,172 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE module PUBLIC "-//Puppy Crawl//DTD Check Configuration 1.2//EN" "http://www.puppycrawl.com/dtds/configuration_1_2.dtd">
+<!--
+	This configuration file was written by the eclipse-cs plugin configuration editor
+-->
+<!--
+Checkstyle-Configuration: smppapi checks
+Description:
 
+-->
+<!DOCTYPE module PUBLIC "-//Puppy Crawl//DTD Check Configuration 1.2//EN" "http://www.puppycrawl.com/dtds/configuration_1_2.dtd">
 <module name="Checker">
-<property name="severity" value="warning"/>
-<module name="TreeWalker">
-<module name="FileContentsHolder">
-</module>
-<module name="JavadocMethod">
-<property name="severity" value="ignore"/>
-<property name="scope" value="package"/>
-</module>
-<module name="JavadocStyle">
-<property name="severity" value="ignore"/>
-<property name="excludeScope" value="nothing"/>
-</module>
-<module name="JavadocType">
-<property name="severity" value="ignore"/>
-<property name="scope" value="package"/>
-</module>
-<module name="JavadocVariable">
-<property name="severity" value="ignore"/>
-<property name="scope" value="package"/>
-</module>
-<module name="AbstractClassName">
-    <!--  TODO: reenable  -->
-    <property name="severity" value="ignore"/>
-</module>
-<module name="ConstantName">
-</module>
-<module name="LocalFinalVariableName">
-</module>
-<module name="LocalVariableName">
-</module>
-<module name="MemberName">
-</module>
-<module name="MethodName">
-</module>
-<module name="PackageName">
-</module>
-<module name="ParameterName">
-</module>
-<module name="StaticVariableName">
-</module>
-<module name="TypeName">
-</module>
-<module name="AvoidStarImport">
-</module>
-<module name="IllegalImport">
-</module>
-<module name="ImportOrder">
-</module>
-<module name="RedundantImport">
-</module>
-<module name="UnusedImports">
-</module>
-<module name="AnonInnerLength">
-</module>
-<module name="ExecutableStatementCount">
-<property name="tokens" value="INSTANCE_INIT,STATIC_INIT,METHOD_DEF,CTOR_DEF"/>
-</module>
-<module name="FileLength">
-</module>
-<module name="LineLength">
-<property name="ignorePattern" value="^$|^\s*\*"/>
-<property name="max" value="130"/>
-<property name="tabWidth" value="8"/>
-</module>
-<module name="MethodLength">
-</module>
-<module name="ParameterNumber">
-</module>
-<module name="EmptyForInitializerPad">
-</module>
-<module name="EmptyForIteratorPad">
-</module>
-<module name="NoWhitespaceAfter">
-</module>
-<module name="NoWhitespaceBefore">
-</module>
-<module name="OperatorWrap">
-</module>
-<module name="MethodParamPad">
-</module>
-<module name="ParenPad">
-</module>
-<module name="TabCharacter">
-</module>
-<module name="TypecastParenPad">
-<property name="tokens" value="RPAREN,TYPECAST"/>
-</module>
-<module name="WhitespaceAfter">
-</module>
-<module name="WhitespaceAround">
-</module>
-<module name="ModifierOrder">
-</module>
-<module name="RedundantModifier">
-</module>
-<module name="AvoidNestedBlocks">
-</module>
-<module name="EmptyBlock">
-    <property name="option" value="text"/>
-    <property name="tokens" value="LITERAL_CATCH"/>
-</module>
-<module name="EmptyBlock">
-    <property name="option" value="stmt"/>
-    <property name="tokens" value="LITERAL_DO,LITERAL_ELSE,LITERAL_FINALLY,LITERAL_IF,LITERAL_FOR,LITERAL_TRY,LITERAL_WHILE,INSTANCE_INIT,STATIC_INIT"/>
-</module>
-<module name="LeftCurly">
-</module>
-<module name="NeedBraces">
-</module>
-<module name="RightCurly">
-</module>
-<module name="CovariantEquals">
-</module>
-<module name="DefaultComesLast">
-</module>
-<module name="DeclarationOrder">
-  <!-- TODO: reenable -->
-  <property name="severity" value="ignore"/>
-</module>
-<module name="DoubleCheckedLocking">
-</module>
-<module name="EmptyStatement">
-</module>
-<module name="EqualsHashCode">
-</module>
-<module name="ExplicitInitialization">
-</module>
-<module name="FallThrough">
-</module>
-<module name="FinalLocalVariable">
-<property name="severity" value="ignore"/>
-</module>
-<module name="IllegalInstantiation">
-</module>
-<module name="IllegalCatch">
-<property name="severity" value="ignore"/>
-</module>
-<module name="IllegalThrows">
-</module>
-<module name="IllegalType">
-<property name="tokens" value="METHOD_DEF,PARAMETER_DEF,VARIABLE_DEF"/>
-</module>
-<module name="InnerAssignment">
-</module>
-<module name="JUnitTestCase">
-</module>
-<module name="MagicNumber">
-<property name="severity" value="ignore"/>
-</module>
-<module name="MissingCtor">
-</module>
-<module name="MissingSwitchDefault">
-</module>
-<module name="ModifiedControlVariable">
-</module>
-<module name="MultipleStringLiterals">
-</module>
-<module name="MultipleVariableDeclarations">
-</module>
-<module name="NestedIfDepth">
-</module>
-<module name="NestedTryDepth">
-</module>
-<module name="PackageDeclaration">
-</module>
-<module name="RedundantThrows">
-    <property name="severity" value="ignore"/>
-</module>
-<module name="ReturnCount">
-</module>
-<module name="SimplifyBooleanExpression">
-</module>
-<module name="SimplifyBooleanReturn">
-</module>
-<module name="StringLiteralEquality">
-</module>
-<module name="SuperClone">
-</module>
-<module name="SuperFinalize">
-</module>
-<module name="ArrayTrailingComma">
-</module>
-<module name="UnnecessaryParentheses">
-</module>
-<module name="FinalClass">
-</module>
-<module name="HideUtilityClassConstructor">
-</module>
-<module name="InterfaceIsType">
-</module>
-<module name="MutableException">
-    <property name="severity" value="ignore"/>
-</module>
-<module name="ThrowsCount">
-    <property name="severity" value="ignore"/>
-</module>
-<module name="VisibilityModifier">
-  <!-- TODO: do we want this on an API-wide level? -->
-  <property name="protectedAllowed" value="true"/>
-</module>
-<module name="BooleanExpressionComplexity">
-</module>
-<module name="ClassDataAbstractionCoupling">
-</module>
-<module name="ClassFanOutComplexity">
-</module>
-<module name="CyclomaticComplexity">
-</module>
-<module name="JavaNCSS">
-</module>
-<module name="NPathComplexity">
-</module>
-<module name="ArrayTypeStyle">
-</module>
-<module name="DescendantToken">
-</module>
-<module name="Indentation">
-<property name="severity" value="ignore"/>
-</module>
-<module name="RequiredRegexp">
-</module>
-<module name="TodoComment">
-</module>
-<module name="TrailingComment">
-</module>
-<module name="UncommentedMain">
-</module>
-<module name="UpperEll">
-</module>
-</module>
-<module name="PackageHtml">
-</module>
-<module name="StrictDuplicateCode">
-    <!--  TODO: reenable -->
-    <property name="severity" value="ignore"/>
-</module>
-<module name="NewlineAtEndOfFile">
-</module>
-<module name="Translation">
-</module>
+    <property name="severity" value="warning"/>
+    <module name="TreeWalker">
+        <module name="JavadocMethod">
+            <property name="severity" value="ignore"/>
+            <property name="scope" value="package"/>
+        </module>
+        <module name="JavadocStyle">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="JavadocType">
+            <property name="severity" value="ignore"/>
+            <property name="scope" value="package"/>
+        </module>
+        <module name="JavadocVariable">
+            <property name="severity" value="ignore"/>
+            <property name="scope" value="package"/>
+        </module>
+        <module name="AbstractClassName">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="ConstantName"/>
+        <module name="LocalFinalVariableName"/>
+        <module name="LocalVariableName"/>
+        <module name="MemberName"/>
+        <module name="MethodName"/>
+        <module name="PackageName"/>
+        <module name="ParameterName"/>
+        <module name="StaticVariableName"/>
+        <module name="TypeName"/>
+        <module name="AvoidStarImport"/>
+        <module name="IllegalImport"/>
+        <module name="ImportOrder">
+            <property name="groups" value="java,javax"/>
+        </module>
+        <module name="RedundantImport"/>
+        <module name="UnusedImports"/>
+        <module name="AnonInnerLength"/>
+        <module name="ExecutableStatementCount">
+            <property name="tokens" value="INSTANCE_INIT,STATIC_INIT,METHOD_DEF,CTOR_DEF"/>
+        </module>
+        <module name="FileLength"/>
+        <module name="LineLength">
+            <property name="ignorePattern" value="^$|^\s*\*"/>
+            <property name="max" value="130"/>
+            <property name="tabWidth" value="8"/>
+        </module>
+        <module name="MethodLength"/>
+        <module name="ParameterNumber"/>
+        <module name="EmptyForInitializerPad"/>
+        <module name="EmptyForIteratorPad"/>
+        <module name="NoWhitespaceAfter"/>
+        <module name="NoWhitespaceBefore"/>
+        <module name="OperatorWrap"/>
+        <module name="MethodParamPad"/>
+        <module name="ParenPad"/>
+        <module name="TabCharacter"/>
+        <module name="TypecastParenPad">
+            <property name="tokens" value="RPAREN,TYPECAST"/>
+        </module>
+        <module name="WhitespaceAfter"/>
+        <module name="WhitespaceAround">
+            <property name="tokens" value="ASSIGN,BAND,BAND_ASSIGN,BOR,BOR_ASSIGN,BSR,BSR_ASSIGN,BXOR,BXOR_ASSIGN,COLON,DIV,DIV_ASSIGN,EQUAL,GE,GT,LAND,LCURLY,LE,LITERAL_ASSERT,LITERAL_CATCH,LITERAL_DO,LITERAL_ELSE,LITERAL_FINALLY,LITERAL_FOR,LITERAL_IF,LITERAL_RETURN,LITERAL_SYNCHRONIZED,LITERAL_TRY,LITERAL_WHILE,LOR,LT,MINUS,MINUS_ASSIGN,MOD,MOD_ASSIGN,NOT_EQUAL,PLUS,PLUS_ASSIGN,QUESTION,RCURLY,SL,SLIST,SL_ASSIGN,SR,SR_ASSIGN,STAR,STAR_ASSIGN,LITERAL_ASSERT,TYPE_EXTENSION_AND"/>
+        </module>
+        <module name="ModifierOrder"/>
+        <module name="RedundantModifier"/>
+        <module name="AvoidNestedBlocks"/>
+        <module name="EmptyBlock">
+            <property name="option" value="text"/>
+            <property name="tokens" value="LITERAL_CATCH"/>
+        </module>
+        <module name="EmptyBlock">
+            <property name="tokens" value="LITERAL_DO,LITERAL_ELSE,LITERAL_FINALLY,LITERAL_IF,LITERAL_FOR,LITERAL_TRY,LITERAL_WHILE,INSTANCE_INIT,STATIC_INIT"/>
+        </module>
+        <module name="LeftCurly"/>
+        <module name="NeedBraces"/>
+        <module name="RightCurly"/>
+        <module name="CovariantEquals"/>
+        <module name="DefaultComesLast"/>
+        <module name="DeclarationOrder">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="DoubleCheckedLocking"/>
+        <module name="EmptyStatement"/>
+        <module name="EqualsHashCode"/>
+        <module name="ExplicitInitialization"/>
+        <module name="FallThrough"/>
+        <module name="FinalLocalVariable">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="IllegalInstantiation"/>
+        <module name="IllegalCatch">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="IllegalThrows"/>
+        <module name="IllegalType">
+            <property name="tokens" value="METHOD_DEF,PARAMETER_DEF,VARIABLE_DEF"/>
+        </module>
+        <module name="InnerAssignment"/>
+        <module name="JUnitTestCase"/>
+        <module name="MagicNumber">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="MissingCtor">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="MissingSwitchDefault">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="ModifiedControlVariable"/>
+        <module name="MultipleStringLiterals"/>
+        <module name="MultipleVariableDeclarations"/>
+        <module name="NestedIfDepth"/>
+        <module name="NestedTryDepth"/>
+        <module name="PackageDeclaration"/>
+        <module name="RedundantThrows">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="ReturnCount"/>
+        <module name="SimplifyBooleanExpression"/>
+        <module name="SimplifyBooleanReturn"/>
+        <module name="StringLiteralEquality"/>
+        <module name="SuperClone"/>
+        <module name="SuperFinalize"/>
+        <module name="ArrayTrailingComma"/>
+        <module name="UnnecessaryParentheses"/>
+        <module name="FinalClass"/>
+        <module name="HideUtilityClassConstructor"/>
+        <module name="InterfaceIsType"/>
+        <module name="MutableException">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="ThrowsCount">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="VisibilityModifier">
+            <property name="protectedAllowed" value="true"/>
+        </module>
+        <module name="BooleanExpressionComplexity"/>
+        <module name="ClassDataAbstractionCoupling"/>
+        <module name="ClassFanOutComplexity"/>
+        <module name="CyclomaticComplexity"/>
+        <module name="JavaNCSS"/>
+        <module name="NPathComplexity"/>
+        <module name="ArrayTypeStyle"/>
+        <module name="DescendantToken"/>
+        <module name="Indentation">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="RequiredRegexp"/>
+        <module name="TodoComment"/>
+        <module name="TrailingComment"/>
+        <module name="UncommentedMain"/>
+        <module name="UpperEll"/>
+    </module>
+    <module name="PackageHtml"/>
+    <module name="StrictDuplicateCode">
+        <property name="severity" value="ignore"/>
+    </module>
+    <module name="NewlineAtEndOfFile"/>
+    <module name="Translation"/>
 </module>

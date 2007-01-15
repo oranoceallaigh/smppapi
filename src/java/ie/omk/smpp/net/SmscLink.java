@@ -12,8 +12,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Abstract super class of all classes that implement a network link to the
@@ -34,7 +34,7 @@ public abstract class SmscLink {
 
     private static final String LINK_NOT_UP_ERR = "Link not established.";
 
-    private static final Log LOGGER = LogFactory.getLog(SmscLink.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SmscLink.class);
 
     /** The buffered input of the link. */
     private BufferedInputStream in;
@@ -70,9 +70,7 @@ public abstract class SmscLink {
         } catch (PropertyNotFoundException x) {
             autoFlush = true;
         } finally {
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("autoFlush set to " + autoFlush);
-            }
+            LOG.debug("autoFlush set to {}", autoFlush);
         }
     }
 
@@ -94,10 +92,8 @@ public abstract class SmscLink {
         inSize = getBufferSize(cfg, APIConfig.LINK_BUFFERSIZE_IN);
         outSize = getBufferSize(cfg, APIConfig.LINK_BUFFERSIZE_OUT);
 
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("IN buffer size: " + inSize);
-            LOGGER.debug("OUT buffer size: " + outSize);
-        }
+        LOG.debug("IN buffer size: {}", inSize);
+        LOG.debug("OUT buffer size: {}", outSize);
 
         if (inSize < 1) {
             this.in = new BufferedInputStream(getInputStream());
@@ -115,8 +111,9 @@ public abstract class SmscLink {
     private int getBufferSize(APIConfig cfg, String propName) {
         int size = -1;
 
+        String s = null;
         try {
-            String s = cfg.getProperty(propName);
+            s = cfg.getProperty(propName);
             if (s.toLowerCase().endsWith("k")) {
                 size = Integer.parseInt(s.substring(0, s.length() - 1)) * 1024;
             } else if (s.toLowerCase().endsWith("m")) {
@@ -125,14 +122,12 @@ public abstract class SmscLink {
                 size = Integer.parseInt(s, 10);
             }
         } catch (PropertyNotFoundException x) {
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Buffer size is not set in configuration: " + propName
-                        + ", using default.");
-            }
+            LOG.debug("Buffer size ({}) is not set in config, using default",
+                    propName);
         } catch (NumberFormatException x) {
-            LOGGER.warn("Bad value for config property " + propName, x);
+            LOG.warn("Bad value {} for config property {}", s, propName);
+            LOG.debug("Exception:", x);
         }
-
         return size;
     }
 
@@ -169,8 +164,8 @@ public abstract class SmscLink {
             autoClose = APIConfig.getInstance().getBoolean(
                     APIConfig.LINK_AUTOCLOSE_SNOOP);
         } catch (PropertyNotFoundException x) {
-            LOGGER.debug(APIConfig.LINK_AUTOCLOSE_SNOOP
-                    + " property not found. Using the default of " + autoClose);
+            LOG.debug("{} property not found. Using the default of {}",
+                    APIConfig.LINK_AUTOCLOSE_SNOOP, autoClose);
         }
 
         if (autoClose) {
@@ -182,7 +177,7 @@ public abstract class SmscLink {
                     snoopIn.close();
                 }
             } catch (IOException x) {
-                LOGGER.warn("Exception while closing snoop streams.", x);
+                LOG.warn("Exception while closing snoop streams.", x);
             }
         } else {
             try {
@@ -193,7 +188,7 @@ public abstract class SmscLink {
                     snoopIn.flush();
                 }
             } catch (IOException x) {
-                LOGGER.warn("Exception while flushing snoop streams.", x);
+                LOG.warn("Exception while flushing snoop streams.", x);
             }
         }
     }
@@ -233,16 +228,14 @@ public abstract class SmscLink {
         if (out == null) {
             throw new IOException(LINK_NOT_UP_ERR);
         }
-
         synchronized (writeLock) {
             try {
                 if (snoopOut != null) {
                     pak.writeTo(snoopOut);
                 }
             } catch (IOException x) {
-                LOGGER.warn("IOException writing to snoop output stream.", x);
+                LOG.warn("IOException writing to snoop output stream.", x);
             }
-
             pak.writeTo(out);
             if (autoFlush) {
                 out.flush();
@@ -335,7 +328,7 @@ public abstract class SmscLink {
                 return in.available();
             }
         } catch (IOException x) {
-            LOGGER.debug("IOException in available", x);
+            LOG.debug("IOException in available", x);
             return 0;
         }
     }
@@ -386,7 +379,7 @@ public abstract class SmscLink {
                 s.write(b, offset, len);
             }
         } catch (IOException x) {
-            LOGGER.warn("Couldn't write incoming bytes to input snooper.", x);
+            LOG.warn("Couldn't write incoming bytes to input snooper.", x);
         }
     }
 
@@ -413,20 +406,6 @@ public abstract class SmscLink {
      * Check whether or not the connection to the SMSC is open.
      */
     public abstract boolean isConnected();
-
-    /**
-     * Set the value for read timeout. A link implementation may support timing
-     * out on blocking read operations. This method may be used to set such a
-     * timeout. If the implementation does not support timeouts, it must throw
-     * an <code>UnsuppertedOperationException<code>.
-     * @param timeout the timeout value in milliseconds.
-     * @throws UnsupportedOperationException if the implementation does not support
-     * timeouts.
-     * @deprecated Use setTimeout(int)
-     */
-    public void setTimeout(long timeout) {
-        throw new UnsupportedOperationException(TIMEOUT_UNSUPPORTED_ERR);
-    }
 
     /**
      * Set the value for read timeout. A link implementation may support timing

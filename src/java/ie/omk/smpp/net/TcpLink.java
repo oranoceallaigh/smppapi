@@ -9,8 +9,8 @@ import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.SocketException;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Implementation of an Smsc link over the tcp/ip protocol
@@ -23,7 +23,7 @@ public class TcpLink extends ie.omk.smpp.net.SmscLink {
 
     private static final String SOCKET_NOT_OPEN_ERR = "Socket connection is not open";
 
-    private static final Log LOGGER = LogFactory.getLog(TcpLink.class);
+    private static final Logger LOG = LoggerFactory.getLogger(TcpLink.class);
 
     /** Default IP port to use if none are specified */
     public static final int DEFAULT_PORT = 5016;
@@ -118,7 +118,7 @@ public class TcpLink extends ie.omk.smpp.net.SmscLink {
      * @see java.net.Socket#Socket(java.net.InetAddress, int)
      */
     protected void implOpen() throws java.io.IOException {
-        LOGGER.info("Opening TCP socket to " + addr + ":" + port);
+        LOG.info("Opening TCP socket to {}:{}", addr, port);
         sock = new Socket();
         SocketAddress sockAddr = new InetSocketAddress(addr, port);
         sock.connect(sockAddr, sockTimeout);
@@ -137,13 +137,13 @@ public class TcpLink extends ie.omk.smpp.net.SmscLink {
      */
     protected void implClose() throws java.io.IOException {
         if (connected && sock != null) {
-            LOGGER.info("Shutting down socket connection");
+            LOG.info("Shutting down socket connection");
             try {
                 sock.close();
                 sock = null;
                 connected = false;
             } catch (IOException ix) {
-                LOGGER.warn("I/O exception closing socket", ix);
+                LOG.warn("I/O exception closing socket", ix);
                 connected = false;
                 ix.fillInStackTrace();
                 throw ix;
@@ -256,25 +256,9 @@ public class TcpLink extends ie.omk.smpp.net.SmscLink {
                 sock.setSoTimeout(sockTimeout);
             }
         } catch (SocketException x) {
-            LOGGER.error("Failed to set timeout on socket: " + x.getMessage());
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug(STACK_TRACE_ERR, x);
-            }
-        }
-    }
-    /**
-     * @deprecated Use setTimeout(int)
-     */
-    public void setTimeout(long timeout) {
-        try {
-            sockTimeout = (int) timeout;
-            if (sock != null) {
-                sock.setSoTimeout(sockTimeout);
-            }
-        } catch (SocketException x) {
-            LOGGER.error("Failed to set timeout on socket: " + x.getMessage());
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug(STACK_TRACE_ERR, x);
+            LOG.error("Failed to set timeout on socket: {} ", x.getMessage());
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(STACK_TRACE_ERR, x);
             }
         }
     }
@@ -283,8 +267,8 @@ public class TcpLink extends ie.omk.smpp.net.SmscLink {
         try {
             return sock.getSoTimeout();
         } catch (SocketException x) {
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug(STACK_TRACE_ERR, x);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(STACK_TRACE_ERR, x);
             }
         }
         return -1;

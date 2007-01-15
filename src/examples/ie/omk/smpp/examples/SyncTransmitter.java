@@ -1,16 +1,18 @@
 package ie.omk.smpp.examples;
 
 import ie.omk.smpp.Address;
-import ie.omk.smpp.Connection;
+import ie.omk.smpp.ConnectionType;
+import ie.omk.smpp.TextMessage;
 import ie.omk.smpp.message.BindResp;
-import ie.omk.smpp.message.SMPPPacket;
 import ie.omk.smpp.message.SubmitSM;
 import ie.omk.smpp.message.SubmitSMResp;
 import ie.omk.smpp.message.UnbindResp;
+import ie.omk.smpp.util.AutoResponder;
+import ie.omk.smpp.util.SyncWrapper;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.tools.ant.BuildException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Example class to submit a message to a SMSC using synchronous communication.
@@ -21,21 +23,29 @@ import org.apache.tools.ant.BuildException;
  */
 public class SyncTransmitter extends SMPPAPIExample {
 
-    private Log logger = LogFactory.getLog(SyncTransmitter.class);
+    private Logger logger = LoggerFactory.getLogger(SyncTransmitter.class);
 
     public SyncTransmitter() {
     }
 
     public void execute() throws BuildException {
         try {
+            createConnection();
+            
+            // Automatically respond to enqure_link and deliver_sm requests
+            // from the SMSC
+            AutoResponder autoResponder = new AutoResponder();
+            autoResponder.setAckEnquireLink(true);
+            autoResponder.setAckDeliverSm(true);
+            myConnection.addObserver(autoResponder);
+
+            // SyncWrapper provides the synchronous communication functionality. 
+            SyncWrapper syncWrapper = new SyncWrapper(myConnection);
+            myConnection.addObserver(syncWrapper);
+
             logger.info("Binding to the SMSC");
-
-            myConnection = new Connection(hostName, port);
-            myConnection.autoAckLink(true);
-            myConnection.autoAckMessages(true);
-
-            BindResp resp = myConnection.bind(
-                    Connection.TRANSMITTER,
+            BindResp resp = syncWrapper.bind(
+                    ConnectionType.TRANSMITTER,
                     systemID,
                     password,
                     systemType,
@@ -51,17 +61,18 @@ public class SyncTransmitter extends SMPPAPIExample {
             logger.info("Bind successful...submitting a message.");
 
             // Submit a simple message
-            SubmitSM sm = (SubmitSM) myConnection.newInstance(SMPPPacket.SUBMIT_SM);
-            sm.setDestination(new Address(0, 0, "3188332314"));
-            sm.setMessageText("This is an example short message.");
-            SubmitSMResp smr = (SubmitSMResp) myConnection.sendRequest(sm);
+            TextMessage textMessage = new TextMessage("Example short message.");
+            SubmitSM submitSM = textMessage.getSubmitSM(true);
+            submitSM.setDestination(new Address(0, 0, "3188332314"));
+            SubmitSMResp response =
+                (SubmitSMResp) syncWrapper.sendPacket(submitSM);
 
-            logger.info("Submitted message ID: " + smr.getMessageId());
+            logger.info("Submitted message ID: " + response.getMessageId());
 
             // Unbind.
-            UnbindResp ubr = myConnection.unbind();
+            UnbindResp unbindResponse = syncWrapper.unbind();
 
-            if (ubr.getCommandStatus() == 0) {
+            if (unbindResponse.getCommandStatus() == 0) {
                 logger.info("Successfully unbound from the SMSC");
             } else {
                 logger.info("There was an error unbinding.");

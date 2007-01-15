@@ -16,7 +16,7 @@ public final class Tag implements java.io.Serializable {
      * Look-up table of statically defined tags. This <b>must</b> be defined
      * before all the tags as the Tag constructor expects this object to exist.
      */
-    private static Map tagTable = new HashMap();
+    private static Map<Integer, Tag> tagTable = new HashMap<Integer, Tag>();
 
     static final long serialVersionUID = -418561932897398277L;
     
@@ -139,7 +139,7 @@ public final class Tag implements java.io.Serializable {
     /**
      * The Java type a value of this tag type must be.
      */
-    private Class type;
+    private Class<? extends Object> type;
 
     /**
      * The class used for encoding and decoding values of this tag type.
@@ -162,8 +162,9 @@ public final class Tag implements java.io.Serializable {
      *             If a tag with integer value <code>tag</code> has already
      *             been defined.
      */
-    private Tag(int tag, Class type, int fixedLength)
-            throws TagDefinedException {
+    private Tag(int tag,
+            Class<? extends Object> type,
+            int fixedLength) throws TagDefinedException {
         this(tag, type, null, fixedLength, fixedLength);
     }
 
@@ -183,8 +184,10 @@ public final class Tag implements java.io.Serializable {
      *             If a tag with integer value <code>tag</code> has already
      *             been defined.
      */
-    private Tag(int tag, Class type, int minLength, int maxLength)
-            throws TagDefinedException {
+    private Tag(int tag,
+            Class<? extends Object> type,
+            int minLength,
+            int maxLength) throws TagDefinedException {
         this(tag, type, null, minLength, maxLength);
     }
 
@@ -203,8 +206,10 @@ public final class Tag implements java.io.Serializable {
      *             If a tag with integer value <code>tag</code> has already
      *             been defined.
      */
-    private Tag(int tag, Class type, Encoder enc, int fixedLength)
-            throws TagDefinedException {
+    private Tag(int tag,
+            Class<? extends Object> type,
+            Encoder enc,
+            int fixedLength) throws TagDefinedException {
         this(tag, type, enc, fixedLength, fixedLength);
     }
 
@@ -225,8 +230,11 @@ public final class Tag implements java.io.Serializable {
      *             If a tag with integer value <code>tag</code> has already
      *             been defined.
      */
-    private Tag(int tag, Class type, Encoder enc, int minLength, int maxLength)
-            throws TagDefinedException {
+    private Tag(int tag,
+            Class<? extends Object> type,
+            Encoder enc,
+            int minLength,
+            int maxLength) throws TagDefinedException {
         this.tag = new Integer(tag);
         this.type = type;
         this.minLength = minLength;
@@ -236,13 +244,11 @@ public final class Tag implements java.io.Serializable {
         } else {
             this.encoder = enc;
         }
-
         synchronized (tagTable) {
             if (tagTable.containsKey(this.tag)) {
                 throw new TagDefinedException(tag, "Tag 0x"
                         + Integer.toHexString(tag) + " is already defined.");
             }
-
             tagTable.put(this.tag, this);
         }
     }
@@ -316,7 +322,7 @@ public final class Tag implements java.io.Serializable {
      * 
      * @return the Java type of values of this tag type.
      */
-    public Class getType() {
+    public Class<? extends Object> getType() {
         return type;
     }
 
@@ -421,7 +427,9 @@ public final class Tag implements java.io.Serializable {
      *             equivalent to an already defined tag.
      * @see Encoder
      */
-    public static Tag defineTag(int tagValue, Class type, Encoder enc,
+    public static Tag defineTag(int tagValue,
+            Class<? extends Object> type,
+            Encoder enc,
             int fixedSize) throws TagDefinedException {
         return new Tag(tagValue, type, enc, fixedSize);
     }
@@ -444,8 +452,11 @@ public final class Tag implements java.io.Serializable {
      *             equivalent to an already defined tag.
      * @see Encoder
      */
-    public static Tag defineTag(int tagValue, Class type, Encoder enc,
-            int minSize, int maxSize) throws TagDefinedException {
+    public static Tag defineTag(int tagValue,
+            Class<? extends Object> type,
+            Encoder enc,
+            int minSize,
+            int maxSize) throws TagDefinedException {
         return new Tag(tagValue, type, enc, minSize, maxSize);
     }
 

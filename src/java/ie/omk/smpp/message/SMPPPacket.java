@@ -1,18 +1,17 @@
 package ie.omk.smpp.message;
 
-import ie.omk.smpp.Address;
+import ie.omk.smpp.SMPPRuntimeException;
 import ie.omk.smpp.message.tlv.TLVTable;
 import ie.omk.smpp.message.tlv.Tag;
-import ie.omk.smpp.util.AlphabetEncoding;
-import ie.omk.smpp.util.BinaryEncoding;
-import ie.omk.smpp.util.EncodingFactory;
-import ie.omk.smpp.util.MessageEncoding;
-import ie.omk.smpp.util.SMPPDate;
 import ie.omk.smpp.util.SMPPIO;
 import ie.omk.smpp.version.SMPPVersion;
 
+import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Date;
+import java.text.ParseException;
+import java.text.ParsePosition;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This is the abstract class that all SMPP messages are inherited from.
@@ -21,6 +20,8 @@ import java.util.Date;
  * @version 1.0
  */
 public abstract class SMPPPacket {
+    private static final String NOT_ENOUGH_PARAMS = "Not enough mandatory parameters supplied to fill the body!";
+
     /** Command Id: Negative Acknowledgement */
     public static final int GENERIC_NACK = 0x80000000;
 
@@ -202,70 +203,7 @@ public abstract class SMPPPacket {
     protected int commandStatus;
 
     /** Packet sequence number. */
-    protected int sequenceNum;
-
-    /*
-     * Almost all packets use one or more of these. These attributes were all
-     * stuck in here for easier maintenance... instead of altering 5 different
-     * packets, just alter it here!! Special cases like SubmitMulti and
-     * QueryMsgDetailsResp maintain their own destination tables. Any packets
-     * that wish to use these attribs should override the appropriate methods
-     * defined below to be public and just call super.method()
-     */
-
-    /** Source address */
-    protected Address source;
-
-    /** Destination address */
-    protected Address destination;
-
-    /** The short message data */
-    protected byte[] message;
-
-    /** Service type for this msg */
-    protected String serviceType;
-
-    /** Scheduled delivery time */
-    protected SMPPDate deliveryTime;
-
-    /** Scheduled expiry time */
-    protected SMPPDate expiryTime;
-
-    /** Date of reaching final state */
-    protected SMPPDate finalDate;
-
-    /** Smsc allocated message Id */
-    protected String messageId;
-
-    /** Status of message */
-    protected int messageStatus;
-
-    /** Error associated with message */
-    protected int errorCode;
-
-    /** Message priority. */
-    protected int priority;
-
-    /** Registered delivery. */
-    protected int registered;
-
-    /** Replace if present. */
-    protected int replaceIfPresent;
-
-    /** ESM class. */
-    protected int esmClass;
-
-    /** GSM protocol ID. */
-    protected int protocolID;
-
-    /** Alphabet to use to encode this message's text. */
-    private MessageEncoding encoding = EncodingFactory.getInstance().getDefaultAlphabet();
-
-    /** GSM data coding (see GSM 03.38). */
-    protected int dataCoding = encoding.getDataCoding();
-
-    /** Default message number. */
-    protected int defaultMsg;
+    protected int sequenceNum = -1;
 
     /** Optional parameter table. */
     protected TLVTable tlvTable = new TLVTable();
@@ -273,37 +211,26 @@ public abstract class SMPPPacket {
     /**
      * Create a new SMPPPacket with specified Id.
      * 
-     * @param id
+     * @param commandId
      *            Command Id value
      */
-    protected SMPPPacket(int id) {
-        this(id, 0);
+    protected SMPPPacket(int commandId) {
+        this.commandId = commandId;
     }
 
     /**
-     * Create a new SMPPPacket with specified Id and sequence number.
-     * 
-     * @param id
-     *            Command Id value
-     * @param seqNum
-     *            Command Sequence number
+     * Create a new SMPPPacket that represents a response to the specified
+     * packet. This constructor will duplicate the sequence number and version
+     * from the request packet, and set the command id to the appropriate
+     * value representing the response packet.
+     * @param request
      */
-    protected SMPPPacket(int id, int seqNum) {
-        this.commandId = id;
-        this.sequenceNum = seqNum;
+    protected SMPPPacket(SMPPPacket request) {
+        commandId = request.commandId | 0x80000000;
+        version = request.version;
+        sequenceNum = request.sequenceNum;
     }
-
-    protected SMPPPacket(int id, SMPPVersion version) {
-        this.commandId = id;
-        this.version = version;
-    }
-
-    protected SMPPPacket(int id, int seqNum, SMPPVersion version) {
-        this.commandId = id;
-        this.sequenceNum = seqNum;
-        this.version = version;
-    }
-
+    
     /**
      * Get the version handler in use for this packet.
      * 
@@ -319,7 +246,16 @@ public abstract class SMPPPacket {
      * false</code> if it is a response.
      */
     public boolean isRequest() {
-        return false;
+        return (commandId & 0x80000000) == 0;
+    }
+
+    /**
+     * Is this command a response packet.
+     * @return <code>true</code> if this packet is an SMPP response, <code>
+     * false</code> if it is a request.
+     */
+    public boolean isResponse() {
+        return (commandId & 0x80000000) != 0;
     }
     
     /**
@@ -339,38 +275,6 @@ public abstract class SMPPPacket {
     }
 
     /**
-     * Return the number of bytes this packet would be encoded as to an
-     * OutputStream.
-     * 
-     * @return The size in bytes of the packet
-     * @deprecated
-     */
-    public final int getCommandLen() {
-        // TODO stop overriding this deprecated method.
-        return getLength();
-    }
-
-    /**
-     * Get the number of bytes this packet would be encoded as. This returns the
-     * sum of the size of the header (always 16), the packet's body and all
-     * optional parameters.
-     * 
-     * @return the number of bytes this packet would encode as.
-     */
-    public final int getLength() {
-        return 16 + getBodyLength() + tlvTable.getLength();
-    }
-
-    /**
-     * Get the number of bytes the body of this packet would encode as. This
-     * method should only return the number of bytes the fields in the mandatory
-     * parameters section of the packet would encode as. The total size of the
-     * packet then is 16 (header length) + getBodyLength() + SUM(foreach
-     * optionalParameter: getLength()).
-     */
-    public abstract int getBodyLength();
-
-    /**
      * Get the Command Id of this SMPP packet.
      * 
      * @return The Command Id of this packet
@@ -386,16 +290,23 @@ public abstract class SMPPPacket {
      *         packets)
      */
     public int getCommandStatus() {
-        return this.commandStatus;
+        return commandStatus;
     }
 
+    /**
+     * Set the status of this packet.
+     * @param commandStatus
+     */
+    public void setCommandStatus(int commandStatus) {
+        this.commandStatus = commandStatus;
+    }
     /**
      * Get the sequence number of this packet.
      * 
      * @return The sequence number of this SMPP packet
      */
     public int getSequenceNum() {
-        return this.sequenceNum;
+        return sequenceNum;
     }
 
     /**
@@ -403,675 +314,6 @@ public abstract class SMPPPacket {
      */
     public void setSequenceNum(int sequenceNum) {
         this.sequenceNum = sequenceNum;
-    }
-
-    /**
-     * Set the source address..
-     */
-    public void setSource(Address s) throws InvalidParameterValueException {
-        if (s != null) {
-            if (version.validateAddress(s)) {
-                this.source = s;
-            } else {
-                throw new InvalidParameterValueException("Bad source address.",
-                        s);
-            }
-        } else {
-            this.source = null;
-        }
-    }
-
-    /**
-     * Get the source address.
-     * @return The source address or null if it is not set.
-     */
-    public Address getSource() {
-        return source;
-    }
-
-    /**
-     * Set the destination address.
-     */
-    public void setDestination(Address s) {
-        if (s != null) {
-            if (version.validateAddress(s)) {
-                this.destination = s;
-            } else {
-                throw new InvalidParameterValueException(
-                        "Bad destination address.", s);
-            }
-        } else {
-            this.destination = null;
-        }
-    }
-
-    /**
-     * Get the destination address.
-     * @return The destination address or null if it is not set.
-     */
-    public Address getDestination() {
-        return destination;
-    }
-
-    /**
-     * Set the 'priority' flag.
-     * 
-     * @throws ie.omk.smpp.message.InvalidParameterValueException
-     *             If <code>p</code> is not a valid value for the priority
-     *             flag.
-     */
-    public void setPriority(int p) throws InvalidParameterValueException {
-        if (version.validatePriorityFlag(p)) {
-            this.priority = p;
-        } else {
-            throw new InvalidParameterValueException("Bad priority flag value",
-                    p);
-        }
-    }
-
-    /**
-     * Set 'registered delivery' flag.
-     * 
-     * @deprecated
-     */
-    public void setRegistered(boolean b) {
-        this.registered = b ? 1 : 0;
-    }
-
-    /**
-     * Set 'registered delivery' flag.
-     * 
-     * @throws ie.omk.smpp.message.InvalidParameterValueException
-     *             If <code>r</code> is not a valid value for the registered
-     *             delivery flag.
-     */
-    public void setRegistered(int r) throws InvalidParameterValueException {
-        if (version.validateRegisteredDelivery(r)) {
-            this.registered = r;
-        } else {
-            throw new InvalidParameterValueException(
-                    "Bad registered delivery flag value", r);
-        }
-    }
-
-    /**
-     * Set 'replace if present'.
-     * 
-     * @deprecated
-     */
-    public void setReplaceIfPresent(boolean b) {
-        this.replaceIfPresent = b ? 1 : 0;
-    }
-
-    /**
-     * Set 'replace if present' flag.
-     * 
-     * @throws ie.omk.smpp.message.InvalidParameterValueException
-     *             If <code>rip</code> is not a valid value for the replace if
-     *             present flag.
-     */
-    public void setReplaceIfPresent(int rip)
-            throws InvalidParameterValueException {
-        if (version.validateReplaceIfPresent(rip)) {
-            this.replaceIfPresent = rip;
-        } else {
-            throw new InvalidParameterValueException(
-                    "Bad replace if present flag value", rip);
-        }
-    }
-
-    /**
-     * Set the esm class of the message.
-     * 
-     * @see ie.omk.smpp.util.GSMConstants
-     * @throws ie.omk.smpp.message.InvalidParameterValueException
-     *             If the value passed is not a valid ESM class.
-     */
-    public void setEsmClass(int c) throws InvalidParameterValueException {
-        if (version.validateEsmClass(c)) {
-            this.esmClass = c;
-        } else {
-            throw new InvalidParameterValueException("Bad ESM class", c);
-        }
-    }
-
-    /**
-     * Set the protocol Id in the message flags.
-     * 
-     * @see ie.omk.smpp.util.GSMConstants
-     * @deprecated ie.omk.smpp.message.SMPPPacket#setProtocolID
-     */
-    public void setProtocolId(int id) {
-        this.protocolID = id;
-    }
-
-    /**
-     * Set the GSM protocol ID.
-     * 
-     * @see ie.omk.smpp.util.GSMConstants
-     * @throws ie.omk.smpp.message.InvalidParameterValueException
-     *             If the protocol ID supplied is invalid.
-     */
-    public void setProtocolID(int id) throws InvalidParameterValueException {
-        if (version.validateProtocolID(id)) {
-            this.protocolID = id;
-        } else {
-            throw new InvalidParameterValueException("Bad Protocol ID", id);
-        }
-    }
-
-    /**
-     * Set the GSM data coding of the message. This will also set the internal
-     * encoding type of the message to match the DCS value. It will <b>not </b>
-     * set the encoding type if the DCS is <code>0</code> as this code is
-     * reserved to represent the default SMSC encoding type, which is dependent
-     * on the SMSC implementation.
-     * 
-     * @see ie.omk.smpp.util.GSMConstants
-     * @throws ie.omk.smpp.message.InvalidParameterValueException
-     *             If the data coding supplied is invalid.
-     */
-    public void setDataCoding(int dc) throws InvalidParameterValueException {
-        if (version.validateDataCoding(dc)) {
-            this.dataCoding = dc;
-            if (dc > 0) {
-                this.encoding = EncodingFactory.getInstance().getEncoding(dc);
-            }
-        } else {
-            throw new InvalidParameterValueException("Bad data coding", dc);
-        }
-    }
-
-    /**
-     * Set the default message id in the message flags.
-     */
-    public void setDefaultMsg(int id) throws InvalidParameterValueException {
-        if (version.validateDefaultMsg(id)) {
-            this.defaultMsg = id;
-        } else {
-            throw new InvalidParameterValueException(
-                    "Default message ID out of range", id);
-        }
-    }
-
-    /**
-     * Check is the message registered.
-     * 
-     * @deprecated
-     */
-    public boolean isRegistered() {
-        return this.registered > 0;
-    }
-
-    /**
-     * Get the 'registered' flag for the message.
-     */
-    public int getRegistered() {
-        return registered;
-    }
-
-    /**
-     * Check is the message submitted as priority.
-     * 
-     * @deprecated
-     */
-    public boolean isPriority() {
-        return (this.priority == 0) ? false : true;
-    }
-
-    /**
-     * Get the priority flag for the message.
-     */
-    public int getPriority() {
-        return priority;
-    }
-
-    /**
-     * Check if the message should be replaced if it is already present.
-     * 
-     * @deprecated
-     */
-    public boolean isReplaceIfPresent() {
-        return this.replaceIfPresent > 0;
-    }
-
-    /**
-     * Get the replace if present flag for the message.
-     */
-    public int getReplaceIfPresent() {
-        return replaceIfPresent;
-    }
-
-    /**
-     * Get the ESM class of the message.
-     */
-    public int getEsmClass() {
-        return this.esmClass;
-    }
-
-    /**
-     * Get the GSM protocol Id of the message.
-     * 
-     * @deprecated getProtocolID
-     */
-    public int getProtocolId() {
-        return this.protocolID;
-    }
-
-    /**
-     * Get the GSM protocol ID of the message.
-     */
-    public int getProtocolID() {
-        return this.protocolID;
-    }
-
-    /**
-     * Get the data coding.
-     */
-    public int getDataCoding() {
-        return this.dataCoding;
-    }
-
-    /**
-     * Get the default message to use.
-     * 
-     * @deprecated
-     */
-    public int getDefaultMsgId() {
-        return this.defaultMsg;
-    }
-
-    /**
-     * Get the default message to use.
-     */
-    public int getDefaultMsg() {
-        return this.defaultMsg;
-    }
-
-    /**
-     * Set the text of the message. This method sets the message text encoded
-     * using the current alphabet for this message. The default alphabet to use
-     * is obtained using
-     * {@link ie.omk.smpp.util.EncodingFactory#getDefaultAlphabet}. If, at some
-     * point, the encoding for the message has been altered to be one other than
-     * a sub-class of {@link ie.omk.smpp.util.AlphabetEncoding} then calls to
-     * this method will reset the encoding back to the default. The maximum
-     * length of the message is determined by the SMPP version in use. Calling
-     * this method affects the data_coding value.
-     * 
-     * @param text
-     *            The short message text.
-     * @throws ie.omk.smpp.message.InvalidParameterValueException
-     *             If the message text is too long.
-     * @see ie.omk.smpp.util.EncodingFactory
-     * @see ie.omk.smpp.util.DefaultAlphabetEncoding
-     */
-    public void setMessageText(String text)
-            throws InvalidParameterValueException {
-        if (!(encoding instanceof AlphabetEncoding)) {
-            encoding = EncodingFactory.getInstance().getDefaultAlphabet();
-        }
-
-        AlphabetEncoding a = (AlphabetEncoding) encoding;
-        setMessage(a.encodeString(text), a);
-    }
-
-    /**
-     * Set the text of the message. This method sets the message text encoded
-     * using the SMS alphabet <code>alphabet</code>. The
-     * AlphabetEncoding.getDataCoding value will be used to set the data_coding
-     * field.
-     * 
-     * @param text
-     *            The short message text.
-     * @param alphabet
-     *            The SMS alphabet to use.
-     * @throws ie.omk.smpp.message.InvalidParameterValueException
-     *             If the message text is too long.
-     * @see ie.omk.smpp.util.AlphabetEncoding
-     * @see ie.omk.smpp.util.AlphabetEncoding#getDataCoding
-     * @see ie.omk.smpp.util.DefaultAlphabetEncoding
-     */
-    public void setMessageText(String text, AlphabetEncoding alphabet)
-            throws InvalidParameterValueException {
-        if (alphabet == null) {
-            throw new NullPointerException("Alphabet cannot be null");
-        }
-
-        this.setMessage(alphabet.encodeString(text), alphabet);
-    }
-
-    /**
-     * Set the message data. The data will be copied from the supplied byte
-     * array into an internal one.
-     * 
-     * @param message
-     *            The byte array to take message data from.
-     * @throws ie.omk.smpp.message.InvalidParameterValueException
-     *             If the message data is too long.
-     */
-    public void setMessage(byte[] message)
-            throws InvalidParameterValueException {
-        this.setMessage(message, 0, message.length, null);
-    }
-
-    /**
-     * Set the message data. The data will be copied from the supplied byte
-     * array into an internal one.
-     * 
-     * @param message
-     *            The byte array to take message data from.
-     * @throws ie.omk.smpp.message.InvalidParameterValueException
-     *             If the message data is too long.
-     */
-    public void setMessage(byte[] message, MessageEncoding encoding)
-            throws InvalidParameterValueException {
-        this.setMessage(message, 0, message.length, encoding);
-    }
-
-    /**
-     * Set the message data. The data will be copied from the supplied byte
-     * array into an internal one. If <i>encoding </i> is not null, the
-     * data_coding field will be set using the value returned by
-     * MessageEncoding.getDataCoding.
-     * 
-     * @param message
-     *            The byte array to take message data from.
-     * @param start
-     *            The index the message data begins at.
-     * @param len
-     *            The length of the message data.
-     * @param encoding
-     *            The encoding object representing the type of data in the
-     *            message. If null, uses ie.omk.smpp.util.BinaryEncoding.
-     * @throws ie.omk.smpp.message.InvalidParameterValueException
-     *             If the message data is too long.
-     * @throws java.lang.ArrayIndexOutOfBoundsException
-     *             if start or len is less than zero or if the byte array length
-     *             is less than <code>start +
-     * len</code>.
-     */
-    public void setMessage(byte[] message, int start, int len,
-            MessageEncoding encoding) throws InvalidParameterValueException {
-
-        int dcs = -1;
-
-        // encoding should never be null, but for resilience, we check it here
-        // and default back to binary encoding if none is found.
-        if (encoding == null) {
-            encoding = new BinaryEncoding();
-        }
-
-        dcs = encoding.getDataCoding();
-
-        if (message != null) {
-            if ((start < 0) || (len < 0) || message.length < (start + len)) {
-                throw new ArrayIndexOutOfBoundsException(
-                        "Not enough bytes in array");
-            }
-
-            int encodedLength = len;
-            int encodingLength = encoding.getEncodingLength();
-            if (encodingLength != 8) {
-                encodedLength = (len * encodingLength) / 8;
-            }
-
-            if (encodedLength > version.getMaxLength(SMPPVersion.MESSAGE_PAYLOAD)) {
-                throw new InvalidParameterValueException("Message is too long",
-                        message);
-            }
-
-            this.message = new byte[len];
-            System.arraycopy(message, start, this.message, 0, len);
-            this.dataCoding = dcs;
-        } else {
-            this.message = null;
-        }
-    }
-
-    /**
-     * Get the message data. This method returns a <i>copy </i> of the binary
-     * message data.
-     * 
-     * @return A byte array copy of the message data. May be null.
-     */
-    public byte[] getMessage() {
-        byte[] b = null;
-        if (this.message != null) {
-            b = new byte[this.message.length];
-            System.arraycopy(this.message, 0, b, 0, b.length);
-        }
-        return b;
-    }
-
-    /**
-     * Get the text of the message. The message will be decoded according to the
-     * current encoding of the message (that is, according to it's DCS value).
-     * If the current encoding is not some form of text encoding (that is, the
-     * DCS indicates a binary encoding), <code>null</code> will be returned.
-     * 
-     * @return The text of the message, or <code>null</code> if the message is
-     *         not text.
-     * @see #getMessageText(ie.omk.smpp.util.AlphabetEncoding)
-     * @see #setMessageText(java.lang.String, ie.omk.smpp.util.AlphabetEncoding)
-     */
-    public String getMessageText() {
-        if (encoding instanceof AlphabetEncoding) {
-            return ((AlphabetEncoding) encoding).decodeString(this.message);
-        } else {
-            return null;
-        }
-    }
-
-    /**
-     * Get the text of the message. Never returns null.
-     * 
-     * @param enc
-     *            The alphabet to use to decode the message bytes.
-     * @return The text of the message. Never returns null.
-     * @see ie.omk.smpp.util.AlphabetEncoding
-     */
-    public String getMessageText(AlphabetEncoding enc) {
-        return enc.decodeString(this.message);
-    }
-
-    /**
-     * Get the number of octets in the message payload.
-     * 
-     * @return The number of octets (bytes) in the message payload.
-     */
-    public int getMessageLen() {
-        return (message == null) ? 0 : message.length;
-    }
-
-    /**
-     * Set the service type.
-     * 
-     * @param type
-     *            The service type.
-     * @throws ie.omk.smpp.message.InvalidParameterValueException
-     *             if the service type is too long.
-     */
-    public void setServiceType(String type)
-            throws InvalidParameterValueException {
-        if (type != null) {
-            if (version.validateServiceType(type)) {
-                this.serviceType = type;
-            } else {
-                throw new InvalidParameterValueException("Bad service type",
-                        type);
-            }
-        } else {
-            this.serviceType = null;
-        }
-    }
-
-    /** Get the service type. */
-    public String getServiceType() {
-        return serviceType;
-    }
-
-    /**
-     * Set the scheduled delivery time for the short message.
-     * 
-     * @param d
-     *            The date and time the message should be delivered.
-     */
-    public void setDeliveryTime(SMPPDate d) {
-        this.deliveryTime = d;
-    }
-
-    /**
-     * Set the scheduled delivery time for the short message.
-     * 
-     * @param d
-     *            The date and time the message should be delivered.
-     */
-    public void setDeliveryTime(Date d) {
-        this.deliveryTime = new SMPPDate(d);
-    }
-
-    /**
-     * Get the current value of the scheduled delivery time for the short
-     * message.
-     */
-    public SMPPDate getDeliveryTime() {
-        return deliveryTime;
-    }
-
-    /**
-     * Set the expiry time of the message. If the message is not delivered by
-     * time 'd', it will be cancelled and never delivered to it's destination.
-     * 
-     * @param d
-     *            the date and time the message should expire.
-     */
-    public void setExpiryTime(SMPPDate d) {
-        expiryTime = d;
-    }
-
-    /**
-     * Set the expiry time of the message. If the message is not delivered by
-     * time 'd', it will be cancelled and never delivered to it's destination.
-     */
-    public void setExpiryTime(Date d) {
-        expiryTime = new SMPPDate(d);
-    }
-
-    /**
-     * Get the current expiry time of the message.
-     */
-    public SMPPDate getExpiryTime() {
-        return expiryTime;
-    }
-
-    /**
-     * Set the final date of the message. The final date is the date and time
-     * that the message reached it's final destination.
-     * 
-     * @param d
-     *            the date the message was delivered.
-     */
-    public void setFinalDate(SMPPDate d) {
-        finalDate = d;
-    }
-
-    /**
-     * Set the final date of the message. The final date is the date and time
-     * that the message reached it's final destination.
-     * 
-     * @param d
-     *            the date the message was delivered.
-     */
-    public void setFinalDate(Date d) {
-        this.finalDate = new SMPPDate(d);
-    }
-
-    /**
-     * Get the final date of the message.
-     */
-    public SMPPDate getFinalDate() {
-        return finalDate;
-    }
-
-    /**
-     * Set the message Id. Each submitted short message is assigned an Id by the
-     * SMSC which is used to uniquely identify it. SMPP v3.3 message Ids are
-     * hexadecimal numbers up to 9 characters long. This gives them a range of
-     * 0x0 - 0xffffffff.
-     * <p>
-     * SMPP v3.4 Ids, on the other hand, are opaque objects represented as
-     * C-Strings assigned by the SMSC and can be up to 64 characters (plus 1
-     * nul-terminator).
-     * 
-     * @param id
-     *            The message's id.
-     * @throws ie.omk.smpp.message.InvalidParameterValueException
-     *             If the message ID is invalid.
-     */
-    public void setMessageId(String id) throws InvalidParameterValueException {
-        if (id != null) {
-            if (version.validateMessageId(id)) {
-                this.messageId = id;
-            } else {
-                throw new InvalidParameterValueException("Bad message Id", id);
-            }
-        } else {
-            this.messageId = null;
-        }
-    }
-
-    /**
-     * Get the message id.
-     */
-    public String getMessageId() {
-        return this.messageId;
-    }
-
-    /**
-     * Set the message status. The message status (or message state) describes
-     * the current state of the message at the SMSC. There are a number of
-     * states defined in the SMPP specification.
-     * 
-     * @param st
-     *            The message status.
-     * @see ie.omk.smpp.util.PacketStatus
-     */
-    public void setMessageStatus(int st) throws InvalidParameterValueException {
-        if (version.validateMessageState(st)) {
-            this.messageStatus = st;
-        } else {
-            throw new InvalidParameterValueException(
-                    "Invalid message state", st);
-        }
-    }
-
-    /**
-     * Get the message status.
-     */
-    public int getMessageStatus() {
-        return this.messageStatus;
-    }
-
-    /**
-     * Set the error code.
-     * 
-     * @param code
-     *            The error code.
-     */
-    public void setErrorCode(int code) throws InvalidParameterValueException {
-        if (version.validateErrorCode(code)) {
-            errorCode = code;
-        } else {
-            throw new InvalidParameterValueException("Invalid error code", code);
-        }
-    }
-
-    /**
-     * Get the error code.
-     */
-    public int getErrorCode() {
-        return errorCode;
     }
 
     /**
@@ -1092,15 +334,14 @@ public abstract class SMPPPacket {
      * @see ie.omk.smpp.message.tlv.TLVTable
      * @return the old tlvTable.
      */
-    public TLVTable setTLVTable(TLVTable table) {
-        TLVTable t = this.tlvTable;
-        if (table == null) {
+    public TLVTable setTLVTable(TLVTable tlvTable) {
+        TLVTable oldTable = this.tlvTable;
+        if (tlvTable == null) {
             this.tlvTable = new TLVTable();
         } else {
-            this.tlvTable = table;
+            this.tlvTable = tlvTable;
         }
-
-        return t;
+        return oldTable;
     }
 
     /**
@@ -1121,6 +362,14 @@ public abstract class SMPPPacket {
         return tlvTable.set(tag, value);
     }
 
+    /**
+     * Remove, or un-set, an optional parameter.
+     * @param tag The tag for the optional parameter to remove.
+     */
+    public void removeOptionalParameter(Tag tag) {
+        tlvTable.remove(tag);
+    }
+    
     /**
      * Get an optional parameter. This is a convenience method and merely calls
      * {@link ie.omk.smpp.message.tlv.TLVTable#get}on this message's optional
@@ -1147,58 +396,107 @@ public abstract class SMPPPacket {
     }
 
     /**
-     * Set the alphabet encoding and dcs value for this message. The data_coding
-     * (dcs) value of this message will be set to the return value of
-     * {@link MessageEncoding#getDataCoding}.
+     * Get the length this packet encodes as.
+     * @return The size, in bytes, of this packet as it would encode on the
+     * network.
+     */
+    public final int getLength() {
+        return 16 + getBodyLength() + tlvTable.getLength();
+    }
+    
+    /**
+     * Write the byte representation of this SMPP packet to an OutputStream
      * 
-     * @param enc
-     *            The alphabet to use. If null, use DefaultAlphabetEncoding.
-     * @see ie.omk.smpp.util.AlphabetEncoding
-     * @see ie.omk.smpp.util.DefaultAlphabetEncoding
+     * @param out
+     *            The OutputStream to use
+     * @throws IOException
+     *             if there's an error writing to the output stream.
      */
-    public void setAlphabet(AlphabetEncoding enc) {
-        if (enc == null) {
-            this.encoding = EncodingFactory.getInstance().getDefaultAlphabet();
-        } else {
-            this.encoding = enc;
-        }
-
-        this.dataCoding = enc.getDataCoding();
+    public final void writeTo(OutputStream out) throws IOException {
+        this.writeTo(out, true);
     }
 
     /**
-     * Set the alphabet encoding for this message with an alternate dcs.
-     * <code>enc</code> will be used to encode the message but
-     * <code>dcs</code> will be used as the data coding value. This method is
-     * useful when the SMSC uses an alternate value to those build-in to the
-     * smppapi.
+     * Write the byte representation of this SMPP packet to an OutputStream
+     * 
+     * @param out
+     *            The OutputStream to use
+     * @param withOptional
+     *            true to send optional parameters over the link, false to only
+     *            write the mandatory parameters.
+     * @throws IOException
+     *             if there's an error writing to the output stream.
      */
-    public void setAlphabet(AlphabetEncoding enc, int dcs) {
-        if (enc == null) {
-            this.encoding = EncodingFactory.getInstance().getDefaultAlphabet();
-            this.dataCoding = enc.getDataCoding();
-        } else {
-            this.encoding = enc;
-            this.dataCoding = dcs;
-        }
-    }
+    public final void writeTo(OutputStream out, boolean withOptional)
+            throws IOException {
+        int commandLen = getLength();
 
-    /**
-     * Set the message encoding handler class for this packet.
-     */
-    public void setMessageEncoding(MessageEncoding enc) {
-        if (enc == null) {
-            this.encoding = EncodingFactory.getInstance().getDefaultAlphabet();
-        } else {
-            this.encoding = enc;
+        SMPPIO.writeInt(commandLen, 4, out);
+        SMPPIO.writeInt(commandId, 4, out);
+        SMPPIO.writeInt(commandStatus, 4, out);
+        SMPPIO.writeInt(sequenceNum, 4, out);
+        writeMandatory(out);
+        if (withOptional) {
+            tlvTable.writeTo(out);
         }
     }
 
     /**
-     * Get the current message encoding object.
+     * Decode an SMPP packet from a byte array.
+     * 
+     * @param data
+     *            the byte array to read the SMPP packet's fields from.
+     * @param offset
+     *            the offset into <code>b</code> to begin reading the packet
+     *            fields from.
+     * @throws ie.omk.smpp.message.SMPPProtocolException
+     *             if there is an error parsing the packet fields.
      */
-    public MessageEncoding getMessageEncoding() {
-        return this.encoding;
+    public void readFrom(byte[] data, int offset) throws SMPPProtocolException {
+        // Clear out the TLVTable..
+        tlvTable.clear();
+
+        if (data.length < (offset + 16)) {
+            throw new SMPPProtocolException("Not enough bytes for a header: "
+                    + (data.length - (offset + 16)));
+        }
+
+        int len = SMPPIO.bytesToInt(data, offset, 4);
+        int id = SMPPIO.bytesToInt(data, offset + 4, 4);
+
+        if (id != commandId) {
+            // Command type mismatch...ye can't do that, lad!
+            throw new SMPPProtocolException(
+                    "The packet on the input stream is not"
+                            + " the same as this packet's type.");
+        }
+        if (data.length < (offset + len)) {
+            // not enough bytes there for me to read in, buddy!
+            throw new SMPPProtocolException(
+                    "Insufficient bytes available: need = " + len
+                    + ", available = " + (data.length - offset));
+        }
+        commandStatus = SMPPIO.bytesToInt(data, offset + 8, 4);
+        sequenceNum = SMPPIO.bytesToInt(data, offset + 12, 4);
+        try {
+            if (commandStatus == 0) {
+                // Read the mandatory body parameters..
+                int ptr = 16 + offset;
+                ParsePosition pos = new ParsePosition(ptr);
+                List<Object> mandatory = readMandatory(data, pos);
+                setMandatoryParameters(mandatory);
+
+                // Read the optional parameters..
+                int bl = getBodyLength();
+                len -= 16 + bl;
+                if (len > 0) {
+                    tlvTable.readFrom(data, ptr + bl, len);
+                }
+            }
+        } catch (ArrayIndexOutOfBoundsException x) {
+            throw new SMPPProtocolException(
+                    "Ran out of bytes to read for packet body", x);
+        }
     }
 
     /**
@@ -1215,127 +513,18 @@ public abstract class SMPPPacket {
                 Integer.toString(sequenceNum)).append(")").toString();
     }
 
-    /**
-     * Encode the body of the SMPP Packet to the output stream. Sub classes
-     * should override this method to output their packet-specific fields. This
-     * method is called from SMPPPacket.writeTo(java.io.OutputStream) to encode
-     * the message.
-     * 
-     * @param out
-     *            The output stream to write to.
-     * @throws java.io.IOException
-     *             if there's an error writing to the output stream.
-     */
-    protected void encodeBody(OutputStream out) throws java.io.IOException {
-        // some packets ain't got a body...provide a default adapter instead of
-        // making it abstract.
+    // TODO document
+    protected void setMandatoryParameters(List<Object> params) {
     }
 
-    /**
-     * Write the byte representation of this SMPP packet to an OutputStream
-     * 
-     * @param out
-     *            The OutputStream to use
-     * @throws java.io.IOException
-     *             if there's an error writing to the output stream.
-     */
-    public final void writeTo(OutputStream out) throws java.io.IOException {
-        this.writeTo(out, true);
+    protected BodyDescriptor getBodyDescriptor() {
+        return null;
     }
-
-    /**
-     * Write the byte representation of this SMPP packet to an OutputStream
-     * 
-     * @param out
-     *            The OutputStream to use
-     * @param withOptional
-     *            true to send optional parameters over the link, false to only
-     *            write the mandatory parameters.
-     * @throws java.io.IOException
-     *             if there's an error writing to the output stream.
-     */
-    public final void writeTo(OutputStream out, boolean withOptional)
-            throws java.io.IOException {
-        int commandLen = getLength();
-
-        SMPPIO.writeInt(commandLen, 4, out);
-        SMPPIO.writeInt(commandId, 4, out);
-        SMPPIO.writeInt(commandStatus, 4, out);
-        SMPPIO.writeInt(sequenceNum, 4, out);
-
-        encodeBody(out);
-        if (withOptional) {
-            tlvTable.writeTo(out);
-        }
-
+    
+    protected Object[] getMandatoryParameters() {
+        return new Object[0];
     }
-
-    /**
-     * Decode an SMPP packet from a byte array.
-     * 
-     * @param b
-     *            the byte array to read the SMPP packet's fields from.
-     * @param offset
-     *            the offset into <code>b</code> to begin reading the packet
-     *            fields from.
-     * @throws ie.omk.smpp.message.SMPPProtocolException
-     *             if there is an error parsing the packet fields.
-     */
-    public void readFrom(byte[] b, int offset) throws SMPPProtocolException {
-        // Clear out the TLVTable..
-        tlvTable.clear();
-
-        if (b.length < (offset + 16)) {
-            throw new SMPPProtocolException("Not enough bytes for a header: "
-                    + (b.length - (offset + 16)));
-        }
-
-        int len = SMPPIO.bytesToInt(b, offset, 4);
-        int id = SMPPIO.bytesToInt(b, offset + 4, 4);
-
-        if (id != commandId) {
-            // Command type mismatch...ye can't do that, lad!
-            throw new SMPPProtocolException(
-                    "The packet on the input stream is not"
-                            + " the same as this packet's type.");
-        }
-        if (b.length < (offset + len)) {
-            // not enough bytes there for me to read in, buddy!
-            throw new SMPPProtocolException(
-                    "Header specifies the packet length is longer"
-                            + " than the number of bytes available.");
-        }
-
-        commandStatus = SMPPIO.bytesToInt(b, offset + 8, 4);
-        sequenceNum = SMPPIO.bytesToInt(b, offset + 12, 4);
-
-        try {
-            if (commandStatus == 0) {
-                // Read the mandatory body parameters..
-                int ptr = 16 + offset;
-                readBodyFrom(b, ptr);
-
-                // Read the optional parameters..
-                int bl = getBodyLength();
-                len -= 16 + bl;
-                if (len > 0) {
-                    tlvTable.readFrom(b, ptr + bl, len);
-                }
-            }
-        } catch (ArrayIndexOutOfBoundsException x) {
-            throw new SMPPProtocolException(
-                    "Ran out of bytes to read for packet body", x);
-        }
-
-        // Set the message encoding type
-        if (dataCoding != 0) {
-            encoding = EncodingFactory.getInstance().getEncoding(dataCoding);
-        }
-        if (encoding == null) {
-            encoding = EncodingFactory.getInstance().getDefaultAlphabet();
-        }
-    }
-
+    
     /**
      * Read this packet's mandatory parameters from a byte array.
      * 
@@ -1346,7 +535,55 @@ public abstract class SMPPPacket {
      * @throws ie.omk.smpp.message.SMPPProtocolException
      *             if there is an error parsing the packet fields.
      */
-    protected abstract void readBodyFrom(byte[] b, int offset)
-            throws SMPPProtocolException;
+    private List<Object> readMandatory(byte[] b, ParsePosition pos) throws SMPPProtocolException {
+        List<Object> body = new ArrayList<Object>();
+        try {
+            int offset = pos.getIndex();
+            BodyDescriptor bodyDescriptor = getBodyDescriptor();
+            if (bodyDescriptor != null) {
+                for (ParamDescriptor param : bodyDescriptor.getBody()) {
+                    offset += param.readObject(body, b, offset);
+                }
+            }
+            pos.setIndex(offset);
+        } catch (IllegalArgumentException x) {
+            throw new SMPPProtocolException("Invalid values in an SMPP date", x);
+        } catch (ParseException x) {
+            throw new SMPPProtocolException("Could not parse an SMPP date.", x);
+        }
+        return body;
+    }
+    
+    private void writeMandatory(OutputStream out) throws IOException {
+        BodyDescriptor bodyDescriptor = getBodyDescriptor();
+        if (bodyDescriptor == null) {
+            return;
+        }
+        Object[] body = getMandatoryParameters();
+        if (body.length != bodyDescriptor.getSize()) {
+            throw new SMPPRuntimeException(NOT_ENOUGH_PARAMS);
+        }
+        int index = 0;
+        for (ParamDescriptor param : bodyDescriptor.getBody()) {
+            param.writeObject(body[index], out);
+            index++;
+        }
+    }
+    
+    private int getBodyLength() {
+        int size = 0;
+        BodyDescriptor bodyDescriptor = getBodyDescriptor();
+        if (bodyDescriptor != null) {
+            Object[] body = getMandatoryParameters();
+            if (body.length != bodyDescriptor.getSize()) {
+                throw new SMPPRuntimeException(NOT_ENOUGH_PARAMS);
+            }
+            int index = 0;
+            for (ParamDescriptor param : bodyDescriptor.getBody()) {
+                size += param.sizeOf(body[index]);
+                index++;
+            }
+        }
+        return size;
+    }
 }
-

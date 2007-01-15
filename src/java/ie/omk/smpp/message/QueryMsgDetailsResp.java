@@ -1,38 +1,43 @@
 package ie.omk.smpp.message;
 
 import ie.omk.smpp.Address;
-import ie.omk.smpp.util.GSMConstants;
-import ie.omk.smpp.util.InvalidDateFormatException;
 import ie.omk.smpp.util.SMPPDate;
-import ie.omk.smpp.util.SMPPIO;
 
-import java.io.OutputStream;
+import java.util.List;
 
 /**
  * Response to Query message details. Gives all details of a specified message
- * at the SMSC. Relevant inherited fields from SMPPPacket: <br>
- * <ul>
- * serviceType <br>
- * source <br>
- * protocolID <br>
- * priority <br>
- * deliveryTime <br>
- * expiryTime <br>
- * registered <br>
- * dataCoding <br>
- * message <br>
- * messageId <br>
- * finalDate <br>
- * messageStatus <br>
- * errorCode <br>
- * </ul>
+ * at the SMSC.
  * 
  * @author Oran Kelly
- * @version 1.0
+ * @version $Id: $
  */
-public class QueryMsgDetailsResp extends ie.omk.smpp.message.SMPPResponse {
-    /** Table of destinations the message was routed to */
+public class QueryMsgDetailsResp extends SMPacket {
+    private static final BodyDescriptor BODY_DESCRIPTOR = new BodyDescriptor();
+    
+    /**
+     * Table of destinations the message was routed to.
+     */
     private DestinationTable destinationTable = new DestinationTable();
+
+    static {
+        BODY_DESCRIPTOR.add(ParamDescriptor.CSTRING)
+        .add(ParamDescriptor.ADDRESS)
+        .add(ParamDescriptor.INTEGER1)
+        .add(ParamDescriptor.getDestinationTableInstance(2))
+        .add(ParamDescriptor.INTEGER1)
+        .add(ParamDescriptor.INTEGER1)
+        .add(ParamDescriptor.DATE)
+        .add(ParamDescriptor.DATE)
+        .add(ParamDescriptor.INTEGER1)
+        .add(ParamDescriptor.INTEGER1)
+        .add(ParamDescriptor.INTEGER1)
+        .add(ParamDescriptor.getBytesInstance(10))
+        .add(ParamDescriptor.CSTRING)
+        .add(ParamDescriptor.DATE)
+        .add(ParamDescriptor.INTEGER1)
+        .add(ParamDescriptor.INTEGER1);
+    }
 
     /**
      * Construct a new QueryMsgDetailsResp.
@@ -42,29 +47,118 @@ public class QueryMsgDetailsResp extends ie.omk.smpp.message.SMPPResponse {
     }
 
     /**
-     * Construct a new QueryMsgDetailsResp with specified sequence number.
-     * 
-     * @param seqNum
-     *            The sequence number to use
-     * @deprecated
-     */
-    public QueryMsgDetailsResp(int seqNum) {
-        super(QUERY_MSG_DETAILS_RESP, seqNum);
-    }
-
-    /**
      * Create a new QueryMsgDetailsResp packet in response to a BindReceiver.
      * This constructor will set the sequence number to it's expected value.
      * 
-     * @param r
+     * @param request
      *            The Request packet the response is to
      */
-    public QueryMsgDetailsResp(QueryMsgDetails r) {
-        super(r);
+    public QueryMsgDetailsResp(SMPPPacket request) {
+        super(request);
+    }
+    
+    public int getDataCoding() {
+        return dataCoding;
+    }
 
-        // These are the only fields that can be got from the request packet
-        messageId = r.getMessageId();
-        source = r.getSource();
+    public void setDataCoding(int dataCoding) {
+        this.dataCoding = dataCoding;
+    }
+
+    public SMPPDate getDeliveryTime() {
+        return deliveryTime;
+    }
+
+    public void setDeliveryTime(SMPPDate deliveryTime) {
+        this.deliveryTime = deliveryTime;
+    }
+
+    public int getErrorCode() {
+        return errorCode;
+    }
+
+    public void setErrorCode(int errorCode) {
+        this.errorCode = errorCode;
+    }
+
+    public SMPPDate getExpiryTime() {
+        return expiryTime;
+    }
+
+    public void setExpiryTime(SMPPDate expiryTime) {
+        this.expiryTime = expiryTime;
+    }
+
+    public SMPPDate getFinalDate() {
+        return finalDate;
+    }
+
+    public void setFinalDate(SMPPDate finalDate) {
+        this.finalDate = finalDate;
+    }
+
+    public byte[] getMessage() {
+        return message;
+    }
+
+    public void setMessage(byte[] message) {
+        this.message = message;
+    }
+
+    public String getMessageId() {
+        return messageId;
+    }
+
+    public void setMessageId(String messageId) {
+        this.messageId = messageId;
+    }
+
+    public int getMessageStatus() {
+        return messageStatus;
+    }
+
+    public void setMessageStatus(int messageStatus) {
+        this.messageStatus = messageStatus;
+    }
+
+    public int getPriority() {
+        return priority;
+    }
+
+    public void setPriority(int priority) {
+        this.priority = priority;
+    }
+
+    public int getProtocolID() {
+        return protocolID;
+    }
+
+    public void setProtocolID(int protocolID) {
+        this.protocolID = protocolID;
+    }
+
+    public int getRegistered() {
+        return registered;
+    }
+
+    public void setRegistered(int registered) {
+        this.registered = registered;
+    }
+
+    public String getServiceType() {
+        return serviceType;
+    }
+
+    public void setServiceType(String serviceType) {
+        this.serviceType = serviceType;
+    }
+
+    public Address getSource() {
+        return source;
+    }
+
+    public void setSource(Address source) {
+        this.source = source;
     }
 
     /**
@@ -106,15 +200,6 @@ public class QueryMsgDetailsResp extends ie.omk.smpp.message.SMPPResponse {
 
     /**
      * Get the current number of destination addresses.
-     * 
-     * @deprecated Use getNumDests.
-     */
-    public int getNoOfDests() {
-        return destinationTable.size();
-    }
-
-    /**
-     * Get the current number of destination addresses.
      */
     public int getNumDests() {
         return destinationTable.size();
@@ -127,132 +212,6 @@ public class QueryMsgDetailsResp extends ie.omk.smpp.message.SMPPResponse {
         return destinationTable;
     }
 
-    public int getBodyLength() {
-        int size = ((serviceType != null) ? serviceType.length() : 0)
-                + ((source != null) ? source.getLength() : 3)
-                + ((deliveryTime != null) ? deliveryTime.toString().length() : 0)
-                + ((expiryTime != null) ? expiryTime.toString().length() : 0)
-                + ((message != null) ? message.length : 0)
-                + ((messageId != null) ? messageId.length() : 0)
-                + ((finalDate != null) ? finalDate.toString().length() : 0);
-
-        size += destinationTable.getLength();
-
-        // 8 1-byte integers, 5 c-strings
-        return size + 8 + 5;
-    }
-
-    /**
-     * Write a byte representation of this packet to an OutputStream
-     * 
-     * @param out
-     *            The OutputStream to write to
-     * @throws java.io.IOException
-     *             if there's an error writing to the output stream.
-     */
-    protected void encodeBody(OutputStream out) throws java.io.IOException {
-        int smLength = 0;
-        if (message != null) {
-            smLength = message.length;
-        }
-
-        SMPPIO.writeCString(serviceType, out);
-        if (source != null) {
-            source.writeTo(out);
-        } else {
-            // Write ton=0(null), npi=0(null), address=\0(nul)
-            new Address(GSMConstants.GSM_TON_UNKNOWN,
-                    GSMConstants.GSM_NPI_UNKNOWN, "").writeTo(out);
-        }
-
-        DestinationTable table = (DestinationTable) destinationTable.clone();
-        int numDests = table.size();
-        SMPPIO.writeInt(numDests, 1, out);
-        table.writeTo(out);
-
-        String dt = (deliveryTime == null) ? null : deliveryTime.toString();
-        String et = (expiryTime == null) ? null : expiryTime.toString();
-        String fd = (finalDate == null) ? null : finalDate.toString();
-
-        SMPPIO.writeInt(protocolID, 1, out);
-        SMPPIO.writeInt(priority, 1, out);
-        SMPPIO.writeCString(dt, out);
-        SMPPIO.writeCString(et, out);
-        SMPPIO.writeInt(registered, 1, out);
-        SMPPIO.writeInt(dataCoding, 1, out);
-        SMPPIO.writeInt(smLength, 1, out);
-        if (message != null) {
-            out.write(message);
-        }
-        SMPPIO.writeCString(getMessageId(), out);
-        SMPPIO.writeCString(fd, out);
-        SMPPIO.writeInt(messageStatus, 1, out);
-        SMPPIO.writeInt(errorCode, 1, out);
-    }
-
-    public void readBodyFrom(byte[] body, int offset)
-            throws SMPPProtocolException {
-        try {
-            int numDests = 0;
-            int smLength = 0;
-            String delivery;
-            String valid;
-            String finalD;
-
-            serviceType = SMPPIO.readCString(body, offset);
-            offset += serviceType.length() + 1;
-
-            source = new Address();
-            source.readFrom(body, offset);
-            offset += source.getLength();
-
-            numDests = SMPPIO.bytesToInt(body, offset++, 1);
-            DestinationTable dt = new DestinationTable();
-            dt.readFrom(body, offset, numDests);
-            offset += dt.getLength();
-            this.destinationTable = dt;
-
-            protocolID = SMPPIO.bytesToInt(body, offset++, 1);
-            priority = SMPPIO.bytesToInt(body, offset++, 1);
-
-            delivery = SMPPIO.readCString(body, offset);
-            offset += delivery.length() + 1;
-            if (delivery.length() > 0) {
-                deliveryTime = SMPPDate.parseSMPPDate(delivery);
-            }
-
-            valid = SMPPIO.readCString(body, offset);
-            offset += valid.length() + 1;
-            if (valid.length() > 0) {
-                expiryTime = SMPPDate.parseSMPPDate(valid);
-            }
-
-            registered = SMPPIO.bytesToInt(body, offset++, 1);
-            dataCoding = SMPPIO.bytesToInt(body, offset++, 1);
-            smLength = SMPPIO.bytesToInt(body, offset++, 1);
-
-            if (smLength > 0) {
-                message = new byte[smLength];
-                System.arraycopy(body, offset, message, 0, smLength);
-                offset += smLength;
-            }
-
-            messageId = SMPPIO.readCString(body, offset);
-            offset += messageId.length() + 1;
-
-            finalD = SMPPIO.readCString(body, offset);
-            offset += finalD.length() + 1;
-            if (finalD.length() > 0) {
-                finalDate = SMPPDate.parseSMPPDate(finalD);
-            }
-
-            messageStatus = SMPPIO.bytesToInt(body, offset++, 1);
-            errorCode = SMPPIO.bytesToInt(body, offset++, 1);
-        } catch (InvalidDateFormatException x) {
-            throw new SMPPProtocolException("Unrecognized date format", x);
-        }
-    }
-
     /**
      * Convert this packet to a String. Not to be interpreted programmatically,
      * it's just dead handy for debugging!
@@ -260,5 +219,55 @@ public class QueryMsgDetailsResp extends ie.omk.smpp.message.SMPPResponse {
     public String toString() {
         return new String("query_msg_details_resp");
     }
-}
 
+    @Override
+    protected BodyDescriptor getBodyDescriptor() {
+        return BODY_DESCRIPTOR;
+    }
+    
+    @Override
+    protected Object[] getMandatoryParameters() {
+        int length = 0;
+        if (message != null) {
+            length = message.length;
+        }
+        return new Object[] {
+                serviceType,
+                source,
+                Integer.valueOf(destinationTable.size()),
+                destinationTable,
+                Integer.valueOf(protocolID),
+                Integer.valueOf(priority),
+                deliveryTime,
+                expiryTime,
+                Integer.valueOf(registered),
+                Integer.valueOf(dataCoding),
+                Integer.valueOf(length),
+                message,
+                messageId,
+                finalDate,
+                Integer.valueOf(messageStatus),
+                Integer.valueOf(errorCode),
+        };
+    }
+
+    @Override
+    protected void setMandatoryParameters(List<Object> params) {
+        serviceType = (String) params.get(0);
+        source = (Address) params.get(1);
+        // index 2 intentionally skipped
+        destinationTable = (DestinationTable) params.get(3);
+        protocolID = ((Number) params.get(4)).intValue();
+        priority = ((Number) params.get(5)).intValue();
+        deliveryTime = (SMPPDate) params.get(6);
+        expiryTime = (SMPPDate) params.get(7);
+        registered = ((Number) params.get(8)).intValue();
+        dataCoding = ((Number) params.get(9)).intValue();
+        // index 10 intentionally skipped
+        message = (byte[]) params.get(11);
+        messageId = (String) params.get(12);
+        finalDate = (SMPPDate) params.get(13);
+        messageStatus = ((Number) params.get(14)).intValue();
+        errorCode = ((Number) params.get(15)).intValue();
+    }
+}

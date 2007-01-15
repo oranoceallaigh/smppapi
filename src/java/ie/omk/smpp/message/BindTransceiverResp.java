@@ -6,7 +6,7 @@ package ie.omk.smpp.message;
  * @author Oran Kelly
  * @version 1.0
  */
-public class BindTransceiverResp extends ie.omk.smpp.message.BindResp {
+public class BindTransceiverResp extends BindResp {
     /**
      * Construct a new BindTransceiverResp.
      */
@@ -19,11 +19,11 @@ public class BindTransceiverResp extends ie.omk.smpp.message.BindResp {
      * This constructor will set the sequence number to that of the packet it is
      * in response to.
      * 
-     * @param r
+     * @param request
      *            The Request packet the response is to
      */
-    public BindTransceiverResp(BindTransceiver r) {
-        super(r);
+    public BindTransceiverResp(SMPPPacket request) {
+        super(request);
     }
 
     /**

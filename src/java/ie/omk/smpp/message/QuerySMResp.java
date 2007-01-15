@@ -1,10 +1,8 @@
 package ie.omk.smpp.message;
 
-import ie.omk.smpp.util.InvalidDateFormatException;
 import ie.omk.smpp.util.SMPPDate;
-import ie.omk.smpp.util.SMPPIO;
 
-import java.io.OutputStream;
+import java.util.List;
 
 /**
  * SMSC response to a QuerySM request. Contains the current state of a short
@@ -13,7 +11,21 @@ import java.io.OutputStream;
  * @author Oran Kelly
  * @version 1.0
  */
-public class QuerySMResp extends ie.omk.smpp.message.SMPPResponse {
+public class QuerySMResp extends SMPPPacket {
+    private static final BodyDescriptor BODY_DESCRIPTOR = new BodyDescriptor();
+    
+    private String messageId;
+    private SMPPDate finalDate;
+    private int messageState;
+    private int errorCode;
+    
+    static {
+        BODY_DESCRIPTOR.add(ParamDescriptor.CSTRING)
+        .add(ParamDescriptor.DATE)
+        .add(ParamDescriptor.INTEGER1)
+        .add(ParamDescriptor.INTEGER1);
+    }
+    
     /**
      * Construct a new QuerySMResp.
      */
@@ -22,79 +34,46 @@ public class QuerySMResp extends ie.omk.smpp.message.SMPPResponse {
     }
 
     /**
-     * Construct a new QuerySMResp with specified sequence number.
-     * 
-     * @param seqNum
-     *            The sequence number to use
-     * @deprecated
-     */
-    public QuerySMResp(int seqNum) {
-        super(QUERY_SM_RESP, seqNum);
-    }
-
-    /**
      * Create a new QuerySMResp packet in response to a BindReceiver. This
      * constructor will set the sequence number to it's expected value.
      * 
-     * @param r
+     * @param request
      *            The Request packet the response is to
      */
-    public QuerySMResp(QuerySM r) {
-        super(r);
-
-        messageId = r.getMessageId();
-        finalDate = null;
-        messageStatus = 0;
-        errorCode = 0;
+    public QuerySMResp(SMPPPacket request) {
+        super(request);
+    }
+    
+    public int getErrorCode() {
+        return errorCode;
     }
 
-    /**
-     * Return the number of bytes this packet would be encoded as to an
-     * OutputStream.
-     * 
-     * @return the number of bytes this packet would encode as.
-     */
-    public int getBodyLength() {
-        int len = ((messageId != null) ? messageId.length() : 0)
-        + ((finalDate != null) ? finalDate.toString().length() : 0);
-
-        // 2 1-byte integers, 2 c-strings
-        return len + 2 + 2;
+    public void setErrorCode(int errorCode) {
+        this.errorCode = errorCode;
     }
 
-    /**
-     * Write a byte representation of this packet to an OutputStream
-     * 
-     * @param out
-     *            The OutputStream to write to
-     * @throws java.io.IOException
-     *             if there's an error writing to the output stream.
-     */
-    protected void encodeBody(OutputStream out) throws java.io.IOException {
-        String fdate = (finalDate == null) ? null : finalDate.toString();
-        SMPPIO.writeCString(getMessageId(), out);
-        SMPPIO.writeCString(fdate, out);
-        SMPPIO.writeInt(messageStatus, 1, out);
-        SMPPIO.writeInt(errorCode, 1, out);
+    public SMPPDate getFinalDate() {
+        return finalDate;
     }
 
-    public void readBodyFrom(byte[] body, int offset)
-            throws SMPPProtocolException {
-        try {
-            messageId = SMPPIO.readCString(body, offset);
-            offset += messageId.length() + 1;
+    public void setFinalDate(SMPPDate finalDate) {
+        this.finalDate = finalDate;
+    }
 
-            String finald = SMPPIO.readCString(body, offset);
-            offset += finald.length() + 1;
-            if (finald.length() > 0) {
-                finalDate = SMPPDate.parseSMPPDate(finald);
-            }
+    public String getMessageId() {
+        return messageId;
+    }
 
-            messageStatus = SMPPIO.bytesToInt(body, offset++, 1);
-            errorCode = SMPPIO.bytesToInt(body, offset++, 1);
-        } catch (InvalidDateFormatException x) {
-            throw new SMPPProtocolException("Unrecognized date format", x);
-        }
+    public void setMessageId(String messageId) {
+        this.messageId = messageId;
+    }
+
+    public int getMessageState() {
+        return messageState;
+    }
+
+    public void setMessageState(int messageState) {
+        this.messageState = messageState;
     }
 
     /**
@@ -104,5 +83,27 @@ public class QuerySMResp extends ie.omk.smpp.message.SMPPResponse {
     public String toString() {
         return new String("query_sm_resp");
     }
-}
 
+    @Override
+    protected BodyDescriptor getBodyDescriptor() {
+        return BODY_DESCRIPTOR;
+    }
+
+    @Override
+    protected Object[] getMandatoryParameters() {
+        return new Object[] {
+                messageId,
+                finalDate,
+                Integer.valueOf(messageState),
+                Integer.valueOf(errorCode),
+        };
+    }
+
+    @Override
+    protected void setMandatoryParameters(List<Object> params) {
+        messageId = (String) params.get(0);
+        finalDate = (SMPPDate) params.get(1);
+        messageState = ((Number) params.get(2)).intValue();
+        errorCode = ((Number) params.get(3)).intValue();
+    }
+}

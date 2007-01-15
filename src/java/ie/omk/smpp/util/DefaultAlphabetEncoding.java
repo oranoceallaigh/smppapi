@@ -61,33 +61,23 @@ public class DefaultAlphabetEncoding extends ie.omk.smpp.util.AlphabetEncoding {
             0, 0, 0, 0, 0, 0, 0, 0,
     };
 
-    private static final DefaultAlphabetEncoding INSTANCE = new DefaultAlphabetEncoding();
-
     public DefaultAlphabetEncoding() {
         super(DCS);
     }
 
     /**
-     * Get the singleton instance of DefaultAlphabetEncoding.
-     * @deprecated
-     */
-    public static DefaultAlphabetEncoding getInstance() {
-        return INSTANCE;
-    }
-
-    /**
      * Decode an SMS default alphabet-encoded octet string into a Java String.
      */
-    public String decodeString(byte[] b) {
-        if (b == null) {
+    @Override
+    public String decodeString(byte[] data, int offset, int length) {
+        if (data == null) {
             return "";
         }
-
         char[] table = CHAR_TABLE;
         StringBuffer buf = new StringBuffer();
 
-        for (int i = 0; i < b.length; i++) {
-            int code = (int) b[i] & 0x000000ff;
+        for (int i = offset; i < (offset + length); i++) {
+            int code = (int) data[i] & 0x000000ff;
             if (code == EXTENDED_ESCAPE) {
                 // take next char from extension table
                 table = EXT_CHAR_TABLE;
@@ -139,7 +129,7 @@ public class DefaultAlphabetEncoding extends ie.omk.smpp.util.AlphabetEncoding {
         return enc.toByteArray();
     }
 
-    public int getEncodingLength() {
+    public int getCharSize() {
         return 7;
     }
 
@@ -162,7 +152,7 @@ public class DefaultAlphabetEncoding extends ie.omk.smpp.util.AlphabetEncoding {
      * 8-bit alphabet such as ASCII or Latin-1, or they accept the default
      * alphabet in its unpacked form. As such, you will be unlikely to
      * need this method.
-     * </o>
+     * </p>
      * @param unpacked The unpacked byte array. 
      * @return A new byte array containing the bytes in their packed form.
      */
@@ -180,6 +170,7 @@ public class DefaultAlphabetEncoding extends ie.omk.smpp.util.AlphabetEncoding {
                 try {
                     b2 = (int) unpacked[i + j + 1] & mask;
                 } catch (ArrayIndexOutOfBoundsException x) {
+                    // This is expected and is safe to ignore.
                 }
                 packed[pos++] = (byte) ((b1 >>> j) | (b2 << (8 - (j + 1))));
                 mask = (mask << 1) | 1;
@@ -212,6 +203,7 @@ public class DefaultAlphabetEncoding extends ie.omk.smpp.util.AlphabetEncoding {
                 try {
                     b2 = (int) packed[(i + j) - 1] & 0x00ff;
                 } catch (ArrayIndexOutOfBoundsException x) {
+                    // This is expected and safe to ignore.
                 }
                 unpacked[pos++] = (byte) ((b1 << j) | (b2 >>> (8 - j)));
                 mask >>= 1;

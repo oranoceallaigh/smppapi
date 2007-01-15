@@ -15,6 +15,10 @@ package ie.omk.smpp.util;
  */
 public interface SequenceNumberScheme {
 
+    /**
+     * Constant that can be returned from the <code>peek</code> methods to
+     * indicate that the peek operation is not supported.
+     */
     int PEEK_UNSUPPORTED = -1;
 
     /**

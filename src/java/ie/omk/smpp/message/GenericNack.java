@@ -8,7 +8,7 @@ package ie.omk.smpp.message;
  * @author Oran Kelly
  * @version 1.0
  */
-public class GenericNack extends ie.omk.smpp.message.SMPPResponse {
+public class GenericNack extends SMPPPacket {
     /**
      * Construct a new GenericNack.
      */
@@ -16,23 +16,8 @@ public class GenericNack extends ie.omk.smpp.message.SMPPResponse {
         super(GENERIC_NACK);
     }
 
-    /**
-     * Construct a new GenericNack with specified sequence number.
-     * 
-     * @param seqNum
-     *            The sequence number to use
-     * @deprecated
-     */
-    public GenericNack(int seqNum) {
-        super(GENERIC_NACK, seqNum);
-    }
-
-    public int getBodyLength() {
-        return 0;
-    }
-
-    public void readBodyFrom(byte[] b, int offset) throws SMPPProtocolException {
-        return;
+    public GenericNack(SMPPPacket request) {
+        super(request);
     }
 
     /**

@@ -3,6 +3,7 @@ package ie.omk.smpp.util;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 
 /**
  * Class that provides input and output methods for writing Java types encoded
@@ -155,7 +156,8 @@ public final class SMPPIO {
             if (len > 0) {
                 s = new String(b, offset, len - offset, US_ASCII);
             }
-        } catch (java.io.UnsupportedEncodingException x) {
+        } catch (UnsupportedEncodingException x) {
+            // JVM is required to support US-ASCII
         }
         return s;
     }

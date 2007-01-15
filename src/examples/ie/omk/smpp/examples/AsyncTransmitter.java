@@ -2,21 +2,26 @@ package ie.omk.smpp.examples;
 
 import ie.omk.smpp.Address;
 import ie.omk.smpp.Connection;
-import ie.omk.smpp.SMPPException;
+import ie.omk.smpp.ConnectionState;
+import ie.omk.smpp.ConnectionType;
+import ie.omk.smpp.TextMessage;
 import ie.omk.smpp.event.ConnectionObserver;
 import ie.omk.smpp.event.ReceiverExitEvent;
 import ie.omk.smpp.event.SMPPEvent;
-import ie.omk.smpp.message.BindTransmitterResp;
+import ie.omk.smpp.message.BindResp;
 import ie.omk.smpp.message.SMPPPacket;
 import ie.omk.smpp.message.SubmitSM;
 import ie.omk.smpp.message.SubmitSMResp;
+import ie.omk.smpp.message.Unbind;
+import ie.omk.smpp.message.UnbindResp;
+import ie.omk.smpp.util.AutoResponder;
 import ie.omk.smpp.util.GSMConstants;
 
 import java.io.IOException;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.tools.ant.BuildException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Example class to submit a message to a SMSC using asynchronous communication.
@@ -28,9 +33,7 @@ import org.apache.tools.ant.BuildException;
  */
 public class AsyncTransmitter extends SMPPAPIExample implements ConnectionObserver {
 
-    private Object blocker = new Object();
-
-    private Log logger = LogFactory.getLog(AsyncTransmitter.class);
+    private Logger logger = LoggerFactory.getLogger(AsyncTransmitter.class);
 
     // This is called when the connection receives a packet from the SMSC.
     public void update(Connection t, SMPPEvent ev) {
@@ -48,118 +51,132 @@ public class AsyncTransmitter extends SMPPAPIExample implements ConnectionObserv
 
         // Bind transmitter response. Check it's status for success...
         case SMPPPacket.BIND_TRANSMITTER_RESP:
-            if (pak.getCommandStatus() != 0) {
-                logger.info("Error binding to the SMSC. Error = "
-                        + pak.getCommandStatus());
-
-                synchronized (blocker) {
-                    blocker.notify();
-               }
-            } else {
-                logger.info("Successfully bound to SMSC \""
-                        + ((BindTransmitterResp) pak).getSystemId()
-                        + "\".\n\tSubmitting message...");
-                send(myConnection);
-            }
+            handleBindResponse((BindResp) pak);
             break;
 
         // Submit message response...
         case SMPPPacket.SUBMIT_SM_RESP:
-            if (pak.getCommandStatus() != 0) {
-                logger.info("Message was not submitted. Error code: "
-                        + pak.getCommandStatus());
-            } else {
-                logger.info("Message Submitted! Id = "
-                        + ((SubmitSMResp) pak).getMessageId());
-            }
-
-            try {
-                // Unbind. The Connection's listener thread will stop itself..
-                myConnection.unbind();
-            } catch (IOException x) {
-                logger.info("IO exception" + x.toString());
-                synchronized (blocker) {
-                    blocker.notify();
-               }
-            }
+            handleSubmitSmResponse((SubmitSMResp) pak);
             break;
 
         // Unbind response..
         case SMPPPacket.UNBIND_RESP:
-            logger.info("Unbound.");
-            synchronized (blocker) {
-                blocker.notify();
-            }
+            handleUnbindResponse((UnbindResp) pak);
             break;
 
         default:
-            logger
-                    .info("Unknown response received! Id = "
-                            + pak.getCommandId());
+            handleOtherPacket(pak);
         }
     }
 
-    private void receiverExit(Connection myConnection, ReceiverExitEvent ev) {
-        if (ev.getReason() != ReceiverExitEvent.EXCEPTION) {
-            if (ev.getReason() == ReceiverExitEvent.BIND_TIMEOUT) {
+    private void handleBindResponse(BindResp bindResponse) {
+        if (bindResponse.getCommandStatus() != 0) {
+            logger.info("Error binding to the SMSC. Status = {}",
+                    bindResponse.getCommandStatus());
+        } else {
+            logger.info("Successfully bound to SMSC, identified itself as \"{}\"",
+                    bindResponse.getSystemId());
+        }
+        synchronized (this) {
+            notify();
+        }
+    }
+    
+    private void handleSubmitSmResponse(SubmitSMResp submitSMResp) {
+        if (submitSMResp.getCommandStatus() != 0) {
+            logger.info("Message was not submitted. Error code: {}",
+                    submitSMResp.getCommandStatus());
+        } else {
+            logger.info("Message Submitted! message id = {}",
+                    submitSMResp.getMessageId());
+        }
+        synchronized (this) {
+            notify();
+        }
+    }
+    
+    private void handleUnbindResponse(UnbindResp unbindResponse) {
+        if (unbindResponse.getCommandStatus() != 0) {
+            logger.error("Got an unbind response with non-zero status: {}",
+                    unbindResponse.getCommandStatus());
+        } else {
+            logger.info("Successfully unbound.");
+        }
+        synchronized (this) {
+            notify();
+        }
+    }
+
+    private void handleOtherPacket(SMPPPacket packet) {
+        logger.info("Received a packet, commandId = 0x{}, sequence = {}",
+                Integer.toHexString(packet.getCommandId()),
+                packet.getSequenceNum());
+    }
+    
+    private void receiverExit(Connection myConnection, ReceiverExitEvent event) {
+        if (event.getReason() != ReceiverExitEvent.EXCEPTION) {
+            if (event.getReason() == ReceiverExitEvent.BIND_TIMEOUT) {
                 logger.info("Bind timed out waiting for response.");
             }
-            logger.info("Receiver thread has exited normally.");
+            logger.info("Receiver thread has exited: " + event.getReason());
         } else {
-            Throwable t = ev.getException();
+            Throwable t = event.getException();
             logger.info("Receiver thread died due to exception:");
             logger.warn("Exception", t);
         }
-
-        synchronized (blocker) {
-            blocker.notify();
+        synchronized (this) {
+            notify();
         }
     }
 
     // Send a short message to the SMSC
-    public void send(Connection myConnection) {
-        try {
-            Address destination = new Address(GSMConstants.GSM_TON_UNKNOWN,
-                    GSMConstants.GSM_NPI_UNKNOWN, "87654321");
+    private void sendMessage() throws IOException {
+        Address destination = new Address(GSMConstants.GSM_TON_UNKNOWN,
+                GSMConstants.GSM_NPI_UNKNOWN, "87654321");
 
-            SubmitSM sm = (SubmitSM) myConnection.newInstance(SMPPPacket.SUBMIT_SM);
-            sm.setDestination(destination);
-            sm.setMessageText("Test Short Message. :-)");
-
-            myConnection.sendRequest(sm);
-        } catch (IOException x) {
-            logger.warn("I/O Exception", x);
-        } catch (SMPPException x) {
-            logger.warn("SMPP Exception", x);
-        }
+        TextMessage textMessage = new TextMessage("Test short message. :)");
+        SubmitSM submitSm = textMessage.getSubmitSM(true);
+        submitSm.setDestination(destination);
+        myConnection.sendPacket(submitSm);
     }
 
+    private void unbind() throws IOException {
+        Unbind unbind = new Unbind();
+        myConnection.sendPacket(unbind);
+    }
+    
     public void execute() throws BuildException {
         try {
-            myConnection = new Connection(hostName, port, true);
+            createConnection();
             
+            // Automatically respond to ENQUIRE_LINK requests from the SMSC
+            AutoResponder autoResponder = new AutoResponder();
+            autoResponder.setAckEnquireLink(true);
+            myConnection.addObserver(autoResponder);
+
             // Need to add myself to the list of listeners for this connection
             myConnection.addObserver(this);
 
-            // Automatically respond to ENQUIRE_LINK requests from the SMSC
-            myConnection.autoAckLink(true);
-
-            // Bind to the SMSC (as a transmitter)
-            logger.info("Binding to the SMSC..");
-            myConnection.bind(
-                    Connection.TRANSMITTER,
-                    systemID,
-                    password,
-                    systemType,
-                    sourceTON,
-                    sourceNPI,
-                    sourceAddress);
-
-            synchronized (blocker) {
-                blocker.wait();
+            synchronized (this) {
+                // Bind to the SMSC (as a transmitter)
+                logger.info("Binding to the SMSC..");
+                doBind(ConnectionType.TRANSMITTER);
+                wait();
+                if (myConnection.getState() == ConnectionState.BOUND) {
+                    logger.info("Sending a message..");
+                    sendMessage();
+                    logger.info("Waiting for message response..");
+                    wait();
+                    logger.info("Unbinding..");
+                    unbind();
+                    logger.info("Waiting on unbind response..");
+                    wait();
+                }
             }
         } catch (Exception x) {
             throw new BuildException("Exception running example: " + x.getMessage(), x);
+        } finally {
+            closeConnection();
         }
     }
 }

@@ -6,7 +6,7 @@ package ie.omk.smpp.message;
  * @author Oran Kelly
  * @version 1.0
  */
-public class CancelSMResp extends ie.omk.smpp.message.SMPPResponse {
+public class CancelSMResp extends SMPPPacket {
     /**
      * Construct a new CancelSMResp.
      */
@@ -15,33 +15,14 @@ public class CancelSMResp extends ie.omk.smpp.message.SMPPResponse {
     }
 
     /**
-     * Construct a new CancelSMResp with specified sequence number.
-     * 
-     * @param seqNum
-     *            The sequence number to use
-     * @deprecated
-     */
-    public CancelSMResp(int seqNum) {
-        super(CANCEL_SM_RESP, seqNum);
-    }
-
-    /**
      * Create a new CancelSMResp packet in response to a CancelSM. This
      * constructor will set the sequence number to it's expected value.
      * 
-     * @param r
+     * @param request
      *            The Request packet the response is to
      */
-    public CancelSMResp(CancelSM r) {
-        super(r);
-    }
-
-    public int getBodyLength() {
-        return 0;
-    }
-
-    public void readBodyFrom(byte[] body, int offset)
-            throws SMPPProtocolException {
+    public CancelSMResp(SMPPPacket request) {
+        super(request);
     }
 
     /**
@@ -52,4 +33,3 @@ public class CancelSMResp extends ie.omk.smpp.message.SMPPResponse {
         return new String("cancel_sm_resp");
     }
 }
-

@@ -1,12 +1,20 @@
 package ie.omk.smpp.message;
 
+import java.util.List;
+
+
 /**
  * $Id:$
  */
-public class Outbind extends SMPPRequest {
-
+public class Outbind extends SMPPPacket {
+    private static final BodyDescriptor BODY_DESCRIPTOR = new BodyDescriptor();
     private String systemId;
     private String password;
+
+    static {
+        BODY_DESCRIPTOR.add(ParamDescriptor.CSTRING)
+        .add(ParamDescriptor.CSTRING);
+    }
     
     public Outbind() {
         super(SMPPPacket.OUTBIND);
@@ -28,18 +36,14 @@ public class Outbind extends SMPPRequest {
         this.password = password;
     }
 
-    public int getBodyLength() {
-        int len = 2;
-        if (systemId != null) {
-            len += systemId.length();
-        }
-        if (password != null) {
-            len += password.length();
-        }
-        return len;
+    @Override
+    protected BodyDescriptor getBodyDescriptor() {
+        return BODY_DESCRIPTOR;
     }
-
-    protected void readBodyFrom(byte[] b, int offset)
-            throws SMPPProtocolException {
+    
+    @Override
+    protected void setMandatoryParameters(List<Object> params) {
+        systemId = (String) params.get(0);
+        password = (String) params.get(1);
     }
 }

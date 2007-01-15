@@ -43,19 +43,28 @@ public class AlphabetEncoding extends MessageEncoding {
     public String getCharset() {
         return charset;
     }
-    
+
     /**
      * Convert SMS message text into a Java String. Implementations of this
      * method <b>must </b> support decoding <code>null</code>. In such cases,
      * the String "" will be returned.
      */
-    public String decodeString(byte[] b) {
+    public String decodeString(byte[] data) {
+        return decodeString(data, 0, data.length);
+    }
+
+    /**
+     * Convert SMS message text into a Java String. Implementations of this
+     * method <b>must </b> support decoding <code>null</code>. In such cases,
+     * the String "" will be returned.
+     */
+    public String decodeString(byte[] data, int offset, int length) {
         if (charset == null) {
             throw new SMPPRuntimeException(BAD_IMPLEMENTATION);
         }
         try {
-            if (b != null) {
-                return new String(b, charset);
+            if (data != null) {
+                return new String(data, offset, length, charset);
             }
         } catch (UnsupportedEncodingException x) {
             // Will already have been detected by the constructor.
@@ -68,13 +77,13 @@ public class AlphabetEncoding extends MessageEncoding {
      * method <b>must </b> support encoding a <code>null</code> string. In
      * such cases, a byte array of length 0 will be returned.
      */
-    public byte[] encodeString(String s) {
+    public byte[] encodeString(String string) {
         if (charset == null) {
             throw new SMPPRuntimeException(BAD_IMPLEMENTATION);
         }
         try {
-            if (s != null) {
-                return s.getBytes(charset);
+            if (string != null) {
+                return string.getBytes(charset);
             }
         } catch (java.io.UnsupportedEncodingException x) {
             // Will already have been detected by the constructor.

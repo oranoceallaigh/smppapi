@@ -1,8 +1,7 @@
 package ie.omk.smpp.message;
 
-import ie.omk.smpp.util.SMPPIO;
+import java.util.List;
 
-import java.io.OutputStream;
 
 /**
  * Response to a data_sm.
@@ -10,7 +9,9 @@ import java.io.OutputStream;
  * @author Oran Kelly
  * @version 1.0
  */
-public class DataSMResp extends ie.omk.smpp.message.SMPPResponse {
+public class DataSMResp extends SMPPPacket {
+    private String messageId;
+    
     /**
      * Construct a new DataSMResp.
      */
@@ -19,53 +20,38 @@ public class DataSMResp extends ie.omk.smpp.message.SMPPResponse {
     }
 
     /**
-     * Construct a new DataSMResp with specified sequence number.
-     * 
-     * @param seqNum
-     *            The sequence number to use
-     * @deprecated
-     */
-    public DataSMResp(int seqNum) {
-        super(DATA_SM_RESP, seqNum);
-    }
-
-    /**
      * Create a new DataSMResp packet in response to a DataSM. This constructor
      * will set the sequence number to it's expected value.
      * 
-     * @param r
+     * @param request
      *            The Request packet the response is to
      */
-    public DataSMResp(DataSM r) {
-        super(r);
+    public DataSMResp(SMPPPacket request) {
+        super(request);
     }
 
-    public int getBodyLength() {
-        return ((messageId != null) ? messageId.length() : 0) + 1;
+    public String getMessageId() {
+        return messageId;
     }
 
-    /**
-     * Write a byte representation of this packet to an OutputStream
-     * 
-     * @param out
-     *            The OutputStream to write to
-     * @throws java.io.IOException
-     *             If an error occurs writing to the output stream.
-     */
-    protected void encodeBody(OutputStream out) throws java.io.IOException {
-        SMPPIO.writeCString(getMessageId(), out);
+    public void setMessageId(String messageId) {
+        this.messageId = messageId;
     }
-
-    public void readBodyFrom(byte[] b, int offset) throws SMPPProtocolException {
-        messageId = SMPPIO.readCString(b, offset);
+    
+    @Override
+    protected BodyDescriptor getBodyDescriptor() {
+        return BodyDescriptor.ONE_CSTRING;
     }
-
-    /**
-     * Convert this packet to a String. Not to be interpreted programmatically,
-     * it's just dead handy for debugging!
-     */
-    public String toString() {
-        return new String("data_sm_resp");
+    
+    @Override
+    protected Object[] getMandatoryParameters() {
+        return new Object[] {
+                messageId,
+        };
+    }
+    
+    @Override
+    protected void setMandatoryParameters(List<Object> params) {
+        messageId = (String) params.get(0);
     }
 }
-

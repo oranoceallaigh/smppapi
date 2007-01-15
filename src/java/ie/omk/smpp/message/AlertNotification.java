@@ -2,7 +2,7 @@ package ie.omk.smpp.message;
 
 import ie.omk.smpp.Address;
 
-import java.io.OutputStream;
+import java.util.List;
 
 /**
  * Alert notification. This packet type is sent from the SMSC to an ESME to
@@ -15,7 +15,16 @@ import java.io.OutputStream;
  * @version 1.0
  * @author Oran Kelly
  */
-public class AlertNotification extends SMPPRequest {
+public class AlertNotification extends SMPPPacket {
+    private static final BodyDescriptor BODY_DESCRIPTOR = new BodyDescriptor();
+    private Address source;
+    private Address destination;
+
+    static {
+        BODY_DESCRIPTOR.add(ParamDescriptor.ADDRESS)
+        .add(ParamDescriptor.ADDRESS);
+    }
+    
     /**
      * Create a new alert_notification object.
      */
@@ -23,45 +32,43 @@ public class AlertNotification extends SMPPRequest {
         super(ALERT_NOTIFICATION);
     }
 
-    /**
-     * Create a new alert_notification object with sequence number
-     * <code>seqNum</code>.
-     */
-    public AlertNotification(int seqNum) {
-        super(ALERT_NOTIFICATION, seqNum);
+    public Address getDestination() {
+        return destination;
     }
 
-    public int getBodyLength() {
-        return ((source != null) ? source.getLength() : 3)
-            + ((destination != null) ? destination.getLength() : 3);
+    public void setDestination(Address destination) {
+        this.destination = destination;
     }
 
-    public void encodeBody(OutputStream out) throws java.io.IOException {
-        if (source != null) {
-            source.writeTo(out);
-        } else {
-            new Address().writeTo(out);
-        }
-
-        if (destination != null) {
-            destination.writeTo(out);
-        } else {
-            new Address().writeTo(out);
-        }
+    public Address getSource() {
+        return source;
     }
 
-    public void readBodyFrom(byte[] body, int offset)
-            throws SMPPProtocolException {
-        source = new Address();
-        source.readFrom(body, offset);
-        offset += source.getLength();
-
-        destination = new Address();
-        destination.readFrom(body, offset);
+    public void setSource(Address source) {
+        this.source = source;
     }
 
     public String toString() {
         return "alert_notification";
+    }
+
+    @Override
+    protected BodyDescriptor getBodyDescriptor() {
+        return BODY_DESCRIPTOR;
+    }
+    
+    @Override
+    protected Object[] getMandatoryParameters() {
+        return new Object[] {
+                source,
+                destination,
+        };
+    }
+    
+    @Override
+    protected void setMandatoryParameters(List<Object> params) {
+        source = (Address) params.get(0);
+        destination = (Address) params.get(1);
     }
 }
 

@@ -2,7 +2,7 @@ package ie.omk.smpp.util;
 
 import java.io.UnsupportedEncodingException;
 
-public class UCS2Encoding extends ie.omk.smpp.util.AlphabetEncoding {
+public class UCS2Encoding extends AlphabetEncoding {
     private static final String ENCODING = "ISO-10646-UCS-2";
     private static final int DCS = 8;
 
@@ -14,5 +14,10 @@ public class UCS2Encoding extends ie.omk.smpp.util.AlphabetEncoding {
     public UCS2Encoding() throws UnsupportedEncodingException {
         super(DCS);
         setCharset(ENCODING);
+    }
+    
+    @Override
+    public int getCharSize() {
+        return 16;
     }
 }

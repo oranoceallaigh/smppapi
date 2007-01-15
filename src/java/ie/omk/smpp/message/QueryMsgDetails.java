@@ -1,41 +1,59 @@
 package ie.omk.smpp.message;
 
 import ie.omk.smpp.Address;
-import ie.omk.smpp.util.GSMConstants;
-import ie.omk.smpp.util.SMPPIO;
 
-import java.io.OutputStream;
+import java.util.List;
 
 /**
  * Query Message details. Get all information about an existing message at the
- * SMSC. Relevant inherited fields from SMPPPacket: <br>
- * <ul>
- * messageId source
- * </ul>
+ * SMSC.
  * 
  * @author Oran Kelly
- * @version 1.0
+ * @version $Id: $
  */
-public class QueryMsgDetails extends ie.omk.smpp.message.SMPPRequest {
-    /** Length of the message text required */
+public class QueryMsgDetails extends SMPPPacket {
+    private static final BodyDescriptor BODY_DESCRIPTOR = new BodyDescriptor();
+    
+    /**
+     * Original message ID of the required message.
+     */
+    private String messageId;
+    /**
+     * Source address of the message.
+     */
+    private Address source;
+    /**
+     * Length of the message text required.
+     */
     private int smLength;
 
+    static {
+        BODY_DESCRIPTOR.add(ParamDescriptor.CSTRING)
+        .add(ParamDescriptor.ADDRESS)
+        .add(ParamDescriptor.INTEGER1);
+    }
+    
     /**
      * Construct a new QueryMsgDetails.
      */
     public QueryMsgDetails() {
         super(QUERY_MSG_DETAILS);
     }
+    
+    public String getMessageId() {
+        return messageId;
+    }
 
-    /**
-     * Construct a new QueryMsgDetails with specified sequence number.
-     * 
-     * @param seqNum
-     *            The sequence number to use
-     * @deprecated
-     */
-    public QueryMsgDetails(int seqNum) {
-        super(QUERY_MSG_DETAILS, seqNum);
+    public void setMessageId(String messageId) {
+        this.messageId = messageId;
+    }
+
+    public Address getSource() {
+        return source;
+    }
+
+    public void setSource(Address source) {
+        this.source = source;
     }
 
     /**
@@ -62,47 +80,6 @@ public class QueryMsgDetails extends ie.omk.smpp.message.SMPPRequest {
         return smLength;
     }
 
-    public int getBodyLength() {
-        int len = ((messageId != null) ? messageId.length() : 0)
-                + ((source != null) ? source.getLength() : 3);
-
-        // 1 1-byte integer, 1 c-string
-        return len + 1 + 1;
-    }
-
-    /**
-     * Write a byte representation of this packet to an OutputStream
-     * 
-     * @param out
-     *            The OutputStream to write to
-     * @throws java.io.IOException
-     *             if there's an error writing to the output stream.
-     */
-    protected void encodeBody(OutputStream out) throws java.io.IOException {
-        SMPPIO.writeCString(getMessageId(), out);
-
-        if (source != null) {
-            source.writeTo(out);
-        } else {
-            // Write ton=0(null), npi=0(null), address=\0(nul)
-            new Address(GSMConstants.GSM_TON_UNKNOWN,
-                    GSMConstants.GSM_NPI_UNKNOWN, "").writeTo(out);
-        }
-        SMPPIO.writeInt(smLength, 1, out);
-    }
-
-    public void readBodyFrom(byte[] body, int offset)
-            throws SMPPProtocolException {
-        messageId = SMPPIO.readCString(body, offset);
-        offset += messageId.length() + 1;
-
-        source = new Address();
-        source.readFrom(body, offset);
-        offset += source.getLength();
-
-        smLength = SMPPIO.bytesToInt(body, offset++, 1);
-    }
-
     /**
      * Convert this packet to a String. Not to be interpreted programmatically,
      * it's just dead handy for debugging!
@@ -110,5 +87,25 @@ public class QueryMsgDetails extends ie.omk.smpp.message.SMPPRequest {
     public String toString() {
         return new String("query_msg_details");
     }
-}
 
+    @Override
+    protected BodyDescriptor getBodyDescriptor() {
+        return BODY_DESCRIPTOR;
+    }
+    
+    @Override
+    protected Object[] getMandatoryParameters() {
+        return new Object[] {
+                messageId,
+                source,
+                Integer.valueOf(smLength),
+        };
+    }
+    
+    @Override
+    protected void setMandatoryParameters(List<Object> params) {
+        messageId = (String) params.get(0);
+        source = (Address) params.get(1);
+        smLength = ((Number) params.get(2)).intValue();
+    }
+}

@@ -9,116 +9,64 @@ import java.util.BitSet;
 
 import junit.framework.TestCase;
 
-public class TLVTests extends TestCase {
-
-    BitSet bitSet = new BitSet();
-
-    byte[] bitSetExpected;
-
-    public TLVTests() {
-        super("TLV Tests");
-    }
-
-    public TLVTests(String n) {
-        super(n);
-    }
-
-    public void setUp() {
-        // Set up a BitSet to use.
-        bitSet.set(2);
-        bitSet.set(6);
-        bitSet.set(5);
-        bitSet.set(7);
-        bitSet.set(12);
-        bitSet.set(14);
-
-        bitSetExpected = new byte[] {(byte) 0xe4, (byte) 0x50};
-    }
-
-    public void testTag() {
-        Tag testTag = Tag.SMS_SIGNAL;
-        int testTagVal = 0x1203;
-
-        assertEquals(testTagVal, testTag.intValue());
-        assertEquals(testTagVal, testTag.intValue());
-
-        assertSame(testTag, Tag.getTag(testTagVal));
-        assertEquals(testTag, Tag.getTag(testTagVal));
-        assertTrue(testTag.equals(testTagVal));
-
-        assertEquals(new Integer(testTagVal).hashCode(), testTag.hashCode());
-
-        //
-        // Define a new Tag type
-        //
-        int newTagVal = 0x1456;
-        Tag newTag = Tag.defineTag(0x1456, Integer.class, null, 4);
-
-        assertTrue(newTag.equals(newTagVal));
-        assertSame(newTag, Tag.getTag(newTagVal));
-    }
-
-    public void testBitmaskSerialization() {
-        BitmaskEncoder enc = new BitmaskEncoder();
-
-        byte[] b = new byte[1];
-        byte[] expected = {bitSetExpected[0]};
-        enc.writeTo(Tag.MS_MSG_WAIT_FACILITIES, bitSet, b, 0);
-        assertTrue(Arrays.equals(expected, b));
-
-        Tag newTag = Tag.defineTag(0xdeaf, BitSet.class, null, 2);
-        b = new byte[2];
-        enc.writeTo(newTag, bitSet, b, 0);
-        assertTrue(Arrays.equals(bitSetExpected, b));
-
-        BitSet deser = (BitSet) enc.readFrom(newTag, b, 0, newTag.getLength());
-        System.out.println(bitSet);
-        System.out.println(deser);
-        assertEquals(bitSet, deser);
-    }
-
+public class TLVTableTest extends TestCase {
     public void testTLVTableAddParams() {
-        TLVTable tab = new TLVTable();
+        TLVTable table = new TLVTable();
 
         try {
-            tab.set(Tag.DEST_ADDR_SUBUNIT, new Integer(0x56));
+            assertFalse(table.isSet(Tag.DEST_ADDR_SUBUNIT));
+            table.set(Tag.DEST_ADDR_SUBUNIT, new Integer(0x56));
+            assertTrue(table.isSet(Tag.DEST_ADDR_SUBUNIT));
         } catch (Exception x) {
             fail("Failed to set IntegerValue size 1");
         }
 
         try {
-            tab.set(Tag.DEST_TELEMATICS_ID, new Integer(0xe2e1));
+            assertFalse(table.isSet(Tag.DEST_TELEMATICS_ID));
+            table.set(Tag.DEST_TELEMATICS_ID, new Integer(0xe2e1));
+            assertTrue(table.isSet(Tag.DEST_TELEMATICS_ID));
         } catch (Exception x) {
             fail("Failed to set IntegerValue size 2");
         }
 
         try {
-            tab.set(Tag.QOS_TIME_TO_LIVE, new Long(0xe4e3e2e1L));
+            assertFalse(table.isSet(Tag.QOS_TIME_TO_LIVE));
+            table.set(Tag.QOS_TIME_TO_LIVE, new Long(0xe4e3e2e1L));
+            assertTrue(table.isSet(Tag.QOS_TIME_TO_LIVE));
         } catch (Exception x) {
             fail("Failed to set IntegerValue size 4");
         }
 
         try {
-            tab.set(Tag.ADDITIONAL_STATUS_INFO_TEXT, "Test info");
+            assertFalse(table.isSet(Tag.ADDITIONAL_STATUS_INFO_TEXT));
+            table.set(Tag.ADDITIONAL_STATUS_INFO_TEXT, "Test info");
+            assertTrue(table.isSet(Tag.ADDITIONAL_STATUS_INFO_TEXT));
         } catch (Exception x) {
             fail("Failed to set StringValue.");
         }
 
         try {
+            assertFalse(table.isSet(Tag.CALLBACK_NUM_ATAG));
             byte[] b = {0x67, 0x67, 0x67};
-            tab.set(Tag.CALLBACK_NUM_ATAG, b);
+            table.set(Tag.CALLBACK_NUM_ATAG, b);
+            assertTrue(table.isSet(Tag.CALLBACK_NUM_ATAG));
         } catch (Exception x) {
             fail("Failed to set OctetValue.");
         }
         try {
-            tab.set(Tag.MS_MSG_WAIT_FACILITIES, bitSet);
+            assertFalse(table.isSet(Tag.MS_MSG_WAIT_FACILITIES));
+            BitSet bitSet = new BitSet();
+            table.set(Tag.MS_MSG_WAIT_FACILITIES, bitSet);
+            assertTrue(table.isSet(Tag.MS_MSG_WAIT_FACILITIES));
             Tag newTag = Tag.defineTag(0xdead, BitSet.class, null, 2);
-            tab.set(newTag, bitSet);
+            assertFalse(table.isSet(newTag));
+            table.set(newTag, bitSet);
+            assertTrue(table.isSet(newTag));
         } catch (Exception x) {
             fail("Failed to set Bitmask value");
         }
     }
-
+    
     public void testTLVTableFailAddParams() {
         TLVTable tab = new TLVTable();
 
@@ -160,6 +108,8 @@ public class TLVTests extends TestCase {
         //
         TLVTable tab = new TLVTable();
         byte[] b = {0x56, 0x67, 0x69};
+        BitSet bitSet = new BitSet();
+        bitSet.set(3);
         tab.set(Tag.DEST_ADDR_SUBUNIT, new Integer(0x56));
         tab.set(Tag.DEST_TELEMATICS_ID, new Integer(0xe2e1));
         tab.set(Tag.QOS_TIME_TO_LIVE, new Long((long) Integer.MAX_VALUE));
@@ -286,20 +236,5 @@ public class TLVTests extends TestCase {
             x.printStackTrace(System.err);
             fail("Deserialize failed. " + x.getMessage());
         }
-    }
-    
-    public void testDefineAndUndefine() throws Exception {
-        final int TAG_VALUE = 9000;
-        assertFalse(Tag.isTagDefined(TAG_VALUE));
-        Tag.defineTag(TAG_VALUE, String.class, null, 30);
-        assertTrue(Tag.isTagDefined(TAG_VALUE));
-        Tag tag = Tag.getTag(TAG_VALUE);
-        assertEquals(String.class, tag.getType());
-        assertEquals(TAG_VALUE, tag.intValue());
-        assertEquals(30, tag.getMaxLength());
-        assertEquals(30, tag.getMinLength());
-        assertEquals(30, tag.getLength());
-        Tag.undefineTag(tag);
-        assertFalse(Tag.isTagDefined(TAG_VALUE));
     }
 }

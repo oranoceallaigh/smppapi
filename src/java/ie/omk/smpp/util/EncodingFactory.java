@@ -7,8 +7,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Factory class for obtaining message encoding instances.
@@ -33,13 +33,15 @@ import org.apache.commons.logging.LogFactory;
  */
 public class EncodingFactory {
 
-    private static final Log LOGGER = LogFactory.getLog(EncodingFactory.class);
+    private static final Logger LOG = LoggerFactory.getLogger(EncodingFactory.class);
     private static final String DEFAULT_ALPHABET_PROPNAME = "smpp.default_alphabet";
     
     private static final EncodingFactory INSTANCE = new EncodingFactory();
     
-    private final Map mappingTable = new HashMap();
-    private final Map langToAlphabet = new HashMap();
+    private final Map<Integer, MessageEncoding> mappingTable =
+        new HashMap<Integer, MessageEncoding>();
+    private final Map<String, AlphabetEncoding> langToAlphabet =
+        new HashMap<String, AlphabetEncoding>();
     private AlphabetEncoding defaultAlphabet;
     
     public EncodingFactory() {
@@ -62,7 +64,7 @@ public class EncodingFactory {
             try {
                 langToAlphabet.put(null, new Latin1Encoding());
             } catch (UnsupportedEncodingException xx) {
-                LOGGER.debug("JVM does not support UCS2 - encoding will not be used.");
+                LOG.debug("JVM does not support UCS2 - encoding will not be used.");
                 langToAlphabet.put(null, new ASCIIEncoding());
             }
         }
@@ -87,7 +89,7 @@ public class EncodingFactory {
      * registered for that value.
      */
     public MessageEncoding getEncoding(final int dataCoding) {
-        return (MessageEncoding) mappingTable.get(new Integer(dataCoding));
+        return mappingTable.get(new Integer(dataCoding));
     }
     
     /**
@@ -105,32 +107,32 @@ public class EncodingFactory {
      * @param encodingClass The class of the <code>MessageEncoding</code> to
      * add.
      */
-    public void addEncoding(final Class encodingClass) {
+    public void addEncoding(final Class<? extends MessageEncoding> encodingClass) {
         try {
-            if (!MessageEncoding.class.isAssignableFrom(encodingClass)) {
-                throw new IllegalArgumentException("Not an encoding class: "
-                        + encodingClass);
-            }
-            Constructor c = encodingClass.getConstructor(new Class[0]);
-            addEncoding((MessageEncoding) c.newInstance(new Object[0]));
+            Constructor<? extends MessageEncoding> c =
+                encodingClass.getConstructor(new Class[0]);
+            addEncoding(c.newInstance(new Object[0]));
         } catch (NoSuchMethodException x) {
-            LOGGER.error(encodingClass.getName() + " does not have a"
-                    + "no-argument constructor", x);
+            LOG.error("{} does not have a no-argument constructor",
+                    encodingClass.getName());
         } catch (IllegalAccessException x) {
-            LOGGER.error(encodingClass.getName() + " does not have a visible"
-                    + " no-argument constructor", x);
+            LOG.error("{} does not have a visible no-argument constructor",
+                    encodingClass.getName());
         } catch (InstantiationException x) {
-            LOGGER.error("Cannot instantiate an instance of " + encodingClass, x);
+            LOG.error("Cannot instantiate an instance of {}: {}",
+                    encodingClass, x.getMessage());
         } catch (InvocationTargetException x) {
             Throwable cause = x.getCause();
             if (cause instanceof UnsupportedEncodingException) {
-                LOGGER.debug(encodingClass.getName() + " is not supported by the JVM");
+                LOG.debug("Encoding for {} is not supported by the JVM",
+                        encodingClass.getName());
             } else {
-                LOGGER.error(encodingClass.getName() + " constructor threw "
-                        + "an exception", x);
+                LOG.error("{} constructor threw an exception",
+                        encodingClass.getName());
+                LOG.error("Stack trace:", x);
             }
         } catch (IllegalArgumentException x) {
-            LOGGER.error("This exception shouldn't happen", x);
+            LOG.error("This exception shouldn't happen", x);
         }
     }
     
@@ -138,7 +140,7 @@ public class EncodingFactory {
      * Get an iterator over all known encodings by this factory.
      * @return An iterator over all the encodings known by this factory.
      */
-    public Iterator getAllEncodings() {
+    public Iterator<MessageEncoding> getAllEncodings() {
         return mappingTable.values().iterator();
     }
     
@@ -165,11 +167,11 @@ public class EncodingFactory {
      *            The ISO code for the language the message is in.
      */
     public AlphabetEncoding getAlphabet(String lang) {
-        AlphabetEncoding enc = (AlphabetEncoding) langToAlphabet.get(lang);
+        AlphabetEncoding enc = langToAlphabet.get(lang);
         if (enc != null) {
             return enc;
         } else {
-            return (AlphabetEncoding) langToAlphabet.get(null);
+            return langToAlphabet.get(null);
         }
     }
 
@@ -181,11 +183,12 @@ public class EncodingFactory {
         try {
             className = System.getProperty(DEFAULT_ALPHABET_PROPNAME);
             if (className != null) {
-                Class alphaClass = Class.forName(className);
+                Class<?> alphaClass = Class.forName(className);
                 defaultAlphabet = (AlphabetEncoding) alphaClass.newInstance();
             }
         } catch (Exception x) {
-            LOGGER.warn("Couldn't load default alphabet " + className, x);
+            LOG.warn("Couldn't load default alphabet {}: {}",
+                    className, x.getMessage());
         }
         if (defaultAlphabet == null) {
             defaultAlphabet = new DefaultAlphabetEncoding();

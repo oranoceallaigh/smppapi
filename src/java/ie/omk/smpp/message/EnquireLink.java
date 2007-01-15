@@ -9,31 +9,12 @@ package ie.omk.smpp.message;
  * @author Oran Kelly
  * @version 1.0
  */
-public class EnquireLink extends ie.omk.smpp.message.SMPPRequest {
+public class EnquireLink extends SMPPPacket {
     /**
      * Construct a new EnquireLink.
      */
     public EnquireLink() {
         super(ENQUIRE_LINK);
-    }
-
-    /**
-     * Construct a new EnquireLink with specified sequence number.
-     * 
-     * @param seqNum
-     *            The sequence number to use
-     * @deprecated
-     */
-    public EnquireLink(int seqNum) {
-        super(ENQUIRE_LINK, seqNum);
-    }
-
-    public int getBodyLength() {
-        return 0;
-    }
-
-    public void readBodyFrom(byte[] body, int offset)
-            throws SMPPProtocolException {
     }
 
     /**

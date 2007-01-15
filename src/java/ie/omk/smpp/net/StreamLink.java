@@ -3,8 +3,8 @@ package ie.omk.smpp.net;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Implementation of an Smsc link using user supplied input and output streams.
@@ -13,7 +13,7 @@ import org.apache.commons.logging.LogFactory;
  * @version $Id$
  */
 public class StreamLink extends ie.omk.smpp.net.SmscLink {
-    private static final Log LOGGER = LogFactory.getLog(StreamLink.class);
+    private static final Logger LOG = LoggerFactory.getLogger(StreamLink.class);
 
     /** The input side of the link. */
     private InputStream inStream;
@@ -47,7 +47,7 @@ public class StreamLink extends ie.omk.smpp.net.SmscLink {
      * Does nothing (the streams should already be open).
      */
     public void implOpen() {
-        LOGGER.debug("Opening stream connection");
+        LOG.debug("Opening stream connection");
         connected = true;
     }
 
@@ -56,7 +56,7 @@ public class StreamLink extends ie.omk.smpp.net.SmscLink {
      * streams.
      */
     public void implClose() {
-        LOGGER.debug("Closing stream connection");
+        LOG.debug("Closing stream connection");
         connected = false;
     }
 

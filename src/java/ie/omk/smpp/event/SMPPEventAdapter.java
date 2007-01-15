@@ -10,13 +10,12 @@ import ie.omk.smpp.message.GenericNack;
 import ie.omk.smpp.message.ParamRetrieveResp;
 import ie.omk.smpp.message.ReplaceSMResp;
 import ie.omk.smpp.message.SMPPPacket;
-import ie.omk.smpp.message.SMPPResponse;
 import ie.omk.smpp.message.SubmitMultiResp;
 import ie.omk.smpp.message.SubmitSMResp;
 import ie.omk.smpp.message.Unbind;
 import ie.omk.smpp.message.UnbindResp;
 
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.LoggerFactory;
 
 /**
  * Base class for applications to extend for SMPP event handling. This class
@@ -58,7 +57,7 @@ public abstract class SMPPEventAdapter implements ConnectionObserver {
                 userEvent(source, event);
             }
         } catch (ClassCastException x) {
-            LogFactory.getLog(SMPPEventAdapter.class).error(
+            LoggerFactory.getLogger(SMPPEventAdapter.class).error(
                     "Class cast exception", x);
         }
     }
@@ -93,7 +92,7 @@ public abstract class SMPPEventAdapter implements ConnectionObserver {
         case SMPPPacket.QUERY_SM_RESP:
         case SMPPPacket.QUERY_LAST_MSGS_RESP:
         case SMPPPacket.QUERY_MSG_DETAILS_RESP:
-            queryResponse(source, (SMPPResponse) pak);
+            queryResponse(source, pak);
             break;
 
         case SMPPPacket.ENQUIRE_LINK:
@@ -239,7 +238,7 @@ public abstract class SMPPEventAdapter implements ConnectionObserver {
      * One of a QuerySM, QueryLastMsgs or QueryMsgDetails response packet has
      * been received from the SMSC.
      */
-    public void queryResponse(Connection source, SMPPResponse qr) {
+    public void queryResponse(Connection source, SMPPPacket qr) {
     }
 
     /**
@@ -284,4 +283,3 @@ public abstract class SMPPEventAdapter implements ConnectionObserver {
     public void unidentified(Connection source, SMPPPacket pak) {
     }
 }
-

@@ -1,10 +1,8 @@
 package ie.omk.smpp.message;
 
 import ie.omk.smpp.Address;
-import ie.omk.smpp.util.GSMConstants;
-import ie.omk.smpp.util.SMPPIO;
 
-import java.io.OutputStream;
+import java.util.List;
 
 /**
  * Cancal message. This SMPP message is used to cancel a previously submitted
@@ -20,7 +18,20 @@ import java.io.OutputStream;
  * @author Oran Kelly
  * @version 1.0
  */
-public class CancelSM extends ie.omk.smpp.message.SMPPRequest {
+public class CancelSM extends SMPPPacket {
+    private static final BodyDescriptor BODY_DESCRIPTOR = new BodyDescriptor();
+    private String serviceType;
+    private String messageId;
+    private Address source;
+    private Address destination;
+    
+    static {
+        BODY_DESCRIPTOR.add(ParamDescriptor.CSTRING)
+        .add(ParamDescriptor.CSTRING)
+        .add(ParamDescriptor.ADDRESS)
+        .add(ParamDescriptor.ADDRESS);
+    }
+    
     /**
      * Construct a new CancelSM.
      */
@@ -28,69 +39,44 @@ public class CancelSM extends ie.omk.smpp.message.SMPPRequest {
         super(CANCEL_SM);
     }
 
-    /**
-     * Construct a new CancelSM with specified sequence number.
-     * 
-     * @param seqNum
-     *            The sequence number to use
-     * @deprecated
-     */
-    public CancelSM(int seqNum) {
-        super(CANCEL_SM, seqNum);
+    
+    public Address getDestination() {
+        return destination;
     }
 
-    public int getBodyLength() {
-        int len = ((serviceType != null) ? serviceType.length() : 0)
-                + ((messageId != null) ? messageId.length() : 0)
-                + ((source != null) ? source.getLength() : 3)
-                + ((destination != null) ? destination.getLength() : 3);
 
-        // 2 c-strings
-        return len + 2;
+    public void setDestination(Address destination) {
+        this.destination = destination;
     }
 
-    /**
-     * Write a byte representation of this packet to an OutputStream
-     * 
-     * @param out
-     *            The OutputStream to write to
-     * @throws java.io.IOException
-     *             if there's an error writing to the output stream.
-     */
-    protected void encodeBody(OutputStream out) throws java.io.IOException {
-        SMPPIO.writeCString(serviceType, out);
-        SMPPIO.writeCString(getMessageId(), out);
-        if (source != null) {
-            source.writeTo(out);
-        } else {
-            // Write ton=0(null), npi=0(null), address=\0(nul)
-            new Address(GSMConstants.GSM_TON_UNKNOWN,
-                    GSMConstants.GSM_NPI_UNKNOWN, "").writeTo(out);
-        }
 
-        if (destination != null) {
-            destination.writeTo(out);
-        } else {
-            // Write ton=0(null), npi=0(null), address=\0(nul)
-            new Address(GSMConstants.GSM_TON_UNKNOWN,
-                    GSMConstants.GSM_NPI_UNKNOWN, "").writeTo(out);
-        }
+    public String getMessageId() {
+        return messageId;
     }
 
-    public void readBodyFrom(byte[] body, int offset)
-            throws SMPPProtocolException {
-        serviceType = SMPPIO.readCString(body, offset);
-        offset += serviceType.length() + 1;
 
-        messageId = SMPPIO.readCString(body, offset);
-        offset += messageId.length() + 1;
+    public void setMessageId(String messageId) {
+        this.messageId = messageId;
+    }
 
-        source = new Address();
-        source.readFrom(body, offset);
-        offset += source.getLength();
 
-        destination = new Address();
-        destination.readFrom(body, offset);
+    public String getServiceType() {
+        return serviceType;
+    }
+
+
+    public void setServiceType(String serviceType) {
+        this.serviceType = serviceType;
+    }
+
+
+    public Address getSource() {
+        return source;
+    }
+
+
+    public void setSource(Address source) {
+        this.source = source;
     }
 
     /**
@@ -100,5 +86,27 @@ public class CancelSM extends ie.omk.smpp.message.SMPPRequest {
     public String toString() {
         return new String("cancel_sm");
     }
-}
 
+    @Override
+    protected BodyDescriptor getBodyDescriptor() {
+        return BODY_DESCRIPTOR;
+    }
+    
+    @Override
+    protected Object[] getMandatoryParameters() {
+        return new Object[] {
+                serviceType,
+                messageId,
+                source,
+                destination,
+        };
+    }
+    
+    @Override
+    protected void setMandatoryParameters(List<Object> params) {
+        serviceType = (String) params.get(0);
+        messageId = (String) params.get(1);
+        source  = (Address) params.get(2);
+        destination = (Address) params.get(3);
+    }
+}

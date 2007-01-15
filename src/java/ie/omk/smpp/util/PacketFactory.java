@@ -1,6 +1,7 @@
 package ie.omk.smpp.util;
 
 import ie.omk.smpp.BadCommandIDException;
+import ie.omk.smpp.SMPPRuntimeException;
 import ie.omk.smpp.message.AlertNotification;
 import ie.omk.smpp.message.BindReceiver;
 import ie.omk.smpp.message.BindReceiverResp;
@@ -17,6 +18,7 @@ import ie.omk.smpp.message.DeliverSMResp;
 import ie.omk.smpp.message.EnquireLink;
 import ie.omk.smpp.message.EnquireLinkResp;
 import ie.omk.smpp.message.GenericNack;
+import ie.omk.smpp.message.Outbind;
 import ie.omk.smpp.message.ParamRetrieve;
 import ie.omk.smpp.message.ParamRetrieveResp;
 import ie.omk.smpp.message.QueryLastMsgs;
@@ -35,6 +37,14 @@ import ie.omk.smpp.message.SubmitSMResp;
 import ie.omk.smpp.message.Unbind;
 import ie.omk.smpp.message.UnbindResp;
 
+import java.lang.reflect.Constructor;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Helper class to create new SMPP packet objects.
  * 
@@ -42,16 +52,50 @@ import ie.omk.smpp.message.UnbindResp;
  * @author Oran Kelly
  */
 public final class PacketFactory {
+    private static final Logger LOG = LoggerFactory.getLogger(PacketFactory.class);
+    private static final PacketFactory INSTANCE = new PacketFactory();
+    
+    private final Map<Integer, Class<? extends SMPPPacket>> commands;
+    private final Map<Integer, Class<? extends SMPPPacket>> userCommands =
+        new HashMap<Integer, Class<? extends SMPPPacket>>();
+    
     private PacketFactory() {
-    }
-
-    /**
-     * Create a new instance of the appropriate sub class of SMPPPacket.
-     * 
-     * @deprecated
-     */
-    public static SMPPPacket newPacket(int id) throws BadCommandIDException {
-        return newInstance(id);
+        Map<Integer, Class<? extends SMPPPacket>> commands =
+            new HashMap<Integer, Class<? extends SMPPPacket>>();
+        commands.put(Integer.valueOf(SMPPPacket.ALERT_NOTIFICATION), AlertNotification.class);
+        commands.put(Integer.valueOf(SMPPPacket.BIND_RECEIVER), BindReceiver.class);
+        commands.put(Integer.valueOf(SMPPPacket.BIND_RECEIVER_RESP), BindReceiverResp.class);
+        commands.put(Integer.valueOf(SMPPPacket.BIND_TRANSCEIVER), BindTransceiver.class);
+        commands.put(Integer.valueOf(SMPPPacket.BIND_TRANSCEIVER_RESP), BindTransceiverResp.class);
+        commands.put(Integer.valueOf(SMPPPacket.BIND_TRANSMITTER), BindTransmitter.class);
+        commands.put(Integer.valueOf(SMPPPacket.BIND_TRANSMITTER_RESP), BindTransmitterResp.class);
+        commands.put(Integer.valueOf(SMPPPacket.CANCEL_SM), CancelSM.class);
+        commands.put(Integer.valueOf(SMPPPacket.CANCEL_SM_RESP), CancelSMResp.class);
+        commands.put(Integer.valueOf(SMPPPacket.DATA_SM), DataSM.class);
+        commands.put(Integer.valueOf(SMPPPacket.DATA_SM_RESP), DataSMResp.class);
+        commands.put(Integer.valueOf(SMPPPacket.DELIVER_SM), DeliverSM.class);
+        commands.put(Integer.valueOf(SMPPPacket.DELIVER_SM_RESP), DeliverSMResp.class);
+        commands.put(Integer.valueOf(SMPPPacket.ENQUIRE_LINK), EnquireLink.class);
+        commands.put(Integer.valueOf(SMPPPacket.ENQUIRE_LINK_RESP), EnquireLinkResp.class);
+        commands.put(Integer.valueOf(SMPPPacket.GENERIC_NACK), GenericNack.class);
+        commands.put(Integer.valueOf(SMPPPacket.OUTBIND), Outbind.class);
+        commands.put(Integer.valueOf(SMPPPacket.PARAM_RETRIEVE), ParamRetrieve.class);
+        commands.put(Integer.valueOf(SMPPPacket.PARAM_RETRIEVE_RESP), ParamRetrieveResp.class);
+        commands.put(Integer.valueOf(SMPPPacket.QUERY_LAST_MSGS), QueryLastMsgs.class);
+        commands.put(Integer.valueOf(SMPPPacket.QUERY_LAST_MSGS_RESP), QueryLastMsgsResp.class);
+        commands.put(Integer.valueOf(SMPPPacket.QUERY_MSG_DETAILS), QueryMsgDetails.class);
+        commands.put(Integer.valueOf(SMPPPacket.QUERY_MSG_DETAILS_RESP), QueryMsgDetailsResp.class);
+        commands.put(Integer.valueOf(SMPPPacket.QUERY_SM), QuerySM.class);
+        commands.put(Integer.valueOf(SMPPPacket.QUERY_SM_RESP), QuerySMResp.class);
+        commands.put(Integer.valueOf(SMPPPacket.REPLACE_SM), ReplaceSM.class);
+        commands.put(Integer.valueOf(SMPPPacket.REPLACE_SM_RESP), ReplaceSMResp.class);
+        commands.put(Integer.valueOf(SMPPPacket.SUBMIT_MULTI), SubmitMulti.class);
+        commands.put(Integer.valueOf(SMPPPacket.SUBMIT_MULTI_RESP), SubmitMultiResp.class);
+        commands.put(Integer.valueOf(SMPPPacket.SUBMIT_SM), SubmitSM.class);
+        commands.put(Integer.valueOf(SMPPPacket.SUBMIT_SM_RESP), SubmitSMResp.class);
+        commands.put(Integer.valueOf(SMPPPacket.UNBIND), Unbind.class);
+        commands.put(Integer.valueOf(SMPPPacket.UNBIND_RESP), UnbindResp.class);
+        this.commands = Collections.unmodifiableMap(commands);
     }
 
     /**
@@ -65,141 +109,82 @@ public final class PacketFactory {
      * @throws ie.omk.smpp.BadCommandIDException
      *             if the command ID is not recognized.
      */
-    public static SMPPPacket newInstance(int id) throws BadCommandIDException {
+    public static SMPPPacket newInstance(int id) {
+        return INSTANCE.newInstance(id, null);
+    }
+    
+    /**
+     * Get a response packet for the specified request. The returned response
+     * packet will have its sequence number initialised to the same value
+     * as <code>packet</code>.
+     * @param packet The request packet to get a response for.
+     * @return An SMPP response packet.
+     */
+    public static SMPPPacket newResponse(SMPPPacket packet) {
+        if (packet.isResponse()) {
+            throw new IllegalArgumentException(
+                    "Cannot create a response to a response!");
+        }
+        try {
+            int id = packet.getCommandId();
+            SMPPPacket response = INSTANCE.newInstance(id | 0x80000000, packet);
+            response.setSequenceNum(packet.getSequenceNum());
+            return response;
+        } catch (BadCommandIDException x) {
+            throw new SMPPRuntimeException("Internal error in the smppapi.", x);
+        }
+    }
+
+    // TODO document
+    public static void registerVendorPacket(int id,
+            Class<? extends SMPPPacket> requestType,
+            Class<? extends SMPPPacket> responseType) {
+        INSTANCE.userCommands.put(Integer.valueOf(id), requestType);
+        if (responseType != null) {
+            INSTANCE.userCommands.put(
+                    Integer.valueOf(id | 0x80000000), responseType);
+        }
+    }
+
+    public static void unregisterVendorPacket(int id) {
+        INSTANCE.userCommands.remove(Integer.valueOf(id));
+        INSTANCE.userCommands.remove(Integer.valueOf(id | 0x80000000));
+    }
+    
+    // TODO throws badcommandidexception - now a runtime exception.
+    private SMPPPacket newInstance(int id, SMPPPacket request) {
         SMPPPacket response = null;
-
-        switch (id) {
-        case SMPPPacket.GENERIC_NACK:
-            response = new GenericNack();
-            break;
-
-        case SMPPPacket.BIND_RECEIVER:
-            response = new BindReceiver();
-            break;
-
-        case SMPPPacket.BIND_RECEIVER_RESP:
-            response = new BindReceiverResp();
-            break;
-
-        case SMPPPacket.BIND_TRANSMITTER:
-            response = new BindTransmitter();
-            break;
-
-        case SMPPPacket.BIND_TRANSMITTER_RESP:
-            response = new BindTransmitterResp();
-            break;
-
-        case SMPPPacket.BIND_TRANSCEIVER:
-            response = new BindTransceiver();
-            break;
-
-        case SMPPPacket.BIND_TRANSCEIVER_RESP:
-            response = new BindTransceiverResp();
-            break;
-
-        case SMPPPacket.UNBIND:
-            response = new Unbind();
-            break;
-
-        case SMPPPacket.UNBIND_RESP:
-            response = new UnbindResp();
-            break;
-
-        case SMPPPacket.SUBMIT_SM:
-            response = new SubmitSM();
-            break;
-
-        case SMPPPacket.SUBMIT_SM_RESP:
-            response = new SubmitSMResp();
-            break;
-
-        case SMPPPacket.DATA_SM:
-            response = new DataSM();
-            break;
-
-        case SMPPPacket.DATA_SM_RESP:
-            response = new DataSMResp();
-            break;
-
-        case SMPPPacket.ALERT_NOTIFICATION:
-            response = new AlertNotification();
-            break;
-
-        case SMPPPacket.SUBMIT_MULTI:
-            response = new SubmitMulti();
-            break;
-
-        case SMPPPacket.SUBMIT_MULTI_RESP:
-            response = new SubmitMultiResp();
-            break;
-
-        case SMPPPacket.DELIVER_SM:
-            response = new DeliverSM();
-            break;
-
-        case SMPPPacket.DELIVER_SM_RESP:
-            response = new DeliverSMResp();
-            break;
-
-        case SMPPPacket.QUERY_SM:
-            response = new QuerySM();
-            break;
-
-        case SMPPPacket.QUERY_SM_RESP:
-            response = new QuerySMResp();
-            break;
-
-        case SMPPPacket.QUERY_LAST_MSGS:
-            response = new QueryLastMsgs();
-            break;
-
-        case SMPPPacket.QUERY_LAST_MSGS_RESP:
-            response = new QueryLastMsgsResp();
-            break;
-
-        case SMPPPacket.QUERY_MSG_DETAILS:
-            response = new QueryMsgDetails();
-            break;
-
-        case SMPPPacket.QUERY_MSG_DETAILS_RESP:
-            response = new QueryMsgDetailsResp();
-            break;
-
-        case SMPPPacket.CANCEL_SM:
-            response = new CancelSM();
-            break;
-
-        case SMPPPacket.CANCEL_SM_RESP:
-            response = new CancelSMResp();
-            break;
-
-        case SMPPPacket.REPLACE_SM:
-            response = new ReplaceSM();
-            break;
-
-        case SMPPPacket.REPLACE_SM_RESP:
-            response = new ReplaceSMResp();
-            break;
-
-        case SMPPPacket.ENQUIRE_LINK:
-            response = new EnquireLink();
-            break;
-
-        case SMPPPacket.ENQUIRE_LINK_RESP:
-            response = new EnquireLinkResp();
-            break;
-
-        case SMPPPacket.PARAM_RETRIEVE:
-            response = new ParamRetrieve();
-            break;
-
-        case SMPPPacket.PARAM_RETRIEVE_RESP:
-            response = new ParamRetrieveResp();
-            break;
-
-        default:
-            throw new BadCommandIDException();
+        Class<? extends SMPPPacket> clazz = getClassForId(id);
+        if (clazz == null) {
+            throw new BadCommandIDException(
+                    "Unrecognized command id " + Integer.toHexString(id), id);
+        }
+        try {
+            if (request != null) {
+                try {
+                    Constructor<? extends SMPPPacket> cons = clazz.getConstructor(
+                            new Class[] {SMPPPacket.class});
+                    response = cons.newInstance(
+                            new Object[] {request});
+                } catch (NoSuchMethodException x) {
+                    LOG.debug("No SMPPPacket constructor - using the default.");
+                }
+            }
+            if (response == null) {
+                response = clazz.newInstance();
+            }
+        } catch (Exception x) {
+            throw new BadCommandIDException("Exception while calling constructor", x);
         }
         return response;
+    }
+    
+    private Class<? extends SMPPPacket> getClassForId(int id) {
+        Integer commandId = Integer.valueOf(id);
+        Class<? extends SMPPPacket> clazz = commands.get(Integer.valueOf(commandId));
+        if (clazz == null) {
+            clazz = userCommands.get(commandId);
+        }
+        return clazz;
     }
 }

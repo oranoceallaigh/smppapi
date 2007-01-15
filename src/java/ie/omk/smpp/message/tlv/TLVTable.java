@@ -4,6 +4,7 @@ import ie.omk.smpp.util.SMPPIO;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -50,7 +51,6 @@ import java.util.Map;
  *  
  * </pre>
  * 
- * @author Oran Kelly
  * @version $Id$
  */
 public class TLVTable implements java.io.Serializable {
@@ -58,7 +58,7 @@ public class TLVTable implements java.io.Serializable {
     /**
      * Map of tag to values.
      */
-    private Map map = new HashMap();
+    private Map<Tag, Object> map = new HashMap<Tag, Object>();
 
     /**
      * Undecoded options. TLVTable is lazy about decoding optional parameters.
@@ -155,11 +155,9 @@ public class TLVTable implements java.io.Serializable {
     public Object get(int tag) {
         Tag tagObj = Tag.getTag(tag);
         Object v = map.get(tagObj);
-
         if (v == null) {
             v = getValueFromBytes(tagObj);
         }
-
         return v;
     }
 
@@ -196,16 +194,21 @@ public class TLVTable implements java.io.Serializable {
                 parseAllOpts();
             }
 
-            if (tag.getType() == null) {
-                if (value != null) {
-                    throw new BadValueTypeException("Tag "
-                            + Integer.toHexString(tag.intValue())
-                            + " does not accept a value.");
-                }
+            if (tag.getType() == null && value != null) {
+                String error = MessageFormat.format(
+                        "Tag {0} does not accept any value.",
+                        new Object[] {tag});
+                throw new BadValueTypeException(error);
+            } else if (value == null) {
+                String error = MessageFormat.format(
+                        "Tag {0} does not accept a null value.",
+                        new Object[] {tag});
+                throw new BadValueTypeException(error);
             } else if (!tag.getType().isAssignableFrom(value.getClass())) {
-                throw new BadValueTypeException("Tag "
-                        + Integer.toHexString(tag.intValue())
-                        + " expects a value of type " + tag.getType());
+                String error = MessageFormat.format(
+                        "Tag {0} expects a value of type {1}.",
+                        new Object[] {tag, tag.getType()});
+                throw new BadValueTypeException(error);
             }
 
             // Enforce the length restrictions on the Value specified by the
@@ -218,18 +221,36 @@ public class TLVTable implements java.io.Serializable {
             if (!illegal) {
                 illegal = max > -1 && actual > max;
             }
-
             if (illegal) {
                 throw new InvalidSizeForValueException("Tag "
                         + Integer.toHexString(tag.intValue())
                         + " must have a length in the range " + min
                         + " <= len <= " + max);
             }
-
             return map.put(tag, value);
         }
     }
 
+    /**
+     * Remove (or un-set) a tag/value from this table.
+     * @param tag The tag to remove from the table.
+     */
+    public void remove(Tag tag) {
+        synchronized (map) {
+            map.remove(tag);
+        }
+    }
+
+    /**
+     * Remove (or un-set) a tag/value from this table.
+     * @param tag The tag to remove from the table.
+     */
+    public void remove(int tag) {
+        synchronized (map) {
+            map.remove(Tag.getTag(tag));
+        }
+    }
+    
     /**
      * Clear all optional parameters out of this table.
      */
@@ -268,7 +289,6 @@ public class TLVTable implements java.io.Serializable {
 
                 p += 4 + l;
             }
-
             opts = null;
         }
     }
@@ -306,7 +326,6 @@ public class TLVTable implements java.io.Serializable {
                 break;
             }
         }
-
         return val;
     }
 
@@ -336,7 +355,6 @@ public class TLVTable implements java.io.Serializable {
             enc = tag.getEncoder();
             length += enc.getValueLength(tag, map.get(tag));
         }
-
         return length;
     }
 
@@ -349,7 +367,6 @@ public class TLVTable implements java.io.Serializable {
         if (opts != null) {
             parseAllOpts();
         }
-
         return map.keySet();
     }
 
@@ -362,8 +379,6 @@ public class TLVTable implements java.io.Serializable {
         if (opts != null) {
             parseAllOpts();
         }
-
         return map.values();
     }
 }
-

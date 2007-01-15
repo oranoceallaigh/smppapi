@@ -1,20 +1,18 @@
 package ie.omk.smpp.message;
 
-import ie.omk.smpp.util.SMPPIO;
 
-import java.io.OutputStream;
+import java.util.List;
+
 
 /**
- * ESME response to a Deliver message request. Relevant inherited fields from
- * SMPPPacket: <br>
- * <ul>
- * messageId <br>
- * </ul>
+ * ESME response to a Deliver message request.
  * 
  * @author Oran Kelly
- * @version 1.0
+ * @version $Id: $
  */
-public class DeliverSMResp extends ie.omk.smpp.message.SMPPResponse {
+public class DeliverSMResp extends SMPPPacket {
+    private String messageId;
+    
     /**
      * Construct a new DeliverSMResp.
      */
@@ -23,53 +21,38 @@ public class DeliverSMResp extends ie.omk.smpp.message.SMPPResponse {
     }
 
     /**
-     * Construct a new DeliverSMResp with specified sequence number.
-     * 
-     * @param seqNum
-     *            The sequence number to use
-     * @deprecated
-     */
-    public DeliverSMResp(int seqNum) {
-        super(DELIVER_SM_RESP, seqNum);
-    }
-
-    /**
      * Create a new DeliverSMResp packet in response to a DeliverSM. This
      * constructor will set the sequence number to it's expected value.
      * 
-     * @param r
+     * @param request
      *            The Request packet the response is to
      */
-    public DeliverSMResp(DeliverSM r) {
-        super(r);
+    public DeliverSMResp(SMPPPacket request) {
+        super(request);
     }
 
-    public int getBodyLength() {
-        return ((messageId != null) ? messageId.length() : 0) + 1;
+    public String getMessageId() {
+        return messageId;
     }
 
-    /**
-     * Write a byte representation of this packet to an OutputStream
-     * 
-     * @param out
-     *            The OutputStream to write to
-     * @throws java.io.IOException
-     *             if there's an error writing to the output stream.
-     */
-    protected void encodeBody(OutputStream out) throws java.io.IOException {
-        SMPPIO.writeCString(getMessageId(), out);
+    public void setMessageId(String messageId) {
+        this.messageId = messageId;
     }
 
-    public void readBodyFrom(byte[] b, int offset) throws SMPPProtocolException {
-        messageId = SMPPIO.readCString(b, offset);
+    @Override
+    protected BodyDescriptor getBodyDescriptor() {
+        return BodyDescriptor.ONE_CSTRING;
+    }
+    
+    @Override
+    protected Object[] getMandatoryParameters() {
+        return new Object[] {
+                messageId,
+        };
     }
 
-    /**
-     * Convert this packet to a String. Not to be interpreted programmatically,
-     * it's just dead handy for debugging!
-     */
-    public String toString() {
-        return new String("deliver_sm_resp");
+    @Override
+    protected void setMandatoryParameters(List<Object> params) {
+        messageId = (String) params.get(0);
     }
 }
-

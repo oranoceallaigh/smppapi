@@ -1,18 +1,24 @@
 package ie.omk.smpp.util;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * The default sequence numbering scheme. This implementation starts at sequence
  * number 1 and increments by 1 for each number requested, resulting in the
  * sequence numbers <code>1..2..3..4..5..6..7..8..n</code>. If the sequence
  * number reaches as far as <code>Integer.MAX_VALUE</code>, it will wrap back
  * around to 1.
- * 
+ * <p>
+ * This implementation uses an {@link java.util.concurrent.atomic.AtomicInteger}
+ * internally to track the next sequence number.
+ * </p>
  * @author Oran Kelly
- * @version 1.0
+ * @version $Id$
  */
 public class DefaultSequenceScheme implements SequenceNumberScheme {
 
-    private int num = 1;
+    private int start = 1;
+    private AtomicInteger sequence = new AtomicInteger(1);
 
     public DefaultSequenceScheme() {
     }
@@ -22,28 +28,27 @@ public class DefaultSequenceScheme implements SequenceNumberScheme {
      * <code>start</code>.
      */
     public DefaultSequenceScheme(int start) {
-        num = start;
+        this.start = start;
+        sequence.set(start);
     }
 
-    public synchronized int nextNumber() {
-        if (num == Integer.MAX_VALUE) {
-            num = 1;
-            return Integer.MAX_VALUE;
-        } else {
-            return num++;
+    public int nextNumber() {
+        int n = sequence.getAndIncrement();
+        if (n == Integer.MAX_VALUE) {
+            sequence.set(1);
         }
+        return n;
     }
 
-    public synchronized int peek() {
-        return num;
+    public int peek() {
+        return sequence.get();
     }
 
-    public synchronized int peek(int nth) {
-        return num + nth;
+    public int peek(int nth) {
+        return sequence.get() + nth;
     }
 
-    public synchronized void reset() {
-        num = 1;
+    public void reset() {
+        sequence.set(start);
     }
 }
-

@@ -1,17 +1,16 @@
 package ie.omk.smpp.message;
 
 import ie.omk.smpp.Address;
-import ie.omk.smpp.BadCommandIDException;
-import ie.omk.smpp.ErrorAddress;
-import ie.omk.smpp.SMPPException;
-import ie.omk.smpp.util.GSMConstants;
 import ie.omk.smpp.util.PacketFactory;
 import ie.omk.smpp.util.SMPPDate;
 import ie.omk.smpp.util.SMPPIO;
+import ie.omk.smpp.version.SMPPVersion;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.Date;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
+import java.util.Random;
 
 import junit.framework.TestCase;
 
@@ -59,11 +58,11 @@ public class SizeTest extends TestCase {
         UnbindResp.class,
     };
 
-    public void testPacketsWithDefaultConstructor() {
+    public void testPacketsWithDefaultConstructor() throws Exception {
         testPacketSizes(false);
     }
     
-    public void testPacketsWithFieldsSet() {
+    public void testPacketsWithFieldsSet() throws Exception {
         testPacketSizes(true);
     }
     
@@ -73,7 +72,7 @@ public class SizeTest extends TestCase {
      * fields as determined by a message's constructor or if the test will fill
      * in test values for all relevant fields in the message.
      */
-    private void testPacketSizes(boolean filled) {
+    private void testPacketSizes(boolean filled) throws Exception {
         for (int i = 0; i < classList.length; i++) {
             String className = classList[i].getName();
             className = className.substring(className.lastIndexOf('.'));
@@ -84,19 +83,9 @@ public class SizeTest extends TestCase {
                     initialiseFields(p);
                 }
                 testPacket(className, p);
-            } catch (SMPPException x) {
-                fail(className + " field initialisation caused an SMPP exception:\n"
-                        + x.toString());
-            } catch (InstantiationException x) {
-                fail(className + " is implemented incorrectly. Exception thrown:\n"
-                        + x.toString());
-            } catch (IllegalAccessException x) {
-                fail(className + " constructor is not public.\n" + x.toString());
-            } catch (ExceptionInInitializerError x) {
-                fail(className + " constructor threw an exception.\n" + x.toString());
-            } catch (SecurityException x) {
-                fail("SecurityException instantiating " + className + "\n"
-                        + x.toString());
+            } catch (Exception x) {
+                x.printStackTrace(System.err);
+                fail(className + " failed.");
             }
         }
     }
@@ -109,226 +98,91 @@ public class SizeTest extends TestCase {
      * the value returned from <code>getLength</code> on the deserialized
      * packet.
      */
-    private void testPacket(String n, SMPPPacket original) {
-        try {
-            SMPPPacket deserialized;
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
+    private void testPacket(String n, SMPPPacket original) throws Exception {
+        SMPPPacket deserialized;
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
 
-            original.writeTo(out);
+        original.writeTo(out);
 
-            byte[] array = out.toByteArray();
-            int id = SMPPIO.bytesToInt(array, 4, 4);
-            deserialized = PacketFactory.newInstance(id);
-            if (deserialized == null) {
-                fail(n + " - PacketFactory returned null for Id 0x"
-                        + Integer.toHexString(id));
-                return;
-            }
-            deserialized.readFrom(array, 0);
-
-            assertEquals(n + " serialized length does not match.",
-                    original.getLength(), array.length);
-            assertEquals(n + " deserialized length does not match.",
-                    array.length, deserialized.getLength());
-        } catch (BadCommandIDException x) {
-            fail(n + " serialization caused BadCommandIDException:\n"
-                    + x.toString());
-        } catch (SMPPProtocolException x) {
-            fail(n + " serialization caused SMPPProtocolException:\n"
-                    + x.toString());
-        } catch (IOException x) {
-            fail(n + " serialization caused I/O Exception:\n" + x.toString());
+        byte[] array = out.toByteArray();
+        int id = SMPPIO.bytesToInt(array, 4, 4);
+        deserialized = PacketFactory.newInstance(id);
+        if (deserialized == null) {
+            fail(n + " - PacketFactory returned null for Id 0x"
+                    + Integer.toHexString(id));
             return;
         }
+        deserialized.readFrom(array, 0);
+
+        assertEquals(n + " serialized length does not match.",
+                original.getLength(), array.length);
+        assertEquals(n + " deserialized length does not match.",
+                array.length, deserialized.getLength());
     }
 
     /**
      * Initialise field contents for the filled field test.
      */
-    private void initialiseFields(SMPPPacket p)
-            throws ie.omk.smpp.SMPPException {
-        int id = p.getCommandId();
-
-        switch (id) {
-        case SMPPPacket.ALERT_NOTIFICATION:
-            p.setSequenceNum(34);
-            p.setSource(new Address(0, 0, "445445445"));
-            p.setDestination(new Address(0, 0, "67676767676767"));
-            break;
-
-        case SMPPPacket.BIND_TRANSMITTER:
-        case SMPPPacket.BIND_RECEIVER:
-        case SMPPPacket.BIND_TRANSCEIVER:
-            Bind b = (Bind) p;
-            b.setSequenceNum(1);
-            b.setSystemId("sysId");
-            b.setSystemType("sysType");
-            b.setPassword("passwd");
-            b.setSource(new Address(GSMConstants.GSM_TON_UNKNOWN,
-                    GSMConstants.GSM_NPI_UNKNOWN, "65534[1-3]"));
-            break;
-
-        case SMPPPacket.BIND_TRANSMITTER_RESP:
-        case SMPPPacket.BIND_RECEIVER_RESP:
-        case SMPPPacket.BIND_TRANSCEIVER_RESP:
-            p.setSequenceNum(2);
-            BindResp br = (BindResp) p;
-            br.setSystemId("SMSC-ID");
-            break;
-
-        case SMPPPacket.CANCEL_SM:
-            p.setSequenceNum(3);
-            p.setMessageId("deadbeef");
-            p.setSource(new Address(GSMConstants.GSM_TON_UNKNOWN,
-                    GSMConstants.GSM_NPI_UNKNOWN, "65534111"));
-            p.setDestination(new Address(GSMConstants.GSM_TON_UNKNOWN,
-                    GSMConstants.GSM_NPI_UNKNOWN, "65534222"));
-            break;
-
-        case SMPPPacket.DELIVER_SM:
-        case SMPPPacket.SUBMIT_SM:
-        case SMPPPacket.SUBMIT_MULTI:
-            p.setSequenceNum(5);
-            p.setServiceType("svcTp");
-            p.setSource(new Address(GSMConstants.GSM_TON_UNKNOWN,
-                    GSMConstants.GSM_NPI_UNKNOWN, "65534111"));
-            if (id == SMPPPacket.SUBMIT_MULTI) {
-                SubmitMulti sml = (SubmitMulti) p;
-                sml.addDestination(new Address(GSMConstants.GSM_TON_UNKNOWN,
-                        GSMConstants.GSM_NPI_UNKNOWN, "991293211"));
-                sml.addDestination(new Address(GSMConstants.GSM_TON_UNKNOWN,
-                        GSMConstants.GSM_NPI_UNKNOWN, "991293212"));
-                sml.addDestination(new Address(GSMConstants.GSM_TON_UNKNOWN,
-                        GSMConstants.GSM_NPI_UNKNOWN, "991293213"));
+    private void initialiseFields(SMPPPacket packet) throws ie.omk.smpp.SMPPException {
+        Random random = new Random();
+        List<Object> body = new ArrayList<Object>();
+        BodyDescriptor descriptor = packet.getBodyDescriptor();
+        if (descriptor == null) {
+            return;
+        }
+        for (ParamDescriptor param : descriptor.getBody()) {
+            if (param.getType() == Types.LIST) {
+                List<Object> list = new ArrayList<Object>();
+                for (int i = 0; i < random.nextInt(15) + 5; i++) {
+                    addBodyParams(param.getListType(), list, random);
+                }
+                body.set(param.getLinkIndex(), new Integer(list.size()));
+                body.add(list);
             } else {
-                p.setDestination(new Address(GSMConstants.GSM_TON_UNKNOWN,
-                        GSMConstants.GSM_NPI_UNKNOWN, "65534222"));
+                addBodyParams(param, body, random);
             }
-            //p.setProtocolId();
-            p.setPriority(1);
-            p.setDeliveryTime(new SMPPDate(new Date()));
-            p.setExpiryTime(new SMPPDate(new Date()));
-            p.setRegistered(1);
-            p.setReplaceIfPresent(1);
-            //p.setDataCoding();
-            p.setMessageText("This is a short message");
-            break;
-
-        case SMPPPacket.DATA_SM:
-            p.setSequenceNum(45);
-            p.setServiceType("svcTp");
-            p.setSource(new Address(GSMConstants.GSM_TON_UNKNOWN,
-                    GSMConstants.GSM_NPI_UNKNOWN, "65534111"));
-            p.setDestination(new Address(GSMConstants.GSM_TON_UNKNOWN,
-                    GSMConstants.GSM_NPI_UNKNOWN, "65534222"));
-            p.setRegistered(1);
-            break;
-
-        case SMPPPacket.DATA_SM_RESP:
-            p.setSequenceNum(46);
-            p.setMessageId("deadbeef");
-            break;
-
-        case SMPPPacket.SUBMIT_SM_RESP:
-        case SMPPPacket.SUBMIT_MULTI_RESP:
-            p.setSequenceNum(6);
-            p.setMessageId("deadbeef");
-            if (id == SMPPPacket.SUBMIT_MULTI_RESP) {
-                SubmitMultiResp smr = (SubmitMultiResp) p;
-                smr.add(new ErrorAddress(0, 0, "12345", 65));
-                smr.add(new ErrorAddress(0, 0, "12346", 66));
-                smr.add(new ErrorAddress(0, 0, "12347", 90));
-                smr.add(new ErrorAddress(0, 0, "99999", 999));
+        }
+        // Hack for bind packets - can't have a random version number..
+        if (packet instanceof Bind) {
+            body.set(3, SMPPVersion.V34.getVersionID());
+        }
+        packet.setSequenceNum(189);
+        packet.setMandatoryParameters(body);
+    }
+    
+    private void addBodyParams(ParamDescriptor param, List<Object> body, Random random) {
+        if (param.getType() == Types.ADDRESS) {
+            body.add(new Address(0, 0, "1234567890"));
+        } else if (param.getType() == Types.INTEGER) {
+            body.add(new Integer(random.nextInt(255)));
+        } else if (param.getType() == Types.CSTRING) {
+            body.add(new String("C-String"));
+        } else if (param.getType() == Types.DATE) {
+            Calendar calendar = Calendar.getInstance();
+            SMPPDate date = SMPPDate.getAbsoluteInstance(calendar);
+            body.add(date);
+        } else if (param.getType() == Types.BYTES) {
+            int len = param.getLength();
+            if (len < 0) {
+                len = 10;
             }
-            break;
-
-        case SMPPPacket.PARAM_RETRIEVE:
-            p.setSequenceNum(7);
-            ((ParamRetrieve) p).setParamName("getParam");
-            break;
-
-        case SMPPPacket.PARAM_RETRIEVE_RESP:
-            p.setSequenceNum(8);
-            ((ParamRetrieveResp) p).setParamValue("paramValue - can be long.");
-            break;
-
-        case SMPPPacket.QUERY_LAST_MSGS:
-            p.setSequenceNum(9);
-            p.setSource(new Address(0, 0, "65534111"));
-            ((QueryLastMsgs) p).setMsgCount(45);
-            break;
-
-        case SMPPPacket.QUERY_LAST_MSGS_RESP:
-            p.setSequenceNum(10);
-            QueryLastMsgsResp q = (QueryLastMsgsResp) p;
-            q.addMessageId("deadbeef");
-            q.addMessageId("cafecafe");
-            q.addMessageId("12345678");
-            q.addMessageId("77777777");
-            q.addMessageId("beefdead");
-            break;
-
-        case SMPPPacket.QUERY_MSG_DETAILS:
-            p.setSequenceNum(11);
-            p.setSource(new Address(0, 0, "65534111"));
-            p.setMessageId("deadbeef");
-            ((QueryMsgDetails) p).setSmLength(160);
-            break;
-
-        case SMPPPacket.QUERY_MSG_DETAILS_RESP:
-            p.setSequenceNum(15);
-            QueryMsgDetailsResp q1 = (QueryMsgDetailsResp) p;
-            q1.setServiceType("svcTp");
-            q1.setSource(new Address(GSMConstants.GSM_TON_UNKNOWN,
-                    GSMConstants.GSM_NPI_UNKNOWN, "65534111"));
-            q1.addDestination(new Address(GSMConstants.GSM_TON_UNKNOWN,
-                    GSMConstants.GSM_NPI_UNKNOWN, "991293211"));
-            q1.addDestination(new Address(GSMConstants.GSM_TON_UNKNOWN,
-                    GSMConstants.GSM_NPI_UNKNOWN, "991293212"));
-            q1.addDestination(new Address(GSMConstants.GSM_TON_UNKNOWN,
-                    GSMConstants.GSM_NPI_UNKNOWN, "991293213"));
-            q1.setPriority(1);
-            q1.setDeliveryTime(new SMPPDate());
-            q1.setExpiryTime(new SMPPDate());
-            q1.setRegistered(1);
-            q1.setReplaceIfPresent(1);
-            q1.setMessageText("This is a short message");
-            q1.setMessageId("deadbeef");
-            q1.setFinalDate(new SMPPDate());
-            q1.setMessageStatus(1);
-            q1.setErrorCode(2);
-            break;
-
-        case SMPPPacket.QUERY_SM:
-            p.setSequenceNum(17);
-            p.setMessageId("deadbeef");
-            p.setSource(new Address(GSMConstants.GSM_TON_UNKNOWN,
-                    GSMConstants.GSM_NPI_UNKNOWN, "65534111"));
-            break;
-
-        case SMPPPacket.QUERY_SM_RESP:
-            p.setSequenceNum(20);
-            p.setMessageId("deadbeef");
-            p.setFinalDate(new SMPPDate());
-            p.setMessageStatus(1);
-            p.setErrorCode(4);
-            break;
-
-        case SMPPPacket.REPLACE_SM:
-            p.setSequenceNum(22);
-            p.setMessageId("deadbeef");
-            p.setServiceType("svcTp");
-            p.setSource(new Address(GSMConstants.GSM_TON_UNKNOWN,
-                    GSMConstants.GSM_NPI_UNKNOWN, "65534111"));
-            p.setDeliveryTime(new SMPPDate());
-            p.setExpiryTime(new SMPPDate());
-            p.setRegistered(1);
-            p.setMessageText("This is a short message");
-            break;
-
-        default:
-            p.setSequenceNum(4);
-            break;
+            byte[] data = new byte[len];
+            random.nextBytes(data);
+            body.set(param.getLinkIndex(), new Integer(len));
+            body.add(data);
+        } else if (param.getType() == Types.DEST_TABLE) {
+            DestinationTable table = new DestinationTable();
+            table.add(new Address(0, 0, "111111111"));
+            table.add("distList1");
+            table.add(new Address(0, 0, "222222222"));
+            table.add(new Address(0, 0, "333333333"));
+            table.add("distList2");
+            table.add(new Address(0, 0, "444444444"));
+            table.add("distList3");
+            table.add("distList4");
+            table.add("distList5");
+            body.set(param.getLinkIndex(), new Integer(table.size()));
+            body.add(table);
         }
     }
 }

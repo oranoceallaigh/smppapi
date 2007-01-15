@@ -19,11 +19,11 @@ public class BindTransmitterResp extends ie.omk.smpp.message.BindResp {
      * This constructor will set the sequence number to that of the packet it is
      * in response to.
      * 
-     * @param r
+     * @param request
      *            The Request packet the response is to
      */
-    public BindTransmitterResp(BindTransmitter r) {
-        super(r);
+    public BindTransmitterResp(SMPPPacket request) {
+        super(request);
     }
 
     /**

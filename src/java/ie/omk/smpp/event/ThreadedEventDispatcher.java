@@ -5,13 +5,8 @@ import ie.omk.smpp.message.SMPPPacket;
 import ie.omk.smpp.util.APIConfig;
 import ie.omk.smpp.util.PropertyNotFoundException;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * An event dispatcher that does not block the receiver daemon thread.
@@ -25,12 +20,11 @@ import org.apache.commons.logging.LogFactory;
  * observers. The receiver daemon is then free to continue adding new events to
  * the event queue, which will be processed by a thread in the thread pool.
  * 
- * @author Oran Kelly
  * @version $Id$
  */
-public class ThreadedEventDispatcher implements EventDispatcher, Runnable {
+public class ThreadedEventDispatcher extends AbstractEventDispatcher implements Runnable {
 
-    private static final Log LOGGER = LogFactory.getLog(ThreadedEventDispatcher.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ThreadedEventDispatcher.class);
 
     /**
      * Runner flag. If set to false, all dispatcher threads will exit on next
@@ -57,11 +51,6 @@ public class ThreadedEventDispatcher implements EventDispatcher, Runnable {
      * Number of threads currently blocked on the queue.
      */
     private int threadsWaiting;
-
-    /**
-     * List of observers registered for event delivery.
-     */
-    private List observers = new ArrayList();
 
     /**
      * Create a new threaded event dispatcher object.
@@ -110,13 +99,13 @@ public class ThreadedEventDispatcher implements EventDispatcher, Runnable {
      * method?
      */
     public void destroy() {
-        LOGGER.debug("Shutting down dispatch threads.");
+        LOG.debug("Shutting down dispatch threads.");
 
         // This could happen if an application attempts to set a new event
         // dispatcher during event processing. There are probably many other
         // ways this call-back could happen but it shouldn't!
         if (Thread.currentThread().getThreadGroup() == threadPool) {
-            LOGGER.error("Cannot shut down the thread pool with one of it's own threads.");
+            LOG.error("Cannot shut down the thread pool with one of it's own threads.");
             throw new RuntimeException();
         }
 
@@ -125,7 +114,7 @@ public class ThreadedEventDispatcher implements EventDispatcher, Runnable {
             queue.notifyAll();
         }
 
-        LOGGER.info("Waiting for threads in pool to die.");
+        LOG.info("Waiting for threads in pool to die.");
         final int waitTime = 50;
         // Allow a full second of waiting!
         final int times = 1000 / waitTime;
@@ -139,7 +128,7 @@ public class ThreadedEventDispatcher implements EventDispatcher, Runnable {
                 if (pool[0] == null) {
                     break;
                 } else {
-                    LOGGER.debug("There's still some threads running. Doing another loop..");
+                    LOG.debug("There's still some threads running. Doing another loop..");
                 }
 
                 // Break out if it looks like we're stuck in an infinite loop
@@ -158,50 +147,22 @@ public class ThreadedEventDispatcher implements EventDispatcher, Runnable {
             }
         }
         if (threadPool.activeCount() > 0) {
-            LOGGER.error(threadPool.activeCount()
-                    + " dispatcher threads refused to die.");
-            if (LOGGER.isDebugEnabled()) {
+            LOG.error("{} dispatcher threads refused to die.",
+                    threadPool.activeCount());
+            if (LOG.isDebugEnabled()) {
                 Thread[] threads = new Thread[threadPool.activeCount()];
                 threadPool.enumerate(threads, false);
                 for (int i = 0; i < pool.length; i++) {
-                    LOGGER.debug(pool[i].getName());
+                    LOG.debug(pool[i].getName());
                }
             }
-        }
-    }
-
-    public void addObserver(ConnectionObserver observer) {
-        synchronized (observers) {
-            if (!observers.contains(observer)) {
-                observers.add(observer);
-            }
-        }
-    }
-
-    public void removeObserver(ConnectionObserver observer) {
-        synchronized (observers) {
-            observers.remove(observer);
-        }
-    }
-
-    public Iterator observerIterator() {
-        return Collections.unmodifiableList(observers).iterator();
-    }
-
-    public boolean contains(ConnectionObserver observer) {
-        synchronized (observers) {
-            return observers.contains(observer);
         }
     }
 
     // notifyObservers is always single-threaded access as there's only 1
     // receiver thread!
     public void notifyObservers(Connection conn, SMPPEvent e) {
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Notifying observers of a new SMPP event "
-                    + e.getType());
-        }
-
+        LOG.debug("Notifying observers of a new SMPP event {}", e.getType());
         queue.put(conn, e);
         if (threadsWaiting > 0) {
             synchronized (queue) {
@@ -211,10 +172,10 @@ public class ThreadedEventDispatcher implements EventDispatcher, Runnable {
     }
 
     public void notifyObservers(Connection conn, SMPPPacket pak) {
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Notifying observers of a new SMPP packet ("
-                    + Integer.toHexString(pak.getCommandId()) + ","
-                    + Integer.toString(pak.getSequenceNum()) + ")");
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Notifying observers of a new SMPP packet ({}, {})",
+                    Integer.toHexString(pak.getCommandId()),
+                    Integer.toString(pak.getSequenceNum()));
         }
         queue.put(conn, pak);
         if (threadsWaiting > 0) {
@@ -226,13 +187,8 @@ public class ThreadedEventDispatcher implements EventDispatcher, Runnable {
 
     public void run() {
         NotificationDetails nd;
-        ConnectionObserver observer;
-
         try {
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Thread start: " + Thread.currentThread().getName());
-            }
-
+            LOG.debug("Thread start: {}", Thread.currentThread().getName());
             while (running) {
                 nd = null;
                 try {
@@ -252,23 +208,19 @@ public class ThreadedEventDispatcher implements EventDispatcher, Runnable {
                 if (nd == null) {
                     continue;
                 }
-
-                for (int i = observers.size() - 1; i >= 0; i--) {
-                    observer = (ConnectionObserver) observers.get(i);
+                ConnectionObserver[] observers = getObserverList();
+                for (ConnectionObserver observer : observers) {
                     if (nd.hasEvent()) {
-                        observer.packetReceived(
-                                nd.getConnection(), nd.getPacket());
+                        observer.packetReceived(nd.getConnection(), nd.getPacket());
                     } else {
-                        observer.update(
-                                nd.getConnection(), nd.getEvent());
+                        observer.update(nd.getConnection(), nd.getEvent());
                     }
                 }
             } // end while
 
-            LOGGER.debug("Thread exit: " + Thread.currentThread().getName());
+            LOG.debug("Thread exit: {}", Thread.currentThread().getName());
         } catch (Exception x) {
-            LOGGER.warn("Exception in dispatcher thread", x);
+            LOG.warn("Exception in dispatcher thread", x);
         }
     }
 }
-

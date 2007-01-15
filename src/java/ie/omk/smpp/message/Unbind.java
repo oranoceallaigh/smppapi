@@ -8,31 +8,12 @@ package ie.omk.smpp.message;
  * @author Oran Kelly
  * @version 1.0
  */
-public class Unbind extends ie.omk.smpp.message.SMPPRequest {
+public class Unbind extends SMPPPacket {
     /**
      * Construct a new Unbind.
      */
     public Unbind() {
         super(UNBIND);
-    }
-
-    /**
-     * Construct a new Unbind with specified sequence number.
-     * 
-     * @param seqNum
-     *            The sequence number to use
-     * @deprecated
-     */
-    public Unbind(int seqNum) {
-        super(UNBIND, seqNum);
-    }
-
-    public int getBodyLength() {
-        return 0;
-    }
-
-    public void readBodyFrom(byte[] b, int offset) throws SMPPProtocolException {
-        return;
     }
 
     /**
@@ -43,4 +24,3 @@ public class Unbind extends ie.omk.smpp.message.SMPPRequest {
         return new String("unbind");
     }
 }
-

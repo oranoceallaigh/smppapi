@@ -9,18 +9,6 @@ import junit.framework.TestCase;
  */
 public class SimpleEventDispatcherTest extends TestCase {
 
-    public void testGrowArray() {
-        SimpleEventDispatcher dispatcher = new SimpleEventDispatcher();
-        assertEquals(SimpleEventDispatcher.INCREMENT, dispatcher.capacity());
-        assertEquals(0, dispatcher.size());
-        for (int i = 0; i < SimpleEventDispatcher.INCREMENT + 1; i++) {
-            dispatcher.addObserver(new TestConnectionObserver());
-        }
-        assertEquals(
-                SimpleEventDispatcher.INCREMENT * 2, dispatcher.capacity());
-        assertEquals(SimpleEventDispatcher.INCREMENT + 1, dispatcher.size());
-    }
-
     public void testAddObserver() {
         SimpleEventDispatcher dispatcher = new SimpleEventDispatcher();
         TestConnectionObserver observer = new TestConnectionObserver();

@@ -3,6 +3,7 @@ package ie.omk.smpp.event;
 import ie.omk.smpp.Connection;
 import ie.omk.smpp.message.SMPPPacket;
 
+import java.util.Collection;
 import java.util.Iterator;
 
 /**
@@ -58,11 +59,20 @@ public interface EventDispatcher {
     void removeObserver(ConnectionObserver observer);
 
     /**
+     * Get a read-only collection view of all the observers registered with
+     * this event dispatcher. This is useful for copying all of the observers
+     * registered on one EventDispatcher into another.
+     * @return A read-only collection of all the observers registered with
+     * this dispatcher.
+     */
+    Collection<ConnectionObserver> getObservers();
+    
+    /**
      * Get an iterator over the currently registered observers.
      * 
      * @return an iterator object which iterates over all registered observers.
      */
-    Iterator observerIterator();
+    Iterator<ConnectionObserver> observerIterator();
 
     /**
      * Notify all registered observers of an SMPP event.

@@ -1,11 +1,8 @@
 package ie.omk.smpp.message;
 
-import ie.omk.smpp.util.SMPPIO;
-
-import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Vector;
 
 /**
  * SMSC response to a QueryLastMsgs request.
@@ -13,10 +10,17 @@ import java.util.Vector;
  * @author Oran Kelly
  * @version 1.0
  */
-public class QueryLastMsgsResp extends ie.omk.smpp.message.SMPPResponse {
+public class QueryLastMsgsResp extends SMPPPacket {
+    private static final BodyDescriptor BODY_DESCRIPTOR = new BodyDescriptor();
+    
     /** The table of messages returned */
-    private List messageTable = new Vector();
+    private List<String> messageTable = new ArrayList<String>();
 
+    static {
+        BODY_DESCRIPTOR.add(ParamDescriptor.INTEGER1)
+        .add(ParamDescriptor.getListInstance(ParamDescriptor.CSTRING, 0));
+    }
+    
     /**
      * Construct a new QueryLastMsgsResp.
      */
@@ -25,25 +29,14 @@ public class QueryLastMsgsResp extends ie.omk.smpp.message.SMPPResponse {
     }
 
     /**
-     * Construct a new QueryLastMsgsResp with specified sequence number.
-     * 
-     * @param seqNum
-     *            The sequence number to use
-     * @deprecated
-     */
-    public QueryLastMsgsResp(int seqNum) {
-        super(QUERY_LAST_MSGS_RESP, seqNum);
-    }
-
-    /**
      * Create a new QueryLastMsgsResp packet in response to a BindReceiver. This
      * constructor will set the sequence number to it's expected value.
      * 
-     * @param r
+     * @param request
      *            The Request packet the response is to
      */
-    public QueryLastMsgsResp(QueryLastMsgs r) {
-        super(r);
+    public QueryLastMsgsResp(SMPPPacket request) {
+        super(request);
     }
 
     /**
@@ -59,11 +52,8 @@ public class QueryLastMsgsResp extends ie.omk.smpp.message.SMPPResponse {
         if (!version.validateMessageId(id)) {
             throw new InvalidParameterValueException("Invalid message ID", id);
         }
-
-        synchronized (messageTable) {
-            messageTable.add(id);
-            return messageTable.size();
-        }
+        messageTable.add(id);
+        return messageTable.size();
     }
 
     /** Get the number of message Ids. */
@@ -95,50 +85,6 @@ public class QueryLastMsgsResp extends ie.omk.smpp.message.SMPPResponse {
         return ids;
     }
 
-    public int getBodyLength() {
-        // 1 1-byte integer!
-        int size = 1;
-        synchronized (messageTable) {
-            Iterator i = messageTable.iterator();
-            while (i.hasNext()) {
-                size += ((String) i.next()).length() + 1;
-            }
-        }
-
-        return size;
-    }
-
-    /**
-     * Write a byte representation of this packet to an OutputStream
-     * 
-     * @param out
-     *            The OutputStream to write to
-     * @throws java.io.IOException
-     *             if there's an error writing to the output stream.
-     */
-    protected void encodeBody(OutputStream out) throws java.io.IOException {
-        synchronized (messageTable) {
-            int size = messageTable.size();
-            SMPPIO.writeInt(size, 1, out);
-            Iterator i = messageTable.iterator();
-            while (i.hasNext()) {
-                SMPPIO.writeCString((String) i.next(), out);
-            }
-        }
-    }
-
-    public void readBodyFrom(byte[] body, int offset)
-            throws SMPPProtocolException {
-        int msgCount = 0;
-        msgCount = SMPPIO.bytesToInt(body, offset++, 1);
-
-        for (int loop = 0; loop < msgCount; loop++) {
-            String s = SMPPIO.readCString(body, offset);
-            offset += s.length() + 1;
-            messageTable.add(s);
-        }
-    }
-
     /**
      * Convert this packet to a String. Not to be interpreted programmatically,
      * it's just dead handy for debugging!
@@ -146,5 +92,27 @@ public class QueryLastMsgsResp extends ie.omk.smpp.message.SMPPResponse {
     public String toString() {
         return new String("query_last_msgs_resp");
     }
-}
 
+    @Override
+    protected BodyDescriptor getBodyDescriptor() {
+        return BODY_DESCRIPTOR;
+    }
+    
+    @Override
+    protected Object[] getMandatoryParameters() {
+        return new Object[] {
+                Integer.valueOf(messageTable.size()),
+                messageTable,
+        };
+    }
+    
+    @Override
+    protected void setMandatoryParameters(List<Object> params) {
+        // Copy the message ID list into a type safe collection.
+        List list = (List) params.get(1);
+        messageTable = new ArrayList<String>(list.size());
+        for (Iterator iter = list.iterator(); iter.hasNext();) {
+            messageTable.add((String) iter.next());
+        }
+    }
+}
