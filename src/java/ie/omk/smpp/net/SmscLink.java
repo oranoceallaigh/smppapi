@@ -304,7 +304,7 @@ public abstract class SmscLink {
         synchronized (readLock) {
             try {
                 count = readBytes(buf, 0, 4, 16);
-                int cmdLen = SMPPIO.bytesToInt(buf, 0, 4);
+                int cmdLen = SMPPIO.bytesToInt(buf, 0);
                 if (cmdLen > buf.length) {
                     byte[] newbuf = new byte[cmdLen];
                     System.arraycopy(buf, 0, newbuf, 0, count);
