@@ -1,6 +1,7 @@
 package ie.omk.smpp.event;
 
 import ie.omk.smpp.Connection;
+import ie.omk.smpp.SMPPRuntimeException;
 import ie.omk.smpp.message.BindResp;
 import ie.omk.smpp.message.CancelSMResp;
 import ie.omk.smpp.message.DeliverSM;
@@ -8,12 +9,19 @@ import ie.omk.smpp.message.EnquireLink;
 import ie.omk.smpp.message.EnquireLinkResp;
 import ie.omk.smpp.message.GenericNack;
 import ie.omk.smpp.message.ParamRetrieveResp;
+import ie.omk.smpp.message.QueryLastMsgsResp;
+import ie.omk.smpp.message.QueryMsgDetailsResp;
+import ie.omk.smpp.message.QuerySMResp;
 import ie.omk.smpp.message.ReplaceSMResp;
 import ie.omk.smpp.message.SMPPPacket;
 import ie.omk.smpp.message.SubmitMultiResp;
 import ie.omk.smpp.message.SubmitSMResp;
 import ie.omk.smpp.message.Unbind;
 import ie.omk.smpp.message.UnbindResp;
+
+import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +35,13 @@ import org.slf4j.LoggerFactory;
  * @version $Id$
  */
 public abstract class SMPPEventAdapter implements ConnectionObserver {
+    private static final Map<Class<? extends SMPPPacket>, Method> HANDLERS =
+        new HashMap<Class<? extends SMPPPacket>, Method>();
+
+    static {
+        initHandlers();
+    }
+    
     /**
      * Default constructor.
      */
@@ -63,67 +78,19 @@ public abstract class SMPPEventAdapter implements ConnectionObserver {
     }
 
     public final void packetReceived(Connection source, SMPPPacket pak) {
-        // Keep high-incidence packet types at the top of this switch.
-        switch (pak.getCommandId()) {
-        case SMPPPacket.DELIVER_SM:
-            deliverSM(source, (DeliverSM) pak);
-            break;
-
-        case SMPPPacket.SUBMIT_SM_RESP:
-            submitSMResponse(source, (SubmitSMResp) pak);
-            break;
-
-        case SMPPPacket.SUBMIT_MULTI_RESP:
-            submitMultiResponse(source, (SubmitMultiResp) pak);
-            break;
-
-        case SMPPPacket.CANCEL_SM_RESP:
-            cancelSMResponse(source, (CancelSMResp) pak);
-            break;
-
-        case SMPPPacket.REPLACE_SM_RESP:
-            replaceSMResponse(source, (ReplaceSMResp) pak);
-            break;
-
-        case SMPPPacket.PARAM_RETRIEVE_RESP:
-            paramRetrieveResponse(source, (ParamRetrieveResp) pak);
-            break;
-
-        case SMPPPacket.QUERY_SM_RESP:
-        case SMPPPacket.QUERY_LAST_MSGS_RESP:
-        case SMPPPacket.QUERY_MSG_DETAILS_RESP:
-            queryResponse(source, pak);
-            break;
-
-        case SMPPPacket.ENQUIRE_LINK:
-            queryLink(source, (EnquireLink) pak);
-            break;
-
-        case SMPPPacket.ENQUIRE_LINK_RESP:
-            queryLinkResponse(source, (EnquireLinkResp) pak);
-            break;
-
-        case SMPPPacket.UNBIND:
-            unbind(source, (Unbind) pak);
-            break;
-
-        case SMPPPacket.UNBIND_RESP:
-            unbindResponse(source, (UnbindResp) pak);
-            break;
-
-        case SMPPPacket.BIND_TRANSMITTER_RESP:
-        case SMPPPacket.BIND_TRANSCEIVER_RESP:
-        case SMPPPacket.BIND_RECEIVER_RESP:
-            bindResponse(source, (BindResp) pak);
-            break;
-
-        case SMPPPacket.GENERIC_NACK:
-            genericNack(source, (GenericNack) pak);
-            break;
-
-        default:
-            unidentified(source, pak);
-            break;
+        try {
+            Method handler = HANDLERS.get(pak.getClass());
+            if (handler != null) {
+                Object[] args = new Object[] {
+                        source,
+                        pak,
+                };
+                handler.invoke(this, args);
+            } else {
+                unidentified(source, pak);
+            }
+        } catch (Exception e) {
+            throw new SMPPRuntimeException("Exception calling handler", e);
         }
     }
 
@@ -281,5 +248,47 @@ public abstract class SMPPEventAdapter implements ConnectionObserver {
      * An unidentified packet has been received from the SMSC.
      */
     public void unidentified(Connection source, SMPPPacket pak) {
+    }
+    
+    private static void initHandlers() {
+        try {
+            addHandler(DeliverSM.class, "deliverSM");
+            addHandler(SubmitSMResp.class, "submitSMResponse");
+            addHandler(SubmitMultiResp.class, "submitMultiResponse");
+            addHandler(CancelSMResp.class, "cancelSMResponse");
+            addHandler(ReplaceSMResp.class, "replaceSMResponse");
+            addHandler(ParamRetrieveResp.class, "paramRetrieveResponse");
+            addHandler(QuerySMResp.class, SMPPPacket.class, "queryResponse");
+            addHandler(QueryLastMsgsResp.class, SMPPPacket.class, "queryResponse");
+            addHandler(QueryMsgDetailsResp.class, SMPPPacket.class, "queryResponse");
+            addHandler(EnquireLink.class, "queryLink");
+            addHandler(EnquireLinkResp.class, "queryLinkResponse");
+            addHandler(Unbind.class, "unbind");
+            addHandler(UnbindResp.class, "unbindResponse");
+            addHandler(BindResp.class, "bindResponse");
+            addHandler(GenericNack.class, "genericNack");
+        } catch (NoSuchMethodException x) {
+            throw new RuntimeException("Illegal handler mapping", x);
+        }
+    }
+
+    private static void addHandler(
+            Class<? extends SMPPPacket> clazz,
+            String methodName) throws NoSuchMethodException {
+        HANDLERS.put(clazz, getMethod(methodName, clazz));
+    }
+    
+    private static void addHandler(Class<? extends SMPPPacket> clazz,
+            Class<? extends SMPPPacket> argClass,
+            String methodName) throws NoSuchMethodException {
+        HANDLERS.put(clazz, getMethod(methodName, argClass));
+    }
+    
+    private static Method getMethod(String name, Class argClass) throws NoSuchMethodException {
+        Class[] args = new Class[] {
+                Connection.class,
+                argClass,
+        };
+        return SMPPEventAdapter.class.getMethod(name, args);
     }
 }
