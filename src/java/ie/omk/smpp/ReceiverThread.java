@@ -89,7 +89,7 @@ class ReceiverThread extends Thread {
     }
     
     private SMPPPacket decodePacket(byte[] array) {
-        int commandId = SMPPIO.bytesToInt(array, 4, 4);
+        int commandId = SMPPIO.bytesToInt(array, 4);
         SMPPPacket packet = PacketFactory.newInstance(commandId);
         if (packet != null) {
             packet.readFrom(array, 0);

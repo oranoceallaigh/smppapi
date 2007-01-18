@@ -134,8 +134,8 @@ public class Address implements java.io.Serializable {
      *             If an I/O error occurs while writing to the output stream.
      */
     public void writeTo(OutputStream out) throws java.io.IOException {
-        SMPPIO.writeInt(ton, 1, out);
-        SMPPIO.writeInt(npi, 1, out);
+        SMPPIO.writeByte(ton, out);
+        SMPPIO.writeByte(npi, out);
         SMPPIO.writeCString(address, out);
     }
 
@@ -151,8 +151,8 @@ public class Address implements java.io.Serializable {
      *             address.
      */
     public void readFrom(byte[] addr, int offset) {
-        ton = SMPPIO.bytesToInt(addr, offset++, 1);
-        npi = SMPPIO.bytesToInt(addr, offset++, 1);
+        ton = SMPPIO.bytesToByte(addr, offset++);
+        npi = SMPPIO.bytesToByte(addr, offset++);
         address = SMPPIO.readCString(addr, offset);
     }
 
