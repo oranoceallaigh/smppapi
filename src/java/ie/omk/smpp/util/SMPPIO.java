@@ -1,7 +1,6 @@
 package ie.omk.smpp.util;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 
@@ -17,67 +16,6 @@ public final class SMPPIO {
     private SMPPIO() {
     }
     
-    /**
-     * Read an Integer from an InputStream. The integer read from the stream is
-     * assumed to be in network byte order (ie Big Endian).
-     * 
-     * @param in
-     *            The InputStream to read from
-     * @param len
-     *            The number of bytes to form the integer from (usually either 1
-     *            or 4, limited to 1 &lt;= len &lt;= 8)
-     * @return An integer representation of the len bytes read from in.
-     * @throws java.io.IOException
-     *             If EOS is reached before <code>len</code> bytes are read.
-     * @see java.io.InputStream
-     */
-    public static int readInt(InputStream in, int len)
-            throws java.io.IOException {
-        byte[] b = new byte[len];
-        int p = 0;
-        for (int loop = 0; loop < (len - p); loop++) {
-            int r = in.read(b, p, len - p);
-            if (r == -1) {
-                break;
-            }
-
-            p += r;
-        }
-
-        return bytesToInt(b, 0, len);
-    }
-
-    /**
-     * Read in a NUL-terminated string from an InputStream
-     * 
-     * @param in
-     *            The InputStream to read from
-     * @return A String representation with the NUL byte removed.
-     * @throws java.io.IOException
-     *             If EOS is reached before a NUL byte
-     * @see java.io.InputStream
-     */
-    public static String readCString(InputStream in)
-            throws java.io.IOException {
-        StringBuffer s = new StringBuffer();
-
-        int b = in.read();
-        while (b != 0) {
-            if (b == -1) {
-                throw new IOException("End of Input Stream before NULL byte");
-            }
-
-            s.append((char) b);
-            b = in.read();
-        }
-
-        if (s.length() == 0) {
-            return null;
-        } else {
-            return s.toString();
-        }
-    }
-
     /**
      * Read a nul-terminated ASCII string from a byte array.
      * 
@@ -104,45 +42,6 @@ public final class SMPPIO {
     }
 
     /**
-     * Read in a string of specified length from an InputStream. The String may
-     * contain NUL bytes.
-     * 
-     * @param in
-     *            The InputStream to read from
-     * @param len
-     *            The number of bytes to read in from the InputStream
-     * @return A String of length <code>len</code>. null if <code>len</code>
-     *         is less than 1.
-     * @throws java.io.IOException
-     *             If EOS is reached before a NUL byte
-     * @see java.io.InputStream
-     */
-    public static String readString(InputStream in, int len)
-            throws java.io.IOException {
-        String s = null;
-        if (len >= 1) {
-            byte[] b = new byte[len];
-            int l = 0;
-            StringBuffer buf = new StringBuffer();
-    
-            while (l < len) {
-                int r = in.read(b, 0, len - l);
-                if (r == -1) {
-                    throw new IOException("EOS before NUL byte read.");
-                }
-    
-                l += r;
-                buf.append(new String(b, 0, r, US_ASCII));
-            }
-
-            if (buf.length() > 0) {
-                s = buf.toString();
-            }
-        }
-        return s;
-    }
-
-    /**
      * Read an ASCII string from a byte array.
      * @param b The byte array to read from.
      * @param offset The offset into <code>b</code> to begin reading from.
@@ -163,175 +62,156 @@ public final class SMPPIO {
     }
 
     /**
-     * Convert an integer to a byte array in MSB first order
-     * 
-     * @param num
-     *            The number to store
-     * @param len
-     *            The length of the integer to convert
-     * @return An array of length len containing the byte representation of num.
+     * Decode a 1-byte integer from a byte array.
+     * @param b The byte array to read the integer from.
+     * @param offset The offset at which the (most significant) first byte of
+     * the short resides.
+     * @return The decoded integer value.
+     * @throws ArrayIndexOutOfBoundsException If there are not enough bytes in
+     * the array.
      */
-    public static byte[] intToBytes(int num, int len) {
-        return intToBytes(num, len, null, 0);
+    public static int bytesToByte(byte[] b, int offset) {
+        return (int) b[offset] & 0xff;
+    }
+    
+    /**
+     * Decode a 2-byte integer from a byte array.
+     * @param b The byte array to read the integer from.
+     * @param offset The offset at which the (most significant) first byte of
+     * the short resides.
+     * @return The decoded integer value.
+     * @throws ArrayIndexOutOfBoundsException If there are not enough bytes in
+     * the array.
+     */
+    public static int bytesToShort(byte[] b, int offset) {
+        int value = (int) b[offset + 1] & 0xff;
+        value |= ((int) b[offset] & 0xff) << 8;
+        return value;
+    }
+    
+    /**
+     * Decode a 4-byte integer from a byte array.
+     * @param b The byte array to read the integer from.
+     * @param offset The offset at which the (most significant) first byte of
+     * the int resides.
+     * @return The decoded integer value.
+     * @throws ArrayIndexOutOfBoundsException If there are not enough bytes in
+     * the array.
+     */
+    public static int bytesToInt(byte[] b, int offset) {
+        int value = (int) b[offset + 3] & 0xff;
+        value |= ((int) b[offset] & 0xff) << 24;
+        value |= ((int) b[offset + 1] & 0xff) << 16;
+        value |= ((int) b[offset + 2] & 0xff) << 8;
+        return value;
     }
 
     /**
-     * Convert an integer to a byte array in MSB first order. This method exists
-     * as well as the <code>longToBytes</code> method for performance reasons.
-     * More often than not, a 4-byte value is the largest being
-     * converted...doing that using <code>ints</code> instead of
-     * <code>longs</code> will offer a slight performance increase. The code
-     * for the two methods is identical except for using ints instead of longs
-     * to hold mask, shiftwidth and number values.
-     * 
-     * @param num
-     *            The number to store
-     * @param len
-     *            The length of the integer to convert (that is, the number of
-     *            bytes to generate).
-     * @param array
-     *            the byte array to write the integer to.
-     * @param offset
-     *            the offset in <code>b</code> to write the integer to.
-     * @return An array of length len containing the byte representation of num.
+     * Decode a 4-byte integer from a byte array, returning a long. This
+     * method is provided as SMPP bytes are unsigned, so we need a
+     * <code>long</code> to contain them in Java.
+     * @param b The byte array to read the integer from.
+     * @param offset The offset at which the (most significant) first byte of
+     * the int resides.
+     * @return The decoded integer value.
+     * @throws ArrayIndexOutOfBoundsException If there are not enough bytes in
+     * the array.
      */
-    public static byte[] intToBytes(int num, int len, byte[] array, int offset) {
-
-        byte[] b = array;
-        if (array == null) {
-            b = new byte[len];
-            offset = 0;
-        }
-        int sw = (len - 1) * 8;
-        int mask = 0xff << sw;
-
-        for (int l = 0; l < len; l++) {
-            b[offset + l] = (byte) ((num & mask) >>> sw);
-
-            sw -= 8;
-            mask >>>= 8;
-        }
-
-        return b;
+    public static long bytesToLongInt(byte[] b, int offset) {
+        long value = (long) b[offset + 3] & 0xff;
+        value |= ((long) b[offset] & 0xff) << 24;
+        value |= ((long) b[offset + 1] & 0xff) << 16;
+        value |= ((long) b[offset + 2] & 0xff) << 8;
+        return value;
     }
 
     /**
-     * Convert a long to a byte array in MSB first order.
-     * 
-     * @param num
-     *            The number to store
-     * @param len
-     *            The length of the integer to convert (that is, the number of
-     *            bytes to generate).
-     * @return An array of length len containing the byte representation of num.
+     * Decode an 8-byte integer from a byte array.
+     * @param b The byte array to read the integer from.
+     * @param offset The offset at which the (most significant) first byte of
+     * the int resides.
+     * @return The decoded long integer value.
+     * @throws ArrayIndexOutOfBoundsException If there are not enough bytes in
+     * the array.
      */
-    public static byte[] longToBytes(long num, int len) {
-        return longToBytes(num, len, null, 0);
+    public static long bytesToLong(byte[] b, int offset) {
+        long value = (long) b[offset + 7] & 0xff;
+        value |= ((long) b[offset] & 0xff) << 56;
+        value |= ((long) b[offset + 1] & 0xff) << 48;
+        value |= ((long) b[offset + 2] & 0xff) << 40;
+        value |= ((long) b[offset + 3] & 0xff) << 32;
+        value |= ((long) b[offset + 4] & 0xff) << 24;
+        value |= ((long) b[offset + 5] & 0xff) << 16;
+        value |= ((long) b[offset + 6] & 0xff) << 8;
+        return value;
     }
 
     /**
-     * Convert a long to a byte array in MSB first order.
-     * 
-     * @param num
-     *            The number to store
-     * @param len
-     *            The length of the integer to convert (that is, the number of
-     *            bytes to generate).
-     * @param b
-     *            the byte array to write the integer to.
-     * @param offset
-     *            the offset in <code>b</code> to write the integer to.
-     * @return An array of length len containing the byte representation of num.
+     * Write a byte value to the output stream;
+     * @param b The value to write.
+     * @param out The output stream to write to.
+     * @throws IOException If an error occurs writing to the stream.
      */
-    public static byte[] longToBytes(long num, int len, byte[] b,
-            int offset) {
-
-        if (b == null) {
-            b = new byte[len];
-            offset = 0;
-        }
-        long sw = (len - 1) * 8;
-        long mask = 0xffL << sw;
-
-        for (int l = 0; l < len; l++) {
-            b[offset + l] = (byte) ((num & mask) >>> sw);
-
-            sw -= 8;
-            mask >>>= 8;
-        }
-
-        return b;
+    public static void writeByte(int b, OutputStream out) throws IOException {
+        out.write(b);
+    }
+    
+    /**
+     * Write a 2-byte integer value to the output stream.
+     * @param value The value to write.
+     * @param out The output stream to write to.
+     * @throws IOException If an error occurs writing to the stream.
+     */
+    public static void writeShort(int value, OutputStream out) throws IOException {
+        out.write(value >>> 8);
+        out.write(value & 0xff);
     }
 
     /**
-     * Convert a byte array (or part thereof) into an integer. The byte array
-     * should be in big-endian form. That is, the byte at index 'offset' should
-     * be the MSB.
-     * 
-     * @param b
-     *            The array containing the bytes
-     * @param offset
-     *            The array index of the MSB
-     * @param size
-     *            The number of bytes to convert into the integer
-     * @return An integer value represented by the specified bytes.
+     * Write a 4-byte integer value to the output stream.
+     * @param value The value to write.
+     * @param out The output stream to write to.
+     * @throws IOException If an error occurs writing to the stream.
      */
-    public static int bytesToInt(byte[] b, int offset, int size) {
-        int num = 0;
-        int sw = 8 * (size - 1);
-
-        for (int loop = 0; loop < size; loop++) {
-            num |= ((int) b[offset + loop] & 0x00ff) << sw;
-            sw -= 8;
-        }
-
-        return num;
+    public static void writeInt(int value, OutputStream out) throws IOException {
+        out.write(value >>> 24);
+        out.write(value >>> 16);
+        out.write(value >>> 8);
+        out.write(value & 0xff);
     }
 
     /**
-     * Convert a byte array (or part thereof) into a long. The byte array should
-     * be in big-endian form. That is, the byte at index 'offset' should be the
-     * MSB.
-     * 
-     * @param b
-     *            The array containing the bytes
-     * @param offset
-     *            The array index of the MSB
-     * @param size
-     *            The number of bytes to convert into the long
-     * @return An long value represented by the specified bytes.
+     * Write a 4-byte integer value to the output stream. This method is
+     * provided as SMPP integers are unsigned, so we need a <code>long</code>
+     * to contain one in Java.
+     * @param value The value to write.
+     * @param out The output stream to write to.
+     * @throws IOException If an error occurs writing to the stream.
      */
-    public static long bytesToLong(byte[] b, int offset, int size) {
-        long num = 0;
-        long sw = 8L * ((long) size - 1L);
-
-        for (int loop = 0; loop < size; loop++) {
-            num |= ((long) b[offset + loop] & 0x00ff) << sw;
-            sw -= 8;
-        }
-
-        return num;
+    public static void writeLongInt(long value, OutputStream out) throws IOException {
+        out.write((int) (value >>> 24L));
+        out.write((int) (value >>> 16L));
+        out.write((int) (value >>> 8L));
+        out.write((int) (value & 0xffL));
     }
 
     /**
-     * Write the byte representation of an integer to an OutputStream in MSB
-     * order.
-     * 
-     * @param x
-     *            The integer to write
-     * @param len
-     *            The number of bytes in this integer (usually either 1 or 4)
-     * @param out
-     *            The OutputStream to write the integer to
-     * @throws java.io.IOException
-     *             If an I/O error occurs.
-     * @see java.io.OutputStream
+     * Write an 8-byte integer value to the output stream.
+     * @param value The value to write.
+     * @param out The output stream to write to.
+     * @throws IOException If an error occurs writing to the stream.
      */
-    public static void writeInt(int x, int len, OutputStream out)
-            throws java.io.IOException {
-        out.write(intToBytes(x, len));
+    public static void writeLong(long value, OutputStream out) throws IOException {
+        out.write((int) (value >>> 56L));
+        out.write((int) (value >>> 48L));
+        out.write((int) (value >>> 40L));
+        out.write((int) (value >>> 32L));
+        out.write((int) (value >>> 24L));
+        out.write((int) (value >>> 16L));
+        out.write((int) (value >>> 8L));
+        out.write((int) (value & 0xffL));
     }
-
+    
     /**
      * Write a String to an OutputStream followed by a NUL byte.
      * 
@@ -363,16 +243,13 @@ public final class SMPPIO {
      *             If an I/O error occurs
      * @see java.io.OutputStream
      */
-    public static void writeString(String s, int len, OutputStream out)
-    throws java.io.IOException {
-        if (s == null) {
-            return;
-        }
-
-        if (len > s.length()) {
-            writeString(s, out);
-        } else {
-            writeString(s.substring(0, len), out);
+    public static void writeString(String s, int len, OutputStream out) throws IOException {
+        if (s != null) {
+            if (len > s.length()) {
+                writeString(s, out);
+            } else {
+                writeString(s.substring(0, len), out);
+            }
         }
     }
 
@@ -387,11 +264,9 @@ public final class SMPPIO {
      *             If an I/O error occurs
      * @see java.io.OutputStream
      */
-    public static void writeString(String s, OutputStream out)
-    throws java.io.IOException {
-        if (s == null) {
-            return;
+    public static void writeString(String s, OutputStream out) throws IOException {
+        if (s != null) {
+            out.write(s.getBytes(US_ASCII));
         }
-        out.write(s.getBytes());
     }
 }
