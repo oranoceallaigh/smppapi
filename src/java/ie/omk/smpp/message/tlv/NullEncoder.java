@@ -1,5 +1,8 @@
 package ie.omk.smpp.message.tlv;
 
+import java.io.IOException;
+import java.io.OutputStream;
+
 /**
  * "No value" encoder. This encoder type was necessary as there are some
  * optional parameters that have no value. Therefore, it was possible for the
@@ -22,6 +25,9 @@ public class NullEncoder implements Encoder {
     public void writeTo(Tag tag, Object value, byte[] b, int offset) {
     }
 
+    public void writeTo(Tag tag, Object value, OutputStream out) throws IOException {
+    }
+    
     public Object readFrom(Tag tag, byte[] b, int offset, int length) {
         return null;
     }

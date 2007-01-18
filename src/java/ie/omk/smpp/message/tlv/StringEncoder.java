@@ -1,5 +1,10 @@
 package ie.omk.smpp.message.tlv;
 
+import ie.omk.smpp.util.SMPPIO;
+
+import java.io.IOException;
+import java.io.OutputStream;
+
 /**
  * Value encoder for string types. Operates on the java.lang.String type.
  * 
@@ -31,6 +36,10 @@ public class StringEncoder implements Encoder {
         }
     }
 
+    public void writeTo(Tag tag, Object value, OutputStream out) throws IOException {
+        SMPPIO.writeCString(value.toString(), out);
+    }
+    
     public Object readFrom(Tag tag, byte[] b, int offset, int length) {
         try {
             String s = new String(b, offset, length - 1, ASCII);

@@ -103,25 +103,14 @@ public class TLVTable implements java.io.Serializable {
      */
     public void writeTo(OutputStream out) throws IOException {
         synchronized (map) {
-            byte[] buffer = new byte[1024];
-
-            Iterator i = map.keySet().iterator();
-            while (i.hasNext()) {
-                Tag t = (Tag) i.next();
-                Encoder enc = t.getEncoder();
-                Object v = map.get(t);
-                int l = enc.getValueLength(t, v);
-
-                if (buffer.length < (l + 4)) {
-                    buffer = new byte[l + 4];
-                }
-
-                SMPPIO.intToBytes(t.intValue(), 2, buffer, 0);
-                SMPPIO.intToBytes(l, 2, buffer, 2);
-                enc.writeTo(t, v, buffer, 4);
-
-                // write the buffer out.
-                out.write(buffer, 0, l + 4);
+            for (Iterator iter = map.keySet().iterator(); iter.hasNext();) {
+                Tag tag = (Tag) iter.next();
+                Encoder enc = tag.getEncoder();
+                Object value = map.get(tag);
+                int valueLen = enc.getValueLength(tag, value);
+                SMPPIO.writeShort(tag.intValue(), out);
+                SMPPIO.writeShort(valueLen, out);
+                enc.writeTo(tag, value, out);
             }
         }
     }
@@ -280,14 +269,14 @@ public class TLVTable implements java.io.Serializable {
 
             while (p < opts.length) {
                 Object val = null;
-                Tag t = Tag.getTag(SMPPIO.bytesToInt(opts, p, 2));
-                Encoder enc = t.getEncoder();
-                int l = SMPPIO.bytesToInt(opts, p + 2, 2);
+                Tag tag = Tag.getTag(SMPPIO.bytesToShort(opts, p));
+                Encoder enc = tag.getEncoder();
+                int valueLen = SMPPIO.bytesToShort(opts, p + 2);
 
-                val = enc.readFrom(t, opts, p + 4, l);
-                map.put(t, val);
+                val = enc.readFrom(tag, opts, p + 4, valueLen);
+                map.put(tag, val);
 
-                p += 4 + l;
+                p += 4 + valueLen;
             }
             opts = null;
         }
@@ -310,8 +299,8 @@ public class TLVTable implements java.io.Serializable {
         Object val = null;
         int p = 0;
         while (true) {
-            int t = SMPPIO.bytesToInt(opts, p, 2);
-            int l = SMPPIO.bytesToInt(opts, p + 2, 2);
+            int t = SMPPIO.bytesToShort(opts, p);
+            int l = SMPPIO.bytesToShort(opts, p + 2);
 
             if (tag.equals(t)) {
                 val = enc.readFrom(tag, opts, p + 4, l);

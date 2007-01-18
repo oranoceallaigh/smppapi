@@ -2,6 +2,9 @@ package ie.omk.smpp.message.tlv;
 
 import ie.omk.smpp.util.SMPPIO;
 
+import java.io.IOException;
+import java.io.OutputStream;
+
 /**
  * Encode a <code>java.lang.Number</code> to a byte array. The number encoder
  * is for encoding any optional parameters that are defined as integers.
@@ -23,7 +26,6 @@ public class NumberEncoder implements Encoder {
 
     public void writeTo(Tag tag, Object value, byte[] b, int offset) {
 
-        long longVal = 0;
         long mask = 0;
         Number num;
         try {
@@ -43,18 +45,50 @@ public class NumberEncoder implements Encoder {
             mask = 0xffffffffffffffffL;
         }
 
-        longVal = num.longValue() & mask;
-        SMPPIO.longToBytes(longVal, tag.getLength(), b, offset);
+//        longVal = num.longValue() & mask;
+//        SMPPIO.longToBytes(longVal, tag.getLength(), b, offset);
+        // TODO:
+        throw new UnsupportedOperationException("Use writeTo(Tag, Object, OutputStream)");
     }
 
-    public Object readFrom(Tag tag, byte[] b, int offset, int length) {
-        long val = SMPPIO.bytesToLong(b, offset, length);
-
-        if (length <= 4) {
-            return new Integer((int) val);
-        } else {
-            return new Long(val);
+    public void writeTo(Tag tag, Object value, OutputStream out) throws IOException {
+        try {
+            Number number = (Number) value;
+            switch (tag.getLength()) {
+            case 8:
+                SMPPIO.writeLong(number.longValue(), out);
+                break;
+            case 4:
+                SMPPIO.writeLongInt(number.longValue(), out);
+                break;
+            case 2:
+                SMPPIO.writeShort(number.intValue(), out);
+                break;
+            default:
+                SMPPIO.writeByte(number.intValue(), out);
+            }
+        } catch (ClassCastException x) {
+            throw new BadValueTypeException("Value must be of type "
+                    + "java.lang.Number");
         }
+    }
+    
+    public Object readFrom(Tag tag, byte[] b, int offset, int length) {
+        Number number;
+        switch (length) {
+        case 8:
+            number = new Long(SMPPIO.bytesToLong(b, offset));
+            break;
+        case 4:
+            number = new Long(SMPPIO.bytesToLongInt(b, offset));
+            break;
+        case 2:
+            number = new Integer(SMPPIO.bytesToShort(b, offset));
+            break;
+        default:
+            number = new Integer(SMPPIO.bytesToByte(b, offset));
+        }
+        return number;
     }
 
     public int getValueLength(Tag tag, Object value) {

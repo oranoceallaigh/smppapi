@@ -1,5 +1,8 @@
 package ie.omk.smpp.message.tlv;
 
+import java.io.IOException;
+import java.io.OutputStream;
+
 /**
  * Encode an octet string to a byte array. This class is encoding byte arrays to
  * byte arrays! Therefore it's just copying bytes around. Not much more to it.
@@ -26,6 +29,14 @@ public class OctetEncoder implements Encoder {
         }
     }
 
+    public void writeTo(Tag tag, Object value, OutputStream out) throws IOException {
+        try {
+            out.write((byte[]) value);
+        } catch (ClassCastException x) {
+            throw new BadValueTypeException(BAD_VALUE_MSG);
+        }
+    }
+    
     public Object readFrom(Tag tag, byte[] b, int offset, int length) {
         byte[] val = new byte[length];
         System.arraycopy(b, offset, val, 0, length);

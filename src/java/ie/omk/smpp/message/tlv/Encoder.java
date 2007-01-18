@@ -1,5 +1,8 @@
 package ie.omk.smpp.message.tlv;
 
+import java.io.IOException;
+import java.io.OutputStream;
+
 /**
  * Interface for a value type encoder. Implementations of this interface are
  * responsible for encoding Java types to byte arrays for optional parameter
@@ -64,8 +67,17 @@ public interface Encoder {
      *             if the encoding tries to write beyond the end of the byte
      *             array.
      */
+    // TODO deprecate or remove?
     void writeTo(Tag tag, Object value, byte[] b, int offset);
 
+    /**
+     * Encode a value to an output stream.
+     * @param tag The tag.
+     * @param value The value to be encoded.
+     * @param out The output stream to write the encoded value to.
+     */
+    void writeTo(Tag tag, Object value, OutputStream out) throws IOException;
+    
     /**
      * Decode a value from a byte array.
      * 
