@@ -102,64 +102,44 @@ public class TLVTableTest extends TestCase {
     }
 
     public void testTLVTableSerialize() {
-        //
         // If testTLVTableAddParams fails, this will fail too...make sure it's
         // working first!
-        //
-        TLVTable tab = new TLVTable();
+        // First, create a table with at least one parameter in it for
+        // each type of encoder defined.
+        TLVTable origTable = new TLVTable();
         byte[] b = {0x56, 0x67, 0x69};
         BitSet bitSet = new BitSet();
         bitSet.set(3);
-        tab.set(Tag.DEST_ADDR_SUBUNIT, new Integer(0x56));
-        tab.set(Tag.DEST_TELEMATICS_ID, new Integer(0xe2e1));
-        tab.set(Tag.QOS_TIME_TO_LIVE, new Long((long) Integer.MAX_VALUE));
-        tab.set(Tag.ADDITIONAL_STATUS_INFO_TEXT, "Test info");
-        tab.set(Tag.CALLBACK_NUM_ATAG, b);
-        tab.set(Tag.MS_MSG_WAIT_FACILITIES, bitSet);
+        // 0x56 == 86 decimal
+        origTable.set(Tag.DEST_ADDR_SUBUNIT, new Integer(0x56));
+        // 0xe2e1 == 58081 decimal
+        origTable.set(Tag.DEST_TELEMATICS_ID, new Integer(0xe2e1));
+        origTable.set(Tag.QOS_TIME_TO_LIVE, new Long((long) Integer.MAX_VALUE));
+        origTable.set(Tag.ADDITIONAL_STATUS_INFO_TEXT, "Test info");
+        origTable.set(Tag.CALLBACK_NUM_ATAG, b);
+        origTable.set(Tag.MS_MSG_WAIT_FACILITIES, bitSet);
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         try {
-            tab.writeTo(out);
+            origTable.writeTo(out);
         } catch (IOException x) {
             fail("I/O Exception while writing to output stream.");
         }
         byte[] serialized = out.toByteArray();
 
         // The table must report the same length as it actually serializes to..
-        if (tab.getLength() != serialized.length) {
+        if (origTable.getLength() != serialized.length) {
             fail("Table getLength is different to actual encoded length");
         }
 
-        for (int i = 0; i < 2; i++) {
-            String msg;
-            TLVTable tab1 = new TLVTable();
-            tab1.readFrom(serialized, 0, serialized.length);
-
-            if (i == 0) {
-                msg = "Using getValueFromBytes";
-            } else {
-                msg = "Using parseAllOpts.";
-                tab1.parseAllOpts();
-            }
-
-            assertEquals(msg,
-                    ((Number) tab.get(Tag.DEST_ADDR_SUBUNIT)).longValue(),
-                    ((Number) tab1.get(Tag.DEST_ADDR_SUBUNIT)).longValue());
-            assertEquals(msg,
-                    ((Number) tab.get(Tag.DEST_TELEMATICS_ID)).longValue(),
-                    ((Number) tab1.get(Tag.DEST_TELEMATICS_ID)).longValue());
-            assertEquals(msg,
-                    ((Number) tab.get(Tag.QOS_TIME_TO_LIVE)).longValue(),
-                    ((Number) tab1.get(Tag.QOS_TIME_TO_LIVE)).longValue());
-            assertEquals(msg,
-                    tab.get(Tag.ADDITIONAL_STATUS_INFO_TEXT),
-                    tab1.get(Tag.ADDITIONAL_STATUS_INFO_TEXT));
-            assertTrue(msg,
-                    Arrays.equals((byte[]) tab.get(Tag.CALLBACK_NUM_ATAG),
-                            (byte[]) tab1.get(Tag.CALLBACK_NUM_ATAG)));
-            assertEquals(msg, bitSet,
-                    (BitSet) tab.get(Tag.MS_MSG_WAIT_FACILITIES));
-        }
+        TLVTable newTable = new TLVTable();
+        newTable.readFrom(serialized, 0, serialized.length);
+        doTableAssertions(origTable, newTable);
+        
+        newTable = new TLVTable();
+        newTable.readFrom(serialized, 0, serialized.length);
+        newTable.parseAllOpts();
+        doTableAssertions(origTable, newTable);
     }
 
     /**
@@ -168,53 +148,57 @@ public class TLVTableTest extends TestCase {
      * any optional parameter that is well-formed - the fact that it doesn't
      * know about it beforehand should not cause an error in the API.
      */
-    public void testTLVTableDeSerializeUnknown() {
+    public void testTLVTableDeSerializeUnknown() throws Exception {
         // Set up a byte array which contains 2 known optional parameters
         // followed by 2 unknowns.
-        byte[] b = new byte[256];
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
 
         StringEncoder se = new StringEncoder();
         NumberEncoder ne = new NumberEncoder();
 
-        int p = 0, length = 0;
+        int length = 0;
 
         Integer i = new Integer(0xbcad);
         length = ne.getValueLength(Tag.DEST_TELEMATICS_ID, i);
-        SMPPIO.intToBytes(Tag.DEST_TELEMATICS_ID.intValue(), 2, b, 0);
-        SMPPIO.intToBytes(length, 2, b, 2);
-        ne.writeTo(Tag.DEST_TELEMATICS_ID, i, b, 4);
-        p += (4 + length);
+        SMPPIO.writeShort(Tag.DEST_TELEMATICS_ID.intValue(), out);
+        SMPPIO.writeShort(length, out);
+        ne.writeTo(Tag.DEST_TELEMATICS_ID, i, out);
 
         String v = "smppapi tlv tests";
         length = se.getValueLength(Tag.ADDITIONAL_STATUS_INFO_TEXT, v);
-        SMPPIO.intToBytes(Tag.ADDITIONAL_STATUS_INFO_TEXT.intValue(), 2, b, p);
-        SMPPIO.intToBytes(length, 2, b, p + 2);
-        se.writeTo(Tag.ADDITIONAL_STATUS_INFO_TEXT, v, b, p + 4);
-        p += (4 + length);
+        SMPPIO.writeShort(Tag.ADDITIONAL_STATUS_INFO_TEXT.intValue(), out);
+        SMPPIO.writeShort(length, out);
+        se.writeTo(Tag.ADDITIONAL_STATUS_INFO_TEXT, v, out);
 
         // Tag '0xcafe', length 2.
-        b[p++] = (byte) 0xca;
-        b[p++] = (byte) 0xfe;
-        b[p++] = (byte) 0x00;
-        b[p++] = (byte) 0x02;
-        b[p++] = (byte) 0xfe;
-        b[p++] = (byte) 0xed;
-
+        byte[] cafe = new byte[] {
+                (byte) 0xca,
+                (byte) 0xfe,
+                (byte) 0x00,
+                (byte) 0x02,
+                (byte) 0xfe,
+                (byte) 0xed,
+        };
         // Tag '0xbeef', length 5
-        b[p++] = (byte) 0xbe;
-        b[p++] = (byte) 0xef;
-        b[p++] = (byte) 0x00;
-        b[p++] = (byte) 0x05;
-        b[p++] = (byte) 0xba;
-        b[p++] = (byte) 0xbe;
-        b[p++] = (byte) 0xde;
-        b[p++] = (byte) 0xad;
-        b[p++] = (byte) 0x99;
+        byte[] beef = new byte[] {
+                (byte) 0xbe,
+                (byte) 0xef,
+                (byte) 0x00,
+                (byte) 0x05,
+                (byte) 0xba,
+                (byte) 0xbe,
+                (byte) 0xde,
+                (byte) 0xad,
+                (byte) 0x99,
+        };
+        out.write(cafe);
+        out.write(beef);
 
+        byte[] b = out.toByteArray();
         try {
             // Run the test - attempt to deserialize the table.
             TLVTable tab = new TLVTable();
-            tab.readFrom(b, 0, p);
+            tab.readFrom(b, 0, b.length);
 
             tab.parseAllOpts();
 
@@ -236,5 +220,20 @@ public class TLVTableTest extends TestCase {
             x.printStackTrace(System.err);
             fail("Deserialize failed. " + x.getMessage());
         }
+    }
+    
+    private void doTableAssertions(TLVTable origTable, TLVTable newTable) {
+        assertEquals(((Number) origTable.get(Tag.DEST_ADDR_SUBUNIT)).longValue(),
+                ((Number) newTable.get(Tag.DEST_ADDR_SUBUNIT)).longValue());
+        assertEquals(((Number) origTable.get(Tag.DEST_TELEMATICS_ID)).longValue(),
+                ((Number) newTable.get(Tag.DEST_TELEMATICS_ID)).longValue());
+        assertEquals(((Number) origTable.get(Tag.QOS_TIME_TO_LIVE)).longValue(),
+                ((Number) newTable.get(Tag.QOS_TIME_TO_LIVE)).longValue());
+        assertEquals(origTable.get(Tag.ADDITIONAL_STATUS_INFO_TEXT),
+                newTable.get(Tag.ADDITIONAL_STATUS_INFO_TEXT));
+        assertTrue(Arrays.equals((byte[]) origTable.get(Tag.CALLBACK_NUM_ATAG),
+                        (byte[]) newTable.get(Tag.CALLBACK_NUM_ATAG)));
+        assertEquals((BitSet) origTable.get(Tag.MS_MSG_WAIT_FACILITIES),
+                (BitSet) newTable.get(Tag.MS_MSG_WAIT_FACILITIES));
     }
 }

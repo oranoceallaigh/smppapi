@@ -1,6 +1,10 @@
 package ie.omk.smpp.message;
 
 import ie.omk.smpp.Address;
+import ie.omk.smpp.message.param.BytesParamDescriptor;
+import ie.omk.smpp.message.param.DestinationTableParamDescriptor;
+import ie.omk.smpp.message.param.ListParamDescriptor;
+import ie.omk.smpp.message.param.ParamDescriptor;
 import ie.omk.smpp.util.PacketFactory;
 import ie.omk.smpp.util.SMPPDate;
 import ie.omk.smpp.util.SMPPIO;
@@ -8,6 +12,7 @@ import ie.omk.smpp.version.SMPPVersion;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Random;
@@ -58,38 +63,89 @@ public class SizeTest extends TestCase {
         UnbindResp.class,
     };
 
-    public void testPacketsWithDefaultConstructor() throws Exception {
-        testPacketSizes(false);
+    public void testSizesMatchWithSerializationWithDefaultInitalisation() throws Exception {
+        String className = "";
+        try {
+            for (Class<? extends SMPPPacket> clazz : classList) {
+                className = clazz.getName().replaceFirst(".+\\.([^.]+)$", "$1");
+                SMPPPacket packet = clazz.newInstance();
+                testGetLengthMatchesReality(packet);
+            }
+        } catch (Exception x) {
+            fail("Failed on " + className);
+        }
     }
     
-    public void testPacketsWithFieldsSet() throws Exception {
-        testPacketSizes(true);
+    public void testSizesMatchWithSerializationWithFieldsSet() throws Exception {
+        String className = "";
+        try {
+            for (Class<? extends SMPPPacket> clazz : classList) {
+                className = clazz.getName().replaceFirst(".+\\.([^.]+)$", "$1");
+                SMPPPacket packet = clazz.newInstance();
+                initialiseFields(packet);
+                testGetLengthMatchesReality(packet);
+            }
+        } catch (Exception x) {
+            fail("Failed on " + className);
+        }
     }
     
     /**
-     * Test that packets report their sizes correctly. The <code>filled</code>
-     * parameter determines if the test run uses all the default values for the
-     * fields as determined by a message's constructor or if the test will fill
-     * in test values for all relevant fields in the message.
+     * Test that after serializing and deserializing a packet, the mandatory
+     * parameters all match.
+     * @throws Exception
      */
-    private void testPacketSizes(boolean filled) throws Exception {
-        for (int i = 0; i < classList.length; i++) {
-            String className = classList[i].getName();
-            className = className.substring(className.lastIndexOf('.'));
-
-            try {
-                SMPPPacket p = (SMPPPacket) classList[i].newInstance();
-                if (filled) {
-                    initialiseFields(p);
-                }
-                testPacket(className, p);
-            } catch (Exception x) {
-                x.printStackTrace(System.err);
-                fail(className + " failed.");
+    public void testDeserializedFieldsMatchOriginalPacket() throws Exception {
+        String className = "";
+        try {
+            for (Class<? extends SMPPPacket> clazz : classList) {
+                className = clazz.getName().replaceFirst(".+\\.([^.]+)$", "$1");
+                SMPPPacket original = clazz.newInstance();
+                SMPPPacket decodedPacket = clazz.newInstance();
+                initialiseFields(original);
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                original.writeTo(out);
+                decodedPacket.readFrom(out.toByteArray(), 0);
+                testPacketFieldsAreEqual(original, decodedPacket);
+            }
+        } catch (Exception x) {
+            x.printStackTrace(System.err);
+            fail("Failed on " + className);
+        }
+    }
+    
+    private void testPacketFieldsAreEqual(SMPPPacket packet1, SMPPPacket packet2) {
+        Object[] params1 = packet1.getMandatoryParameters();
+        Object[] params2 = packet2.getMandatoryParameters();
+        assertNotNull(params1);
+        assertNotNull(params2);
+        assertEquals(params1.length, params2.length);
+        for (int i = 0; i < params1.length; i++) {
+            if (params1[i].getClass().isArray()) {
+                compareArrays(params1[i], params2[i]);
+            } else {
+                assertEquals(packet1.getClass().getName(), params1[i], params2[i]);
             }
         }
     }
-
+    
+    private void compareArrays(Object array1, Object array2) {
+        Class<?> type = array1.getClass().getComponentType();
+        if (type.isPrimitive()) {
+            if (type.isAssignableFrom(Boolean.class)) {
+                assertTrue(Arrays.equals((boolean[]) array1, (boolean[]) array2));
+            } else if (type.isAssignableFrom(Byte.class)) {
+                assertTrue(Arrays.equals((byte[]) array1, (byte[]) array2));
+            } else if (type.isAssignableFrom(Integer.class)) {
+                assertTrue(Arrays.equals((int[]) array1, (int[]) array2));
+            } else if (type.isAssignableFrom(Long.class)) {
+                assertTrue(Arrays.equals((long[]) array1, (long[]) array2));
+            }
+        } else {
+            assertTrue(Arrays.equals((Object[]) array1, (Object[]) array2));
+        }
+    }
+    
     /**
      * Test an individual packet. This method serializes the packet to a byte
      * array and then deserializes a second packet from that byte array. It then
@@ -98,26 +154,19 @@ public class SizeTest extends TestCase {
      * the value returned from <code>getLength</code> on the deserialized
      * packet.
      */
-    private void testPacket(String n, SMPPPacket original) throws Exception {
-        SMPPPacket deserialized;
+    private void testGetLengthMatchesReality(SMPPPacket packet) throws Exception {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-        original.writeTo(out);
+        packet.writeTo(out);
 
         byte[] array = out.toByteArray();
-        int id = SMPPIO.bytesToInt(array, 4, 4);
-        deserialized = PacketFactory.newInstance(id);
+        int id = SMPPIO.bytesToInt(array, 4);
+        SMPPPacket deserialized = PacketFactory.newInstance(id);
         if (deserialized == null) {
-            fail(n + " - PacketFactory returned null for Id 0x"
-                    + Integer.toHexString(id));
-            return;
+            fail("Got null for command Id 0x" + Integer.toHexString(id));
         }
         deserialized.readFrom(array, 0);
-
-        assertEquals(n + " serialized length does not match.",
-                original.getLength(), array.length);
-        assertEquals(n + " deserialized length does not match.",
-                array.length, deserialized.getLength());
+        assertEquals(packet.getLength(), array.length);
+        assertEquals(array.length, deserialized.getLength());
     }
 
     /**
@@ -131,12 +180,14 @@ public class SizeTest extends TestCase {
             return;
         }
         for (ParamDescriptor param : descriptor.getBody()) {
-            if (param.getType() == Types.LIST) {
+            if (param instanceof ListParamDescriptor) {
                 List<Object> list = new ArrayList<Object>();
                 for (int i = 0; i < random.nextInt(15) + 5; i++) {
-                    addBodyParams(param.getListType(), list, random);
+                    addBodyParams(((ListParamDescriptor) param).getListType(),
+                            list, random);
                 }
-                body.set(param.getLinkIndex(), new Integer(list.size()));
+                body.set(((ListParamDescriptor) param).getLinkIndex(),
+                        new Integer(list.size()));
                 body.add(list);
             } else {
                 addBodyParams(param, body, random);
@@ -151,26 +202,33 @@ public class SizeTest extends TestCase {
     }
     
     private void addBodyParams(ParamDescriptor param, List<Object> body, Random random) {
-        if (param.getType() == Types.ADDRESS) {
+        // We make an assumption in this test that any parameter which has
+        // another parameter specifying its size (for example, a byte array
+        // or destination table) that the size parameter immediately precedes
+        // the parameter being specified.
+        if (param == ParamDescriptor.ADDRESS) {
             body.add(new Address(0, 0, "1234567890"));
-        } else if (param.getType() == Types.INTEGER) {
+        } else if (param == ParamDescriptor.INTEGER1) {
             body.add(new Integer(random.nextInt(255)));
-        } else if (param.getType() == Types.CSTRING) {
+        } else if (param == ParamDescriptor.INTEGER2) {
+            body.add(new Integer(random.nextInt(65535)));
+        } else if (param == ParamDescriptor.INTEGER4) {
+            body.add(new Long(random.nextLong()));
+        } else if (param == ParamDescriptor.INTEGER8) {
+            body.add(new Long(random.nextLong()));
+        } else if (param == ParamDescriptor.CSTRING) {
             body.add(new String("C-String"));
-        } else if (param.getType() == Types.DATE) {
+        } else if (param == ParamDescriptor.DATE) {
             Calendar calendar = Calendar.getInstance();
             SMPPDate date = SMPPDate.getAbsoluteInstance(calendar);
             body.add(date);
-        } else if (param.getType() == Types.BYTES) {
-            int len = param.getLength();
-            if (len < 0) {
-                len = 10;
-            }
-            byte[] data = new byte[len];
+        } else if (param instanceof BytesParamDescriptor) {
+            byte[] data = new byte[random.nextInt(90) + 10];
             random.nextBytes(data);
-            body.set(param.getLinkIndex(), new Integer(len));
+//            body.set(((BytesParamDescriptor) param).getLinkIndex(),
+//                    new Integer(data.length));
             body.add(data);
-        } else if (param.getType() == Types.DEST_TABLE) {
+        } else if (param instanceof DestinationTableParamDescriptor) {
             DestinationTable table = new DestinationTable();
             table.add(new Address(0, 0, "111111111"));
             table.add("distList1");
@@ -181,7 +239,8 @@ public class SizeTest extends TestCase {
             table.add("distList3");
             table.add("distList4");
             table.add("distList5");
-            body.set(param.getLinkIndex(), new Integer(table.size()));
+//            body.set(((DestinationTableParamDescriptor) param).getLinkIndex(),
+//                    new Integer(table.size()));
             body.add(table);
         }
     }
