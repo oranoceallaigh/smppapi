@@ -1,5 +1,8 @@
 package ie.omk.smpp.message;
 
+import ie.omk.smpp.message.param.ListParamDescriptor;
+import ie.omk.smpp.message.param.ParamDescriptor;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -18,7 +21,7 @@ public class QueryLastMsgsResp extends SMPPPacket {
 
     static {
         BODY_DESCRIPTOR.add(ParamDescriptor.INTEGER1)
-        .add(ParamDescriptor.getListInstance(ParamDescriptor.CSTRING, 0));
+        .add(new ListParamDescriptor(ParamDescriptor.CSTRING, 0));
     }
     
     /**

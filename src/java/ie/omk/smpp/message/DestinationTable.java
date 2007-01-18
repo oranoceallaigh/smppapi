@@ -56,18 +56,18 @@ public class DestinationTable implements Cloneable {
 
     public synchronized void writeTo(OutputStream out) throws java.io.IOException {
         for (Address address : addresses) {
-            SMPPIO.writeInt(1, 1, out);
+            SMPPIO.writeByte(1, out);
             address.writeTo(out);
         }
         for (String list : distributionLists) {
-            SMPPIO.writeInt(2, 1, out);
+            SMPPIO.writeByte(2, out);
             SMPPIO.writeCString(list, out);
         }
     }
 
     public synchronized void readFrom(byte[] table, int offset, int count) {
         for (int i = 0; i < count; i++) {
-            int type = SMPPIO.bytesToInt(table, offset++, 1);
+            int type = SMPPIO.bytesToByte(table, offset++);
             if (type == 1) {
                 // SME address..
                 Address a = new Address();
@@ -95,6 +95,20 @@ public class DestinationTable implements Cloneable {
         }
     }
 
+    public boolean equals(Object obj) {
+        if (obj == null || !(obj instanceof DestinationTable)) {
+            return false;
+        }
+        DestinationTable other = (DestinationTable) obj;
+        return length == other.length
+                && addresses.equals(other.addresses)
+                && distributionLists.equals(other.distributionLists); 
+    }
+    
+    public int hashCode() {
+        return addresses.hashCode() + distributionLists.hashCode();
+    }
+    
     public String toString() {
         List<Object> list = new ArrayList<Object>();
         list.addAll(addresses);

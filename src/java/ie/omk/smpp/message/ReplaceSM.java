@@ -1,6 +1,8 @@
 package ie.omk.smpp.message;
 
 import ie.omk.smpp.Address;
+import ie.omk.smpp.message.param.BytesParamDescriptor;
+import ie.omk.smpp.message.param.ParamDescriptor;
 import ie.omk.smpp.util.SMPPDate;
 
 import java.util.List;
@@ -23,7 +25,7 @@ public class ReplaceSM extends SMPacket {
         .add(ParamDescriptor.INTEGER1)
         .add(ParamDescriptor.INTEGER1)
         .add(ParamDescriptor.INTEGER1)
-        .add(ParamDescriptor.getBytesInstance(6));
+        .add(new BytesParamDescriptor(6));
     }
     
     /**

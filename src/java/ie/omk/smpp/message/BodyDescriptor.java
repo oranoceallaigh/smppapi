@@ -1,5 +1,7 @@
 package ie.omk.smpp.message;
 
+import ie.omk.smpp.message.param.ParamDescriptor;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;

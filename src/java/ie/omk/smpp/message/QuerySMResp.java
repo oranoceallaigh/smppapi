@@ -1,5 +1,6 @@
 package ie.omk.smpp.message;
 
+import ie.omk.smpp.message.param.ParamDescriptor;
 import ie.omk.smpp.util.SMPPDate;
 
 import java.util.List;

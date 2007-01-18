@@ -1,6 +1,9 @@
 package ie.omk.smpp.message;
 
 import ie.omk.smpp.Address;
+import ie.omk.smpp.message.param.BytesParamDescriptor;
+import ie.omk.smpp.message.param.DestinationTableParamDescriptor;
+import ie.omk.smpp.message.param.ParamDescriptor;
 import ie.omk.smpp.util.SMPPDate;
 
 import java.util.List;
@@ -20,10 +23,9 @@ public class SubmitMulti extends SMPacket {
     static {
         List<ParamDescriptor> body = BODY_DESCRIPTOR.getBody();
         body.addAll(SMPacket.BODY_DESCRIPTOR.getBody());
-        body.remove(2);
-        body.add(2, ParamDescriptor.INTEGER1);
-        body.add(3, ParamDescriptor.getDestinationTableInstance(2));
-        body.set(14, ParamDescriptor.getBytesInstance(12));
+        body.set(2, ParamDescriptor.INTEGER1);
+        body.add(3, new DestinationTableParamDescriptor(2));
+        body.set(14, new BytesParamDescriptor(13));
     }
     
     /**

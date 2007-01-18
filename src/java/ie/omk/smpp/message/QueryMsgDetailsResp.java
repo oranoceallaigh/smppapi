@@ -1,6 +1,9 @@
 package ie.omk.smpp.message;
 
 import ie.omk.smpp.Address;
+import ie.omk.smpp.message.param.BytesParamDescriptor;
+import ie.omk.smpp.message.param.DestinationTableParamDescriptor;
+import ie.omk.smpp.message.param.ParamDescriptor;
 import ie.omk.smpp.util.SMPPDate;
 
 import java.util.List;
@@ -24,7 +27,7 @@ public class QueryMsgDetailsResp extends SMPacket {
         BODY_DESCRIPTOR.add(ParamDescriptor.CSTRING)
         .add(ParamDescriptor.ADDRESS)
         .add(ParamDescriptor.INTEGER1)
-        .add(ParamDescriptor.getDestinationTableInstance(2))
+        .add(new DestinationTableParamDescriptor(2))
         .add(ParamDescriptor.INTEGER1)
         .add(ParamDescriptor.INTEGER1)
         .add(ParamDescriptor.DATE)
@@ -32,7 +35,7 @@ public class QueryMsgDetailsResp extends SMPacket {
         .add(ParamDescriptor.INTEGER1)
         .add(ParamDescriptor.INTEGER1)
         .add(ParamDescriptor.INTEGER1)
-        .add(ParamDescriptor.getBytesInstance(10))
+        .add(new BytesParamDescriptor(10))
         .add(ParamDescriptor.CSTRING)
         .add(ParamDescriptor.DATE)
         .add(ParamDescriptor.INTEGER1)

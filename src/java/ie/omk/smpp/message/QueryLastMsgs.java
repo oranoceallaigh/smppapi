@@ -1,6 +1,7 @@
 package ie.omk.smpp.message;
 
 import ie.omk.smpp.Address;
+import ie.omk.smpp.message.param.ParamDescriptor;
 
 import java.util.List;
 

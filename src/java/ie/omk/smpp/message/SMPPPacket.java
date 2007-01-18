@@ -1,6 +1,7 @@
 package ie.omk.smpp.message;
 
 import ie.omk.smpp.SMPPRuntimeException;
+import ie.omk.smpp.message.param.ParamDescriptor;
 import ie.omk.smpp.message.tlv.TLVTable;
 import ie.omk.smpp.message.tlv.Tag;
 import ie.omk.smpp.util.SMPPIO;
@@ -20,7 +21,8 @@ import java.util.List;
  * @version 1.0
  */
 public abstract class SMPPPacket {
-    private static final String NOT_ENOUGH_PARAMS = "Not enough mandatory parameters supplied to fill the body!";
+    private static final String INCORRECT_PARAM_COUNT =
+        "Number of mandatory parameters supplied does not match the body descriptor!";
 
     /** Command Id: Negative Acknowledgement */
     public static final int GENERIC_NACK = 0x80000000;
@@ -431,10 +433,10 @@ public abstract class SMPPPacket {
             throws IOException {
         int commandLen = getLength();
 
-        SMPPIO.writeInt(commandLen, 4, out);
-        SMPPIO.writeInt(commandId, 4, out);
-        SMPPIO.writeInt(commandStatus, 4, out);
-        SMPPIO.writeInt(sequenceNum, 4, out);
+        SMPPIO.writeInt(commandLen, out);
+        SMPPIO.writeInt(commandId, out);
+        SMPPIO.writeInt(commandStatus, out);
+        SMPPIO.writeInt(sequenceNum, out);
         writeMandatory(out);
         if (withOptional) {
             tlvTable.writeTo(out);
@@ -461,8 +463,8 @@ public abstract class SMPPPacket {
                     + (data.length - (offset + 16)));
         }
 
-        int len = SMPPIO.bytesToInt(data, offset, 4);
-        int id = SMPPIO.bytesToInt(data, offset + 4, 4);
+        int len = SMPPIO.bytesToInt(data, offset);
+        int id = SMPPIO.bytesToInt(data, offset + 4);
 
         if (id != commandId) {
             // Command type mismatch...ye can't do that, lad!
@@ -476,8 +478,8 @@ public abstract class SMPPPacket {
                     "Insufficient bytes available: need = " + len
                     + ", available = " + (data.length - offset));
         }
-        commandStatus = SMPPIO.bytesToInt(data, offset + 8, 4);
-        sequenceNum = SMPPIO.bytesToInt(data, offset + 12, 4);
+        commandStatus = SMPPIO.bytesToInt(data, offset + 8);
+        sequenceNum = SMPPIO.bytesToInt(data, offset + 12);
         try {
             if (commandStatus == 0) {
                 // Read the mandatory body parameters..
@@ -487,10 +489,10 @@ public abstract class SMPPPacket {
                 setMandatoryParameters(mandatory);
 
                 // Read the optional parameters..
-                int bl = getBodyLength();
-                len -= 16 + bl;
+                int bodyLen = getBodyLength();
+                len -= 16 + bodyLen;
                 if (len > 0) {
-                    tlvTable.readFrom(data, ptr + bl, len);
+                    tlvTable.readFrom(data, ptr + bodyLen, len);
                 }
             }
         } catch (ArrayIndexOutOfBoundsException x) {
@@ -561,7 +563,7 @@ public abstract class SMPPPacket {
         }
         Object[] body = getMandatoryParameters();
         if (body.length != bodyDescriptor.getSize()) {
-            throw new SMPPRuntimeException(NOT_ENOUGH_PARAMS);
+            throw new SMPPRuntimeException(INCORRECT_PARAM_COUNT);
         }
         int index = 0;
         for (ParamDescriptor param : bodyDescriptor.getBody()) {
@@ -576,7 +578,7 @@ public abstract class SMPPPacket {
         if (bodyDescriptor != null) {
             Object[] body = getMandatoryParameters();
             if (body.length != bodyDescriptor.getSize()) {
-                throw new SMPPRuntimeException(NOT_ENOUGH_PARAMS);
+                throw new SMPPRuntimeException(INCORRECT_PARAM_COUNT);
             }
             int index = 0;
             for (ParamDescriptor param : bodyDescriptor.getBody()) {

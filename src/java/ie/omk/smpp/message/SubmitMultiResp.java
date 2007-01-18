@@ -2,6 +2,8 @@ package ie.omk.smpp.message;
 
 import ie.omk.smpp.Address;
 import ie.omk.smpp.ErrorAddress;
+import ie.omk.smpp.message.param.ListParamDescriptor;
+import ie.omk.smpp.message.param.ParamDescriptor;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -25,7 +27,7 @@ public class SubmitMultiResp extends SMPPPacket {
     static {
         BODY_DESCRIPTOR.add(ParamDescriptor.CSTRING)
         .add(ParamDescriptor.INTEGER1)
-        .add(ParamDescriptor.getListInstance(ParamDescriptor.ERROR_ADDRESS, 1));
+        .add(new ListParamDescriptor(ParamDescriptor.ERROR_ADDRESS, 1));
     }
     
     /**
