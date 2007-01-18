@@ -13,10 +13,10 @@ class AbsoluteSMPPDate extends SMPPDate {
     private static final long serialVersionUID = 1;
     
     private Calendar calendar;
-    private boolean hasTimeZone = true;
+    private boolean hasTimeZone;
     
     AbsoluteSMPPDate(Calendar calendar) {
-        this.calendar = calendar;
+        this(calendar, true);
     }
     
     AbsoluteSMPPDate(Calendar calendar, boolean withTimeZone) {
@@ -96,12 +96,40 @@ class AbsoluteSMPPDate extends SMPPDate {
             return false;
         }
         AbsoluteSMPPDate other = (AbsoluteSMPPDate) obj;
-        return calendar.equals(other.calendar)
-            && hasTimeZone == other.hasTimeZone;
+        return hasTimeZone == other.hasTimeZone
+            && compareCalendarFields(this.calendar, other.calendar);
     }
     
     public int hashCode() {
         int hc1 = calendar.hashCode();
         return hc1 + (hasTimeZone ? 6203 : 7907);
+    }
+    
+    public String toString() {
+        return new StringBuffer(calendar.toString()).append(" hasTz=")
+        .append(hasTimeZone).toString();
+    }
+    
+    private boolean compareCalendarFields(Calendar calendar1, Calendar calendar2) {
+        boolean equal = true;
+        equal &= compareField(calendar1, calendar2, Calendar.YEAR);
+        equal &= compareField(calendar1, calendar2, Calendar.MONTH);
+        equal &= compareField(calendar1, calendar2, Calendar.DAY_OF_MONTH);
+        equal &= compareField(calendar1, calendar2, Calendar.HOUR_OF_DAY);
+        equal &= compareField(calendar1, calendar2, Calendar.MINUTE);
+        equal &= compareField(calendar1, calendar2, Calendar.SECOND);
+        int tenth1 = calendar1.get(Calendar.MILLISECOND) / 100;
+        int tenth2 = calendar2.get(Calendar.MILLISECOND) / 100;
+        equal &= tenth1 == tenth2;
+        if (hasTimeZone) {
+            int rawOffset1 = calendar1.getTimeZone().getRawOffset();
+            int rawOffset2 = calendar2.getTimeZone().getRawOffset();
+            equal &= rawOffset1 == rawOffset2;
+        }
+        return equal;
+    }
+    
+    private boolean compareField(Calendar calendar1, Calendar calendar2, int field) {
+        return calendar1.get(field) == calendar2.get(field);
     }
 }
