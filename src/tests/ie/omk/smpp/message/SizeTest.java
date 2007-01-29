@@ -172,7 +172,7 @@ public class SizeTest extends TestCase {
     /**
      * Initialise field contents for the filled field test.
      */
-    private void initialiseFields(SMPPPacket packet) throws ie.omk.smpp.SMPPException {
+    private void initialiseFields(SMPPPacket packet) {
         Random random = new Random();
         List<Object> body = new ArrayList<Object>();
         BodyDescriptor descriptor = packet.getBodyDescriptor();
@@ -194,7 +194,7 @@ public class SizeTest extends TestCase {
         }
         // Hack for bind packets - can't have a random version number..
         if (packet instanceof Bind) {
-            body.set(3, SMPPVersion.V34.getVersionID());
+            body.set(3, SMPPVersion.VERSION_3_4.getVersionID());
         }
         packet.setSequenceNum(189);
         packet.setMandatoryParameters(body);
