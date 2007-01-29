@@ -20,6 +20,7 @@ import ie.omk.smpp.util.PropertyNotFoundException;
 import ie.omk.smpp.util.SequenceNumberScheme;
 import ie.omk.smpp.version.SMPPVersion;
 import ie.omk.smpp.version.VersionException;
+import ie.omk.smpp.version.VersionFactory;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
@@ -35,7 +36,7 @@ public class Connection {
     
     private final Logger log;
     private String connectionId;
-    private SMPPVersion version = SMPPVersion.getDefaultVersion();
+    private SMPPVersion version = VersionFactory.getDefaultVersion();
     private ConnectionType type;
     private ConnectionState state = ConnectionState.UNBOUND;
     private SmscLink smscLink;
@@ -271,7 +272,7 @@ public class Connection {
     }
     
     private void sendPacketInternal(SMPPPacket packet) throws IOException {
-        if (packet.getSequenceNum() < 0 && numberScheme != null) {
+        if (packet.getSequenceNum() < 0L && numberScheme != null) {
             packet.setSequenceNum(numberScheme.nextNumber());
         }
         smscLink.write(packet, useOptionalParams);
@@ -325,18 +326,22 @@ public class Connection {
     private void negotiateVersion(BindResp bindResponse) {
         Number versionId = (Number) bindResponse.getOptionalParameter(
                 Tag.SC_INTERFACE_VERSION);
-        if (versionId != null) {
-            SMPPVersion smscVersion =
-                SMPPVersion.getVersion(versionId.intValue());
-            log.info("SMSC states its version as {}", smscVersion);
-            if (smscVersion.isOlder(version)) {
-                version = smscVersion;
-                useOptionalParams = version.isSupportOptionalParams();
-            }
-        } else {
+        if (versionId == null) {
             log.info("SMSC did not supply SC_INTERFACE_VERSION."
                     + " Disabling optional parameter support.");
             useOptionalParams = false;
+            return;
+        }
+        try {
+            SMPPVersion smscVersion =
+                VersionFactory.getVersion(versionId.intValue());
+            log.info("SMSC states its version as {}", smscVersion);
+            if (smscVersion.isOlderThan(version)) {
+                version = smscVersion;
+                useOptionalParams = version.isSupportOptionalParams();
+            }
+        } catch (VersionException x) {
+            log.debug("SMSC implements a version I don't know: {}", versionId);
         }
     }
     
@@ -355,15 +360,17 @@ public class Connection {
     
     private void setLinkTimeout(String propName) {
         try {
-            int linkTimeout = APIConfig.getInstance().getInt(propName);
-            smscLink.setTimeout(linkTimeout);
-            if (log.isDebugEnabled()) {
-                log.debug("Set the link timeout to {}", linkTimeout);
+            if (smscLink.isTimeoutSupported()) {
+                int linkTimeout = APIConfig.getInstance().getInt(propName);
+                smscLink.setTimeout(linkTimeout);
+                if (log.isDebugEnabled()) {
+                    log.debug("Set the link timeout to {}", linkTimeout);
+                }
+            } else {
+                log.info("SMSC link implementation does not support timeouts.");
             }
         } catch (PropertyNotFoundException x) {
             log.debug("Not setting link timeout as it is not configured.");
-        } catch (UnsupportedOperationException x) {
-            log.info("SMSC link implementation does not support timeouts.");
         }
     }
 }
