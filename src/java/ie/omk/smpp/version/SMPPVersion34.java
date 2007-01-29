@@ -1,12 +1,9 @@
 package ie.omk.smpp.version;
 
-import ie.omk.smpp.Address;
 import ie.omk.smpp.message.SMPPPacket;
-import ie.omk.smpp.util.AlphabetEncoding;
-import ie.omk.smpp.util.MessageEncoding;
 
-public class SMPPVersion34 extends SMPPVersion {
-
+public class SMPPVersion34 extends AbstractSMPPVersion {
+    private static final long serialVersionUID = 1;
     private static final int MAX_MSG_LENGTH = 254;
 
     SMPPVersion34() {
@@ -30,126 +27,50 @@ public class SMPPVersion34 extends SMPPVersion {
         return true;
     }
 
-    public int getMaxLength(int field) {
-        switch (field) {
-        case MESSAGE_PAYLOAD:
-            return 254;
+    public int getMaxLength(MandatoryParameter mandatoryParameter) {
+        switch (mandatoryParameter) {
+        case SHORT_MESSAGE:
+            return MAX_MSG_LENGTH;
 
         default:
             return Integer.MAX_VALUE;
         }
     }
 
-    public boolean validateAddress(Address s) {
-        int ton = s.getTON();
-        int npi = s.getNPI();
-        boolean tonValid = ton >= 0 && ton <= 0xff;
-        boolean npiValid = npi >= 0 && npi <= 0xff;
-        boolean addressValid = s.getAddress().length() <= 20;
-        return tonValid && npiValid && addressValid;
-    }
-
-    public boolean validateEsmClass(int c) {
-        return c >= 0 && c <= 0xff;
-    }
-
-    public boolean validateProtocolID(int id) {
-        return id >= 0 && id <= 0xff;
-    }
-
-    public boolean validateDataCoding(int dc) {
-        return dc >= 0 && dc <= 0xff;
-    }
-
-    public boolean validateDefaultMsg(int id) {
-        return id >= 0 && id <= 0xff;
-    }
-
-    public boolean validateMessageText(String text, AlphabetEncoding alphabet) {
-        if (text != null) {
-            return alphabet.encodeString(text).length <= MAX_MSG_LENGTH;
-        } else {
-            return true;
+    public void validateMessage(byte[] message, int start, int length) {
+        if (message != null && length > MAX_MSG_LENGTH) {
+            throw new VersionException("Message is too long: " + length);
         }
     }
 
-    public boolean validateMessage(byte[] message, MessageEncoding encoding) {
-        if (message != null) {
-            return message.length <= MAX_MSG_LENGTH;
-        } else {
-            return true;
+    public void validateMessageId(String messageId) {
+        if (messageId != null && messageId.length() > 64) {
+            throw new VersionException("Invalid message ID: " + messageId);
         }
     }
 
-    public boolean validateServiceType(String type) {
-        return type.length() <= 5;
+    public void validatePriorityFlag(int priority) {
+        if (priority < 0 || priority > 3) {
+            throw new VersionException(
+                    "Invalid message priority: " + priority);
+        }
     }
 
-    public boolean validateMessageId(String id) {
-        return id.length() <= 64;
-    }
-
-    public boolean validateMessageState(int st) {
-        return st >= 0 && st <= 0xff;
-    }
-
-    public boolean validateErrorCode(int code) {
-        return code >= 0 && code <= 0xff;
-    }
-
-    public boolean validatePriorityFlag(int flag) {
-        return flag >= 0 && flag <= 3;
-    }
-
-    public boolean validateRegisteredDelivery(int flag) {
+    public void validateRegisteredDelivery(int registeredDelivery) {
         // Registered delivery flag is split up into various bits for the
         // purpose of SMPP version 3.4. However, when taken in all their
         // permutations, the allowed values of this flag range from zero up to
         // 0x1f. So the following check is valid..
-        return flag >= 0 && flag <= 0x1f;
+        if (registeredDelivery < 0 || registeredDelivery > 0x1f) {
+            throw new VersionException(
+                    "Invalid registered delivery: " + registeredDelivery);
+        }
     }
 
-    public boolean validateReplaceIfPresent(int flag) {
-        return flag == 0 || flag == 1;
-    }
-
-    public boolean validateNumberOfDests(int num) {
-        return num >= 0 && num <= 254;
-    }
-
-    public boolean validateNumUnsuccessful(int num) {
-        return num >= 0 && num <= 255;
-    }
-
-    public boolean validateDistListName(String name) {
-        return name.length() <= 20;
-    }
-
-    public boolean validateSystemId(String sysId) {
-        return sysId.length() <= 15;
-    }
-
-    public boolean validatePassword(String password) {
-        return password.length() <= 8;
-    }
-
-    public boolean validateSystemType(String sysType) {
-        return sysType.length() <= 12;
-    }
-
-    public boolean validateAddressRange(String addressRange) {
-        // Possibly add some checks for allowed characters??
-        return addressRange.length() <= 40;
-    }
-
-    public boolean validateParamName(String paramName) {
-        // This is unsupported in 3.4
-        return false;
-    }
-
-    public boolean validateParamValue(String paramValue) {
-        // This is unsupported in 3.4
-        return false;
+    public void validateNumberOfDests(int num) {
+        if (num < 0 || num > 254) {
+            throw new VersionException(
+                    "Invalid number of destinations: " + num);
+        }
     }
 }
-

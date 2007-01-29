@@ -2,8 +2,7 @@ package ie.omk.smpp.version;
 
 /**
  * Exception thrown when there is a problem with SMPP versions.
- * 
- * @since 1.0
+ * @version $Id$
  * @author Oran Kelly
  */
 public class VersionException extends ie.omk.smpp.SMPPRuntimeException {
@@ -20,4 +19,3 @@ public class VersionException extends ie.omk.smpp.SMPPRuntimeException {
         super(msg, cause);
     }
 }
-
