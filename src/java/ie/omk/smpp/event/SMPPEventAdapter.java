@@ -90,7 +90,8 @@ public abstract class SMPPEventAdapter implements ConnectionObserver {
                 unidentified(source, pak);
             }
         } catch (Exception e) {
-            throw new SMPPRuntimeException("Exception calling handler", e);
+            throw new SMPPRuntimeException(
+                    "Exception calling packet handler", e);
         }
     }
 
