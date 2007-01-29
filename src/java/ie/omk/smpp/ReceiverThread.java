@@ -3,12 +3,12 @@ package ie.omk.smpp;
 import ie.omk.smpp.event.ReceiverExitEvent;
 import ie.omk.smpp.event.SMPPEvent;
 import ie.omk.smpp.message.SMPPPacket;
+import ie.omk.smpp.net.ReadTimeoutException;
 import ie.omk.smpp.util.APIConfig;
 import ie.omk.smpp.util.PacketFactory;
 import ie.omk.smpp.util.SMPPIO;
 
 import java.io.IOException;
-import java.net.SocketTimeoutException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +25,7 @@ class ReceiverThread extends Thread {
     
     ReceiverThread(Connection connection) {
         this.connection = connection;
+        setDaemon(true);
     }
     
     @Override
@@ -58,7 +59,7 @@ class ReceiverThread extends Thread {
                 connection.processReceivedPacket(packet);
                 connection.getEventDispatcher().notifyObservers(connection, packet);
                 ioExceptions = 0;
-            } catch (SocketTimeoutException x) {
+            } catch (ReadTimeoutException x) {
                 ConnectionState state = connection.getState();
                 if (state == ConnectionState.BINDING) {
                     LOG.debug("Bind timeout occurred.");
