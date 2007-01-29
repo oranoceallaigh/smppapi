@@ -1,239 +1,106 @@
 package ie.omk.smpp.version;
 
 import ie.omk.smpp.Address;
-import ie.omk.smpp.util.AlphabetEncoding;
-import ie.omk.smpp.util.MessageEncoding;
+
+import java.io.Serializable;
 
 /**
- * Class representing an SMPP protocol version. Instances of this object are
- * used by the rest of the API to determine is an SMPP message is supported by a
- * certain version of the protocol.
- * 
- * @since 0.3.0
- * @author Oran Kelly
+ * Representation of an SMPP version.
+ * @version $Id$
  */
-public abstract class SMPPVersion {
-
-    /** Constant representing the message payload mandatory parameter. */
-    public static final int MESSAGE_PAYLOAD = 5;
-
-    /** Static SMPPVersion instance representing version SMPP v3.3. */
-    public static final SMPPVersion V33 = new SMPPVersion33();
-
-    /** Static SMPPVersion instance representing version SMPP v3.4. */
-    public static final SMPPVersion V34 = new SMPPVersion34();
-
+public interface SMPPVersion extends Serializable {
     /**
-     * Integer representing this version number. The SMPP specification states
-     * integer values that represent protocol revisions. These values are used
-     * mainly in the bind_* and bind response messages. Integer value 0x33
-     * represents version 3.3 of the protocol, integer value 0x34 represents
-     * version 3.4...it's assumed further major and minor revisions of the SMPP
-     * specification will continue this numbering scheme.
+     * SMPP version 3.3.
      */
-    private int versionID;
-
-    /**
-     * Descriptive text for this protocol version. This value is used only to
-     * return a representative string from toString.
-     */
-    private String versionString;
-
-    /**
-     * Create a new SMPPVersion object.
-     */
-    protected SMPPVersion(int versionID, String versionString) {
-        this.versionID = versionID;
-        this.versionString = versionString;
-    }
-
-    /**
-     * Get an object representing the default version of the API, which is 3.4.
-     */
-    public static final SMPPVersion getDefaultVersion() {
-        return V34;
-    }
-
-    public static final SMPPVersion getVersion(int id) throws VersionException {
-        if (id == V33.getVersionID()) {
-            return V33;
-        } else if (id == V34.getVersionID()) {
-            return V34;
-        } else {
-            throw new VersionException("Unknown version id: 0x"
-                    + Integer.toHexString(id));
-        }
-    }
-
-    /**
-     * Get the integer value for this protocol version object.
-     */
-    public int getVersionID() {
-        return versionID;
-    }
-
-    /**
-     * Check if a version is older than this one. If <code>ver</code> is equal
-     * to this version, false will be returned.
-     */
-    public boolean isOlder(SMPPVersion ver) {
-        return ver.versionID < this.versionID;
-    }
-
-    /**
-     * Check if a version is newer than this one. If <code>ver</code> is equal
-     * to this version, false will be returned.
-     */
-    public boolean isNewer(SMPPVersion ver) {
-        return ver.versionID > this.versionID;
-    }
-
-    /**
-     * Test another SMPPVersion object for equality with this one.
-     */
-    public boolean equals(Object obj) {
-        if (obj instanceof SMPPVersion) {
-            return ((SMPPVersion) obj).versionID == this.versionID;
-        } else {
-            return false;
-        }
-    }
-
-    /**
-     * @return the hash code for this SMPP version.
-     */
-    public int hashCode() {
-        return new Integer(versionID).hashCode();
-    }
+    SMPPVersion VERSION_3_3 = new SMPPVersion33();
     
     /**
-     * Test <code>versionNum</code> is the numeric representation of this SMPP
-     * version.
+     * SMPP version 3.4.
      */
-    public boolean equals(int versionNum) {
-        return versionNum == this.versionID;
-    }
-
+    SMPPVersion VERSION_3_4 = new SMPPVersion34();
+    
     /**
-     * Return a descriptive string of this protocol version.
+     * Get an integer value representing this SMPP version. At present, the
+     * SMPP specification uses a hex representation to identify versions;
+     * version 3.3 is represented by <code>0x33</code>, version 3.4 is
+     * <code>0x34</code>.
+     * @return An integer value that represents this integer version.
      */
-    public String toString() {
-        return versionString;
-    }
-
+    int getVersionID();
+    
     /**
-     * Get the maximum allowed length for a particular field.
+     * Determine if this SMPP version is older than another version.
+     * @param otherVersion The version to test against.
+     * @return <code>true</code> if this version is older than
+     * <code>otherVersion</code>, <code>false</code> if it is equal to or
+     * newer than it.
      */
-    public abstract int getMaxLength(int field);
-
+    boolean isOlderThan(SMPPVersion otherVersion);
+    
     /**
-     * Determine if a particular command is supported by this protocol version.
-     * This method takes any valid SMPP command ID (for both requests and
-     * responses) and returns true or false based on whether the protocol
-     * version this object represents supports that command or not.
-     * 
-     * @param commandID
-     *            the SMPP command ID to check support for.
+     * Determine if this SMPP version is newer than another version.
+     * @param otherVersion The version to test against.
+     * @return <code>true</code> if this version is newer than
+     * <code>otherVersion</code>, <code>false</code> if it is equal to or
+     * older than it.
      */
-    public abstract boolean isSupported(int commandID);
-
+    boolean isNewerThan(SMPPVersion otherVersion);
+    
     /**
-     * Determine if this SMPP version supports optional parameters.
-     * 
-     * @return true if optional parameters are supported, false if they are not.
+     * Determine if the specified <code>versionID</code> matches this
+     * version&apos;s ID.
+     * @param versionID The version ID to test against.
+     * @return <code>true</code> if this version&apos;s ID matches
+     * <code>versionID</code>.
      */
-    public abstract boolean isSupportOptionalParams();
-
+    boolean equals(int versionID);
+    
     /**
-     * Validate and SMPP address for this SMPP version number.
+     * Get the maximum allowed length for a specified field.
+     * @param mandatoryParameter The enumerated field identifier to get the
+     * maximum length for.
+     * @return The maximum length of the specified field.
      */
-    public abstract boolean validateAddress(Address s);
-
+    int getMaxLength(MandatoryParameter mandatoryParameter);
+    
     /**
-     * Validate the ESM class mandatory parameter.
+     * Determine if this SMPP version supports the specified command.
+     * @param commandId The command ID of the packet.
+     * @return <code>true</code> if the command is supported, <code>false
+     * </code> otherwise.
      */
-    public abstract boolean validateEsmClass(int c);
-
+    boolean isSupported(int commandId);
+    
     /**
-     * Validate the Protocol ID mandatory parameter.
+     * Determine if this SMPP version supports optional parameters. This will
+     * be false for SMPP version 3.3 and true for versions 3.4 and later.
+     * @return <code>true</code> if this version supports optional parameters,
+     * <code>false</code> otherwise.
      */
-    public abstract boolean validateProtocolID(int id);
+    boolean isSupportOptionalParams();
 
-    /**
-     * Validate the data coding mandatory parameter.
-     */
-    public abstract boolean validateDataCoding(int dc);
-
-    /**
-     * Validate the default message ID mandatory parameter.
-     */
-    public abstract boolean validateDefaultMsg(int id);
-
-    /**
-     * Validate the message text length.
-     */
-    public abstract boolean validateMessageText(String text,
-            AlphabetEncoding alphabet);
-
-    /**
-     * Validate the length of the message bytes.
-     */
-    public abstract boolean validateMessage(byte[] message,
-            MessageEncoding encoding);
-
-    /**
-     * Validate the service type mandatory parameter.
-     */
-    public abstract boolean validateServiceType(String type);
-
-    /**
-     * Validate the message ID mandatory parameter.
-     */
-    public abstract boolean validateMessageId(String id);
-
-    /**
-     * Validate the message state mandatory parameter. The message state and
-     * message status are the same. The name of the parameter changed between
-     * version 3.3 and version 3.4. The semantics, however, remain the same.
-     */
-    public final boolean validateMessageStatus(int st) {
-        return validateMessageState(st);
-    }
-
-    /**
-     * Validate the message state mandatory parameter. The message state and
-     * message status are the same. The name of the parameter changed between
-     * version 3.3 and version 3.4. The semantics, however, remain the same.
-     */
-    public abstract boolean validateMessageState(int state);
-
-    /**
-     * Validate the error code mandatory parameter.
-     */
-    public abstract boolean validateErrorCode(int code);
-
-    public abstract boolean validatePriorityFlag(int flag);
-
-    public abstract boolean validateRegisteredDelivery(int flag);
-
-    public abstract boolean validateReplaceIfPresent(int flag);
-
-    public abstract boolean validateNumberOfDests(int num);
-
-    public abstract boolean validateNumUnsuccessful(int num);
-
-    public abstract boolean validateDistListName(String name);
-
-    public abstract boolean validateSystemId(String sysId);
-
-    public abstract boolean validatePassword(String password);
-
-    public abstract boolean validateSystemType(String sysType);
-
-    public abstract boolean validateAddressRange(String addressRange);
-
-    public abstract boolean validateParamName(String paramName);
-
-    public abstract boolean validateParamValue(String paramValue);
+    void validateAddress(Address address);
+    void validateTon(int ton);
+    void validateNpi(int npi);
+    void validateAddressRange(String addressRange);
+    void validateEsmClass(int c);
+    void validateProtocolID(int id);
+    void validateDataCoding(int dc);
+    void validateDefaultMsg(int id);
+    void validateMessage(byte[] message, int start, int length);
+    void validateServiceType(String type);
+    void validateMessageId(String id);
+    void validateMessageState(int state);
+    void validateErrorCode(int code);
+    void validatePriorityFlag(int flag);
+    void validateRegisteredDelivery(int flag);
+    void validateReplaceIfPresent(int flag);
+    void validateNumberOfDests(int num);
+    void validateNumUnsuccessful(int num);
+    void validateDistListName(String name);
+    void validateSystemId(String sysId);
+    void validatePassword(String password);
+    void validateSystemType(String sysType);
+    void validateParamName(String paramName);
+    void validateParamValue(String paramValue);
 }
-
