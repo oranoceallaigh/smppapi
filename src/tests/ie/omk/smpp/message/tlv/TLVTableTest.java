@@ -17,54 +17,54 @@ public class TLVTableTest extends TestCase {
         TLVTable table = new TLVTable();
 
         try {
-            assertFalse(table.isSet(Tag.DEST_ADDR_SUBUNIT));
-            table.set(Tag.DEST_ADDR_SUBUNIT, new Integer(0x56));
-            assertTrue(table.isSet(Tag.DEST_ADDR_SUBUNIT));
+            assertFalse(table.containsKey(Tag.DEST_ADDR_SUBUNIT));
+            table.put(Tag.DEST_ADDR_SUBUNIT, new Integer(0x56));
+            assertTrue(table.containsKey(Tag.DEST_ADDR_SUBUNIT));
         } catch (Exception x) {
             fail("Failed to set IntegerValue size 1");
         }
 
         try {
-            assertFalse(table.isSet(Tag.DEST_TELEMATICS_ID));
-            table.set(Tag.DEST_TELEMATICS_ID, new Integer(0xe2e1));
-            assertTrue(table.isSet(Tag.DEST_TELEMATICS_ID));
+            assertFalse(table.containsKey(Tag.DEST_TELEMATICS_ID));
+            table.put(Tag.DEST_TELEMATICS_ID, new Integer(0xe2e1));
+            assertTrue(table.containsKey(Tag.DEST_TELEMATICS_ID));
         } catch (Exception x) {
             fail("Failed to set IntegerValue size 2");
         }
 
         try {
-            assertFalse(table.isSet(Tag.QOS_TIME_TO_LIVE));
-            table.set(Tag.QOS_TIME_TO_LIVE, new Long(0xe4e3e2e1L));
-            assertTrue(table.isSet(Tag.QOS_TIME_TO_LIVE));
+            assertFalse(table.containsKey(Tag.QOS_TIME_TO_LIVE));
+            table.put(Tag.QOS_TIME_TO_LIVE, new Long(0xe4e3e2e1L));
+            assertTrue(table.containsKey(Tag.QOS_TIME_TO_LIVE));
         } catch (Exception x) {
             fail("Failed to set IntegerValue size 4");
         }
 
         try {
-            assertFalse(table.isSet(Tag.ADDITIONAL_STATUS_INFO_TEXT));
-            table.set(Tag.ADDITIONAL_STATUS_INFO_TEXT, "Test info");
-            assertTrue(table.isSet(Tag.ADDITIONAL_STATUS_INFO_TEXT));
+            assertFalse(table.containsKey(Tag.ADDITIONAL_STATUS_INFO_TEXT));
+            table.put(Tag.ADDITIONAL_STATUS_INFO_TEXT, "Test info");
+            assertTrue(table.containsKey(Tag.ADDITIONAL_STATUS_INFO_TEXT));
         } catch (Exception x) {
             fail("Failed to set StringValue.");
         }
 
         try {
-            assertFalse(table.isSet(Tag.CALLBACK_NUM_ATAG));
+            assertFalse(table.containsKey(Tag.CALLBACK_NUM_ATAG));
             byte[] b = {0x67, 0x67, 0x67};
-            table.set(Tag.CALLBACK_NUM_ATAG, b);
-            assertTrue(table.isSet(Tag.CALLBACK_NUM_ATAG));
+            table.put(Tag.CALLBACK_NUM_ATAG, b);
+            assertTrue(table.containsKey(Tag.CALLBACK_NUM_ATAG));
         } catch (Exception x) {
             fail("Failed to set OctetValue.");
         }
         try {
-            assertFalse(table.isSet(Tag.MS_MSG_WAIT_FACILITIES));
+            assertFalse(table.containsKey(Tag.MS_MSG_WAIT_FACILITIES));
             BitSet bitSet = new BitSet();
-            table.set(Tag.MS_MSG_WAIT_FACILITIES, bitSet);
-            assertTrue(table.isSet(Tag.MS_MSG_WAIT_FACILITIES));
+            table.put(Tag.MS_MSG_WAIT_FACILITIES, bitSet);
+            assertTrue(table.containsKey(Tag.MS_MSG_WAIT_FACILITIES));
             Tag newTag = Tag.defineTag(0xdead, new BitmaskParamDescriptor(), 1);
-            assertFalse(table.isSet(newTag));
-            table.set(newTag, bitSet);
-            assertTrue(table.isSet(newTag));
+            assertFalse(table.containsKey(newTag));
+            table.put(newTag, bitSet);
+            assertTrue(table.containsKey(newTag));
         } catch (Exception x) {
             fail("Failed to set Bitmask value");
         }
@@ -82,7 +82,7 @@ public class TLVTableTest extends TestCase {
                     + "444444444444444444444444444444444444444444444444444444444444444444444444444"
                     + "555555555555555555555555555555555555555555555555555555555555555555555555555"
                     + "666666666666666666666666666666666666666666666666666666666666666666666666666");
-            tab.set(Tag.ADDITIONAL_STATUS_INFO_TEXT, longString);
+            tab.put(Tag.ADDITIONAL_STATUS_INFO_TEXT, longString);
             fail("Set a StringValue that was too long.");
         } catch (InvalidSizeForValueException x) {
         }
@@ -90,7 +90,7 @@ public class TLVTableTest extends TestCase {
         try {
             // Try and set an OctetValue that's too short
             byte[] b = new byte[1];
-            tab.set(Tag.SOURCE_SUBADDRESS, b);
+            tab.put(Tag.SOURCE_SUBADDRESS, b);
             fail("Set an OctetValue that was too short.");
         } catch (InvalidSizeForValueException x) {
         }
@@ -98,7 +98,7 @@ public class TLVTableTest extends TestCase {
         try {
             // Try and set an OctetValue that's too long
             byte[] b = new byte[70];
-            tab.set(Tag.CALLBACK_NUM_ATAG, b);
+            tab.put(Tag.CALLBACK_NUM_ATAG, b);
             fail("Set an OctetValue that was too long.");
         } catch (InvalidSizeForValueException x) {
         }
@@ -114,13 +114,13 @@ public class TLVTableTest extends TestCase {
         BitSet bitSet = new BitSet();
         bitSet.set(3);
         // 0x56 == 86 decimal
-        origTable.set(Tag.DEST_ADDR_SUBUNIT, new Integer(0x56));
+        origTable.put(Tag.DEST_ADDR_SUBUNIT, new Integer(0x56));
         // 0xe2e1 == 58081 decimal
-        origTable.set(Tag.DEST_TELEMATICS_ID, new Integer(0xe2e1));
-        origTable.set(Tag.QOS_TIME_TO_LIVE, new Long((long) Integer.MAX_VALUE));
-        origTable.set(Tag.ADDITIONAL_STATUS_INFO_TEXT, "Test info");
-        origTable.set(Tag.CALLBACK_NUM_ATAG, b);
-        origTable.set(Tag.MS_MSG_WAIT_FACILITIES, bitSet);
+        origTable.put(Tag.DEST_TELEMATICS_ID, new Integer(0xe2e1));
+        origTable.put(Tag.QOS_TIME_TO_LIVE, new Long((long) Integer.MAX_VALUE));
+        origTable.put(Tag.ADDITIONAL_STATUS_INFO_TEXT, "Test info");
+        origTable.put(Tag.CALLBACK_NUM_ATAG, b);
+        origTable.put(Tag.MS_MSG_WAIT_FACILITIES, bitSet);
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         try {
@@ -144,7 +144,6 @@ public class TLVTableTest extends TestCase {
         position = new ParsePosition(0);
         newTable = new TLVTable();
         newTable.readFrom(serialized, position, serialized.length);
-        newTable.parseAllOpts();
         doTableAssertions(origTable, newTable);
         assertEquals(serialized.length, position.getIndex());
     }
@@ -207,9 +206,6 @@ public class TLVTableTest extends TestCase {
             ParsePosition position = new ParsePosition(0);
             tab.readFrom(b, position, b.length);
             assertEquals(b.length, position.getIndex());
-
-            tab.parseAllOpts();
-
             assertEquals(tab.get(Tag.DEST_TELEMATICS_ID), i);
             assertEquals(tab.get(Tag.ADDITIONAL_STATUS_INFO_TEXT), v);
 
