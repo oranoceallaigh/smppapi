@@ -1,6 +1,7 @@
 package ie.omk.smpp.message;
 
 import ie.omk.smpp.message.param.ParamDescriptor;
+import ie.omk.smpp.version.SMPPVersion;
 
 import java.util.List;
 
@@ -42,6 +43,12 @@ public class Outbind extends SMPPPacket {
     protected void toString(StringBuffer buffer) {
         buffer.append("systemId=").append(systemId)
         .append(",password=").append(password);
+    }
+
+    @Override
+    protected void validateMandatory(SMPPVersion smppVersion) {
+        smppVersion.validateSystemId(systemId);
+        smppVersion.validatePassword(password);
     }
     
     @Override

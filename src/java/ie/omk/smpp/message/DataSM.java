@@ -2,6 +2,7 @@ package ie.omk.smpp.message;
 
 import ie.omk.smpp.Address;
 import ie.omk.smpp.message.param.ParamDescriptor;
+import ie.omk.smpp.version.SMPPVersion;
 
 import java.util.List;
 
@@ -92,6 +93,16 @@ public class DataSM extends SMPPPacket {
         .append(",esmClass=").append(esmClass)
         .append(",registered=").append(registered)
         .append(",dataCoding=").append(dataCoding);
+    }
+
+    @Override
+    protected void validateMandatory(SMPPVersion smppVersion) {
+        smppVersion.validateServiceType(serviceType);
+        smppVersion.validateAddress(source);
+        smppVersion.validateAddress(destination);
+        smppVersion.validateEsmClass(esmClass);
+        smppVersion.validateRegisteredDelivery(registered);
+        smppVersion.validateDataCoding(dataCoding);
     }
     
     @Override

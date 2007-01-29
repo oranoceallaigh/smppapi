@@ -2,6 +2,7 @@ package ie.omk.smpp.message;
 
 import ie.omk.smpp.Address;
 import ie.omk.smpp.message.param.ParamDescriptor;
+import ie.omk.smpp.version.SMPPVersion;
 
 import java.util.List;
 
@@ -49,6 +50,12 @@ public class QuerySM extends SMPPPacket {
     protected void toString(StringBuffer buffer) {
         buffer.append("messageId=").append(messageId)
         .append(",source=").append(source);
+    }
+
+    @Override
+    protected void validateMandatory(SMPPVersion smppVersion) {
+        smppVersion.validateMessageId(messageId);
+        smppVersion.validateAddress(source);
     }
     
     @Override

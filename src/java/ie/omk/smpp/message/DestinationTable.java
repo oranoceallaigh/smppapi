@@ -5,17 +5,28 @@ import ie.omk.smpp.util.ParsePosition;
 import ie.omk.smpp.util.SMPPIO;
 
 import java.io.OutputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import org.slf4j.LoggerFactory;
 
-// TODO document
-// TODO: I removed iterator methods - how to make this class useful again?
-public class DestinationTable implements Cloneable {
+/**
+ * A table of destinations, primarily used in
+ * {@link ie.omk.smpp.message.SubmitMulti}.
+ * @version $Id$
+ */
+public class DestinationTable implements Serializable {
+    private static final long serialVersionUID = 1;
+    
     private List<Address> addresses = new ArrayList<Address>();
     private List<String> distributionLists = new ArrayList<String>();
 
+    /**
+     * The length is the total number of bytes the table would encode as.
+     */
     private int length;
 
     public DestinationTable() {
@@ -47,7 +58,7 @@ public class DestinationTable implements Cloneable {
         }
     }
 
-    public synchronized int getLength() {
+    public int getLength() {
         return length;
     }
 
@@ -55,7 +66,15 @@ public class DestinationTable implements Cloneable {
         return addresses.size() + distributionLists.size();
     }
 
-    public synchronized void writeTo(OutputStream out) throws java.io.IOException {
+    public Collection<Address> getAddresses() {
+        return Collections.unmodifiableCollection(addresses);
+    }
+    
+    public Collection<String> getDistributionLists() {
+        return Collections.unmodifiableCollection(distributionLists);
+    }
+    
+    public void writeTo(OutputStream out) throws java.io.IOException {
         for (Address address : addresses) {
             SMPPIO.writeByte(1, out);
             address.writeTo(out);
@@ -66,7 +85,7 @@ public class DestinationTable implements Cloneable {
         }
     }
 
-    public synchronized void readFrom(byte[] table, ParsePosition position, int count) {
+    public void readFrom(byte[] table, ParsePosition position, int count) {
         for (int i = 0; i < count; i++) {
             int type = SMPPIO.bytesToByte(table, position.getIndex());
             position.inc();

@@ -2,6 +2,7 @@ package ie.omk.smpp.message;
 
 import ie.omk.smpp.Address;
 import ie.omk.smpp.message.param.ParamDescriptor;
+import ie.omk.smpp.version.SMPPVersion;
 
 import java.util.List;
 
@@ -78,6 +79,14 @@ public class CancelSM extends SMPPPacket {
         .append(",messageId=").append(messageId)
         .append(",source=").append(source)
         .append(",destination=").append(destination);
+    }
+    
+    @Override
+    protected void validateMandatory(SMPPVersion smppVersion) {
+        smppVersion.validateServiceType(serviceType);
+        smppVersion.validateMessageId(messageId);
+        smppVersion.validateAddress(source);
+        smppVersion.validateAddress(destination);
     }
     
     @Override

@@ -5,6 +5,7 @@ import ie.omk.smpp.message.param.BytesParamDescriptor;
 import ie.omk.smpp.message.param.DestinationTableParamDescriptor;
 import ie.omk.smpp.message.param.ParamDescriptor;
 import ie.omk.smpp.util.SMPPDate;
+import ie.omk.smpp.version.SMPPVersion;
 
 import java.util.List;
 
@@ -210,10 +211,6 @@ public class QueryMsgDetailsResp extends SMPacket {
 
     @Override
     protected void toString(StringBuffer buffer) {
-        int length = 0;
-        if (message != null) {
-            length = message.length;
-        }
         buffer.append("serviceType=").append(serviceType)
         .append(",source=").append(source)
         .append(",numberOfDests=").append(destinationTable.size())
@@ -224,12 +221,33 @@ public class QueryMsgDetailsResp extends SMPacket {
         .append(",expiryTime=").append(expiryTime)
         .append(",registered=").append(registered)
         .append(",dataCoding=").append(dataCoding)
-        .append(",smLength=").append(length)
+        .append(",smLength=").append(getMessageLen())
         .append(",message=").append(message)
         .append(",messageId=").append(messageId)
         .append(",finalDate=").append(finalDate)
         .append(",messageStatus=").append(messageStatus)
         .append(",errorCode=").append(errorCode);
+    }
+
+    @Override
+    protected void validateMandatory(SMPPVersion smppVersion) {
+        smppVersion.validateServiceType(serviceType);
+        smppVersion.validateAddress(source);
+        smppVersion.validateNumberOfDests(destinationTable.size());
+        for (Address address : destinationTable.getAddresses()) {
+            smppVersion.validateAddress(address);
+        }
+        for (String distList : destinationTable.getDistributionLists()) {
+            smppVersion.validateDistListName(distList);
+        }
+        smppVersion.validateProtocolID(protocolID);
+        smppVersion.validatePriorityFlag(priority);
+        smppVersion.validateRegisteredDelivery(registered);
+        smppVersion.validateDataCoding(dataCoding);
+        smppVersion.validateMessage(message, 0, getMessageLen());
+        smppVersion.validateMessageId(messageId);
+        smppVersion.validateMessageState(messageStatus);
+        smppVersion.validateErrorCode(errorCode);
     }
     
     @Override

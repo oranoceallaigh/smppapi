@@ -5,6 +5,7 @@ import ie.omk.smpp.message.param.BytesParamDescriptor;
 import ie.omk.smpp.message.param.DestinationTableParamDescriptor;
 import ie.omk.smpp.message.param.ParamDescriptor;
 import ie.omk.smpp.util.SMPPDate;
+import ie.omk.smpp.version.SMPPVersion;
 
 import java.util.List;
 
@@ -107,6 +108,18 @@ public class SubmitMulti extends SMPacket {
         .append(",defaultMsg=").append(defaultMsg)
         .append(",smLength=").append(length)
         .append(",message=").append(message);
+    }
+
+    @Override
+    protected void validateMandatory(SMPPVersion smppVersion) {
+        super.validateMandatory(smppVersion);
+        smppVersion.validateNumberOfDests(destinationTable.size());
+        for (Address address : destinationTable.getAddresses()) {
+            smppVersion.validateAddress(address);
+        }
+        for (String distributionList : destinationTable.getDistributionLists()) {
+            smppVersion.validateDistListName(distributionList);
+        }
     }
     
     @Override

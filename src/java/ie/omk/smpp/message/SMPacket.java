@@ -4,6 +4,7 @@ import ie.omk.smpp.Address;
 import ie.omk.smpp.message.param.BytesParamDescriptor;
 import ie.omk.smpp.message.param.ParamDescriptor;
 import ie.omk.smpp.util.SMPPDate;
+import ie.omk.smpp.version.SMPPVersion;
 
 import java.util.List;
 
@@ -215,13 +216,9 @@ public class SMPacket extends SMPPPacket {
 
     @Override
     protected void toString(StringBuffer buffer) {
-        int length = 0;
-        if (message != null) {
-            length = message.length;
-        }
         buffer.append("serviceType=").append(serviceType)
         .append(",source=").append(source)
-        .append(",destinations=").append(destination)
+        .append(",destination=").append(destination)
         .append(",esmClass=").append(esmClass)
         .append(",protocolID=").append(protocolID)
         .append(",priority=").append(priority)
@@ -231,8 +228,23 @@ public class SMPacket extends SMPPPacket {
         .append(",replaceIfPresent=").append(replaceIfPresent)
         .append(",dataCoding=").append(dataCoding)
         .append(",defaultMsg=").append(defaultMsg)
-        .append(",smLength=").append(length)
+        .append(",smLength=").append(getMessageLen())
         .append(",message=").append(message);
+    }
+
+    @Override
+    protected void validateMandatory(SMPPVersion smppVersion) {
+        smppVersion.validateServiceType(serviceType);
+        smppVersion.validateAddress(source);
+        smppVersion.validateAddress(destination);
+        smppVersion.validateEsmClass(esmClass);
+        smppVersion.validateProtocolID(protocolID);
+        smppVersion.validatePriorityFlag(priority);
+        smppVersion.validateRegisteredDelivery(registered);
+        smppVersion.validateReplaceIfPresent(replaceIfPresent);
+        smppVersion.validateDataCoding(dataCoding);
+        smppVersion.validateDefaultMsg(defaultMsg);
+        smppVersion.validateMessage(message, 0, getMessageLen());
     }
     
     @Override
@@ -242,10 +254,6 @@ public class SMPacket extends SMPPPacket {
     
     @Override
     protected Object[] getMandatoryParameters() {
-        int length = 0;
-        if (message != null) {
-            length = message.length;
-        }
         return new Object[] {
                 serviceType,
                 source,
@@ -259,7 +267,7 @@ public class SMPacket extends SMPPPacket {
                 Integer.valueOf(replaceIfPresent),
                 Integer.valueOf(dataCoding),
                 Integer.valueOf(defaultMsg),
-                Integer.valueOf(length),
+                Integer.valueOf(getMessageLen()),
                 message,
         };
     }

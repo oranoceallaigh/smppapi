@@ -6,7 +6,7 @@ package ie.omk.smpp.message;
  * @author Oran Kelly
  * @version 1.0
  */
-public class BindTransmitter extends ie.omk.smpp.message.Bind {
+public class BindTransmitter extends Bind {
     /**
      * Construct a new BindTransmitter.
      */

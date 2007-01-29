@@ -1,6 +1,8 @@
 package ie.omk.smpp.message;
 
 
+import ie.omk.smpp.version.SMPPVersion;
+
 import java.util.List;
 
 
@@ -42,6 +44,11 @@ public class DeliverSMResp extends SMPPPacket {
     @Override
     protected void toString(StringBuffer buffer) {
         buffer.append("messageId=").append(messageId);
+    }
+
+    @Override
+    protected void validateMandatory(SMPPVersion smppVersion) {
+        smppVersion.validateMessageId(messageId);
     }
     
     @Override

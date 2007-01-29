@@ -6,7 +6,7 @@ package ie.omk.smpp.message;
  * @author Oran Kelly
  * @version 1.0
  */
-public class BindReceiverResp extends ie.omk.smpp.message.BindResp {
+public class BindReceiverResp extends BindResp {
     /**
      * Construct a new BindReceiverResp.
      */

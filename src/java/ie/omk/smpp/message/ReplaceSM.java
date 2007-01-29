@@ -4,6 +4,7 @@ import ie.omk.smpp.Address;
 import ie.omk.smpp.message.param.BytesParamDescriptor;
 import ie.omk.smpp.message.param.ParamDescriptor;
 import ie.omk.smpp.util.SMPPDate;
+import ie.omk.smpp.version.SMPPVersion;
 
 import java.util.List;
 
@@ -37,18 +38,23 @@ public class ReplaceSM extends SMPacket {
     
     @Override
     protected void toString(StringBuffer buffer) {
-        int length = 0;
-        if (message != null) {
-            length = message.length;
-        }
         buffer.append("messageId=").append(messageId)
         .append(",source=").append(source)
         .append(",deliveryTime=").append(deliveryTime)
         .append(",expiryTime=").append(expiryTime)
         .append(",registered=").append(registered)
         .append(",defaultMsg=").append(defaultMsg)
-        .append(",length=").append(length)
+        .append(",length=").append(getMessageLen())
         .append(",message=").append(message);
+    }
+    
+    @Override
+    protected void validateMandatory(SMPPVersion smppVersion) {
+        smppVersion.validateMessageId(messageId);
+        smppVersion.validateAddress(source);
+        smppVersion.validateRegisteredDelivery(registered);
+        smppVersion.validateDefaultMsg(defaultMsg);
+        smppVersion.validateMessage(message, 0, getMessageLen());
     }
     
     @Override

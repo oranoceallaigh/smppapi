@@ -2,6 +2,7 @@ package ie.omk.smpp.message;
 
 import ie.omk.smpp.message.param.ParamDescriptor;
 import ie.omk.smpp.util.SMPPDate;
+import ie.omk.smpp.version.SMPPVersion;
 
 import java.util.List;
 
@@ -83,6 +84,13 @@ public class QuerySMResp extends SMPPPacket {
         .append(",finalDate=").append(finalDate)
         .append(",messageState=").append(messageState)
         .append(",errorCode=").append(errorCode);
+    }
+
+    @Override
+    protected void validateMandatory(SMPPVersion smppVersion) {
+        smppVersion.validateMessageId(messageId);
+        smppVersion.validateMessageState(messageState);
+        smppVersion.validateErrorCode(errorCode);
     }
     
     @Override

@@ -7,6 +7,7 @@ import ie.omk.smpp.message.tlv.Tag;
 import ie.omk.smpp.util.ParsePosition;
 import ie.omk.smpp.util.SMPPIO;
 import ie.omk.smpp.version.SMPPVersion;
+import ie.omk.smpp.version.VersionException;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -192,12 +193,6 @@ public abstract class SMPPPacket {
     /** Esme error code: No error */
     public static final int ESME_ROK = 0;
 
-    /**
-     * Version of this packet. This object controls valid settings for field
-     * values.
-     */
-    protected SMPPVersion version = SMPPVersion.getDefaultVersion();
-
     /** Command ID. */
     protected int commandId;
 
@@ -229,19 +224,9 @@ public abstract class SMPPPacket {
      */
     protected SMPPPacket(SMPPPacket request) {
         commandId = request.commandId | 0x80000000;
-        version = request.version;
         sequenceNum = request.sequenceNum;
     }
     
-    /**
-     * Get the version handler in use for this packet.
-     * 
-     * @see ie.omk.smpp.version.SMPPVersion
-     */
-    public SMPPVersion getVersion() {
-        return version;
-    }
-
     /**
      * Is this command a request packet.
      * @return <code>true</code> if this packet is an SMPP request, <code>
@@ -260,22 +245,6 @@ public abstract class SMPPPacket {
         return (commandId & 0x80000000) != 0;
     }
     
-    /**
-     * Set the version handler for this packet. If <code>null</code> is passed
-     * in as the version, the default version will be used.
-     * 
-     * @param version
-     *            the version handler to use.
-     * @see ie.omk.smpp.version.SMPPVersion#getDefaultVersion
-     */
-    public void setVersion(SMPPVersion version) {
-        if (version == null) {
-            this.version = SMPPVersion.getDefaultVersion();
-        } else {
-            this.version = version;
-        }
-    }
-
     /**
      * Get the Command Id of this SMPP packet.
      * 
@@ -361,7 +330,7 @@ public abstract class SMPPPacket {
      * @return the previous value of the parameter, or null if it was unset.
      */
     public Object setOptionalParameter(Tag tag, Object value) {
-        return tlvTable.set(tag, value);
+        return tlvTable.put(tag, value);
     }
 
     /**
@@ -394,7 +363,7 @@ public abstract class SMPPPacket {
      * @return true if the parameter is set, false if it is not.
      */
     public boolean isSet(Tag tag) {
-        return tlvTable.isSet(tag);
+        return tlvTable.containsKey(tag);
     }
 
     /**
@@ -499,6 +468,25 @@ public abstract class SMPPPacket {
     }
 
     /**
+     * Validate this packet against an SMPP version. If any part of this
+     * packet is in violation of <code>smppVersion</code>, a
+     * {@link ie.omk.smpp.version.VersionException} will be thrown.
+     * Examples of violations are:
+     * <ul>
+     * <li>The specified version does not support this packet type</li>
+     * <li>A mandatory parameter field is too short or long, or specifies an
+     * unsupported value</li>
+     * </ul>
+     * @param smppVersion The version to validate against.
+     */
+    public void validate(SMPPVersion smppVersion) {
+        if (!smppVersion.isSupported(commandId)) {
+            throw new VersionException("Unsupported command ID.");
+        }
+        validateMandatory(smppVersion);
+    }
+    
+    /**
      * Return a String representation of this packet. This is provided
      * for debugging/display purposes only and is not intended to be used
      * programatically.
@@ -515,8 +503,9 @@ public abstract class SMPPPacket {
         .append(",sequenceNum=").append(sequenceNum)
         .append("] Mandatory:[");
         toString(buffer);
-        buffer.append("] Optional:[");
-        buffer.append("]]");
+        buffer.append("] Optional:[")
+        .append(tlvTable)
+        .append("]]");
         return buffer.toString();
     }
     
@@ -527,14 +516,42 @@ public abstract class SMPPPacket {
     protected void toString(StringBuffer buffer) {
     }
 
-    // TODO document
+    /**
+     * Validate the mandatory parameters for this packet.
+     * @param smppVersion The version to validate against.
+     */
+    protected void validateMandatory(SMPPVersion smppVersion) {
+    }
+
+    /**
+     * Set the mandatory parameters of this packet from the supplied list.
+     * <code>params</code> will contain the set of objects parsed from
+     * a byte array according to the packet&apos;s body descriptor.
+     * @param params The mandatory parameters parsed from a byte array
+     * according to the packet&apos;s body descriptor.
+     */
     protected void setMandatoryParameters(List<Object> params) {
     }
 
+    /**
+     * Get this packet&apos;s body descriptor. This default implementation
+     * returns <code>null</code>, implying the packet does not have any
+     * mandatory parameters.
+     * @return This packet&apos;s body descriptor;
+     */
     protected BodyDescriptor getBodyDescriptor() {
         return null;
     }
     
+    /**
+     * Get the objects that make up this packet&apos;s mandatory parameters.
+     * This method is called when the packet is being written out. It must
+     * never return <code>null</code>. This default implementation returns
+     * a zero-length array, implying the packet does not have any mandatory
+     * parameters. The objects returned by this method <b>must</b> match
+     * with the body descriptor.
+     * @return An array of mandatory parameters.
+     */
     protected Object[] getMandatoryParameters() {
         return new Object[0];
     }
@@ -549,7 +566,7 @@ public abstract class SMPPPacket {
      * @throws ie.omk.smpp.message.SMPPProtocolException
      *             if there is an error parsing the packet fields.
      */
-    private List<Object> readMandatory(byte[] data, ie.omk.smpp.util.ParsePosition pos) throws SMPPProtocolException {
+    private List<Object> readMandatory(byte[] data, ParsePosition pos) throws SMPPProtocolException {
         List<Object> body = new ArrayList<Object>();
         BodyDescriptor bodyDescriptor = getBodyDescriptor();
         if (bodyDescriptor == null) {

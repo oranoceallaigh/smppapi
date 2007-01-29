@@ -9,12 +9,11 @@ import java.util.List;
 
 /**
  * SMSC response to a QueryLastMsgs request.
- * 
- * @author Oran Kelly
- * @version 1.0
+ * @version $Id$
  */
 public class QueryLastMsgsResp extends SMPPPacket {
     private static final BodyDescriptor BODY_DESCRIPTOR = new BodyDescriptor();
+    private static final int MAX_SIZE = 255;
     
     /** The table of messages returned */
     private List<String> messageTable = new ArrayList<String>();
@@ -43,14 +42,18 @@ public class QueryLastMsgsResp extends SMPPPacket {
     }
 
     /**
-     * Add a message Id to the response packet.
-     * 
+     * Add a message Id to the response packet. A maximum of 255 message IDs
+     * can be added, since the size specifier for the encoded packet is only
+     * one byte. If an attempt is made to add more than 255 message IDs, this
+     * method will fail silently.
      * @param id
      *            The message Id to add to the packet.
      * @return The current number of message Ids (including the new one).
      */
     public int addMessageId(String id) {
-        messageTable.add(id);
+        if (messageTable.size() < MAX_SIZE) {
+            messageTable.add(id);
+        }
         return messageTable.size();
     }
 
@@ -66,9 +69,7 @@ public class QueryLastMsgsResp extends SMPPPacket {
      * returned.
      */
     public String[] getMessageIds() {
-        synchronized (messageTable) {
-            return (String[]) messageTable.toArray(new String[0]);
-        }
+        return (String[]) messageTable.toArray(new String[0]);
     }
 
     @Override
@@ -76,7 +77,7 @@ public class QueryLastMsgsResp extends SMPPPacket {
         buffer.append("msgCount=").append(messageTable.size())
         .append(",messageIds=").append(messageTable);
     }
-    
+
     @Override
     protected BodyDescriptor getBodyDescriptor() {
         return BODY_DESCRIPTOR;

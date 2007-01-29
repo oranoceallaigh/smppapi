@@ -2,6 +2,7 @@ package ie.omk.smpp.message;
 
 import ie.omk.smpp.Address;
 import ie.omk.smpp.message.param.ParamDescriptor;
+import ie.omk.smpp.version.SMPPVersion;
 
 import java.util.List;
 
@@ -53,6 +54,12 @@ public class AlertNotification extends SMPPPacket {
     protected void toString(StringBuffer buffer) {
         buffer.append("source=").append(source)
         .append(",destination=").append(destination);
+    }
+    
+    @Override
+    protected void validateMandatory(SMPPVersion smppVersion) {
+        smppVersion.validateAddress(source);
+        smppVersion.validateAddress(destination);
     }
     
     @Override

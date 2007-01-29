@@ -2,6 +2,7 @@ package ie.omk.smpp.message;
 
 import ie.omk.smpp.Address;
 import ie.omk.smpp.message.param.ParamDescriptor;
+import ie.omk.smpp.version.SMPPVersion;
 
 import java.util.List;
 
@@ -54,16 +55,32 @@ public class QueryLastMsgs extends SMPPPacket {
         return msgCount;
     }
 
+    /**
+     * Set the number of messages to query. <code>msgCount</code> must be
+     * between 1 and 100 inclusive. Attempts to set a value less than 1 will
+     * force the value to 1. Attempts to set a value greater than 100 will
+     * force the value to 100.
+     * @param msgCount The number of messages to query from the SMSC.
+     */
     public void setMsgCount(int msgCount) {
-        this.msgCount = msgCount;
+        if (msgCount < 1) {
+            this.msgCount = 1;
+        } else if (msgCount > 100) {
+            this.msgCount = 100;
+        } else {
+            this.msgCount = msgCount;
+        }
     }
 
-    // TODO: msgCount must be between 1 and 100 inclusive for validation.
-    
     @Override
     protected void toString(StringBuffer buffer) {
         buffer.append("source=").append(source)
         .append("msgCount=").append(msgCount);
+    }
+
+    @Override
+    protected void validateMandatory(SMPPVersion smppVersion) {
+        smppVersion.validateAddress(source);
     }
     
     @Override

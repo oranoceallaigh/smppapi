@@ -1,5 +1,7 @@
 package ie.omk.smpp.message;
 
+import ie.omk.smpp.version.SMPPVersion;
+
 import java.util.List;
 
 /**
@@ -36,6 +38,11 @@ public class ParamRetrieve extends SMPPPacket {
     @Override
     protected void toString(StringBuffer buffer) {
         buffer.append("paramName=").append(paramName);
+    }
+
+    @Override
+    protected void validateMandatory(SMPPVersion smppVersion) {
+        smppVersion.validateParamName(paramName);
     }
     
     @Override

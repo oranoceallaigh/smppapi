@@ -2,6 +2,7 @@ package ie.omk.smpp.message;
 
 import ie.omk.smpp.Address;
 import ie.omk.smpp.message.param.ParamDescriptor;
+import ie.omk.smpp.version.SMPPVersion;
 
 import java.util.List;
 
@@ -66,13 +67,12 @@ public class QueryMsgDetails extends SMPPPacket {
      *            The number of bytes required.
      */
     public void setSmLength(int len) {
-        smLength = len;
-
-        if (smLength < 0) {
+        if (len < 0) {
             smLength = 0;
-        }
-        if (smLength > 160) {
+        } else if (len > 160) {
             smLength = 160;
+        } else {
+            smLength = len;
         }
     }
 
@@ -86,6 +86,12 @@ public class QueryMsgDetails extends SMPPPacket {
         buffer.append("messageId=").append(messageId)
         .append(",source=").append(source)
         .append(",smLength=").append(smLength);
+    }
+
+    @Override
+    protected void validateMandatory(SMPPVersion smppVersion) {
+        smppVersion.validateMessageId(messageId);
+        smppVersion.validateAddress(source);
     }
     
     @Override

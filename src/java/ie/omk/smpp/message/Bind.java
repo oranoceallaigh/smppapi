@@ -2,6 +2,7 @@ package ie.omk.smpp.message;
 
 import ie.omk.smpp.message.param.ParamDescriptor;
 import ie.omk.smpp.version.SMPPVersion;
+import ie.omk.smpp.version.VersionFactory;
 
 import java.util.List;
 
@@ -15,6 +16,7 @@ public abstract class Bind extends SMPPPacket {
     private String systemId;
     private String password;
     private String systemType;
+    private SMPPVersion version;
     private String addressRange;
     private int addressTon;
     private int addressNpi;
@@ -81,6 +83,14 @@ public abstract class Bind extends SMPPPacket {
         this.systemType = systemType;
     }
 
+    public SMPPVersion getVersion() {
+        return version;
+    }
+
+    public void setVersion(SMPPVersion version) {
+        this.version = version;
+    }
+
     protected void toString(StringBuffer buffer) {
         buffer.append("systemId=").append(systemId)
         .append(",password=").append(password)
@@ -90,7 +100,17 @@ public abstract class Bind extends SMPPPacket {
         .append(",npi=").append(addressNpi)
         .append(",range=").append(addressRange);
     }
-                                                  
+
+    @Override
+    protected void validateMandatory(SMPPVersion smppVersion) {
+        smppVersion.validateSystemId(systemId);
+        smppVersion.validatePassword(password);
+        smppVersion.validateSystemType(systemType);
+        smppVersion.validateTon(addressTon);
+        smppVersion.validateNpi(addressNpi);
+        smppVersion.validateAddressRange(addressRange);
+    }
+    
     @Override
     protected BodyDescriptor getBodyDescriptor() {
         return BODY_DESCRIPTOR;
@@ -114,7 +134,7 @@ public abstract class Bind extends SMPPPacket {
         systemId = (String) params.get(0);
         password = (String) params.get(1);
         systemType = (String) params.get(2);
-        version = SMPPVersion.getVersion(((Number) params.get(3)).intValue());
+        version = VersionFactory.getVersion(((Number) params.get(3)).intValue());
         addressTon = ((Number) params.get(4)).intValue();
         addressNpi = ((Number) params.get(5)).intValue();
         addressRange = (String) params.get(6);

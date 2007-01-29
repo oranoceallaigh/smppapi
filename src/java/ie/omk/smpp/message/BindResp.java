@@ -1,6 +1,7 @@
 package ie.omk.smpp.message;
 
 import ie.omk.smpp.message.param.ParamDescriptor;
+import ie.omk.smpp.version.SMPPVersion;
 
 import java.util.List;
 
@@ -41,6 +42,11 @@ public abstract class BindResp extends SMPPPacket {
     @Override
     protected void toString(StringBuffer buffer) {
         buffer.append("systemId=").append(systemId);
+    }
+    
+    @Override
+    protected void validateMandatory(SMPPVersion smppVersion) {
+        smppVersion.validateSystemId(systemId);
     }
     
     @Override

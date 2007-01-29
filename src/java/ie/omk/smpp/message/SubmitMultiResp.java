@@ -4,6 +4,7 @@ import ie.omk.smpp.Address;
 import ie.omk.smpp.ErrorAddress;
 import ie.omk.smpp.message.param.ListParamDescriptor;
 import ie.omk.smpp.message.param.ParamDescriptor;
+import ie.omk.smpp.version.SMPPVersion;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -106,6 +107,12 @@ public class SubmitMultiResp extends SMPPPacket {
         buffer.append("messageId=").append(messageId)
         .append(",unsuccessfulCount=").append(unsuccessfulTable.size())
         .append(",unsuccessful=").append(unsuccessfulTable);
+    }
+
+    @Override
+    protected void validateMandatory(SMPPVersion smppVersion) {
+        smppVersion.validateMessageId(messageId);
+        smppVersion.validateNumUnsuccessful(unsuccessfulTable.size());
     }
     
     @Override
