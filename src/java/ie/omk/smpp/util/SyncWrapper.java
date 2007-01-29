@@ -12,6 +12,7 @@ import ie.omk.smpp.message.BindTransmitter;
 import ie.omk.smpp.message.SMPPPacket;
 import ie.omk.smpp.message.Unbind;
 import ie.omk.smpp.message.UnbindResp;
+import ie.omk.smpp.net.ReadTimeoutException;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -33,7 +34,7 @@ public class SyncWrapper implements ConnectionObserver {
     private static final Logger LOG = LoggerFactory.getLogger(SyncWrapper.class);
     
     private Connection connection;
-    private Map<Integer, SMPPPacket> blockers = new HashMap<Integer, SMPPPacket>();
+    private Map<Number, SMPPPacket> blockers = new HashMap<Number, SMPPPacket>();
     private List<SMPPPacket> packetQueue = new ArrayList<SMPPPacket>();
     private long packetTimeout;
     
@@ -57,13 +58,42 @@ public class SyncWrapper implements ConnectionObserver {
         this.connection = connection;
     }
 
+    /**
+     * Bind to the SMSC.
+     * @param type The type of connection to bind as (transmitter, receiver
+     * or transceiver).
+     * @param systemID The system ID of this connection.
+     * @param password The password of this connection.
+     * @param systemType The system Type for this connection.
+     * @return The bind response packet received from the SMSC.
+     * @throws IOException If an error occurs when trying to send the
+     * bind request packet to the SMSC.
+     * @throws ReadTimeoutException If the bind timeout
+     * expires before the response is received from the SMSC.
+     */
     public BindResp bind(ConnectionType type,
             String systemID,
             String password,
             String systemType) throws IOException {
         return bind(type, systemID, password, systemType, 0, 0, null);
     }
-    
+
+    /**
+     * Bind to the SMSC.
+     * @param type The type of connection to bind as (transmitter, receiver
+     * or transceiver).
+     * @param systemID The system ID of this connection.
+     * @param password The password of this connection.
+     * @param systemType The system Type for this connection.
+     * @param typeOfNumber TON to bind as.
+     * @param numberPlanIndicator NPI to bind as.
+     * @param addressRange Address range to bind as.
+     * @return The bind response packet received from the SMSC.
+     * @throws IOException If an error occurs when trying to send the
+     * bind request packet to the SMSC.
+     * @throws ReadTimeoutException If the bind timeout
+     * expires before the response is received from the SMSC.
+     */
     public BindResp bind(ConnectionType type,
             String systemID,
             String password,
@@ -88,14 +118,43 @@ public class SyncWrapper implements ConnectionObserver {
         bindRequest.setAddressRange(addressRange);
         return bind(bindRequest);
     }
-    
+
+    /**
+     * Bind to the SMSC.
+     * @param bindRequest The bind request packet to send.
+     * @return The bind response packet received from the SMSC.
+     * @throws IOException If an error occurs when trying to send the bind
+     * packet to the SMSC.
+     * @throws ReadTimeoutException If the bind timeout
+     * expires before the response is received from the SMSC.
+     */
     public BindResp bind(Bind bindRequest) throws IOException {
         long timeout = getBindTimeout();
-        return (BindResp) sendAndWait(bindRequest, bindCaller, timeout);
+        BindResp bindResp = (BindResp) sendAndWait(
+                bindRequest, bindCaller, timeout);
+        if (bindResp == null) {
+            throw new ReadTimeoutException();
+        } else {
+            return bindResp;
+        }
     }
 
+    /**
+     * Unbind from the SMSC and wait for the unbind response packet.
+     * @return The unbind response packet received from the SMSC.
+     * @throws IOException If an error occurs when trying to send the unbind
+     * packet to the SMSC.
+     * @throws ReadTimeoutException If the <code>packetTimeout</code>
+     * expires before the response is received from the SMSC.
+     */
     public UnbindResp unbind() throws IOException {
-        return (UnbindResp) sendAndWait(new Unbind(), unbindCaller, packetTimeout);
+        UnbindResp unbindResp = (UnbindResp) sendAndWait(
+                new Unbind(), unbindCaller, packetTimeout);
+        if (unbindResp == null) {
+            throw new ReadTimeoutException();
+        } else {
+            return unbindResp;
+        }
     }
     
     /**
@@ -106,9 +165,16 @@ public class SyncWrapper implements ConnectionObserver {
      * the thread was instructed to give up the wait.
      * @throws IOException If there was a problem writing to, or reading
      * from, the connection.
+     * @throws ReadTimeoutException If the <code>packetTimeout</code>
+     * expires before the response is received from the SMSC.
      */
     public SMPPPacket sendPacket(SMPPPacket packet) throws IOException {
-        return sendAndWait(packet, packetCaller, packetTimeout);
+        SMPPPacket response = sendAndWait(packet, packetCaller, packetTimeout);
+        if (response == null) {
+            throw new ReadTimeoutException();
+        } else {
+            return response;
+        }
     }
     
     public void packetReceived(Connection source, SMPPPacket packet) {
@@ -117,9 +183,9 @@ public class SyncWrapper implements ConnectionObserver {
                 LOG.debug("Response received: there are {} threads blocked.",
                         blockers.size());
             }
-            Integer seq = null;
+            Number seq = null;
             synchronized (blockers) {
-                seq = new Integer(packet.getSequenceNum());
+                seq = new Long(packet.getSequenceNum());
                 seq = getKeyObject(seq);
                 if (seq != null) {
                     blockers.put(seq, packet);
@@ -127,7 +193,7 @@ public class SyncWrapper implements ConnectionObserver {
                         seq.notify();
                     }
                 } else {
-                    LOG.warn("No blocker thread waiting on packet {}", seq);
+                    LOG.debug("No blocker thread waiting on packet {}", seq);
                     addToQueue(packet);
                 }
             }
@@ -137,6 +203,8 @@ public class SyncWrapper implements ConnectionObserver {
     }
 
     public void update(Connection source, SMPPEvent event) {
+        // TODO: need to handle SMPPEvent
+        LOG.warn("SyncWrapper ignoring an SMPP event.");
     }
 
     /**
@@ -207,8 +275,8 @@ public class SyncWrapper implements ConnectionObserver {
      */
     public void interruptAllBlocked() {
         synchronized (blockers) {
-            for (Iterator<Integer> iter = blockers.keySet().iterator(); iter.hasNext();) {
-                Integer seq = iter.next();
+            for (Iterator<Number> iter = blockers.keySet().iterator(); iter.hasNext();) {
+                Number seq = iter.next();
                 synchronized (seq) {
                     seq.notify();
                 }
@@ -216,11 +284,11 @@ public class SyncWrapper implements ConnectionObserver {
         }
     }
     
-    private Integer getKeyObject(Integer seq) {
-        for (Iterator<Integer> iter = blockers.keySet().iterator(); iter.hasNext();) {
-            Integer integer = iter.next();
-            if (integer.equals(seq)) {
-                return integer;
+    private Number getKeyObject(Number seq) {
+        for (Iterator<Number> iter = blockers.keySet().iterator(); iter.hasNext();) {
+            Number value = iter.next();
+            if (value.equals(seq)) {
+                return value;
             }
         }
         return null;
@@ -240,12 +308,12 @@ public class SyncWrapper implements ConnectionObserver {
     private SMPPPacket sendAndWait(SMPPPacket packet,
             ConnectionCaller caller,
             long timeout) throws IOException {
-        Integer seq;
-        if (packet.getSequenceNum() < 0) {
-            int nextSeq = connection.getSequenceNumberScheme().nextNumber();
-            seq = new Integer(nextSeq);
+        Long seq;
+        if (packet.getSequenceNum() < 0L) {
+            long nextSeq = connection.getSequenceNumberScheme().nextNumber();
+            seq = new Long(nextSeq);
         } else {
-            seq = new Integer(packet.getSequenceNum());
+            seq = new Long(packet.getSequenceNum());
         }
         synchronized (blockers) {
             if (blockers.containsKey(seq)) {

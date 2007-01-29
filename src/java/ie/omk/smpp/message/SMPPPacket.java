@@ -200,7 +200,7 @@ public abstract class SMPPPacket {
     protected int commandStatus;
 
     /** Packet sequence number. */
-    protected int sequenceNum = -1;
+    protected long sequenceNum = -1;
 
     /** Optional parameter table. */
     protected TLVTable tlvTable = new TLVTable();
@@ -276,14 +276,14 @@ public abstract class SMPPPacket {
      * 
      * @return The sequence number of this SMPP packet
      */
-    public int getSequenceNum() {
+    public long getSequenceNum() {
         return sequenceNum;
     }
 
     /**
      * Set the sequence number of this packet.
      */
-    public void setSequenceNum(int sequenceNum) {
+    public void setSequenceNum(long sequenceNum) {
         this.sequenceNum = sequenceNum;
     }
 
@@ -405,7 +405,7 @@ public abstract class SMPPPacket {
         SMPPIO.writeInt(commandLen, out);
         SMPPIO.writeInt(commandId, out);
         SMPPIO.writeInt(commandStatus, out);
-        SMPPIO.writeInt(sequenceNum, out);
+        SMPPIO.writeLongInt(sequenceNum, out);
         writeMandatory(out);
         if (withOptional) {
             tlvTable.writeTo(out);
@@ -448,7 +448,7 @@ public abstract class SMPPPacket {
                     + ", available = " + (data.length - offset));
         }
         commandStatus = SMPPIO.bytesToInt(data, offset + 8);
-        sequenceNum = SMPPIO.bytesToInt(data, offset + 12);
+        sequenceNum = SMPPIO.bytesToLongInt(data, offset + 12);
         try {
             if (commandStatus == 0) {
                 // Read the mandatory body parameters..

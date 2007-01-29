@@ -175,7 +175,7 @@ public class ThreadedEventDispatcher extends AbstractEventDispatcher implements 
         if (LOG.isDebugEnabled()) {
             LOG.debug("Notifying observers of a new SMPP packet ({}, {})",
                     Integer.toHexString(pak.getCommandId()),
-                    Integer.toString(pak.getSequenceNum()));
+                    Long.toString(pak.getSequenceNum()));
         }
         queue.put(conn, pak);
         if (threadsWaiting > 0) {

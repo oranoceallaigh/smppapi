@@ -1,6 +1,6 @@
 package ie.omk.smpp.util;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * The default sequence numbering scheme. This implementation starts at sequence
@@ -16,9 +16,13 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @version $Id$
  */
 public class DefaultSequenceScheme implements SequenceNumberScheme {
-
-    private int start = 1;
-    private AtomicInteger sequence = new AtomicInteger(1);
+    /**
+     * Maximum this sequence can go to (a 32-bit unsigned integer).
+     */
+    public static final long MAX_VALUE = 4294967295L;
+    
+    private long start = 1L;
+    private AtomicLong sequence = new AtomicLong(1);
 
     public DefaultSequenceScheme() {
     }
@@ -27,24 +31,24 @@ public class DefaultSequenceScheme implements SequenceNumberScheme {
      * Construct a new DefaultSequenceScheme that starts the sequence from
      * <code>start</code>.
      */
-    public DefaultSequenceScheme(int start) {
+    public DefaultSequenceScheme(long start) {
         this.start = start;
         sequence.set(start);
     }
 
-    public int nextNumber() {
-        int n = sequence.getAndIncrement();
-        if (n == Integer.MAX_VALUE) {
+    public long nextNumber() {
+        long n = sequence.getAndIncrement();
+        if (n == MAX_VALUE) {
             sequence.set(1);
         }
         return n;
     }
 
-    public int peek() {
+    public long peek() {
         return sequence.get();
     }
 
-    public int peek(int nth) {
+    public long peek(long nth) {
         return sequence.get() + nth;
     }
 
