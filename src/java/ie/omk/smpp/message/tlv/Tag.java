@@ -1,6 +1,7 @@
 package ie.omk.smpp.message.tlv;
 
-import java.util.BitSet;
+import ie.omk.smpp.message.param.ParamDescriptor;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -20,106 +21,137 @@ public final class Tag implements java.io.Serializable {
 
     static final long serialVersionUID = -418561932897398277L;
     
-    public static final Tag DEST_ADDR_SUBUNIT = new Tag(0x05, Number.class, 1);
+    public static final Tag DEST_ADDR_SUBUNIT =
+        new Tag(0x05, ParamDescriptor.INTEGER1, 1);
 
-    public static final Tag DEST_NETWORK_TYPE = new Tag(0x06, Number.class, 1);
+    public static final Tag DEST_NETWORK_TYPE =
+        new Tag(0x06, ParamDescriptor.INTEGER1, 1);
 
-    public static final Tag DEST_BEARER_TYPE = new Tag(0x07, Number.class, 1);
+    public static final Tag DEST_BEARER_TYPE =
+        new Tag(0x07, ParamDescriptor.INTEGER1, 1);
 
-    public static final Tag DEST_TELEMATICS_ID = new Tag(0x08, Number.class, 2);
+    public static final Tag DEST_TELEMATICS_ID =
+        new Tag(0x08, ParamDescriptor.INTEGER2, 2);
 
-    public static final Tag SOURCE_ADDR_SUBUNIT = new Tag(0x0d, Number.class, 1);
+    public static final Tag SOURCE_ADDR_SUBUNIT =
+        new Tag(0x0d, ParamDescriptor.INTEGER1, 1);
 
-    public static final Tag SOURCE_NETWORK_TYPE = new Tag(0x0e, Number.class, 1);
+    public static final Tag SOURCE_NETWORK_TYPE =
+        new Tag(0x0e, ParamDescriptor.INTEGER1, 1);
 
-    public static final Tag SOURCE_BEARER_TYPE = new Tag(0x0f, Number.class, 1);
+    public static final Tag SOURCE_BEARER_TYPE =
+        new Tag(0x0f, ParamDescriptor.INTEGER1, 1);
 
-    public static final Tag SOURCE_TELEMATICS_ID = new Tag(0x10, Number.class,
-            1);
+    public static final Tag SOURCE_TELEMATICS_ID =
+        new Tag(0x10, ParamDescriptor.INTEGER1, 1);
 
-    public static final Tag QOS_TIME_TO_LIVE = new Tag(0x17, Number.class, 4);
+    public static final Tag QOS_TIME_TO_LIVE =
+        new Tag(0x17, ParamDescriptor.INTEGER4, 4);
 
-    public static final Tag PAYLOAD_TYPE = new Tag(0x19, Number.class, 1);
+    public static final Tag PAYLOAD_TYPE =
+        new Tag(0x19, ParamDescriptor.INTEGER1, 1);
 
-    public static final Tag ADDITIONAL_STATUS_INFO_TEXT = new Tag(0x1d,
-            String.class, 1, 256);
+    public static final Tag ADDITIONAL_STATUS_INFO_TEXT =
+        new Tag(0x1d, ParamDescriptor.CSTRING, 1, 256);
 
-    public static final Tag RECEIPTED_MESSAGE_ID = new Tag(0x1e, String.class,
-            1, 65);
+    public static final Tag RECEIPTED_MESSAGE_ID =
+        new Tag(0x1e, ParamDescriptor.CSTRING, 1, 65);
 
-    public static final Tag MS_MSG_WAIT_FACILITIES = new Tag(0x30,
-            BitSet.class, 1);
+    public static final Tag MS_MSG_WAIT_FACILITIES =
+        new Tag(0x30, ParamDescriptor.BITMASK, 1);
 
-    public static final Tag PRIVACY_INDICATOR = new Tag(0x201, Number.class, 1);
+    public static final Tag PRIVACY_INDICATOR =
+        new Tag(0x201, ParamDescriptor.INTEGER1, 1);
 
-    public static final Tag SOURCE_SUBADDRESS = new Tag(0x202, byte[].class, 2,
-            23);
+    public static final Tag SOURCE_SUBADDRESS =
+        new Tag(0x202, ParamDescriptor.BYTES, 2, 23);
 
-    public static final Tag DEST_SUBADDRESS = new Tag(0x203, byte[].class, 2,
-            23);
+    public static final Tag DEST_SUBADDRESS =
+        new Tag(0x203, ParamDescriptor.BYTES, 2, 23);
 
-    public static final Tag USER_MESSAGE_REFERENCE = new Tag(0x204,
-            Number.class, 2);
+    public static final Tag USER_MESSAGE_REFERENCE =
+        new Tag(0x204, ParamDescriptor.INTEGER2, 2);
 
-    public static final Tag USER_RESPONSE_CODE = new Tag(0x205, Number.class, 2);
+    public static final Tag USER_RESPONSE_CODE =
+        new Tag(0x205, ParamDescriptor.INTEGER2, 2);
 
-    public static final Tag SOURCE_PORT = new Tag(0x20a, Number.class, 2);
+    public static final Tag SOURCE_PORT =
+        new Tag(0x20a, ParamDescriptor.INTEGER2, 2);
 
-    public static final Tag DESTINATION_PORT = new Tag(0x20b, Number.class, 2);
+    public static final Tag DESTINATION_PORT =
+        new Tag(0x20b, ParamDescriptor.INTEGER2, 2);
 
-    public static final Tag SAR_MSG_REF_NUM = new Tag(0x20c, Number.class, 2);
+    public static final Tag SAR_MSG_REF_NUM =
+        new Tag(0x20c, ParamDescriptor.INTEGER2, 2);
 
-    public static final Tag LANGUAGE_INDICATOR = new Tag(0x20d, Number.class, 1);
+    public static final Tag LANGUAGE_INDICATOR =
+        new Tag(0x20d, ParamDescriptor.INTEGER1, 1);
 
-    public static final Tag SAR_TOTAL_SEGMENTS = new Tag(0x20e, Number.class, 1);
+    public static final Tag SAR_TOTAL_SEGMENTS =
+        new Tag(0x20e, ParamDescriptor.INTEGER1, 1);
 
-    public static final Tag SAR_SEGMENT_SEQNUM = new Tag(0x20f, Number.class, 1);
+    public static final Tag SAR_SEGMENT_SEQNUM =
+        new Tag(0x20f, ParamDescriptor.INTEGER1, 1);
 
-    public static final Tag SC_INTERFACE_VERSION = new Tag(0x210, Number.class,
-            1);
+    public static final Tag SC_INTERFACE_VERSION =
+        new Tag(0x210, ParamDescriptor.INTEGER1, 1);
 
-    public static final Tag CALLBACK_NUM_PRES_IND = new Tag(0x302,
-            BitSet.class, 1);
+    public static final Tag CALLBACK_NUM_PRES_IND =
+        new Tag(0x302, ParamDescriptor.BITMASK, 1);
 
-    public static final Tag CALLBACK_NUM_ATAG = new Tag(0x303, byte[].class, 0,
-            65);
+    public static final Tag CALLBACK_NUM_ATAG =
+        new Tag(0x303, ParamDescriptor.BYTES, 0, 65);
 
-    public static final Tag NUMBER_OF_MESSAGES = new Tag(0x304, Number.class, 1);
+    public static final Tag NUMBER_OF_MESSAGES =
+        new Tag(0x304, ParamDescriptor.INTEGER1, 1);
 
-    public static final Tag CALLBACK_NUM = new Tag(0x381, byte[].class, 4, 19);
+    public static final Tag CALLBACK_NUM =
+        new Tag(0x381, ParamDescriptor.BYTES, 4, 19);
 
-    public static final Tag DPF_RESULT = new Tag(0x420, Number.class, 1);
+    public static final Tag DPF_RESULT =
+        new Tag(0x420, ParamDescriptor.INTEGER1, 1);
 
-    public static final Tag SET_DPF = new Tag(0x421, Number.class, 1);
+    public static final Tag SET_DPF =
+        new Tag(0x421, ParamDescriptor.INTEGER1, 1);
 
-    public static final Tag MS_AVAILABILITY_STATUS = new Tag(0x422,
-            Number.class, 1);
+    public static final Tag MS_AVAILABILITY_STATUS =
+        new Tag(0x422, ParamDescriptor.INTEGER1, 1);
 
-    public static final Tag NETWORK_ERROR_CODE = new Tag(0x423, byte[].class, 3);
+    public static final Tag NETWORK_ERROR_CODE =
+        new Tag(0x423, ParamDescriptor.BYTES, 3);
 
-    public static final Tag MESSAGE_PAYLOAD = new Tag(0x424, byte[].class, -1);
+    public static final Tag MESSAGE_PAYLOAD =
+        new Tag(0x424, ParamDescriptor.BYTES, -1);
 
-    public static final Tag DELIVERY_FAILURE_REASON = new Tag(0x425,
-            Number.class, 1);
+    public static final Tag DELIVERY_FAILURE_REASON =
+        new Tag(0x425, ParamDescriptor.INTEGER1, 1);
 
-    public static final Tag MORE_MESSAGES_TO_SEND = new Tag(0x426,
-            Number.class, 1);
+    public static final Tag MORE_MESSAGES_TO_SEND =
+        new Tag(0x426, ParamDescriptor.INTEGER1, 1);
 
-    public static final Tag MESSAGE_STATE = new Tag(0x427, Number.class, 1);
+    public static final Tag MESSAGE_STATE =
+        new Tag(0x427, ParamDescriptor.INTEGER1, 1);
 
-    public static final Tag USSD_SERVICE_OP = new Tag(0x501, byte[].class, 1);
+    public static final Tag USSD_SERVICE_OP =
+        new Tag(0x501, ParamDescriptor.BYTES, 1);
 
-    public static final Tag DISPLAY_TIME = new Tag(0x1201, Number.class, 1);
+    public static final Tag DISPLAY_TIME =
+        new Tag(0x1201, ParamDescriptor.INTEGER1, 1);
 
-    public static final Tag SMS_SIGNAL = new Tag(0x1203, Number.class, 2);
+    public static final Tag SMS_SIGNAL =
+        new Tag(0x1203, ParamDescriptor.INTEGER2, 2);
 
-    public static final Tag MS_VALIDITY = new Tag(0x1204, Number.class, 1);
+    public static final Tag MS_VALIDITY =
+        new Tag(0x1204, ParamDescriptor.INTEGER1, 1);
 
-    public static final Tag ALERT_ON_MESSAGE_DELIVERY = new Tag(0x130c, null, 0);
+    public static final Tag ALERT_ON_MESSAGE_DELIVERY =
+        new Tag(0x130c, null, 0);
 
-    public static final Tag ITS_REPLY_TYPE = new Tag(0x1380, Number.class, 1);
+    public static final Tag ITS_REPLY_TYPE =
+        new Tag(0x1380, ParamDescriptor.INTEGER1, 1);
 
-    public static final Tag ITS_SESSION_INFO = new Tag(0x1383, byte[].class, 2);
+    public static final Tag ITS_SESSION_INFO =
+        new Tag(0x1383, ParamDescriptor.BYTES, 2);
 
     /**
      * Integer value of this tag.
@@ -137,89 +169,22 @@ public final class Tag implements java.io.Serializable {
     private int maxLength = -1;
 
     /**
-     * The Java type a value of this tag type must be.
-     */
-    private Class<? extends Object> type;
-
-    /**
      * The class used for encoding and decoding values of this tag type.
-     * 
-     * @see ie.omk.smpp.message.tlv.Encoder
+     * @see ie.omk.smpp.message.param.ParamDescriptor
      */
-    private Encoder encoder;
+    private ParamDescriptor paramDescriptor;
 
-    /**
-     * Create a new Tag. The encoder type will be chosen from the set of known
-     * built-in encoders.
-     * 
-     * @param tag
-     *            The integer value of the tag.
-     * @param type
-     *            The allowed Java type for the value.
-     * @param fixedLength
-     *            The fixed length allowed for the value.
-     * @throws ie.omk.smpp.message.tlv.TagDefinedException
-     *             If a tag with integer value <code>tag</code> has already
-     *             been defined.
-     */
     private Tag(int tag,
-            Class<? extends Object> type,
+            ParamDescriptor paramDescriptor,
             int fixedLength) throws TagDefinedException {
-        this(tag, type, null, fixedLength, fixedLength);
+        this(tag, paramDescriptor, fixedLength, fixedLength);
     }
-
-    /**
-     * Create a new Tag. he encoder type will be chosen from the set of known
-     * built-in encoders.
-     * 
-     * @param tag
-     *            The integer value of the tag.
-     * @param type
-     *            The allowed Java type of the value.
-     * @param minLength
-     *            The minimum length allowed for the value.
-     * @param maxLength
-     *            The maximum length allowed for the value.
-     * @throws ie.omk.smpp.message.tlv.TagDefinedException
-     *             If a tag with integer value <code>tag</code> has already
-     *             been defined.
-     */
-    private Tag(int tag,
-            Class<? extends Object> type,
-            int minLength,
-            int maxLength) throws TagDefinedException {
-        this(tag, type, null, minLength, maxLength);
-    }
-
+    
     /**
      * Create a new Tag.
      * 
      * @param tag
      *            The integer value of the tag.
-     * @param type
-     *            The allowed Java type for the value
-     * @param enc
-     *            The encoding class to use to encode and decode values.
-     * @param fixedLength
-     *            The fixed length allowed for the value.
-     * @throws ie.omk.smpp.message.tlv.TagDefinedException
-     *             If a tag with integer value <code>tag</code> has already
-     *             been defined.
-     */
-    private Tag(int tag,
-            Class<? extends Object> type,
-            Encoder enc,
-            int fixedLength) throws TagDefinedException {
-        this(tag, type, enc, fixedLength, fixedLength);
-    }
-
-    /**
-     * Create a new Tag.
-     * 
-     * @param tag
-     *            The integer value of the tag.
-     * @param type
-     *            The allowed Java type for the value
      * @param enc
      *            The encoding class to use to encode and decode values.
      * @param minLength
@@ -231,19 +196,13 @@ public final class Tag implements java.io.Serializable {
      *             been defined.
      */
     private Tag(int tag,
-            Class<? extends Object> type,
-            Encoder enc,
+            ParamDescriptor paramDescriptor,
             int minLength,
             int maxLength) throws TagDefinedException {
         this.tag = new Integer(tag);
-        this.type = type;
+        this.paramDescriptor = paramDescriptor;
         this.minLength = minLength;
         this.maxLength = maxLength;
-        if (enc == null) {
-            this.encoder = getEncoderForType(type);
-        } else {
-            this.encoder = enc;
-        }
         synchronized (tagTable) {
             if (tagTable.containsKey(this.tag)) {
                 throw new TagDefinedException(tag, "Tag 0x"
@@ -251,34 +210,6 @@ public final class Tag implements java.io.Serializable {
             }
             tagTable.put(this.tag, this);
         }
-    }
-
-    /**
-     * Get an <code>Encoder</code> for a particular Java type.
-     * 
-     * @param type
-     *            The Java type to get an encoder for.
-     * @return The encoder/decoder for Java type <code>type</code>.
-     */
-    private Encoder getEncoderForType(Class type) {
-        Encoder encoder;
-        
-        // If type is null and encoder is null, this is a "no value" tlv type.
-        if (type == null) {
-            encoder = new NullEncoder();
-        } else if (java.lang.Number.class.isAssignableFrom(type)) {
-            encoder = new NumberEncoder();
-        } else if (java.lang.String.class.isAssignableFrom(type)) {
-            encoder = new StringEncoder();
-        } else if (java.util.BitSet.class.isAssignableFrom(type)) {
-            encoder = new BitmaskEncoder();
-        } else if (byte[].class.isAssignableFrom(type)) {
-            encoder = new OctetEncoder();
-        } else {
-            throw new NoEncoderException(type, "No encoder for class type "
-                    + type.getName());
-        }
-        return encoder;
     }
 
     /**
@@ -317,15 +248,10 @@ public final class Tag implements java.io.Serializable {
         return maxLength;
     }
 
-    /**
-     * Get the Java type of values of this tag type.
-     * 
-     * @return the Java type of values of this tag type.
-     */
-    public Class<? extends Object> getType() {
-        return type;
+    public ParamDescriptor getParamDescriptor() {
+        return paramDescriptor;
     }
-
+    
     /**
      * Test for equality. Two tags are equal if their integer values are
      * equivalent.
@@ -381,15 +307,6 @@ public final class Tag implements java.io.Serializable {
     }
 
     /**
-     * Get the encoder used to encode values of this tag type.
-     * 
-     * @return the encoder used to encode values of this tag type.
-     */
-    public Encoder getEncoder() {
-        return encoder;
-    }
-
-    /**
      * Get the Tag object that represents tag <code>tagValue</code>. If the
      * tag is known then the static Tag object representing the tag is returned.
      * If the tag is not known, a fresh instance of Tag will be returned which
@@ -405,7 +322,7 @@ public final class Tag implements java.io.Serializable {
     public static Tag getTag(int tagValue) {
         Tag t = (Tag) tagTable.get(new Integer(tagValue));
         if (t == null) {
-            return Tag.defineTag(tagValue, byte[].class, null, -1, -1);
+            return Tag.defineTag(tagValue, ParamDescriptor.BYTES, -1);
         } else {
             return t;
         }
@@ -428,10 +345,9 @@ public final class Tag implements java.io.Serializable {
      * @see Encoder
      */
     public static Tag defineTag(int tagValue,
-            Class<? extends Object> type,
-            Encoder enc,
+            ParamDescriptor paramDescriptor,
             int fixedSize) throws TagDefinedException {
-        return new Tag(tagValue, type, enc, fixedSize);
+        return new Tag(tagValue, paramDescriptor, fixedSize, fixedSize);
     }
 
     /**
@@ -453,11 +369,10 @@ public final class Tag implements java.io.Serializable {
      * @see Encoder
      */
     public static Tag defineTag(int tagValue,
-            Class<? extends Object> type,
-            Encoder enc,
+            ParamDescriptor paramDescriptor,
             int minSize,
             int maxSize) throws TagDefinedException {
-        return new Tag(tagValue, type, enc, minSize, maxSize);
+        return new Tag(tagValue, paramDescriptor, minSize, maxSize);
     }
 
     /**

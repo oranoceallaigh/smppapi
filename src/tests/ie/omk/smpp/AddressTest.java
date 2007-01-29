@@ -1,6 +1,7 @@
 package ie.omk.smpp;
 
 import ie.omk.smpp.util.GSMConstants;
+import ie.omk.smpp.util.ParsePosition;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -24,9 +25,10 @@ public class AddressTest extends TestCase {
 
         byte[] array = out.toByteArray();
 
+        ParsePosition position = new ParsePosition(0);
         Address deserialized = new Address();
-        deserialized.readFrom(array, 0);
-
+        deserialized.readFrom(array, position);
+        assertEquals(array.length, position.getIndex());
         assertEquals("serialized. ", addr.getLength(), array.length);
         assertEquals("deserialized.", array.length, deserialized.getLength());
     }

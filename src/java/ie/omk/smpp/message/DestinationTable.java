@@ -1,6 +1,7 @@
 package ie.omk.smpp.message;
 
 import ie.omk.smpp.Address;
+import ie.omk.smpp.util.ParsePosition;
 import ie.omk.smpp.util.SMPPIO;
 
 import java.io.OutputStream;
@@ -65,19 +66,19 @@ public class DestinationTable implements Cloneable {
         }
     }
 
-    public synchronized void readFrom(byte[] table, int offset, int count) {
+    public synchronized void readFrom(byte[] table, ParsePosition position, int count) {
         for (int i = 0; i < count; i++) {
-            int type = SMPPIO.bytesToByte(table, offset++);
+            int type = SMPPIO.bytesToByte(table, position.getIndex());
+            position.inc();
             if (type == 1) {
                 // SME address..
                 Address a = new Address();
-                a.readFrom(table, offset);
-                offset += a.getLength();
+                a.readFrom(table, position);
                 addresses.add(a);
             } else if (type == 2) {
                 // Distribution list name
-                String d = SMPPIO.readCString(table, offset);
-                offset += d.length() + 1;
+                String d = SMPPIO.readCString(table, position.getIndex());
+                position.inc(d.length() + 1);
                 distributionLists.add(d);
             } else {
                 LoggerFactory.getLogger(DestinationTable.class).warn(

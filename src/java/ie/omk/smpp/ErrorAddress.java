@@ -1,5 +1,6 @@
 package ie.omk.smpp;
 
+import ie.omk.smpp.util.ParsePosition;
 import ie.omk.smpp.util.SMPPIO;
 
 import java.io.OutputStream;
@@ -80,10 +81,9 @@ public class ErrorAddress extends Address {
         SMPPIO.writeLongInt(error, out);
     }
 
-    public void readFrom(byte[] ea, int offset) {
-        super.readFrom(ea, offset);
-        offset += super.getLength();
-
-        error = SMPPIO.bytesToLongInt(ea, offset);
+    public void readFrom(byte[] ea, ParsePosition position) {
+        super.readFrom(ea, position);
+        error = SMPPIO.bytesToLongInt(ea, position.getIndex());
+        position.inc(4);
     }
 }

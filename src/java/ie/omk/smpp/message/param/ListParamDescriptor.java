@@ -1,24 +1,30 @@
 package ie.omk.smpp.message.param;
 
+import ie.omk.smpp.util.ParsePosition;
+
 import java.io.IOException;
 import java.io.OutputStream;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public class ListParamDescriptor extends AbstractParamDescriptor {
+public class ListParamDescriptor implements ParamDescriptor {
     private static final long serialVersionUID = 1;
 
+    private int linkIndex;
     private ParamDescriptor listType;
     
     public ListParamDescriptor(ParamDescriptor listType, int linkIndex) {
-        super(linkIndex);
+        this.linkIndex = linkIndex;
         this.listType = listType;
     }
     
     public ParamDescriptor getListType() {
         return listType;
+    }
+    
+    public int getLengthSpecifier() {
+        return linkIndex;
     }
     
     public int sizeOf(Object obj) {
@@ -39,15 +45,12 @@ public class ListParamDescriptor extends AbstractParamDescriptor {
         }
     }
 
-    public int readObject(List body, byte[] data, int offset)
-            throws ParseException {
-        int count = getCountFromBody(body);
-        int readLength = 0;
+    public Object readObject(byte[] data, ParsePosition position, int length) {
         List<Object> list = new ArrayList<Object>();
-        for (int i = 0; i < count; i++) {
-            readLength += listType.readObject(list, data, offset + readLength);
+        for (int i = 0; i < length; i++) {
+            Object obj = listType.readObject(data, position, -1);
+            list.add(obj);
         }
-        body.add(list);
-        return readLength;
+        return list;
     }
 }

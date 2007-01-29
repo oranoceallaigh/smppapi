@@ -1,9 +1,9 @@
 package ie.omk.smpp.message.param;
 
+import ie.omk.smpp.util.ParsePosition;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import junit.framework.TestCase;
 
@@ -43,18 +43,21 @@ public class CStringParamDescriptorTest extends TestCase {
     }
     
     public void testReadObject() throws Exception {
-        List<Object> list = new ArrayList<Object>();
+        ParsePosition position = new ParsePosition(0);
         byte[] array = new byte[testString.length() + 1];
         System.arraycopy(testString.getBytes("US-ASCII"), 0, array, 0, testString.length());
         array[array.length - 1] = (byte) 0;
         
-        descriptor.readObject(list, new byte[] {0}, 0);
-        assertEquals(1, list.size());
-        assertEquals("", (String) list.get(0));
-        
-        list.clear();
-        descriptor.readObject(list, array, 0);
-        assertEquals(1, list.size());
-        assertEquals(testString, (String) list.get(0));
+        String string =
+            (String) descriptor.readObject(new byte[] {0}, position, -1);
+        assertNotNull(string);
+        assertEquals("", string);
+        assertEquals(1, position.getIndex());
+
+        position = new ParsePosition(0);
+        string = (String) descriptor.readObject(array, position, -1);
+        assertNotNull(string);
+        assertEquals(testString, string);
+        assertEquals(testString.length() + 1, position.getIndex());
     }
 }

@@ -4,13 +4,13 @@ import ie.omk.smpp.SMPPRuntimeException;
 import ie.omk.smpp.message.param.ParamDescriptor;
 import ie.omk.smpp.message.tlv.TLVTable;
 import ie.omk.smpp.message.tlv.Tag;
+import ie.omk.smpp.util.ParsePosition;
 import ie.omk.smpp.util.SMPPIO;
 import ie.omk.smpp.version.SMPPVersion;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.text.ParseException;
-import java.text.ParsePosition;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -483,16 +483,13 @@ public abstract class SMPPPacket {
         try {
             if (commandStatus == 0) {
                 // Read the mandatory body parameters..
-                int ptr = 16 + offset;
-                ParsePosition pos = new ParsePosition(ptr);
+                ParsePosition pos = new ParsePosition(16 + offset);
                 List<Object> mandatory = readMandatory(data, pos);
                 setMandatoryParameters(mandatory);
 
                 // Read the optional parameters..
-                int bodyLen = getBodyLength();
-                len -= 16 + bodyLen;
-                if (len > 0) {
-                    tlvTable.readFrom(data, ptr + bodyLen, len);
+                if (offset + len > pos.getIndex()) {
+                    tlvTable.readFrom(data, pos, len);
                 }
             }
         } catch (ArrayIndexOutOfBoundsException x) {
@@ -530,30 +527,50 @@ public abstract class SMPPPacket {
     /**
      * Read this packet's mandatory parameters from a byte array.
      * 
-     * @param b
+     * @param data
      *            the byte array to read the mandatory parameters from.
      * @param offset
      *            the offset into b that the mandatory parameter's begin at.
      * @throws ie.omk.smpp.message.SMPPProtocolException
      *             if there is an error parsing the packet fields.
      */
-    private List<Object> readMandatory(byte[] b, ParsePosition pos) throws SMPPProtocolException {
+    private List<Object> readMandatory(byte[] data, ie.omk.smpp.util.ParsePosition pos) throws SMPPProtocolException {
         List<Object> body = new ArrayList<Object>();
+        BodyDescriptor bodyDescriptor = getBodyDescriptor();
+        if (bodyDescriptor == null) {
+            return body;
+        }
         try {
-            int offset = pos.getIndex();
-            BodyDescriptor bodyDescriptor = getBodyDescriptor();
-            if (bodyDescriptor != null) {
-                for (ParamDescriptor param : bodyDescriptor.getBody()) {
-                    offset += param.readObject(body, b, offset);
+            for (ParamDescriptor param : bodyDescriptor.getBody()) {
+                int length = -1;
+                int lengthSpecifier = param.getLengthSpecifier();
+                if (lengthSpecifier > -1) {
+                    length = getLengthFromBody(body, lengthSpecifier);
                 }
+                Object obj = param.readObject(data, pos, length);
+                body.add(obj);
             }
-            pos.setIndex(offset);
         } catch (IllegalArgumentException x) {
             throw new SMPPProtocolException("Invalid values in an SMPP date", x);
         } catch (ParseException x) {
             throw new SMPPProtocolException("Could not parse an SMPP date.", x);
         }
         return body;
+    }
+    
+    private int getLengthFromBody(List<Object> body, int lengthSpecifier)
+    throws ParseException {
+        int length = 0;
+        try {
+            length = ((Number) body.get(lengthSpecifier)).intValue();
+        } catch (ArrayIndexOutOfBoundsException x) {
+            throw new ParseException(
+                    "Cannot read count from link index " + lengthSpecifier, 0);
+        } catch (ClassCastException x) {
+            throw new ParseException("Mandatory parameter at index " + lengthSpecifier
+                    + " is not a java.lang.Number", 0);
+        }
+        return length;
     }
     
     private void writeMandatory(OutputStream out) throws IOException {

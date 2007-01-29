@@ -186,8 +186,7 @@ public class SizeTest extends TestCase {
                     addBodyParams(((ListParamDescriptor) param).getListType(),
                             list, random);
                 }
-                body.set(((ListParamDescriptor) param).getLinkIndex(),
-                        new Integer(list.size()));
+                body.set(param.getLengthSpecifier(), new Integer(list.size()));
                 body.add(list);
             } else {
                 addBodyParams(param, body, random);

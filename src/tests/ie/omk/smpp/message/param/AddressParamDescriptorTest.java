@@ -1,10 +1,9 @@
 package ie.omk.smpp.message.param;
 
 import ie.omk.smpp.Address;
+import ie.omk.smpp.util.ParsePosition;
 
 import java.io.ByteArrayOutputStream;
-import java.util.ArrayList;
-import java.util.List;
 
 import junit.framework.TestCase;
 
@@ -39,10 +38,13 @@ public class AddressParamDescriptorTest extends TestCase {
     }
     
     public void testReadObject() throws Exception {
-        List<Object> list = new ArrayList<Object>();
+        ParsePosition position = new ParsePosition(0);
         byte[] array = new byte[] {0, 0, 0};
-        descriptor.readObject(list, array, 0);
-        assertEquals(1, list.size());
-        assertTrue(list.get(0) instanceof Address);
+        Address address = (Address) descriptor.readObject(array, position, -1);
+        assertNotNull(address);
+        assertEquals(0, address.getTON());
+        assertEquals(0, address.getNPI());
+        assertEquals("", address.getAddress());
+        assertEquals(3, position.getIndex());
     }
 }

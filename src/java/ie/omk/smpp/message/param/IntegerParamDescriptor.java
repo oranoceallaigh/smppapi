@@ -1,11 +1,10 @@
 package ie.omk.smpp.message.param;
 
+import ie.omk.smpp.util.ParsePosition;
 import ie.omk.smpp.util.SMPPIO;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.text.ParseException;
-import java.util.List;
 
 /**
  * Mandatory parameter descriptor for an integer.
@@ -21,6 +20,10 @@ public class IntegerParamDescriptor implements ParamDescriptor {
     
     public IntegerParamDescriptor(int length) {
         this.length = length;
+    }
+    
+    public int getLengthSpecifier() {
+        return -1;
     }
     
     public int sizeOf(Object obj) {
@@ -50,24 +53,26 @@ public class IntegerParamDescriptor implements ParamDescriptor {
         }
     }
 
-    public int readObject(List body, byte[] data, int offset)
-            throws ParseException {
+    public Object readObject(byte[] data, ParsePosition position, int length) {
         Number value;
-        switch (length) {
+        switch (this.length) {
         case 8:
-            value = new Long(SMPPIO.bytesToLong(data, offset));
+            value = new Long(SMPPIO.bytesToLong(data, position.getIndex()));
+            position.inc(8);
             break;
         case 4:
-            value = new Long(SMPPIO.bytesToLongInt(data, offset));
+            value = new Long(SMPPIO.bytesToLongInt(data, position.getIndex()));
+            position.inc(4);
             break;
         case 2:
-            value = new Integer(SMPPIO.bytesToShort(data, offset));
+            value = new Integer(SMPPIO.bytesToShort(data, position.getIndex()));
+            position.inc(2);
             break;
         default:
-            value = new Integer((int) data[offset] & 0xff);
+            value = new Integer((int) data[position.getIndex()] & 0xff);
+            position.inc();
             break;
         }
-        body.add(value);
-        return length;
+        return value;
     }
 }

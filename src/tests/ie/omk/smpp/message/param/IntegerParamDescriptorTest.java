@@ -1,10 +1,9 @@
 package ie.omk.smpp.message.param;
 
+import ie.omk.smpp.util.ParsePosition;
 import ie.omk.smpp.util.SMPPIO;
 
 import java.io.ByteArrayOutputStream;
-import java.util.ArrayList;
-import java.util.List;
 
 import junit.framework.TestCase;
 
@@ -100,10 +99,10 @@ public class IntegerParamDescriptorTest extends TestCase {
             break;
         }
         byte[] array = out.toByteArray();
-        List<Object> list = new ArrayList<Object>();
-        descriptor.readObject(list, array, 0);
-        assertTrue(list.size() == 1);
-        assertTrue(list.get(0) instanceof Number);
-        assertEquals(value, ((Number) list.get(0)).longValue());
+        ParsePosition position = new ParsePosition(0);
+        Number number = (Number) descriptor.readObject(array, position, -1);
+        assertNotNull(number);
+        assertEquals(value, number.longValue());
+        assertEquals(descriptor.sizeOf(value), position.getIndex());
     }
 }

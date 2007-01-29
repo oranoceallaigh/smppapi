@@ -1,15 +1,18 @@
 package ie.omk.smpp.message.param;
 
 import ie.omk.smpp.Address;
+import ie.omk.smpp.util.ParsePosition;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.text.ParseException;
-import java.util.List;
 
 public class AddressParamDescriptor implements ParamDescriptor {
     private static final long serialVersionUID = 1;
     private static final Address NULL_ADDRESS = new Address();
+    
+    public int getLengthSpecifier() {
+        return -1;
+    }
     
     public int sizeOf(Object address) {
         if (address != null ){
@@ -27,11 +30,9 @@ public class AddressParamDescriptor implements ParamDescriptor {
         }
     }
 
-    public int readObject(List body, byte[] data, int offset)
-            throws ParseException {
+    public Object readObject(byte[] data, ParsePosition position, int length) {
         Address address = new Address();
-        address.readFrom(data, offset);
-        body.add(address);
-        return address.getLength();
+        address.readFrom(data, position);
+        return address;
     }
 }

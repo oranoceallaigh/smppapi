@@ -1,6 +1,7 @@
 package ie.omk.smpp;
 
 import ie.omk.smpp.util.GSMConstants;
+import ie.omk.smpp.util.ParsePosition;
 import ie.omk.smpp.util.SMPPIO;
 
 import java.io.OutputStream;
@@ -144,16 +145,18 @@ public class Address implements java.io.Serializable {
      * 
      * @param addr
      *            The byte array to read the address from.
-     * @param offset
-     *            The offset within the byte array to begin decoding from.
+     * @param position
+     *            The position in the array to begin parsing the address from.
      * @throws java.lang.ArrayIndexOutOfBoundsException
      *             If the byte array does not contain enough bytes to decode an
      *             address.
      */
-    public void readFrom(byte[] addr, int offset) {
-        ton = SMPPIO.bytesToByte(addr, offset++);
-        npi = SMPPIO.bytesToByte(addr, offset++);
-        address = SMPPIO.readCString(addr, offset);
+    public void readFrom(byte[] addr, ParsePosition position) {
+        int offset = position.getIndex();
+        ton = SMPPIO.bytesToByte(addr, offset + 0);
+        npi = SMPPIO.bytesToByte(addr, offset + 1);
+        address = SMPPIO.readCString(addr, offset + 2);
+        position.inc(address.length() + 3);
     }
 
     public String toString() {

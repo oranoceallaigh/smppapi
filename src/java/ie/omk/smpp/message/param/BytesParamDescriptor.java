@@ -1,15 +1,25 @@
 package ie.omk.smpp.message.param;
 
+import ie.omk.smpp.util.ParsePosition;
+
 import java.io.IOException;
 import java.io.OutputStream;
-import java.text.ParseException;
-import java.util.List;
 
-public class BytesParamDescriptor extends AbstractParamDescriptor {
+public class BytesParamDescriptor implements ParamDescriptor {
     private static final long serialVersionUID = 1;
-
+    
+    private int linkIndex;
+    
+    public BytesParamDescriptor() {
+        linkIndex = -1;
+    }
+    
     public BytesParamDescriptor(int linkIndex) {
-        super(linkIndex);
+        this.linkIndex = linkIndex;
+    }
+    
+    public int getLengthSpecifier() {
+        return linkIndex;
     }
     
     public int sizeOf(Object obj) {
@@ -26,12 +36,10 @@ public class BytesParamDescriptor extends AbstractParamDescriptor {
         }
     }
 
-    public int readObject(List body, byte[] data, int offset)
-            throws ParseException {
-        int count = getCountFromBody(body);
-        byte[] array = new byte[count];
-        System.arraycopy(data, offset, array, 0, count);
-        body.add(array);
-        return count;
+    public Object readObject(byte[] data, ParsePosition position, int length) {
+        byte[] array = new byte[length];
+        System.arraycopy(data, position.getIndex(), array, 0, length);
+        position.inc(length);
+        return array;
     }
 }

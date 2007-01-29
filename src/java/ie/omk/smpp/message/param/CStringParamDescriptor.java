@@ -1,14 +1,18 @@
 package ie.omk.smpp.message.param;
 
+import ie.omk.smpp.util.ParsePosition;
 import ie.omk.smpp.util.SMPPIO;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.text.ParseException;
-import java.util.List;
+import java.io.UnsupportedEncodingException;
 
 public class CStringParamDescriptor implements ParamDescriptor {
     private static final long serialVersionUID = 1;
+
+    public int getLengthSpecifier() {
+        return -1;
+    }
     
     public int sizeOf(Object obj) {
         if (obj != null) {
@@ -22,10 +26,20 @@ public class CStringParamDescriptor implements ParamDescriptor {
         SMPPIO.writeCString((String) str, out);
     }
 
-    public int readObject(List body, byte[] data, int offset)
-            throws ParseException {
-        String value = SMPPIO.readCString(data, offset);
-        body.add(value);
-        return sizeOf(value);
+    public Object readObject(byte[] data, ParsePosition position, int length) {
+        String s;
+        int index = position.getIndex();
+        try {
+            if (length > -1) {
+                s = new String(data, index, length - 1, "US-ASCII");
+                position.inc(length);
+            } else {
+                s = SMPPIO.readCString(data, index);
+                position.inc(s.length() + 1);
+            }
+        } catch (UnsupportedEncodingException x) {
+            throw new RuntimeException("ASCII not supported.", x);
+        }
+        return s;
     }
 }

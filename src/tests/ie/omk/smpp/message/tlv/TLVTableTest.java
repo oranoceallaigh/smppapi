@@ -1,5 +1,8 @@
 package ie.omk.smpp.message.tlv;
 
+import ie.omk.smpp.message.param.BitmaskParamDescriptor;
+import ie.omk.smpp.message.param.ParamDescriptor;
+import ie.omk.smpp.util.ParsePosition;
 import ie.omk.smpp.util.SMPPIO;
 
 import java.io.ByteArrayOutputStream;
@@ -58,7 +61,7 @@ public class TLVTableTest extends TestCase {
             BitSet bitSet = new BitSet();
             table.set(Tag.MS_MSG_WAIT_FACILITIES, bitSet);
             assertTrue(table.isSet(Tag.MS_MSG_WAIT_FACILITIES));
-            Tag newTag = Tag.defineTag(0xdead, BitSet.class, null, 2);
+            Tag newTag = Tag.defineTag(0xdead, new BitmaskParamDescriptor(), 1);
             assertFalse(table.isSet(newTag));
             table.set(newTag, bitSet);
             assertTrue(table.isSet(newTag));
@@ -132,14 +135,18 @@ public class TLVTableTest extends TestCase {
             fail("Table getLength is different to actual encoded length");
         }
 
+        ParsePosition position = new ParsePosition(0);
         TLVTable newTable = new TLVTable();
-        newTable.readFrom(serialized, 0, serialized.length);
+        newTable.readFrom(serialized, position, serialized.length);
         doTableAssertions(origTable, newTable);
-        
+        assertEquals(serialized.length, position.getIndex());
+
+        position = new ParsePosition(0);
         newTable = new TLVTable();
-        newTable.readFrom(serialized, 0, serialized.length);
+        newTable.readFrom(serialized, position, serialized.length);
         newTable.parseAllOpts();
         doTableAssertions(origTable, newTable);
+        assertEquals(serialized.length, position.getIndex());
     }
 
     /**
@@ -152,23 +159,22 @@ public class TLVTableTest extends TestCase {
         // Set up a byte array which contains 2 known optional parameters
         // followed by 2 unknowns.
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-        StringEncoder se = new StringEncoder();
-        NumberEncoder ne = new NumberEncoder();
-
+        ParamDescriptor descriptor;
         int length = 0;
 
+        descriptor = Tag.DEST_TELEMATICS_ID.getParamDescriptor();
         Integer i = new Integer(0xbcad);
-        length = ne.getValueLength(Tag.DEST_TELEMATICS_ID, i);
+        length = descriptor.sizeOf(i);
         SMPPIO.writeShort(Tag.DEST_TELEMATICS_ID.intValue(), out);
         SMPPIO.writeShort(length, out);
-        ne.writeTo(Tag.DEST_TELEMATICS_ID, i, out);
+        descriptor.writeObject(i, out);
 
         String v = "smppapi tlv tests";
-        length = se.getValueLength(Tag.ADDITIONAL_STATUS_INFO_TEXT, v);
+        descriptor = Tag.ADDITIONAL_STATUS_INFO_TEXT.getParamDescriptor();
+        length = descriptor.sizeOf(v);
         SMPPIO.writeShort(Tag.ADDITIONAL_STATUS_INFO_TEXT.intValue(), out);
         SMPPIO.writeShort(length, out);
-        se.writeTo(Tag.ADDITIONAL_STATUS_INFO_TEXT, v, out);
+        descriptor.writeObject(v, out);
 
         // Tag '0xcafe', length 2.
         byte[] cafe = new byte[] {
@@ -198,7 +204,9 @@ public class TLVTableTest extends TestCase {
         try {
             // Run the test - attempt to deserialize the table.
             TLVTable tab = new TLVTable();
-            tab.readFrom(b, 0, b.length);
+            ParsePosition position = new ParsePosition(0);
+            tab.readFrom(b, position, b.length);
+            assertEquals(b.length, position.getIndex());
 
             tab.parseAllOpts();
 

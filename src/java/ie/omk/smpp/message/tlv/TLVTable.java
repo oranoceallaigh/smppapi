@@ -1,12 +1,13 @@
 package ie.omk.smpp.message.tlv;
 
+import ie.omk.smpp.message.param.ParamDescriptor;
+import ie.omk.smpp.util.ParsePosition;
 import ie.omk.smpp.util.SMPPIO;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.text.MessageFormat;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -79,17 +80,19 @@ public class TLVTable implements java.io.Serializable {
     /**
      * Decode a full set of optional parameters from a byte array.
      * 
-     * @param b
+     * @param data
      *            The byte array to decode from.
-     * @param offset
-     *            The first byte of the tag of the first optional parameter.
+     * @param position
+     *            The array index of byte to begin parsing the parameter table
+     *            from.
      * @param len
      *            The length in the byte array of all the optional parameters.
      */
-    public void readFrom(byte[] b, int offset, int len) {
+    public void readFrom(byte[] data, ParsePosition position, int len) {
         synchronized (map) {
             opts = new byte[len];
-            System.arraycopy(b, offset, opts, 0, len);
+            System.arraycopy(data, position.getIndex(), opts, 0, len);
+            position.inc(len);
         }
     }
 
@@ -103,14 +106,14 @@ public class TLVTable implements java.io.Serializable {
      */
     public void writeTo(OutputStream out) throws IOException {
         synchronized (map) {
-            for (Iterator iter = map.keySet().iterator(); iter.hasNext();) {
-                Tag tag = (Tag) iter.next();
-                Encoder enc = tag.getEncoder();
-                Object value = map.get(tag);
-                int valueLen = enc.getValueLength(tag, value);
+            for (Map.Entry<Tag, Object> entry : map.entrySet()) {
+                Tag tag = entry.getKey();
+                Object value = entry.getValue();
+                ParamDescriptor descriptor = tag.getParamDescriptor();
+                int valueLen = descriptor.sizeOf(value);
                 SMPPIO.writeShort(tag.intValue(), out);
                 SMPPIO.writeShort(valueLen, out);
-                enc.writeTo(tag, value, out);
+                descriptor.writeObject(value, out);
             }
         }
     }
@@ -183,7 +186,8 @@ public class TLVTable implements java.io.Serializable {
                 parseAllOpts();
             }
 
-            if (tag.getType() == null && value != null) {
+            ParamDescriptor descriptor = tag.getParamDescriptor();
+            if (descriptor == ParamDescriptor.NULL && value != null) {
                 String error = MessageFormat.format(
                         "Tag {0} does not accept any value.",
                         new Object[] {tag});
@@ -193,26 +197,16 @@ public class TLVTable implements java.io.Serializable {
                         "Tag {0} does not accept a null value.",
                         new Object[] {tag});
                 throw new BadValueTypeException(error);
-            } else if (!tag.getType().isAssignableFrom(value.getClass())) {
-                String error = MessageFormat.format(
-                        "Tag {0} expects a value of type {1}.",
-                        new Object[] {tag, tag.getType()});
-                throw new BadValueTypeException(error);
             }
 
             // Enforce the length restrictions on the Value specified by the
             // Tag.
             int min = tag.getMinLength();
             int max = tag.getMaxLength();
-            int actual = tag.getEncoder().getValueLength(tag, value);
-
-            boolean illegal = min > -1 && actual < min;
-            if (!illegal) {
-                illegal = max > -1 && actual > max;
-            }
-            if (illegal) {
+            int actual = descriptor.sizeOf(value);
+            if ((min > -1 && actual < min) || (max > -1 && actual > max)) {
                 throw new InvalidSizeForValueException("Tag "
-                        + Integer.toHexString(tag.intValue())
+                        + tag.toHexString()
                         + " must have a length in the range " + min
                         + " <= len <= " + max);
             }
@@ -265,18 +259,15 @@ public class TLVTable implements java.io.Serializable {
      */
     public final void parseAllOpts() {
         synchronized (map) {
-            int p = 0;
-
-            while (p < opts.length) {
+            ParsePosition pos = new ParsePosition(0);
+            while (pos.getIndex() < opts.length) {
                 Object val = null;
-                Tag tag = Tag.getTag(SMPPIO.bytesToShort(opts, p));
-                Encoder enc = tag.getEncoder();
-                int valueLen = SMPPIO.bytesToShort(opts, p + 2);
-
-                val = enc.readFrom(tag, opts, p + 4, valueLen);
+                Tag tag = Tag.getTag(SMPPIO.bytesToShort(opts, pos.getIndex()));
+                int valueLen = SMPPIO.bytesToShort(opts, pos.getIndex() + 2);
+                pos.inc(4);
+                ParamDescriptor descriptor = tag.getParamDescriptor();
+                val = descriptor.readObject(opts, pos, valueLen);
                 map.put(tag, val);
-
-                p += 4 + valueLen;
             }
             opts = null;
         }
@@ -294,28 +285,23 @@ public class TLVTable implements java.io.Serializable {
         if (opts == null || opts.length < 4) {
             return null;
         }
-
-        Encoder enc = tag.getEncoder();
-        Object val = null;
-        int p = 0;
-        while (true) {
-            int t = SMPPIO.bytesToShort(opts, p);
-            int l = SMPPIO.bytesToShort(opts, p + 2);
-
-            if (tag.equals(t)) {
-                val = enc.readFrom(tag, opts, p + 4, l);
+        ParamDescriptor descriptor = tag.getParamDescriptor();
+        Object value = null;
+        ParsePosition pos = new ParsePosition(0);
+        while (pos.getIndex() < opts.length) {
+            int tagNumber = SMPPIO.bytesToShort(opts, pos.getIndex());
+            int length = SMPPIO.bytesToShort(opts, pos.getIndex() + 2);
+            pos.inc(4);
+            if (tag.equals(tagNumber)) {
+                value = descriptor.readObject(opts, pos, length);
                 synchronized (map) {
-                    map.put(tag, val);
+                    map.put(tag, value);
                     break;
                }
             }
-
-            p += 4 + l;
-            if (p >= opts.length) {
-                break;
-            }
+            pos.inc(length);
         }
-        return val;
+        return value;
     }
 
     /**
@@ -332,17 +318,12 @@ public class TLVTable implements java.io.Serializable {
         if (opts != null) {
             parseAllOpts();
         }
-
         // Length is going to be (number of options) * (2 bytes for tag) * (2
         // bytes for length) + (size of all encoded values)
         int length = map.size() * 4;
-        Tag tag;
-        Encoder enc;
-        Iterator i = map.keySet().iterator();
-        while (i.hasNext()) {
-            tag = (Tag) i.next();
-            enc = tag.getEncoder();
-            length += enc.getValueLength(tag, map.get(tag));
+        for (Map.Entry<Tag, Object> entry : map.entrySet()) {
+            Tag tag = entry.getKey();
+            length += tag.getParamDescriptor().sizeOf(entry.getValue());
         }
         return length;
     }

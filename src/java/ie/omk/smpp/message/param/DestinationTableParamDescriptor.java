@@ -1,17 +1,21 @@
 package ie.omk.smpp.message.param;
 
 import ie.omk.smpp.message.DestinationTable;
+import ie.omk.smpp.util.ParsePosition;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.text.ParseException;
-import java.util.List;
 
-public class DestinationTableParamDescriptor extends AbstractParamDescriptor {
+public class DestinationTableParamDescriptor implements ParamDescriptor {
     private static final long serialVersionUID = 1;
-
+    private int linkIndex;
+    
     public DestinationTableParamDescriptor(int linkIndex) {
-        super(linkIndex);
+        this.linkIndex = linkIndex;
+    }
+    
+    public int getLengthSpecifier() {
+        return linkIndex;
     }
     
     public int sizeOf(Object obj) {
@@ -28,11 +32,9 @@ public class DestinationTableParamDescriptor extends AbstractParamDescriptor {
         }
     }
 
-    public int readObject(List body, byte[] data, int offset) throws ParseException {
-        int count = getCountFromBody(body);
+    public Object readObject(byte[] data, ParsePosition position, int length) {
         DestinationTable table = new DestinationTable();
-        table.readFrom(data, offset, count);
-        body.add(table);
-        return table.getLength();
+        table.readFrom(data, position, length);
+        return table;
     }
 }
