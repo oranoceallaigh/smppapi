@@ -43,8 +43,8 @@ public class Connection {
     private SequenceNumberScheme numberScheme = new DefaultSequenceScheme();
     private EventDispatcher eventDispatcher;
     private Thread receiver;
-
     private boolean useOptionalParams = version.isSupportOptionalParams();
+    private boolean validating = true;
     
     public Connection(SmscLink link) {
         connectionId = "Connection-" + CONNECTION_ID.getAndIncrement();
@@ -103,6 +103,14 @@ public class Connection {
         this.numberScheme = numberScheme;
     }
     
+    public boolean isValidating() {
+        return validating;
+    }
+
+    public void setValidating(boolean validating) {
+        this.validating = validating;
+    }
+
     public void bind(ConnectionType type,
             String systemID,
             String password,
@@ -172,10 +180,8 @@ public class Connection {
             throw new IllegalStateException("Not bound to the SMSC.");
         }
         int commandId = packet.getCommandId();
-        if (!version.isSupported(commandId)) {
-            throw new VersionException(
-                    "Command " + commandId + " is not supported"
-                    + " by SMPP version " + version.toString());
+        if (validating) {
+            packet.validate(version);
         }
         if (type == ConnectionType.RECEIVER) {
             switch (commandId) {
