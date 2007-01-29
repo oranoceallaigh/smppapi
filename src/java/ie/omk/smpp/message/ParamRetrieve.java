@@ -22,25 +22,10 @@ public class ParamRetrieve extends SMPPPacket {
 
     /**
      * Set the name of the parameter to retrieve
-     * 
      * @param paramName
-     *            Parameter name, up to 31 characters
-     * @throws ie.omk.smpp.message.InvalidParameterValueException
-     *             if the parameter name is too long.
      */
-    public void setParamName(String paramName)
-            throws InvalidParameterValueException {
-        if (paramName == null) {
-            this.paramName = null;
-            return;
-        }
-
-        if (paramName.length() < 32) {
-            this.paramName = paramName;
-        } else {
-            throw new InvalidParameterValueException(
-                    "Parameter name is invalid", paramName);
-        }
+    public void setParamName(String paramName) {
+        this.paramName = paramName;
     }
 
     /** Get the parameter name */
@@ -48,14 +33,11 @@ public class ParamRetrieve extends SMPPPacket {
         return paramName;
     }
 
-    /**
-     * Convert this packet to a String. Not to be interpreted programmatically,
-     * it's just dead handy for debugging!
-     */
-    public String toString() {
-        return new String("param_retrieve");
+    @Override
+    protected void toString(StringBuffer buffer) {
+        buffer.append("paramName=").append(paramName);
     }
-
+    
     @Override
     protected BodyDescriptor getBodyDescriptor() {
         return BodyDescriptor.ONE_CSTRING;

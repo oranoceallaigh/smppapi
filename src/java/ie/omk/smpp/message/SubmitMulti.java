@@ -66,16 +66,8 @@ public class SubmitMulti extends SMPacket {
      * @param d
      *            the distribution list name.
      * @return The current number of destination addresses (including the new
-     * @throws ie.omk.smpp.message.InvalidParameterValueException
-     *             if the distribution list name is too long.
      */
-    public int addDestination(String d) throws InvalidParameterValueException {
-
-        if (!version.validateDistListName(d)) {
-            throw new InvalidParameterValueException(
-                    "Distribution list name is invalid", d);
-        }
-
+    public int addDestination(String d) {
         synchronized (destinationTable) {
             destinationTable.add(d);
             return destinationTable.size();
@@ -94,6 +86,29 @@ public class SubmitMulti extends SMPacket {
                 + " the setDestination operation");
     }
 
+    @Override
+    protected void toString(StringBuffer buffer) {
+        int length = 0;
+        if (message != null) {
+            length = message.length;
+        }
+        buffer.append("serviceType=").append(serviceType)
+        .append(",source=").append(source)
+        .append(",numberOfDests=").append(destinationTable.size())
+        .append(",destinations=").append(destinationTable)
+        .append(",esmClass=").append(esmClass)
+        .append(",protocolID=").append(protocolID)
+        .append(",priority=").append(priority)
+        .append(",deliveryTime=").append(deliveryTime)
+        .append(",expiryTime=").append(expiryTime)
+        .append(",registered=").append(registered)
+        .append(",replaceIfPresent=").append(replaceIfPresent)
+        .append(",dataCoding=").append(dataCoding)
+        .append(",defaultMsg=").append(defaultMsg)
+        .append(",smLength=").append(length)
+        .append(",message=").append(message);
+    }
+    
     @Override
     protected BodyDescriptor getBodyDescriptor() {
         return BODY_DESCRIPTOR;

@@ -81,14 +81,13 @@ public class QueryMsgDetails extends SMPPPacket {
         return smLength;
     }
 
-    /**
-     * Convert this packet to a String. Not to be interpreted programmatically,
-     * it's just dead handy for debugging!
-     */
-    public String toString() {
-        return new String("query_msg_details");
+    @Override
+    protected void toString(StringBuffer buffer) {
+        buffer.append("messageId=").append(messageId)
+        .append(",source=").append(source)
+        .append(",smLength=").append(smLength);
     }
-
+    
     @Override
     protected BodyDescriptor getBodyDescriptor() {
         return BODY_DESCRIPTOR;

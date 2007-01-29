@@ -43,16 +43,4 @@ public class DeliverSM extends SMPacket {
                 SPEC_VIOLATION, "expiry time");
         super.setExpiryTime(d);
     }
-
-    /**
-     * Convert this packet to a String. Not to be interpreted programmatically,
-     * it's just dead handy for debugging!
-     */
-    public String toString() {
-        if (esmClass == 4 || esmClass == 16) {
-            return new String("delivery receipt");
-        } else {
-            return new String("deliver_sm");
-        }
-    }
 }

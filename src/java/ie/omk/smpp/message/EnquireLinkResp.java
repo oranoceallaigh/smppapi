@@ -26,13 +26,5 @@ public class EnquireLinkResp extends SMPPPacket {
     public EnquireLinkResp(SMPPPacket request) {
         super(request);
     }
-
-    /**
-     * Convert this packet to a String. Not to be interpreted programmatically,
-     * it's just dead handy for debugging!
-     */
-    public String toString() {
-        return new String("enquire_link_resp");
-    }
 }
 

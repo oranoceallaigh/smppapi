@@ -33,25 +33,11 @@ public class ParamRetrieveResp extends SMPPPacket {
 
     /**
      * Set the parameter value.
-     * 
-     * @param v
-     *            Value to be returned for the requested parameter (Up to 100
-     *            characters)
-     * @throws ie.omk.smpp.message.InvalidParameterValueException
-     *             if the parameter value is too long.
+     * @param paramValue
+     *            Value to be returned for the requested parameter.
      */
-    public void setParamValue(String v) throws InvalidParameterValueException {
-        if (v == null) {
-            paramValue = null;
-            return;
-        }
-
-        if (v.length() < 101) {
-            this.paramValue = v;
-        } else {
-            throw new InvalidParameterValueException(
-                    "Parameter value is too long", v);
-        }
+    public void setParamValue(String paramValue) {
+        this.paramValue = paramValue;
     }
 
     /** Get the value of the parameter */
@@ -59,14 +45,11 @@ public class ParamRetrieveResp extends SMPPPacket {
         return paramValue;
     }
 
-    /**
-     * Convert this packet to a String. Not to be interpreted programmatically,
-     * it's just dead handy for debugging!
-     */
-    public String toString() {
-        return new String("param_retrieve_resp");
+    @Override
+    protected void toString(StringBuffer buffer) {
+        buffer.append("paramValue=").append(paramValue);
     }
-
+    
     @Override
     protected BodyDescriptor getBodyDescriptor() {
         return BodyDescriptor.ONE_CSTRING;

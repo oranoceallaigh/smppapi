@@ -50,37 +50,22 @@ public class QueryLastMsgs extends SMPPPacket {
         this.source = source;
     }
 
-    /**
-     * Set the number of messages to look up. The minimum number of messages to
-     * query is 1 and the maximum is 100.
-     * 
-     * @param n
-     *            The message count (1 &lt;= n &lt;= 100)
-     * @throws ie.omk.smpp.message.InvalidParameterValueException
-     *             if the count is set outside the valid range.
-     */
-    public void setMsgCount(int n) throws InvalidParameterValueException {
-        if (n > 0 && n <= 100) {
-            this.msgCount = n;
-        } else {
-            throw new InvalidParameterValueException(
-                    "Message count must be between 1 and 100", n);
-        }
-    }
-
-    /** Get the number of messages being requested. */
     public int getMsgCount() {
         return msgCount;
     }
 
-    /**
-     * Convert this packet to a String. Not to be interpreted programmatically,
-     * it's just dead handy for debugging!
-     */
-    public String toString() {
-        return new String("query_last_msgs");
+    public void setMsgCount(int msgCount) {
+        this.msgCount = msgCount;
     }
 
+    // TODO: msgCount must be between 1 and 100 inclusive for validation.
+    
+    @Override
+    protected void toString(StringBuffer buffer) {
+        buffer.append("source=").append(source)
+        .append("msgCount=").append(msgCount);
+    }
+    
     @Override
     protected BodyDescriptor getBodyDescriptor() {
         return BODY_DESCRIPTOR;

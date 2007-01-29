@@ -25,13 +25,4 @@ public class BindTransmitterResp extends ie.omk.smpp.message.BindResp {
     public BindTransmitterResp(SMPPPacket request) {
         super(request);
     }
-
-    /**
-     * Convert this packet to a String. Not to be interpreted programmatically,
-     * it's just dead handy for debugging!
-     */
-    public String toString() {
-        return new String("bind_transmitter_resp");
-    }
 }
-

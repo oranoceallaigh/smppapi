@@ -24,12 +24,4 @@ public class UnbindResp extends SMPPPacket {
     public UnbindResp(SMPPPacket request) {
         super(request);
     }
-
-    /**
-     * Convert this packet to a String. Not to be interpreted programmatically,
-     * it's just dead handy for debugging!
-     */
-    public String toString() {
-        return new String("unbind_resp");
-    }
 }

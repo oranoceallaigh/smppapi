@@ -167,15 +167,15 @@ public class QueryMsgDetailsResp extends SMPacket {
     /**
      * Add an address to the destination table.
      * 
-     * @param d
+     * @param address
      *            The SME destination address
      * @return The current number of destination addresses (including the new
      *         one).
      * @see Address
      */
-    public int addDestination(Address d) {
+    public int addDestination(Address address) {
         synchronized (destinationTable) {
-            destinationTable.add(d);
+            destinationTable.add(address);
             return destinationTable.size();
         }
     }
@@ -183,20 +183,13 @@ public class QueryMsgDetailsResp extends SMPacket {
     /**
      * Add a distribution list to the destination table.
      * 
-     * @param d
+     * @param distributionList
      *            the distribution list name.
      * @return The current number of destination addresses (including the new
-     * @throws ie.omk.smpp.message.InvalidParameterValueException
-     *             if the distribution list name is too long.
      */
-    public int addDestination(String d) throws InvalidParameterValueException {
-        if (!version.validateDistListName(d)) {
-            throw new InvalidParameterValueException(
-                    "Distribution list is invalid", d);
-        }
-
+    public int addDestination(String distributionList) {
         synchronized (destinationTable) {
-            destinationTable.add(d);
+            destinationTable.add(distributionList);
             return destinationTable.size();
         }
     }
@@ -215,14 +208,30 @@ public class QueryMsgDetailsResp extends SMPacket {
         return destinationTable;
     }
 
-    /**
-     * Convert this packet to a String. Not to be interpreted programmatically,
-     * it's just dead handy for debugging!
-     */
-    public String toString() {
-        return new String("query_msg_details_resp");
+    @Override
+    protected void toString(StringBuffer buffer) {
+        int length = 0;
+        if (message != null) {
+            length = message.length;
+        }
+        buffer.append("serviceType=").append(serviceType)
+        .append(",source=").append(source)
+        .append(",numberOfDests=").append(destinationTable.size())
+        .append(",destinations=").append(destinationTable)
+        .append(",protocolID=").append(protocolID)
+        .append(",priority=").append(priority)
+        .append(",deliveryTime=").append(deliveryTime)
+        .append(",expiryTime=").append(expiryTime)
+        .append(",registered=").append(registered)
+        .append(",dataCoding=").append(dataCoding)
+        .append(",smLength=").append(length)
+        .append(",message=").append(message)
+        .append(",messageId=").append(messageId)
+        .append(",finalDate=").append(finalDate)
+        .append(",messageStatus=").append(messageStatus)
+        .append(",errorCode=").append(errorCode);
     }
-
+    
     @Override
     protected BodyDescriptor getBodyDescriptor() {
         return BODY_DESCRIPTOR;

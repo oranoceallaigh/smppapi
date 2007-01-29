@@ -40,54 +40,46 @@ public class CancelSM extends SMPPPacket {
         super(CANCEL_SM);
     }
 
-    
     public Address getDestination() {
         return destination;
     }
-
 
     public void setDestination(Address destination) {
         this.destination = destination;
     }
 
-
     public String getMessageId() {
         return messageId;
     }
-
 
     public void setMessageId(String messageId) {
         this.messageId = messageId;
     }
 
-
     public String getServiceType() {
         return serviceType;
     }
-
 
     public void setServiceType(String serviceType) {
         this.serviceType = serviceType;
     }
 
-
     public Address getSource() {
         return source;
     }
-
 
     public void setSource(Address source) {
         this.source = source;
     }
 
-    /**
-     * Convert this packet to a String. Not to be interpreted programmatically,
-     * it's just dead handy for debugging!
-     */
-    public String toString() {
-        return new String("cancel_sm");
+    @Override
+    protected void toString(StringBuffer buffer) {
+        buffer.append("serviceType=").append(serviceType)
+        .append(",messageId=").append(messageId)
+        .append(",source=").append(source)
+        .append(",destination=").append(destination);
     }
-
+    
     @Override
     protected BodyDescriptor getBodyDescriptor() {
         return BODY_DESCRIPTOR;

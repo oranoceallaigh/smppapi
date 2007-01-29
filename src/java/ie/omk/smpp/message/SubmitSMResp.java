@@ -30,20 +30,17 @@ public class SubmitSMResp extends SMPPPacket {
         super(request);
     }
 
-    /**
-     * Convert this packet to a String. Not to be interpreted programmatically,
-     * it's just dead handy for debugging!
-     */
-    public String toString() {
-        return new String("submit_sm_resp");
-    }
-
     public String getMessageId() {
         return messageId;
     }
 
     public void setMessageId(String messageId) {
         this.messageId = messageId;
+    }
+    
+    @Override
+    protected void toString(StringBuffer buffer) {
+        buffer.append("messageId=").append(messageId);
     }
     
     @Override

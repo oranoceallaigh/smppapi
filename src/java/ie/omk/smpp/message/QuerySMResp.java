@@ -77,14 +77,14 @@ public class QuerySMResp extends SMPPPacket {
         this.messageState = messageState;
     }
 
-    /**
-     * Convert this packet to a String. Not to be interpreted programmatically,
-     * it's just dead handy for debugging!
-     */
-    public String toString() {
-        return new String("query_sm_resp");
+    @Override
+    protected void toString(StringBuffer buffer) {
+        buffer.append("messageId=").append(messageId)
+        .append(",finalDate=").append(finalDate)
+        .append(",messageState=").append(messageState)
+        .append(",errorCode=").append(errorCode);
     }
-
+    
     @Override
     protected BodyDescriptor getBodyDescriptor() {
         return BODY_DESCRIPTOR;

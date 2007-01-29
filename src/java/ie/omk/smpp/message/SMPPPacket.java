@@ -499,17 +499,32 @@ public abstract class SMPPPacket {
     }
 
     /**
-     * Return a String representation of this packet. This method does not
-     * return any value which is useful programatically...it returns a
-     * description of the packet's header as follows: <br>
-     * <code>"SMPP(l:[len], c:[commandId], s:[status], n:[sequence])"</code>
+     * Return a String representation of this packet. This is provided
+     * for debugging/display purposes only and is not intended to be used
+     * programatically.
+     * @return A string representation of this packet.
      */
     public String toString() {
-        return new StringBuffer("SMPP(l:").append(
-                Integer.toString(getLength())).append(", c:0x").append(
-                Integer.toHexString(commandId)).append(", s:").append(
-                Integer.toString(commandStatus)).append(", n:").append(
-                Integer.toString(sequenceNum)).append(")").toString();
+        String packetName = getClass().getName();
+        packetName = packetName.substring(packetName.lastIndexOf(".") + 1);
+        StringBuffer buffer = new StringBuffer();
+        buffer.append('[').append(packetName)
+        .append(" Header:[length=").append(getLength())
+        .append(",id=").append(Integer.toHexString(commandId))
+        .append(",status=").append(commandStatus)
+        .append(",sequenceNum=").append(sequenceNum)
+        .append("] Mandatory:[");
+        toString(buffer);
+        buffer.append("] Optional:[");
+        buffer.append("]]");
+        return buffer.toString();
+    }
+    
+    /**
+     * Get the mandatory parameters in string form (for display purposes only).
+     * @param buffer
+     */
+    protected void toString(StringBuffer buffer) {
     }
 
     // TODO document

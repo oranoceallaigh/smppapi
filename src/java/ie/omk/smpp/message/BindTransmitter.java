@@ -13,13 +13,5 @@ public class BindTransmitter extends ie.omk.smpp.message.Bind {
     public BindTransmitter() {
         super(BIND_TRANSMITTER);
     }
-
-    /**
-     * Convert this packet to a String. Not to be interpreted programmatically,
-     * it's just dead handy for debugging!
-     */
-    public String toString() {
-        return new String("bind_transmitter");
-    }
 }
 

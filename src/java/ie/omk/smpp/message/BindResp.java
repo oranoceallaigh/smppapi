@@ -13,8 +13,7 @@ import java.util.List;
 public abstract class BindResp extends SMPPPacket {
     private static final BodyDescriptor BODY_DESCRIPTOR = new BodyDescriptor();
     
-    /** System Id */
-    private String sysId;
+    private String systemId;
 
     static {
         BODY_DESCRIPTOR.add(ParamDescriptor.CSTRING);
@@ -30,42 +29,20 @@ public abstract class BindResp extends SMPPPacket {
     protected BindResp(SMPPPacket request) {
         super(request);
     }
-    
-    /**
-     * Set the system Id
-     * 
-     * @param sysId
-     *            The new System Id string (Up to 15 characters)
-     * @throws ie.omk.smpp.message.InvalidParameterValueException
-     *             if the system id is too long.
-     */
-    public void setSystemId(String sysId) throws InvalidParameterValueException {
-        if (sysId != null) {
-            if (version.validateSystemId(sysId)) {
-                this.sysId = sysId;
-            } else {
-                throw new InvalidParameterValueException("Invalid system Id",
-                        sysId);
-            }
-        } else {
-            this.sysId = null;
-            return;
-        }
-    }
 
-    /** Get the system Id */
     public String getSystemId() {
-        return sysId;
+        return systemId;
     }
 
-    /**
-     * Convert this packet to a String. Not to be interpreted programmatically,
-     * it's just dead handy for debugging!
-     */
-    public String toString() {
-        return new String("bind_resp");
+    public void setSystemId(String systemId) {
+        this.systemId = systemId;
     }
 
+    @Override
+    protected void toString(StringBuffer buffer) {
+        buffer.append("systemId=").append(systemId);
+    }
+    
     @Override
     protected BodyDescriptor getBodyDescriptor() {
         return BODY_DESCRIPTOR;
@@ -74,12 +51,12 @@ public abstract class BindResp extends SMPPPacket {
     @Override
     protected Object[] getMandatoryParameters() {
         return new Object[] {
-                sysId,
+                systemId,
         };
     }
     
     @Override
     protected void setMandatoryParameters(List<Object> params) {
-        sysId = (String) params.get(0);
+        systemId = (String) params.get(0);
     }
 }

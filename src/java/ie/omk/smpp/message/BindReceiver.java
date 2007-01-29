@@ -14,13 +14,5 @@ public class BindReceiver extends ie.omk.smpp.message.Bind {
     public BindReceiver() {
         super(BIND_RECEIVER);
     }
-
-    /**
-     * Convert this packet to a String. Not to be interpreted programmatically,
-     * it's just dead handy for debugging!
-     */
-    public String toString() {
-        return "bind_receiver";
-    }
 }
 

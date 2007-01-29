@@ -40,6 +40,11 @@ public class DeliverSMResp extends SMPPPacket {
     }
 
     @Override
+    protected void toString(StringBuffer buffer) {
+        buffer.append("messageId=").append(messageId);
+    }
+    
+    @Override
     protected BodyDescriptor getBodyDescriptor() {
         return BodyDescriptor.ONE_CSTRING;
     }

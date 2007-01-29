@@ -46,6 +46,12 @@ public class QuerySM extends SMPPPacket {
     }
 
     @Override
+    protected void toString(StringBuffer buffer) {
+        buffer.append("messageId=").append(messageId)
+        .append(",source=").append(source);
+    }
+    
+    @Override
     protected BodyDescriptor getBodyDescriptor() {
         return BODY_DESCRIPTOR;
     }
@@ -62,13 +68,5 @@ public class QuerySM extends SMPPPacket {
     protected void setMandatoryParameters(List<Object> params) {
         messageId = (String) params.get(0);
         source = (Address) params.get(1);
-    }
-    
-    /**
-     * Convert this packet to a String. Not to be interpreted programmatically,
-     * it's just dead handy for debugging!
-     */
-    public String toString() {
-        return new String("query_sm");
     }
 }

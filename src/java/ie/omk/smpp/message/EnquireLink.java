@@ -16,13 +16,5 @@ public class EnquireLink extends SMPPPacket {
     public EnquireLink() {
         super(ENQUIRE_LINK);
     }
-
-    /**
-     * Convert this packet to a String. Not to be interpreted programmatically,
-     * it's just dead handy for debugging!
-     */
-    public String toString() {
-        return new String("enquire_link");
-    }
 }
 

@@ -15,12 +15,4 @@ public class Unbind extends SMPPPacket {
     public Unbind() {
         super(UNBIND);
     }
-
-    /**
-     * Convert this packet to a String. Not to be interpreted programmatically,
-     * it's just dead handy for debugging!
-     */
-    public String toString() {
-        return new String("unbind");
-    }
 }

@@ -84,14 +84,16 @@ public class DataSM extends SMPPPacket {
         this.registered = registered;
     }
 
-    /**
-     * Convert this packet to a String. Not to be interpreted programmatically,
-     * it's just dead handy for debugging!
-     */
-    public String toString() {
-        return new String("data_sm");
+    @Override
+    protected void toString(StringBuffer buffer) {
+        buffer.append("serviceType=").append(serviceType)
+        .append(",source=").append(source)
+        .append(",destination=").append(destination)
+        .append(",esmClass=").append(esmClass)
+        .append(",registered=").append(registered)
+        .append(",dataCoding=").append(dataCoding);
     }
-
+    
     @Override
     protected BodyDescriptor getBodyDescriptor() {
         return BODY_DESCRIPTOR;

@@ -101,14 +101,13 @@ public class SubmitMultiResp extends SMPPPacket {
         return unsuccessfulTable.listIterator();
     }
 
-    /**
-     * Convert this packet to a String. Not to be interpreted programmatically,
-     * it's just dead handy for debugging!
-     */
-    public String toString() {
-        return new String("submit_multi_resp");
+    @Override
+    protected void toString(StringBuffer buffer) {
+        buffer.append("messageId=").append(messageId)
+        .append(",unsuccessfulCount=").append(unsuccessfulTable.size())
+        .append(",unsuccessful=").append(unsuccessfulTable);
     }
-
+    
     @Override
     protected BodyDescriptor getBodyDescriptor() {
         return BODY_DESCRIPTOR;

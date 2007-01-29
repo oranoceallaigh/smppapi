@@ -1,22 +1,15 @@
 package ie.omk.smpp.message;
 
-public class InvalidParameterValueException extends
-        ie.omk.smpp.SMPPRuntimeException {
+import ie.omk.smpp.SMPPRuntimeException;
 
+public class InvalidParameterValueException extends SMPPRuntimeException {
     public static final int BAD_VALUE_OBJECT = 0;
-
     public static final int BAD_VALUE_BYTE = 1;
-
     public static final int BAD_VALUE_CHAR = 2;
-
     public static final int BAD_VALUE_INT = 3;
-
     public static final int BAD_VALUE_LONG = 4;
-
     public static final int BAD_VALUE_FLOAT = 5;
-
     public static final int BAD_VALUE_DOUBLE = 6;
-
     public static final int BAD_VALUE_STRING = 7;
 
     static final long serialVersionUID = 7631862906763821181L;

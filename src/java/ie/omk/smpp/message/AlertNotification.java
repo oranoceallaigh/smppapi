@@ -49,10 +49,12 @@ public class AlertNotification extends SMPPPacket {
         this.source = source;
     }
 
-    public String toString() {
-        return "alert_notification";
+    @Override
+    protected void toString(StringBuffer buffer) {
+        buffer.append("source=").append(source)
+        .append(",destination=").append(destination);
     }
-
+    
     @Override
     protected BodyDescriptor getBodyDescriptor() {
         return BODY_DESCRIPTOR;

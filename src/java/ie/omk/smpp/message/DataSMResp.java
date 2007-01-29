@@ -5,9 +5,7 @@ import java.util.List;
 
 /**
  * Response to a data_sm.
- * 
- * @author Oran Kelly
- * @version 1.0
+ * @version $Id$
  */
 public class DataSMResp extends SMPPPacket {
     private String messageId;
@@ -36,6 +34,11 @@ public class DataSMResp extends SMPPPacket {
 
     public void setMessageId(String messageId) {
         this.messageId = messageId;
+    }
+    
+    @Override
+    protected void toString(StringBuffer buffer) {
+        buffer.append("messageId=").append(messageId);
     }
     
     @Override

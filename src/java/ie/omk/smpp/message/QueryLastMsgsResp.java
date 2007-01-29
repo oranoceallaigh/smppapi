@@ -48,13 +48,8 @@ public class QueryLastMsgsResp extends SMPPPacket {
      * @param id
      *            The message Id to add to the packet.
      * @return The current number of message Ids (including the new one).
-     * @throws ie.omk.smpp.message.InvalidParameterValueException
-     *             if the id is invalid.
      */
     public int addMessageId(String id) {
-        if (!version.validateMessageId(id)) {
-            throw new InvalidParameterValueException("Invalid message ID", id);
-        }
         messageTable.add(id);
         return messageTable.size();
     }
@@ -66,36 +61,22 @@ public class QueryLastMsgsResp extends SMPPPacket {
 
     /**
      * Get a String array of the message Ids.
-     * 
-     * @return A String array of all the message Ids.
+     * @return A String array of all the message Ids. Will never return
+     * <code>null</code>, if the table is empty a zero-length array will be
+     * returned.
      */
     public String[] getMessageIds() {
-        String[] ids;
-        int loop = 0;
-
         synchronized (messageTable) {
-            if (messageTable.size() == 0) {
-                return null;
-            }
-
-            ids = new String[messageTable.size()];
-            Iterator i = messageTable.iterator();
-            while (i.hasNext()) {
-                ids[loop++] = (String) i.next();
-            }
+            return (String[]) messageTable.toArray(new String[0]);
         }
-
-        return ids;
     }
 
-    /**
-     * Convert this packet to a String. Not to be interpreted programmatically,
-     * it's just dead handy for debugging!
-     */
-    public String toString() {
-        return new String("query_last_msgs_resp");
+    @Override
+    protected void toString(StringBuffer buffer) {
+        buffer.append("msgCount=").append(messageTable.size())
+        .append(",messageIds=").append(messageTable);
     }
-
+    
     @Override
     protected BodyDescriptor getBodyDescriptor() {
         return BODY_DESCRIPTOR;

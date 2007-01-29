@@ -2,9 +2,7 @@ package ie.omk.smpp.message;
 
 /**
  * SMSC response to a cancel message request.
- * 
- * @author Oran Kelly
- * @version 1.0
+ * @version $Id$
  */
 public class CancelSMResp extends SMPPPacket {
     /**
@@ -23,13 +21,5 @@ public class CancelSMResp extends SMPPPacket {
      */
     public CancelSMResp(SMPPPacket request) {
         super(request);
-    }
-
-    /**
-     * Convert this packet to a String. Not to be interpreted programmatically,
-     * it's just dead handy for debugging!
-     */
-    public String toString() {
-        return new String("cancel_sm_resp");
     }
 }

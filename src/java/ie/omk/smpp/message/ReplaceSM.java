@@ -35,14 +35,22 @@ public class ReplaceSM extends SMPacket {
         super(REPLACE_SM);
     }
     
-    /**
-     * Convert this packet to a String. Not to be interpreted programmatically,
-     * it's just dead handy for debugging!
-     */
-    public String toString() {
-        return new String("replace_sm");
+    @Override
+    protected void toString(StringBuffer buffer) {
+        int length = 0;
+        if (message != null) {
+            length = message.length;
+        }
+        buffer.append("messageId=").append(messageId)
+        .append(",source=").append(source)
+        .append(",deliveryTime=").append(deliveryTime)
+        .append(",expiryTime=").append(expiryTime)
+        .append(",registered=").append(registered)
+        .append(",defaultMsg=").append(defaultMsg)
+        .append(",length=").append(length)
+        .append(",message=").append(message);
     }
-
+    
     @Override
     protected BodyDescriptor getBodyDescriptor() {
         return BODY_DESCRIPTOR;

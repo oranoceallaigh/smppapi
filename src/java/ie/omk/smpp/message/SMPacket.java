@@ -160,11 +160,11 @@ public class SMPacket extends SMPPPacket {
      * 
      * @param message
      *            The byte array to take message data from.
-     * @throws ie.omk.smpp.message.InvalidParameterValueException
-     *             If the message data is too long.
+     * @throws java.lang.ArrayIndexOutOfBoundsException
+     *             if start or len is less than zero or if the byte array length
+     *             is less than <code>start + len</code>.
      */
-    public void setMessage(byte[] message)
-            throws InvalidParameterValueException {
+    public void setMessage(byte[] message) {
         this.setMessage(message, 0, message.length);
     }
 
@@ -187,14 +187,8 @@ public class SMPacket extends SMPPPacket {
      *             if start or len is less than zero or if the byte array length
      *             is less than <code>start + len</code>.
      */
-    public void setMessage(byte[] message, int start, int len)
-    throws InvalidParameterValueException {
-
+    public void setMessage(byte[] message, int start, int len) {
         if (message != null) {
-            if ((start < 0) || (len < 0) || message.length < (start + len)) {
-                throw new ArrayIndexOutOfBoundsException(
-                        "Not enough bytes in the supplied array");
-            }
             this.message = new byte[len];
             System.arraycopy(message, start, this.message, 0, len);
         } else {
@@ -219,6 +213,28 @@ public class SMPacket extends SMPPPacket {
         return (message == null) ? 0 : message.length;
     }
 
+    @Override
+    protected void toString(StringBuffer buffer) {
+        int length = 0;
+        if (message != null) {
+            length = message.length;
+        }
+        buffer.append("serviceType=").append(serviceType)
+        .append(",source=").append(source)
+        .append(",destinations=").append(destination)
+        .append(",esmClass=").append(esmClass)
+        .append(",protocolID=").append(protocolID)
+        .append(",priority=").append(priority)
+        .append(",deliveryTime=").append(deliveryTime)
+        .append(",expiryTime=").append(expiryTime)
+        .append(",registered=").append(registered)
+        .append(",replaceIfPresent=").append(replaceIfPresent)
+        .append(",dataCoding=").append(dataCoding)
+        .append(",defaultMsg=").append(defaultMsg)
+        .append(",smLength=").append(length)
+        .append(",message=").append(message);
+    }
+    
     @Override
     protected BodyDescriptor getBodyDescriptor() {
         return BODY_DESCRIPTOR;
