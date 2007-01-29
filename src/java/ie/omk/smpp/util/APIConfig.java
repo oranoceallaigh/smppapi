@@ -88,14 +88,6 @@ import org.slf4j.LoggerFactory;
  * </tr>
  * 
  * <tr>
- * <td><code>smppapi.connection.defaultEncoding</code></td>
- * <td>String</td>
- * <td>The name of a class, which must extend from
- * {@link ie.omk.smpp.util.MessageEncoding}, that will be used by connections
- * as their default message encoding.</td>
- * </tr>
- * 
- * <tr>
  * <td><code>smppapi.connection.rcv_daemon.ioex_count</code></td>
  * <td>Integer</td>
  * <td>The number of I/O exceptions the receiver daemon will accept occurring
@@ -169,12 +161,6 @@ public final class APIConfig extends Properties {
      */
     public static final String TOO_MANY_IO_EXCEPTIONS = "smppapi.connection.rcv_daemon.ioex_count";
 
-    /**
-     * @see APIConfig
-     */
-    // TODO should remove this again?
-    public static final String ENCODING_CLASS = "smppapi.connection.defaultEncoding";
-    
     /**
      * @see APIConfig
      */
