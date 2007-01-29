@@ -18,30 +18,34 @@ import org.slf4j.LoggerFactory;
  * @author Oran Kelly
  * @version $Id$
  */
-public class TcpLink extends ie.omk.smpp.net.SmscLink {
+public class TcpLink extends AbstractSmscLink {
     private static final String STACK_TRACE_ERR = "Stack trace:";
 
     private static final String SOCKET_NOT_OPEN_ERR = "Socket connection is not open";
 
     private static final Logger LOG = LoggerFactory.getLogger(TcpLink.class);
 
-    /** Default IP port to use if none are specified */
+    /**
+     * Default IP port to use if none are specified.
+     */
     public static final int DEFAULT_PORT = 5016;
 
-    /** The ip address of the SMSC */
+    /**
+     * The internet address of the SMSC.
+     */
     private InetAddress addr;
 
-    /** The ip port to connect to */
+    /**
+     * The port to connect to.
+     */
     private int port;
 
-    /** The socket timeout setting. */
+    /**
+     * The socket timeout setting.
+     */
     private int sockTimeout;
     
-    /** The socket corresponding to the virtual connection */
     private Socket sock;
-
-    /** Are we connected? */
-    private boolean connected;
 
     /**
      * Create a new TcpLink
@@ -106,85 +110,6 @@ public class TcpLink extends ie.omk.smpp.net.SmscLink {
             this.port = port;
         }
     }
-
-    /**
-     * Create a new Socket connection to the SMSC. This implementation creates a
-     * new instance of a java.net.Socket with the host name and port supplied to
-     * the constructor an instance of this class was created with.
-     * 
-     * @throws java.io.IOException
-     *             If an error occurs while creating the socket connection to
-     *             the SMSC.
-     * @see java.net.Socket#Socket(java.net.InetAddress, int)
-     */
-    protected void implOpen() throws java.io.IOException {
-        LOG.info("Opening TCP socket to {}:{}", addr, port);
-        sock = new Socket();
-        SocketAddress sockAddr = new InetSocketAddress(addr, port);
-        sock.connect(sockAddr, sockTimeout);
-        if (sockTimeout > 0) {
-            sock.setSoTimeout(sockTimeout);
-        }
-        connected = true;
-    }
-
-    /**
-     * Close the Socket connection to the SMSC.
-     * 
-     * @throws java.io.IOException
-     *             If an I/O error occurs closing the socket connection.
-     * @see java.net.Socket#close
-     */
-    protected void implClose() throws java.io.IOException {
-        if (connected && sock != null) {
-            LOG.info("Shutting down socket connection");
-            try {
-                sock.close();
-                sock = null;
-                connected = false;
-            } catch (IOException ix) {
-                LOG.warn("I/O exception closing socket", ix);
-                connected = false;
-                ix.fillInStackTrace();
-                throw ix;
-            }
-        }
-    }
-
-    /**
-     * Get the output stream of the Socket connection to the SMSC.
-     * 
-     * @throws java.io.IOException
-     *             If the socket connection is not open or an I/O error occurs
-     *             when creating the output stream.
-     * @see java.io.OutputStream
-     * @see java.net.Socket#getOutputStream
-     */
-    protected OutputStream getOutputStream() throws java.io.IOException {
-        if (sock == null) {
-            throw new IOException(SOCKET_NOT_OPEN_ERR);
-        } else {
-            return sock.getOutputStream();
-        }
-    }
-
-    /**
-     * Get the input stream of the Socket connection to the SMSC.
-     * 
-     * @throws java.io.IOException
-     *             If the socket connection is not open or an I/O error occurs
-     *             when creating the input stream.
-     * @see java.io.InputStream
-     * @see java.net.Socket#getInputStream
-     */
-    protected InputStream getInputStream() throws java.io.IOException {
-        if (sock == null) {
-            throw new IOException(SOCKET_NOT_OPEN_ERR);
-        } else {
-            return sock.getInputStream();
-        }
-    }
-
     /**
      * Get the address we're connected (or connecting) to.
      * 
@@ -236,18 +161,15 @@ public class TcpLink extends ie.omk.smpp.net.SmscLink {
         }
     }
 
-    /**
-     * Check connection status.
-     * 
-     * @return false if unconnected, true if connected.
-     */
     public boolean isConnected() {
-        return connected;
+        return sock != null && sock.isConnected();
     }
 
     /**
-     * Set the socket timeout (SO_TIMEOUT).
+     * Set the socket timeout. This SmscLink implementation uses SO_TIMEOUT
+     * to implement read timeouts.
      * @param timeout The timeout to set.
+     * @see SmscLink#setTimeout(int)
      */
     public void setTimeout(int timeout) {
         try {
@@ -272,5 +194,84 @@ public class TcpLink extends ie.omk.smpp.net.SmscLink {
             }
         }
         return -1;
+    }
+
+    public boolean isTimeoutSupported() {
+        return true;
+    }
+    
+    /**
+     * Create a new Socket connection to the SMSC. This implementation creates a
+     * new instance of a java.net.Socket with the host name and port supplied to
+     * the constructor an instance of this class was created with.
+     * 
+     * @throws java.io.IOException
+     *             If an error occurs while creating the socket connection to
+     *             the SMSC.
+     * @see java.net.Socket#Socket(java.net.InetAddress, int)
+     */
+    protected void implOpen() throws java.io.IOException {
+        LOG.info("Opening TCP socket to {}:{}", addr, port);
+        sock = new Socket();
+        SocketAddress sockAddr = new InetSocketAddress(addr, port);
+        sock.connect(sockAddr, sockTimeout);
+        if (sockTimeout > 0) {
+            sock.setSoTimeout(sockTimeout);
+        }
+    }
+
+    /**
+     * Close the Socket connection to the SMSC.
+     * 
+     * @throws java.io.IOException
+     *             If an I/O error occurs closing the socket connection.
+     * @see java.net.Socket#close
+     */
+    protected void implClose() throws java.io.IOException {
+        if (isConnected()) {
+            LOG.info("Shutting down socket connection");
+            try {
+                sock.close();
+                sock = null;
+            } catch (IOException ix) {
+                LOG.warn("I/O exception closing socket", ix);
+                ix.fillInStackTrace();
+                throw ix;
+            }
+        }
+    }
+
+    /**
+     * Get the output stream of the Socket connection to the SMSC.
+     * 
+     * @throws java.io.IOException
+     *             If the socket connection is not open or an I/O error occurs
+     *             when creating the output stream.
+     * @see java.io.OutputStream
+     * @see java.net.Socket#getOutputStream
+     */
+    protected OutputStream getOutputStream() throws java.io.IOException {
+        if (sock == null) {
+            throw new IOException(SOCKET_NOT_OPEN_ERR);
+        } else {
+            return sock.getOutputStream();
+        }
+    }
+
+    /**
+     * Get the input stream of the Socket connection to the SMSC.
+     * 
+     * @throws java.io.IOException
+     *             If the socket connection is not open or an I/O error occurs
+     *             when creating the input stream.
+     * @see java.io.InputStream
+     * @see java.net.Socket#getInputStream
+     */
+    protected InputStream getInputStream() throws java.io.IOException {
+        if (sock == null) {
+            throw new IOException(SOCKET_NOT_OPEN_ERR);
+        } else {
+            return sock.getInputStream();
+        }
     }
 }

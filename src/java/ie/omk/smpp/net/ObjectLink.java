@@ -1,7 +1,6 @@
 package ie.omk.smpp.net;
 
 import ie.omk.smpp.message.SMPPPacket;
-import ie.omk.smpp.util.SMPPIO;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -42,7 +41,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @version $Id$
  */
-public class ObjectLink extends SmscLink {
+public class ObjectLink extends AbstractSmscLink {
 
     private static final Logger LOG = LoggerFactory.getLogger(ObjectLink.class);
     
@@ -64,25 +63,18 @@ public class ObjectLink extends SmscLink {
     public ObjectLink() {
     }
     
-    protected void implOpen() throws IOException {
-        this.out = new OLByteArrayOutputStream();
-    }
-
-    protected void implClose() throws IOException {
-    }
-
-    protected OutputStream getOutputStream() throws IOException {
-        return out;
-    }
-
-    protected InputStream getInputStream() throws IOException {
-        return in;
-    }
-
     public boolean isConnected() {
         return connected;
     }
 
+    public boolean isTimeoutSupported() {
+        return true;
+    }
+
+    public int getTimeout() {
+        return timeout;
+    }
+    
     public void setTimeout(int timeout) {
         this.timeout = timeout;
     }
@@ -156,6 +148,21 @@ public class ObjectLink extends SmscLink {
             this.packets.add(new Long(milliseconds));
         }
     }
+    
+    protected void implOpen() throws IOException {
+        this.out = new OLByteArrayOutputStream();
+    }
+
+    protected void implClose() throws IOException {
+    }
+
+    protected OutputStream getOutputStream() throws IOException {
+        return out;
+    }
+
+    protected InputStream getInputStream() throws IOException {
+        return in;
+    }
 
     private class OLByteArrayOutputStream extends OutputStream {
         private byte[] buf;
@@ -197,7 +204,8 @@ public class ObjectLink extends SmscLink {
         }
 
         public void write(int num) throws IOException {
-            SMPPIO.intToBytes(num, 4, buf, pos);
+            // TODO
+//            SMPPIO.intToBytes(num, 4, buf, pos);
             pos += 4;
         }
     }

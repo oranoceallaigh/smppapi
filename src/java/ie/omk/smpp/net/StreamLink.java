@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
  * @author Oran Kelly
  * @version $Id$
  */
-public class StreamLink extends ie.omk.smpp.net.SmscLink {
+public class StreamLink extends AbstractSmscLink {
     private static final Logger LOG = LoggerFactory.getLogger(StreamLink.class);
 
     /** The input side of the link. */
@@ -74,6 +74,14 @@ public class StreamLink extends ie.omk.smpp.net.SmscLink {
         return this.inStream;
     }
 
+    public int getTimeout() {
+        throw new UnsupportedOperationException();
+    }
+    
+    public void setTimeout(int timeout) {
+        throw new UnsupportedOperationException();
+    }
+    
     /**
      * Check connection status.
      * 
@@ -81,5 +89,9 @@ public class StreamLink extends ie.omk.smpp.net.SmscLink {
      */
     public boolean isConnected() {
         return connected;
+    }
+    
+    public boolean isTimeoutSupported() {
+        return false;
     }
 }
