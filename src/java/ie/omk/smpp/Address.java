@@ -160,8 +160,10 @@ public class Address implements java.io.Serializable {
     }
 
     public String toString() {
-        return new StringBuffer(25).append(Integer.toString(ton)).append(':')
-            .append(Integer.toString(npi)).append(':').append(address).toString();
+        return new StringBuffer(25)
+        .append(Integer.toString(ton)).append(':')
+        .append(Integer.toString(npi)).append(':')
+        .append(address).toString();
     }
 
     /**

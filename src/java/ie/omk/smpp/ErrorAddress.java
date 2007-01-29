@@ -86,4 +86,10 @@ public class ErrorAddress extends Address {
         error = SMPPIO.bytesToLongInt(ea, position.getIndex());
         position.inc(4);
     }
+    
+    @Override
+    public String toString() {
+        return new StringBuffer(super.toString())
+        .append("/Error=").append(error).toString();
+    }
 }
