@@ -64,8 +64,8 @@ public class SimpleEventDispatcher extends AbstractEventDispatcher {
         for (ConnectionObserver observer : observerList) {
             try {
                 observer.update(conn, event);
-            } catch (Throwable t) {
-                LOG.warn("An observer threw an exception during event processing", t);
+            } catch (Exception x) {
+                LOG.error("An observer threw an exception during event processing", x);
             }
         }
     }
@@ -83,8 +83,8 @@ public class SimpleEventDispatcher extends AbstractEventDispatcher {
         for (ConnectionObserver observer : observerList) {
             try {
                 observer.packetReceived(conn, packet);
-            } catch (Throwable t) {
-                LOG.warn("An observer threw an exception during packet processing", t);
+            } catch (Exception x) {
+                LOG.error("An observer threw an exception during packet processing", x);
             }
         }
     }
