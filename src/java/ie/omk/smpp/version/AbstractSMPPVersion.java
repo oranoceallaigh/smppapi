@@ -7,21 +7,9 @@ import ie.omk.smpp.Address;
  * Class representing an SMPP protocol version. Instances of this object are
  * used by the rest of the API to determine is an SMPP message is supported by a
  * certain version of the protocol.
- * 
- * @since 0.3.0
- * @author Oran Kelly
+ * @version $Id:$
  */
 public abstract class AbstractSMPPVersion implements SMPPVersion {
-
-    /** Constant representing the message payload mandatory parameter. */
-    public static final int MESSAGE_PAYLOAD = 5;
-
-    /** Static SMPPVersion instance representing version SMPP v3.3. */
-    public static final AbstractSMPPVersion V33 = new SMPPVersion33();
-
-    /** Static SMPPVersion instance representing version SMPP v3.4. */
-    public static final AbstractSMPPVersion V34 = new SMPPVersion34();
-
     /**
      * Integer representing this version number. The SMPP specification states
      * integer values that represent protocol revisions. These values are used
