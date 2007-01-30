@@ -1,7 +1,6 @@
 package ie.omk.smpp.util;
 
 import ie.omk.smpp.BadCommandIDException;
-import ie.omk.smpp.SMPPRuntimeException;
 import ie.omk.smpp.message.AlertNotification;
 import ie.omk.smpp.message.BindReceiver;
 import ie.omk.smpp.message.BindReceiverResp;
@@ -46,10 +45,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Helper class to create new SMPP packet objects.
- * 
- * @since 1.0
- * @author Oran Kelly
+ * Factory class for SMPP packets.
+ * @version $Id$
  */
 public final class PacketFactory {
     private static final Logger LOG = LoggerFactory.getLogger(PacketFactory.class);
@@ -119,23 +116,39 @@ public final class PacketFactory {
      * as <code>packet</code>.
      * @param packet The request packet to get a response for.
      * @return An SMPP response packet.
+     * @throws BadCommandIDException If there is no response packet for the
+     * specified request (for example, an <code>AlertNotification</code>).
      */
     public static SMPPPacket newResponse(SMPPPacket packet) {
         if (packet.isResponse()) {
             throw new IllegalArgumentException(
                     "Cannot create a response to a response!");
         }
-        try {
-            int id = packet.getCommandId();
-            SMPPPacket response = INSTANCE.newInstance(id | 0x80000000, packet);
-            response.setSequenceNum(packet.getSequenceNum());
-            return response;
-        } catch (BadCommandIDException x) {
-            throw new SMPPRuntimeException("Internal error in the smppapi.", x);
-        }
+        int id = packet.getCommandId();
+        SMPPPacket response = INSTANCE.newInstance(id | 0x80000000, packet);
+        response.setSequenceNum(packet.getSequenceNum());
+        return response;
     }
 
-    // TODO document
+    /**
+     * Register a vendor packet with the factory. The SMPP allows for
+     * vendor-specific packets to be defined. In order for these to be
+     * usable with the API, primarily so that they can be identified and
+     * decoded when received from an SMSC, they must be registered with
+     * the packet factory.
+     * <p>
+     * This implementation assumes that the ID of the response packet will
+     * be the ID of the request packet ORed with <code>0x80000000</code>.
+     * This implementation also accepts <code>null</code> for the
+     * <code>responseType</code> since there is at least one incidence in
+     * the specification of such a case (<code>AlertNotification</code> has
+     * no response packet).
+     * </p>
+     * @param id The command ID of the request packet.
+     * @param requestType The class which implements the vendor request packet.
+     * @param responseType The class which implements the vendor response
+     * packet.
+     */
     public static void registerVendorPacket(int id,
             Class<? extends SMPPPacket> requestType,
             Class<? extends SMPPPacket> responseType) {
@@ -151,7 +164,18 @@ public final class PacketFactory {
         INSTANCE.userCommands.remove(Integer.valueOf(id | 0x80000000));
     }
     
-    // TODO throws badcommandidexception - now a runtime exception.
+    /**
+     * Get a new instance of an SMPP packet for the specified ID.
+     * @param id The command ID to get the packet object for.
+     * @param request If a response packet is being created, this parameter
+     * may be optionally supplied and an attempt will be made to call a
+     * constructor which accepts an SMPPPacket as its argument. All of the
+     * response packets that are supplied as part of the API have such
+     * a constructor.
+     * @return A new instance of the relevant SMPPPacket implementation.
+     * @throws BadCommandIDException If no matching class can be found for
+     * <code>id</code>.
+     */
     private SMPPPacket newInstance(int id, SMPPPacket request) {
         SMPPPacket response = null;
         Class<? extends SMPPPacket> clazz = getClassForId(id);
@@ -161,14 +185,7 @@ public final class PacketFactory {
         }
         try {
             if (request != null) {
-                try {
-                    Constructor<? extends SMPPPacket> cons = clazz.getConstructor(
-                            new Class[] {SMPPPacket.class});
-                    response = cons.newInstance(
-                            new Object[] {request});
-                } catch (NoSuchMethodException x) {
-                    LOG.debug("No SMPPPacket constructor - using the default.");
-                }
+                response = constructWithPacketArg(clazz, request);
             }
             if (response == null) {
                 response = clazz.newInstance();
@@ -179,11 +196,45 @@ public final class PacketFactory {
         return response;
     }
     
-    private Class<? extends SMPPPacket> getClassForId(int id) {
-        Integer commandId = Integer.valueOf(id);
-        Class<? extends SMPPPacket> clazz = commands.get(Integer.valueOf(commandId));
+    /**
+     * Construct an SMPPPacket implementation class using a single-argument
+     * constructor which takes an SMPPPacket object as its argument.
+     * @param clazz The class to instantiate.
+     * @param request The object to pass to the constructor.
+     * @return The instantiated class, or <code>null</code> if the class does
+     * not implement a single-argument constructor which accepts an SMPPPacket.
+     * @throws Exception Any exception that is thrown by
+     * {@link Constructor#newInstance(java.lang.Object[])} can be thrown
+     * by this method.
+     */
+    private SMPPPacket constructWithPacketArg(
+            Class<? extends SMPPPacket> clazz,
+            SMPPPacket request) throws Exception {
+        SMPPPacket packet = null;
+        try {
+            Constructor<? extends SMPPPacket> cons = clazz.getConstructor(
+                    new Class[] {SMPPPacket.class});
+            packet = cons.newInstance(
+                    new Object[] {request});
+        } catch (NoSuchMethodException x) {
+            LOG.debug("No SMPPPacket constructor; will fall back to default.");
+        }
+        return packet;
+    }
+    
+    /**
+     * Get the implementation class for SMPP <code>commandId</code>.
+     * The internally supplied SMPPPacket implementations will be queried
+     * first, followed by all registered vendor packets.
+     * @param commandId The command ID of the packet to get.
+     * @return The implementing class, or <code>null</code> if there is
+     * no class for the specified command ID.
+     */
+    private Class<? extends SMPPPacket> getClassForId(int commandId) {
+        Integer id = Integer.valueOf(commandId);
+        Class<? extends SMPPPacket> clazz = commands.get(id);
         if (clazz == null) {
-            clazz = userCommands.get(commandId);
+            clazz = userCommands.get(id);
         }
         return clazz;
     }
