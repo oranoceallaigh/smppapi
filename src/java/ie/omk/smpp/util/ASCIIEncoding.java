@@ -11,14 +11,8 @@ public class ASCIIEncoding extends AlphabetEncoding {
     /**
      * Construct a new ASCIIEncoding.
      */
-    public ASCIIEncoding() {
+    public ASCIIEncoding() throws UnsupportedEncodingException {
         super(DCS);
-        try {
-            setCharset("US-ASCII");
-        } catch (UnsupportedEncodingException x) {
-            // All JVMs are required to support ASCII..
-            throw new RuntimeException();
-        }
+        setCharset("US-ASCII");
     }
 }
-
