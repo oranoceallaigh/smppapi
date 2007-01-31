@@ -1,7 +1,5 @@
 package ie.omk.smpp.util;
 
-import ie.omk.smpp.SMPPRuntimeException;
-
 import java.io.UnsupportedEncodingException;
 
 /**
@@ -10,30 +8,16 @@ import java.io.UnsupportedEncodingException;
  * the String in a particular SMS alphabet.
  */
 public class AlphabetEncoding extends MessageEncoding {
-    
-    private static final String BAD_IMPLEMENTATION =
-        "Missing charset in implementation of AlphabetEncoding "
-        + AlphabetEncoding.class.getName();
-        
     private String charset;
-    
+
+    /**
+     * Create a new alphabet encoding.
+     * @param dcs The data coding value to be used for this encoding.
+     */
     protected AlphabetEncoding(int dcs) {
         super(dcs);
     }
 
-    /**
-     * Set the charset of this alphabet encoding. Sub-classes can use this
-     * to create new instances of alphabet encoding for character sets that
-     * are supported by the JVM.
-     * @param charset The character set to use for encoding and decoding.
-     * @throws UnsupportedEncodingException If the JVM does not support the
-     * specified character set.
-     */
-    protected void setCharset(String charset) throws UnsupportedEncodingException {
-        new String("probe").getBytes(charset);
-        this.charset = charset;
-    }
-    
     /**
      * Get the character set in use by this alpabet encoding (if any).
      * @return The character set in use by this alphabet encoding. This method
@@ -59,15 +43,13 @@ public class AlphabetEncoding extends MessageEncoding {
      * the String "" will be returned.
      */
     public String decodeString(byte[] data, int offset, int length) {
-        if (charset == null) {
-            throw new SMPPRuntimeException(BAD_IMPLEMENTATION);
-        }
         try {
             if (data != null) {
                 return new String(data, offset, length, charset);
             }
         } catch (UnsupportedEncodingException x) {
-            // Will already have been detected by the constructor.
+            // Shouldn't happen - setCharset should have detected this.
+            throw new RuntimeException();
         }
         return "";
     }
@@ -78,17 +60,30 @@ public class AlphabetEncoding extends MessageEncoding {
      * such cases, a byte array of length 0 will be returned.
      */
     public byte[] encodeString(String string) {
-        if (charset == null) {
-            throw new SMPPRuntimeException(BAD_IMPLEMENTATION);
-        }
         try {
             if (string != null) {
                 return string.getBytes(charset);
             }
-        } catch (java.io.UnsupportedEncodingException x) {
-            // Will already have been detected by the constructor.
+        } catch (UnsupportedEncodingException x) {
+            // Shouldn't happen - setCharset should have detected this.
+            throw new RuntimeException();
         }
         return new byte[0];
     }
-}
 
+    /**
+     * Set the charset of this alphabet encoding. Sub-classes can use this
+     * to create new instances of alphabet encoding for character sets that
+     * are supported by the JVM. This method can only be called once
+     * @param charset The character set to use for encoding and decoding.
+     * @throws UnsupportedEncodingException If the JVM does not support the
+     * specified character set.
+     */
+    protected void setCharset(String charset) throws UnsupportedEncodingException {
+        if (this.charset != null) {
+            throw new RuntimeException("Cannot change charset.");
+        }
+        new String("probe").getBytes(charset);
+        this.charset = charset;
+    }
+}
