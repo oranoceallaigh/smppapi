@@ -45,27 +45,40 @@ public class EncodingFactory {
     private AlphabetEncoding defaultAlphabet;
     
     public EncodingFactory() {
+        addEncoding(new BinaryEncoding());
+
         AlphabetEncoding gsmDefault = new DefaultAlphabetEncoding();
         addEncoding(gsmDefault);
-        addEncoding(new ASCIIEncoding());
-        addEncoding(new BinaryEncoding());
-        addEncoding(Latin1Encoding.class);
-        addEncoding(UCS2Encoding.class);
         langToAlphabet.put("en", gsmDefault);
         langToAlphabet.put("de", gsmDefault);
         langToAlphabet.put("fr", gsmDefault);
         langToAlphabet.put("it", gsmDefault);
         langToAlphabet.put("nl", gsmDefault);
         langToAlphabet.put("es", gsmDefault);
-        try {
-            addEncoding(new UCS2Encoding());
-            langToAlphabet.put(null, new UCS2Encoding());
-        } catch (UnsupportedEncodingException x) {
-            try {
-                langToAlphabet.put(null, new Latin1Encoding());
-            } catch (UnsupportedEncodingException xx) {
-                LOG.debug("JVM does not support UCS2 - encoding will not be used.");
-                langToAlphabet.put(null, new ASCIIEncoding());
+
+        AlphabetEncoding ucs2 =
+            (AlphabetEncoding) instantiateEncoding(UCS2Encoding.class);
+        AlphabetEncoding latin1 =
+            (AlphabetEncoding) instantiateEncoding(Latin1Encoding.class);
+        AlphabetEncoding ascii =
+            (AlphabetEncoding) instantiateEncoding(ASCIIEncoding.class);
+        if (ucs2 != null) {
+            addEncoding(ucs2);
+            LOG.debug("Using UCS2 as the catch-all language alphabet.");
+            langToAlphabet.put(null, ucs2);
+        }
+        if (latin1 != null) {
+            addEncoding(latin1);
+            if (langToAlphabet.get(null) == null) {
+                LOG.debug("Using Latin-1 as the catch-all language alphabet.");
+                langToAlphabet.put(null, latin1);
+            }
+        }
+        if (ascii != null) {
+            addEncoding(ascii);
+            if (langToAlphabet.get(null) == null) {
+                LOG.debug("Using ASCII as the catch-all language alphabet.");
+                langToAlphabet.put(null, ascii);
             }
         }
         initDefaultAlphabet();
@@ -99,40 +112,22 @@ public class EncodingFactory {
     public void addEncoding(final MessageEncoding encoding) {
         mappingTable.put(new Integer(encoding.getDataCoding()), encoding);
     }
-    
+
     /**
      * Add a message encoding to this factory. The supplied class must be
      * a sub-class of {@link MessageEncoding} and must have a
-     * no-argument constructor.
+     * no-argument constructor. This method will swallow any exceptions
+     * that may occur during instance creation - primarily to silently
+     * fail on encodings that rely on a particular charset that the current
+     * JVM does not support. Log messages will be generated for failure
+     * conditions.
      * @param encodingClass The class of the <code>MessageEncoding</code> to
      * add.
      */
     public void addEncoding(final Class<? extends MessageEncoding> encodingClass) {
-        try {
-            Constructor<? extends MessageEncoding> c =
-                encodingClass.getConstructor(new Class[0]);
-            addEncoding(c.newInstance(new Object[0]));
-        } catch (NoSuchMethodException x) {
-            LOG.error("{} does not have a no-argument constructor",
-                    encodingClass.getName());
-        } catch (IllegalAccessException x) {
-            LOG.error("{} does not have a visible no-argument constructor",
-                    encodingClass.getName());
-        } catch (InstantiationException x) {
-            LOG.error("Cannot instantiate an instance of {}: {}",
-                    encodingClass, x.getMessage());
-        } catch (InvocationTargetException x) {
-            Throwable cause = x.getCause();
-            if (cause instanceof UnsupportedEncodingException) {
-                LOG.debug("Encoding for {} is not supported by the JVM",
-                        encodingClass.getName());
-            } else {
-                LOG.error("{} constructor threw an exception",
-                        encodingClass.getName());
-                LOG.error("Stack trace:", x);
-            }
-        } catch (IllegalArgumentException x) {
-            LOG.error("This exception shouldn't happen", x);
+        MessageEncoding encoding = instantiateEncoding(encodingClass);
+        if (encoding != null) {
+            addEncoding(encoding);
         }
     }
     
@@ -193,5 +188,37 @@ public class EncodingFactory {
         if (defaultAlphabet == null) {
             defaultAlphabet = new DefaultAlphabetEncoding();
         }
+    }
+    
+    private MessageEncoding instantiateEncoding(
+            final Class<? extends MessageEncoding> encodingClass) {
+        MessageEncoding encoding = null;
+        try {
+            Constructor<? extends MessageEncoding> c =
+                encodingClass.getConstructor(new Class[0]);
+            encoding = c.newInstance(new Object[0]);
+        } catch (NoSuchMethodException x) {
+            LOG.error("{} does not have a no-argument constructor",
+                    encodingClass.getName());
+        } catch (IllegalAccessException x) {
+            LOG.error("{} does not have a visible no-argument constructor",
+                    encodingClass.getName());
+        } catch (InstantiationException x) {
+            LOG.error("Cannot instantiate an instance of {}: {}",
+                    encodingClass, x.getMessage());
+        } catch (InvocationTargetException x) {
+            Throwable cause = x.getCause();
+            if (cause instanceof UnsupportedEncodingException) {
+                LOG.debug("Encoding for {} is not supported by the JVM",
+                        encodingClass.getName());
+            } else {
+                LOG.error("{} constructor threw an exception",
+                        encodingClass.getName());
+                LOG.error("Stack trace:", x);
+            }
+        } catch (IllegalArgumentException x) {
+            LOG.error("This exception shouldn't happen", x);
+        }
+        return encoding;
     }
 }
