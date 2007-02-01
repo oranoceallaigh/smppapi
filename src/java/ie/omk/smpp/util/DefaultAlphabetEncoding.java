@@ -125,6 +125,7 @@ public class DefaultAlphabetEncoding extends ie.omk.smpp.util.AlphabetEncoding {
     /**
      * Encode a Java String into a byte array using the SMS Default alphabet.
      */
+    @Override
     public byte[] encodeString(String s) {
         if (s == null) {
             return new byte[0];
@@ -189,23 +190,20 @@ public class DefaultAlphabetEncoding extends ie.omk.smpp.util.AlphabetEncoding {
     public byte[] pack(byte[] unpacked) {
         int packedLen = unpacked.length - (unpacked.length / 8);
         byte[] packed = new byte[packedLen];
-        int pos = 0;
-        int i = 0;
-        while (i < unpacked.length) {
-            int jmax = (i + 7) > unpacked.length ? unpacked.length - i : 7;
-            int mask = 0x1;
-            for (int j = 0; j < jmax; j++) {
-                int b1 = (int) unpacked[i + j] & 0xff;
-                int b2 = 0x0;
-                try {
-                    b2 = (int) unpacked[i + j + 1] & mask;
-                } catch (ArrayIndexOutOfBoundsException x) {
-                    // This is expected and is safe to ignore.
-                }
-                packed[pos++] = (byte) ((b1 >>> j) | (b2 << (8 - (j + 1))));
-                mask = (mask << 1) | 1;
+        if (unpacked.length == 0) {
+            return packed;
+        }
+        for (int i = 0, j = -1; i < packed.length; i++, j++) {
+            int shiftRight = i % 7;
+            int shiftLeft = 8 - (shiftRight + 1);
+            if (shiftRight == 0) {
+                j++;
             }
-            i += 8;
+            int b = ((int) unpacked[j] & 0xff) >>> shiftRight;
+            if (j + 1 < unpacked.length) {
+                b |= (((int) unpacked[j + 1]) & 0xff) << shiftLeft;
+            }
+            packed[i] = (byte) b;
         }
         return packed;
     }
@@ -221,24 +219,23 @@ public class DefaultAlphabetEncoding extends ie.omk.smpp.util.AlphabetEncoding {
     public byte[] unpack(byte[] packed) {
         int unpackedLen = (packed.length * 8) / 7;
         byte[] unpacked = new byte[unpackedLen];
-        int pos = 0;
-        int i = 0;
-        while (i < packed.length) {
-            int mask = 0x7f;
-            int jmax = (i + 8) > packed.length ? (packed.length - i) : 8;
-
-            for (int j = 0; j < jmax; j++) {
-                int b1 = (int) packed[i + j] & mask;
-                int b2 = 0x0;
-                try {
-                    b2 = (int) packed[(i + j) - 1] & 0x00ff;
-                } catch (ArrayIndexOutOfBoundsException x) {
-                    // This is expected and safe to ignore.
+        if (packed.length == 0) {
+            return unpacked;
+        }
+        for (int i = 0, j = 0; i < packed.length; i++, j++) {
+            int shiftLeft = i % 7;
+            int shiftRight = 8 - shiftLeft;
+            if (shiftLeft == 0) {
+                unpacked[j] = (byte) ((int) packed[i] & 0x7f);
+            } else {
+                int b = ((int) packed[i - 1] & 0xff) >>> shiftRight;
+                b |= ((int) packed[i] << shiftLeft) & 0x7f;
+                unpacked[j] = (byte) b;
+                if (shiftLeft == 6) {
+                    j++;
+                    unpacked[j] = (byte) (((int) packed[i] & 0xff) >>> 1);
                 }
-                unpacked[pos++] = (byte) ((b1 << j) | (b2 >>> (8 - j)));
-                mask >>= 1;
             }
-            i += 7;
         }
         return unpacked;
     }
