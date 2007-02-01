@@ -16,22 +16,22 @@ public class DefaultAlphabetEncoding extends ie.omk.smpp.util.AlphabetEncoding {
     public static final int PAGE_BREAK = 0x0a;
 
     private static final char[] CHAR_TABLE = {
-        '@', '\u00a3', '$', '\u00a5', '\u00e8', '\u00e9', '\u00f9', '\u00ec',
-        '\u00f2', '\u00c7', '\n', '\u00d8', '\u00f8', '\r', '\u00c5', '\u00e5',
-        '\u0394', '_', '\u03a6', '\u0393', '\u039b', '\u03a9', '\u03a0', '\u03a8',
-        '\u03a3', '\u0398', '\u039e', ' ', '\u00c6', '\u00e6', '\u00df', '\u00c9',
-        ' ', '!', '"', '#', '\u00a4', '%', '&', '\'',
-        '(', ')', '*', '+', ',', '-', '.', '/',
-        '0', '1', '2', '3', '4', '5', '6', '7',
-        '8', '9', ':', ';', '<', '=', '>', '?',
-        '\u00a1', 'A', 'B', 'C', 'D', 'E', 'F', 'G',
-        'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O',
-        'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W',
-        'X', 'Y', 'Z', '\u00c4', '\u00d6', '\u00d1', '\u00dc', '\u00a7',
-        '\u00bf', 'a', 'b', 'c', 'd', 'e', 'f', 'g',
-        'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o',
-        'p', 'q', 'r', 's', 't', 'u', 'v', 'w',
-        'x', 'y', 'z', '\u00e4', '\u00f6', '\u00f1', '\u00fc', '\u00e0',
+        '@',      '\u00a3', '$',      '\u00a5', '\u00e8', '\u00e9', '\u00f9', '\u00ec',
+        '\u00f2', '\u00c7', '\n',     '\u00d8', '\u00f8', '\r',     '\u00c5', '\u00e5',
+        '\u0394', '_',      '\u03a6', '\u0393', '\u039b', '\u03a9', '\u03a0', '\u03a8',
+        '\u03a3', '\u0398', '\u039e', ' ',      '\u00c6', '\u00e6', '\u00df', '\u00c9',
+        ' ',      '!',      '"',      '#',      '\u00a4', '%',      '&',      '\'',
+        '(',      ')',      '*',      '+',      ',',      '-',      '.',      '/',
+        '0',      '1',      '2',      '3',      '4',      '5',      '6',      '7',
+        '8',      '9',      ':',      ';',      '<',      '=',      '>',      '?',
+        '\u00a1', 'A',      'B',      'C',      'D',      'E',      'F',      'G',
+        'H',      'I',      'J',      'K',      'L',      'M',      'N',      'O',
+        'P',      'Q',      'R',      'S',      'T',      'U',      'V',      'W',
+        'X',      'Y',      'Z',      '\u00c4', '\u00d6', '\u00d1', '\u00dc', '\u00a7',
+        '\u00bf', 'a',      'b',      'c',      'd',      'e',      'f',      'g',
+        'h',      'i',      'j',      'k',      'l',      'm',      'n',      'o',
+        'p',      'q',      'r',      's',      't',      'u',      'v',      'w',
+        'x',      'y',      'z',      '\u00e4', '\u00f6', '\u00f1', '\u00fc', '\u00e0',
     };
 
     /**
@@ -61,10 +61,41 @@ public class DefaultAlphabetEncoding extends ie.omk.smpp.util.AlphabetEncoding {
             0, 0, 0, 0, 0, 0, 0, 0,
     };
 
+    private int unknownCharReplacement = 0x3f;
+    
     public DefaultAlphabetEncoding() {
         super(DCS);
     }
 
+    /**
+     * Set the byte to use when there is no code point for a Unicode character.
+     * This byte will be inserted into an encoded byte array if the String
+     * being encoded contains a character that the GSM default alphabet
+     * has no code point for. The default is to insert the code point for
+     * the '?' character - that is, byte 0x3f.
+     * @param unknownCharReplacement A code point for one of the characters
+     * in the basic character table.
+     * @throws IllegalArgumentException If <code>0 &lt; unknownCharReplacement
+     * &lt; 127</code> or <code>unknownCharReplacement</code> is <code>0x1b
+     * </code>.
+     */
+    public void setUnknownCharReplacement(int unknownCharReplacement) {
+        if (unknownCharReplacement < 0 || unknownCharReplacement > 127
+                || unknownCharReplacement == EXTENDED_ESCAPE) {
+            throw new IllegalArgumentException("Illegal replacement code point");
+        }
+        this.unknownCharReplacement = unknownCharReplacement;
+    }
+    
+    /**
+     * Get the current code point in use for unknown characters.
+     * @return The current code point in use for unknown characters.
+     * @see #setUnknownCharReplacement(int)
+     */
+    public int getUnknownCharReplacement() {
+        return unknownCharReplacement;
+    }
+    
     /**
      * Decode an SMS default alphabet-encoded octet string into a Java String.
      */
@@ -121,8 +152,7 @@ public class DefaultAlphabetEncoding extends ie.omk.smpp.util.AlphabetEncoding {
                }
             }
             if (search == CHAR_TABLE.length) {
-                // A '?' character.
-                enc.write(0x3f);
+                enc.write((byte) unknownCharReplacement);
             }
         }
 
