@@ -6,8 +6,9 @@ import java.io.ByteArrayOutputStream;
  * This class encodes and decodes Java Strings to and from the SMS default
  * alphabet. It also supports the default extension table. The default alphabet
  * and it's extension table is defined in GSM 03.38.
+ * @version $Id$
  */
-public class DefaultAlphabetEncoding extends ie.omk.smpp.util.AlphabetEncoding {
+public class DefaultAlphabetEncoding extends AlphabetEncoding {
     private static final int DCS = 0;
 
     public static final int EXTENDED_ESCAPE = 0x1b;
@@ -15,7 +16,7 @@ public class DefaultAlphabetEncoding extends ie.omk.smpp.util.AlphabetEncoding {
     /** Page break (extended table). */
     public static final int PAGE_BREAK = 0x0a;
 
-    private static final char[] CHAR_TABLE = {
+    protected final char[] CHAR_TABLE = {
         '@',      '\u00a3', '$',      '\u00a5', '\u00e8', '\u00e9', '\u00f9', '\u00ec',
         '\u00f2', '\u00c7', '\n',     '\u00d8', '\u00f8', '\r',     '\u00c5', '\u00e5',
         '\u0394', '_',      '\u03a6', '\u0393', '\u039b', '\u03a9', '\u03a0', '\u03a8',
@@ -39,10 +40,9 @@ public class DefaultAlphabetEncoding extends ie.omk.smpp.util.AlphabetEncoding {
      * 'escape' character in the base table. It is important that none of the
      * 'inactive' characters ever be matchable with a valid base-table
      * character as this breaks the encoding loop.
-     * 
      * @see #EXTENDED_ESCAPE
      */
-    private static final char[] EXT_CHAR_TABLE = {
+    protected final char[] EXT_CHAR_TABLE = {
             0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, '^', 0, 0, 0,
@@ -61,6 +61,9 @@ public class DefaultAlphabetEncoding extends ie.omk.smpp.util.AlphabetEncoding {
             0, 0, 0, 0, 0, 0, 0, 0,
     };
 
+    /**
+     * @see #setUnknownCharReplacement(int)
+     */
     private int unknownCharReplacement = 0x3f;
     
     public DefaultAlphabetEncoding() {
@@ -241,26 +244,39 @@ public class DefaultAlphabetEncoding extends ie.omk.smpp.util.AlphabetEncoding {
     }
 
     public String toString() {
-        final String fmt = "{0,number,000}: {1}  ";
-        final Object[] args = new Object[2];
-        
+        final char[][] tables = { CHAR_TABLE, EXT_CHAR_TABLE };
+        final String[] names = { "Primary", "Extended" };
         StringBuffer b = new StringBuffer(256);
-        b.append("Table size: ").append(CHAR_TABLE.length).append('\n');
-        for (int i = 0; i < 16; i++) {
-            for (int j = 0; j < 8; j++) {
-                int pos = i + (16 * j);
-                args[0] = new Integer(pos);
-
-                if (CHAR_TABLE[pos] == '\r') {
-                    args[1] = "CR";
-                } else if (CHAR_TABLE[pos] == '\n') {
-                    args[1] = "LF";
-                } else if (CHAR_TABLE[pos] == ' ') {
-                    args[1] = "SP";
-                } else {
-                    args[1] = " " + CHAR_TABLE[pos];
+        for (int t = 0; t < tables.length; t++) {
+            char[] table = tables[t];
+            b.append(names[t]).append(" table:\n");
+            for (int i = 0; i < table.length; i++) {
+                if (i < 10) {
+                    b.append(' ');
                 }
-                b.append(java.text.MessageFormat.format(fmt, args));
+                if (i < 100) {
+                    b.append(' ');
+                }
+                b.append(i);
+                b.append(": ");
+                if (i == EXTENDED_ESCAPE) {
+                    b.append("ESC ");
+                } else if (table[i] == '\r') {
+                    b.append("CR  ");
+                } else if (table[i] == '\n') {
+                    b.append("LF  ");
+                } else if (table[i] == ' ') {
+                    b.append("SP  ");
+                } else if (table[i] == (char) 0) {
+                    b.append("    ");
+                } else {
+                    b.append(table[i]).append("   ");
+                }
+                if ((i % 8) == 7) {
+                    b.append('\n');
+                } else {
+                    b.append(' ');
+                }
             }
             b.append('\n');
         }
