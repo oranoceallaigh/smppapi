@@ -165,41 +165,4 @@ public class Address implements java.io.Serializable {
         .append(Integer.toString(npi)).append(':')
         .append(address).toString();
     }
-
-    /**
-     * Test driver function. This method checks that serialization and
-     * deserialization of instances of this class result in byte arrays and new
-     * packets of consistently the same size. It does the same as the NullTest
-     * and FullTest packet test classes.
-     */
-    /*
-     * public static final void main(String[] args) {try {
-     * System.out.println("Null test:"); Address a = new Address();
-     * java.io.ByteArrayOutputStream os = new java.io.ByteArrayOutputStream();
-     * a.writeTo(os); byte[] b = os.toByteArray();
-     * 
-     * if (b.length == a.getLength()) System.out.println("\tpass 1."); else
-     * System.out.println("\tfail 1.");
-     * 
-     * Address a1 = new Address(); a1.readFrom(b, 0);
-     * 
-     * if (b.length == a1.getLength()) System.out.println("\tpass 2."); else
-     * System.out.println("\tfail 2.");} catch (Exception x) {
-     * System.out.println("\texception:"); x.printStackTrace(System.out);}
-     * 
-     * try {System.out.println("\nFilled test:"); Address a = new Address(2, 2,
-     * "4745879345"); java.io.ByteArrayOutputStream os = new
-     * java.io.ByteArrayOutputStream(); a.writeTo(os); byte[] b =
-     * os.toByteArray();
-     * 
-     * if (b.length == a.getLength()) System.out.println("\tpass 1."); else
-     * System.out.println("\tfail 1.");
-     * 
-     * Address a1 = new Address(); a1.readFrom(b, 0);
-     * 
-     * if (b.length == a1.getLength()) System.out.println("\tpass 2."); else
-     * System.out.println("\tfail 2.");} catch (Exception x) {
-     * System.out.println("\texception:"); x.printStackTrace(System.out);} }
-     */
 }
-
