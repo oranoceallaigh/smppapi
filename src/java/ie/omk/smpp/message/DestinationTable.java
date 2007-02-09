@@ -107,14 +107,6 @@ public class DestinationTable implements Serializable {
         calculateLength();
     }
 
-    public Object clone() {
-        try {
-            return super.clone();
-        } catch (CloneNotSupportedException x) {
-            throw new RuntimeException("Clone not supported", x);
-        }
-    }
-
     public boolean equals(Object obj) {
         if (obj == null || !(obj instanceof DestinationTable)) {
             return false;
