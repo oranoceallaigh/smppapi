@@ -105,8 +105,10 @@ public class ThreadedEventDispatcher extends AbstractEventDispatcher implements 
         // dispatcher during event processing. There are probably many other
         // ways this call-back could happen but it shouldn't!
         if (Thread.currentThread().getThreadGroup() == threadPool) {
-            LOG.error("Cannot shut down the thread pool with one of it's own threads.");
-            throw new RuntimeException();
+            final String msg =
+                "Cannot shut down the thread pool with one of it's own threads.";
+            LOG.debug(msg);
+            throw new RuntimeException(msg);
         }
 
         running = false;

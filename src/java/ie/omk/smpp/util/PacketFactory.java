@@ -1,6 +1,7 @@
 package ie.omk.smpp.util;
 
 import ie.omk.smpp.BadCommandIDException;
+import ie.omk.smpp.SMPPRuntimeException;
 import ie.omk.smpp.message.AlertNotification;
 import ie.omk.smpp.message.BindReceiver;
 import ie.omk.smpp.message.BindReceiverResp;
@@ -118,10 +119,12 @@ public final class PacketFactory {
      * @return An SMPP response packet.
      * @throws BadCommandIDException If there is no response packet for the
      * specified request (for example, an <code>AlertNotification</code>).
+     * @throws SMPPRuntimeException If an attempt is made to create a
+     * response to a response packet.
      */
     public static SMPPPacket newResponse(SMPPPacket packet) {
         if (packet.isResponse()) {
-            throw new IllegalArgumentException(
+            throw new SMPPRuntimeException(
                     "Cannot create a response to a response!");
         }
         int id = packet.getCommandId();
@@ -175,6 +178,8 @@ public final class PacketFactory {
      * @return A new instance of the relevant SMPPPacket implementation.
      * @throws BadCommandIDException If no matching class can be found for
      * <code>id</code>.
+     * @throws SMPPRuntimeException If a packet&apos;s constructor throws
+     * an exception.
      */
     private SMPPPacket newInstance(int id, SMPPPacket request) {
         SMPPPacket response = null;
@@ -191,7 +196,8 @@ public final class PacketFactory {
                 response = clazz.newInstance();
             }
         } catch (Exception x) {
-            throw new BadCommandIDException("Exception while calling constructor", x);
+            throw new SMPPRuntimeException(
+                    "Packet constructor threw an exception.", x);
         }
         return response;
     }

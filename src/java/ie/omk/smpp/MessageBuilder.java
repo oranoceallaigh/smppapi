@@ -16,7 +16,7 @@ import java.io.IOException;
  * @version $Id:$
  */
 public class MessageBuilder {
-
+    // TODO: remove illegalargumentexception
     private static final String PACKET_NOT_PART = "Packet is not part of this message";
     private static final String MESSAGE_NOT_COMPLETE = "Message is not yet complete.";
     private byte[][] segments;
@@ -177,9 +177,8 @@ public class MessageBuilder {
             }
             return out.toByteArray();
         } catch (IOException x) {
-            // This should never happen - ByteArrayOutputStream doesn't
-            // throw IOException.
+            // ByteArrayOutputStream doesn't throw IOException.
+            throw new RuntimeException("Should never happen!", x);
         }
-        return new byte[0];
     }
 }

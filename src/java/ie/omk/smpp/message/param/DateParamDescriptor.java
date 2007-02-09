@@ -9,9 +9,13 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.text.ParseException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class DateParamDescriptor implements ParamDescriptor {
     private static final long serialVersionUID = 1;
     private static final SMPPDateFormat DATE_FORMAT = new SMPPDateFormat();
+    private static final Logger LOG = LoggerFactory.getLogger(DateParamDescriptor.class);
     
     public int getLengthSpecifier() {
         return -1;
@@ -47,9 +51,7 @@ public class DateParamDescriptor implements ParamDescriptor {
                 position.inc();
             }
         } catch (ParseException x) {
-            // TODO
-            throw new RuntimeException(
-                    "Could not parse the date: \"" + str + "\"", x);
+            LOG.error("Could not parse date string \"{}\"", str);
         }
         return date;
     }

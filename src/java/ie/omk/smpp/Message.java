@@ -9,7 +9,9 @@ import ie.omk.smpp.message.tlv.Tag;
 import ie.omk.smpp.util.APIConfig;
 import ie.omk.smpp.util.MessageEncoding;
 import ie.omk.smpp.util.PacketFactory;
+import ie.omk.smpp.version.MandatoryParameter;
 import ie.omk.smpp.version.SMPPVersion;
+import ie.omk.smpp.version.VersionFactory;
 
 import java.io.Serializable;
 import java.lang.reflect.Array;
@@ -52,12 +54,12 @@ public abstract class Message implements Serializable {
     public Message(MessageEncoding encoding) {
         this.encoding = encoding;
         sarIdentifier = SAR_IDENT_SEQUENCE.incrementAndGet();
-        SMPPVersion version = SMPPVersion.getDefaultVersion();
+        SMPPVersion version = VersionFactory.getDefaultVersion();
         if (version.isSupportOptionalParams()) {
             segmentSize =
                 APIConfig.getInstance().getInt(APIConfig.SEGMENT_SIZE, 254);
         } else {
-            segmentSize = version.getMaxLength(SMPPVersion.MESSAGE_PAYLOAD);
+            segmentSize = version.getMaxLength(MandatoryParameter.SHORT_MESSAGE);
         }
     }
     

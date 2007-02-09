@@ -183,14 +183,14 @@ public class Connection {
         if (validating) {
             packet.validate(version);
         }
-        if (type == ConnectionType.RECEIVER) {
+        // We allow the receiver to send any response type but a very
+        // limited set of requests.
+        if (type == ConnectionType.RECEIVER && (commandId & 0x80000000) == 0) {
             switch (commandId) {
             case SMPPPacket.BIND_RECEIVER:
             case SMPPPacket.UNBIND:
-            case SMPPPacket.UNBIND_RESP:
             case SMPPPacket.ENQUIRE_LINK:
-            case SMPPPacket.ENQUIRE_LINK_RESP:
-            case SMPPPacket.DELIVER_SM_RESP:
+                // Ok to go ahead and send the packet.
                 break;
             default:
                 throw new UnsupportedOperationException(
@@ -258,23 +258,24 @@ public class Connection {
         }
     }
     
+    // TODO: do we still want to move this to APIConfig?
     private Object getClassInstance(String className, Class type) {
+        Object obj = null;
         try {
             log.debug("Attempting to instantiate a class of type {}",
                     className);
             Class<?> clazz = Class.forName(className);
             if (!clazz.isAssignableFrom(type)) {
-                throw new ClassCastException("");
+                log.error("{} is not of type {}", className, type.getClass());
+            } else {
+                obj = clazz.newInstance();
             }
-            return clazz.newInstance();
-        } catch (ClassCastException x) {
-            log.error("{} is not of type {}", className, type.getClass());
         } catch (Exception x) {
             log.error("Could not instantiate a class of type {}: {}",
                     className, x.getMessage());
             log.debug("Stack trace", x);
         }
-        return null;
+        return obj;
     }
     
     private void sendPacketInternal(SMPPPacket packet) throws IOException {

@@ -12,7 +12,6 @@ import java.util.concurrent.atomic.AtomicLong;
  * This implementation uses an {@link java.util.concurrent.atomic.AtomicInteger}
  * internally to track the next sequence number.
  * </p>
- * @author Oran Kelly
  * @version $Id$
  */
 public class DefaultSequenceScheme implements SequenceNumberScheme {

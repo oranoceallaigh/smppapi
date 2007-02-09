@@ -1,6 +1,7 @@
 package ie.omk.smpp.message;
 
 import ie.omk.smpp.Address;
+import ie.omk.smpp.UnsupportedOperationException;
 import ie.omk.smpp.message.param.BytesParamDescriptor;
 import ie.omk.smpp.message.param.DestinationTableParamDescriptor;
 import ie.omk.smpp.message.param.ParamDescriptor;

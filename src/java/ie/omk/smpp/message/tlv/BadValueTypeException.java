@@ -1,5 +1,7 @@
 package ie.omk.smpp.message.tlv;
 
+import ie.omk.smpp.SMPPRuntimeException;
+
 /**
  * Attempt to set a value on a tag that expects a Java type other than that
  * used. This exception gets thrown if an attempt is made, for instance, to set
@@ -8,8 +10,8 @@ package ie.omk.smpp.message.tlv;
  * 
  * @version $Id$
  */
-public class BadValueTypeException extends RuntimeException {
-    static final long serialVersionUID = 5894340962605773779L;
+public class BadValueTypeException extends SMPPRuntimeException {
+    static final long serialVersionUID = 2L;
     
     /**
      * Create a new BadValueTypeException.

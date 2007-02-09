@@ -1,5 +1,7 @@
 package ie.omk.smpp.util;
 
+import ie.omk.smpp.SMPPRuntimeException;
+
 import java.io.UnsupportedEncodingException;
 
 /**
@@ -74,14 +76,15 @@ public class AlphabetEncoding extends MessageEncoding {
     /**
      * Set the charset of this alphabet encoding. Sub-classes can use this
      * to create new instances of alphabet encoding for character sets that
-     * are supported by the JVM. This method can only be called once
+     * are supported by the JVM. This method can only be called once.
+     * Subsequent calls will throw a RuntimeException.
      * @param charset The character set to use for encoding and decoding.
      * @throws UnsupportedEncodingException If the JVM does not support the
      * specified character set.
      */
     protected void setCharset(String charset) throws UnsupportedEncodingException {
         if (this.charset != null) {
-            throw new RuntimeException("Cannot change charset.");
+            throw new SMPPRuntimeException("Cannot change charset.");
         }
         new String("probe").getBytes(charset);
         this.charset = charset;

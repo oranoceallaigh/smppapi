@@ -1,15 +1,16 @@
 package ie.omk.smpp.message.tlv;
 
+import ie.omk.smpp.SMPPRuntimeException;
+
 /**
  * Tag has already been defined. This exception is thrown by
  * {@link Tag#defineTag}if an attempt is made to redefine a tag which already
  * has a definition.
  * 
- * @author Oran Kelly
  * @version $Id$
  */
-public class TagDefinedException extends java.lang.RuntimeException {
-    static final long serialVersionUID = -2723406909679964988L;
+public class TagDefinedException extends SMPPRuntimeException {
+    static final long serialVersionUID = 2L;
     
     /**
      * The value of the tag that was attempted to be redefined.

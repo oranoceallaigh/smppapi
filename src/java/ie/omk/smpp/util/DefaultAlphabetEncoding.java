@@ -1,5 +1,7 @@
 package ie.omk.smpp.util;
 
+import ie.omk.smpp.SMPPRuntimeException;
+
 import java.io.ByteArrayOutputStream;
 
 /**
@@ -80,12 +82,13 @@ public class DefaultAlphabetEncoding extends AlphabetEncoding {
      * in the basic character table.
      * @throws IllegalArgumentException If <code>0 &lt; unknownCharReplacement
      * &lt; 127</code> or <code>unknownCharReplacement</code> is <code>0x1b
-     * </code>.
+     * </code> (the extended escape character).
      */
     public void setUnknownCharReplacement(int unknownCharReplacement) {
         if (unknownCharReplacement < 0 || unknownCharReplacement > 127
                 || unknownCharReplacement == EXTENDED_ESCAPE) {
-            throw new IllegalArgumentException("Illegal replacement code point");
+            throw new SMPPRuntimeException(
+                    "Illegal replacement code point " + unknownCharReplacement);
         }
         this.unknownCharReplacement = unknownCharReplacement;
     }

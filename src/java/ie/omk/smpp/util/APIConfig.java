@@ -127,9 +127,7 @@ import org.slf4j.LoggerFactory;
  *  
  */
 public final class APIConfig extends Properties {
-    private static final String BAD_PROPERTY_VALUE = "Bad property value";
-
-    static final long serialVersionUID = 3668742926704484281L;
+    private static final long serialVersionUID = 3668742926704484281L;
     
     /**
      * @see APIConfig
@@ -417,16 +415,15 @@ public final class APIConfig extends Properties {
             PropertyNotFoundException {
 
         long l;
+        String n = getProperty(property);
         try {
-            String n = getProperty(property);
             l = convertToNumber(n);
             if (l < (long) Integer.MIN_VALUE || l > (long) Integer.MAX_VALUE) {
                 throw new InvalidConfigurationException("Property value exceeds"
                         + " valid int range: " + l, property);
             }
         } catch (NumberFormatException x) {
-            throw new InvalidConfigurationException(BAD_PROPERTY_VALUE,
-                    property);
+            throw new InvalidConfigurationException(property, n);
         }
         return (int) l;
     }
@@ -467,12 +464,11 @@ public final class APIConfig extends Properties {
             PropertyNotFoundException {
 
         long l;
+        String n = getProperty(property);
         try {
-            String n = getProperty(property);
             l = convertToNumber(n);
         } catch (NumberFormatException x) {
-            throw new InvalidConfigurationException(BAD_PROPERTY_VALUE,
-                    property);
+            throw new InvalidConfigurationException(property, n);
         }
         return l;
     }
@@ -531,8 +527,7 @@ public final class APIConfig extends Properties {
                     bool = Boolean.FALSE;
                 }
             } catch (NumberFormatException x) {
-                throw new InvalidConfigurationException(
-                        BAD_PROPERTY_VALUE, property, s);
+                throw new InvalidConfigurationException(property, s);
             }
         }
         return bool.booleanValue();

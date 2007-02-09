@@ -1,8 +1,7 @@
 package ie.omk.smpp;
 
 /**
- * BadCommandIDException
- * 
+ * Thrown when an attempt is made to use an unimplemented command ID.
  * @version $Id$
  */
 public class BadCommandIDException extends SMPPRuntimeException {

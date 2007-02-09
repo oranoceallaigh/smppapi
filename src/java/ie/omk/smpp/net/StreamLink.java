@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 /**
  * Implementation of an Smsc link using user supplied input and output streams.
  * 
- * @author Oran Kelly
  * @version $Id$
  */
 public class StreamLink extends AbstractSmscLink {
@@ -75,11 +74,11 @@ public class StreamLink extends AbstractSmscLink {
     }
 
     public int getTimeout() {
-        throw new UnsupportedOperationException();
+        throw new ie.omk.smpp.UnsupportedOperationException();
     }
     
     public void setTimeout(int timeout) {
-        throw new UnsupportedOperationException();
+        throw new ie.omk.smpp.UnsupportedOperationException();
     }
     
     /**

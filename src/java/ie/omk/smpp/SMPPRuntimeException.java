@@ -1,12 +1,10 @@
 package ie.omk.smpp;
 
 /**
- * SMPPRuntimeException.
- * 
- * @author Oran Kelly &lt;orank@users.sf.net&gt;
- * @version 1.0
+ * Parent class of all runtime exceptions from the SMPP API.
+ * @version $Id$
  */
-public class SMPPRuntimeException extends java.lang.RuntimeException {
+public class SMPPRuntimeException extends RuntimeException {
     static final long serialVersionUID = 5392381000287167880L;
 
     public SMPPRuntimeException() {

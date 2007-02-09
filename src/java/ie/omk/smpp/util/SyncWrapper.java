@@ -317,7 +317,8 @@ public class SyncWrapper implements ConnectionObserver {
         }
         synchronized (blockers) {
             if (blockers.containsKey(seq)) {
-                throw new IllegalStateException("Got a duplicate sequence number!");
+                throw new ie.omk.smpp.IllegalStateException(
+                        "Got a duplicate sequence number!");
             }
             blockers.put(seq, null);
         }

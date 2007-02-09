@@ -15,7 +15,6 @@ import org.slf4j.LoggerFactory;
 /**
  * Implementation of an Smsc link over the tcp/ip protocol
  * 
- * @author Oran Kelly
  * @version $Id$
  */
 public class TcpLink extends AbstractSmscLink {

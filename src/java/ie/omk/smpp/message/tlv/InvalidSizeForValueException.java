@@ -1,5 +1,7 @@
 package ie.omk.smpp.message.tlv;
 
+import ie.omk.smpp.SMPPRuntimeException;
+
 /**
  * An attempt was made to encode or decode a value with a length outside of the
  * bounds defined by its <code>Tag</code>. This can happen, for instance,
@@ -8,8 +10,8 @@ package ie.omk.smpp.message.tlv;
  * 
  * @version $Id$
  */
-public class InvalidSizeForValueException extends RuntimeException {
-    static final long serialVersionUID = -4600629750433218768L;
+public class InvalidSizeForValueException extends SMPPRuntimeException {
+    static final long serialVersionUID = 2L;
     
     /**
      * Create a new InvalidSizeForValueException.

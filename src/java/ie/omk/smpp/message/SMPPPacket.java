@@ -7,7 +7,6 @@ import ie.omk.smpp.message.tlv.Tag;
 import ie.omk.smpp.util.ParsePosition;
 import ie.omk.smpp.util.SMPPIO;
 import ie.omk.smpp.version.SMPPVersion;
-import ie.omk.smpp.version.VersionException;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -422,6 +421,10 @@ public abstract class SMPPPacket {
      *            fields from.
      * @throws ie.omk.smpp.message.SMPPProtocolException
      *             if there is an error parsing the packet fields.
+     * @throws SMPPRuntimeException If an attempt is made to parse a different
+     * type of packet than this class supports (for example, trying to use
+     * a <code>BindTransmitter</code> object to parse data that contains a
+     * <code>BindTransceiver</code> packet).
      */
     public void readFrom(byte[] data, int offset) throws SMPPProtocolException {
         // Clear out the TLVTable..
@@ -437,9 +440,9 @@ public abstract class SMPPPacket {
 
         if (id != commandId) {
             // Command type mismatch...ye can't do that, lad!
-            throw new SMPPProtocolException(
-                    "The packet on the input stream is not"
-                            + " the same as this packet's type.");
+            throw new SMPPRuntimeException(
+                    "Packet of type " + getClass().getName()
+                    + " cannot parse commandId " + commandId);
         }
         if (data.length < (offset + len)) {
             // not enough bytes there for me to read in, buddy!
@@ -463,7 +466,7 @@ public abstract class SMPPPacket {
             }
         } catch (ArrayIndexOutOfBoundsException x) {
             throw new SMPPProtocolException(
-                    "Ran out of bytes to read for packet body", x);
+                    "Ran out of bytes to read for the packet body", x);
         }
     }
 
@@ -480,9 +483,7 @@ public abstract class SMPPPacket {
      * @param smppVersion The version to validate against.
      */
     public void validate(SMPPVersion smppVersion) {
-        if (!smppVersion.isSupported(commandId)) {
-            throw new VersionException("Unsupported command ID.");
-        }
+        // TODO: you need to remove the isSupported from Versioning.
         validateMandatory(smppVersion);
     }
     
@@ -582,10 +583,8 @@ public abstract class SMPPPacket {
                 Object obj = param.readObject(data, pos, length);
                 body.add(obj);
             }
-        } catch (IllegalArgumentException x) {
-            throw new SMPPProtocolException("Invalid values in an SMPP date", x);
         } catch (ParseException x) {
-            throw new SMPPProtocolException("Could not parse an SMPP date.", x);
+            throw new SMPPRuntimeException("Could not parse packet body.", x);
         }
         return body;
     }
@@ -599,8 +598,8 @@ public abstract class SMPPPacket {
             throw new ParseException(
                     "Cannot read count from link index " + lengthSpecifier, 0);
         } catch (ClassCastException x) {
-            throw new ParseException("Mandatory parameter at index " + lengthSpecifier
-                    + " is not a java.lang.Number", 0);
+            throw new ParseException("Mandatory parameter at index "
+                    + lengthSpecifier + " is not a java.lang.Number", 0);
         }
         return length;
     }

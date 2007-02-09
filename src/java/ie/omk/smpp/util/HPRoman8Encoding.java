@@ -1,5 +1,7 @@
 package ie.omk.smpp.util;
 
+import ie.omk.smpp.SMPPRuntimeException;
+
 import java.io.ByteArrayOutputStream;
 
 /**
@@ -74,8 +76,8 @@ public final class HPRoman8Encoding extends AlphabetEncoding {
      */
     public void setUnknownCharReplacement(int unknownCharReplacement) {
         if (unknownCharReplacement < 0 || unknownCharReplacement > 255) {
-            throw new IllegalArgumentException(
-                    "Invalid replacement character.");
+            throw new SMPPRuntimeException(
+                    "Replacement code point is out of bounds.");
         }
         this.unknownCharReplacement = unknownCharReplacement;
     }

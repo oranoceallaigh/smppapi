@@ -1,20 +1,27 @@
 package ie.omk.smpp.util;
 
-public class PropertyNotFoundException extends ie.omk.smpp.SMPPRuntimeException {
+import ie.omk.smpp.SMPPRuntimeException;
+
+/**
+ * @version $Id$
+ */
+public class PropertyNotFoundException extends SMPPRuntimeException {
     static final long serialVersionUID = -3513175897407921550L;
-    
-    private String property = "";
 
     public PropertyNotFoundException() {
-    }
-
-    public PropertyNotFoundException(String property) {
         super();
-        this.property = property;
     }
 
-    public String getProperty() {
-        return property;
+    public PropertyNotFoundException(String msg, Throwable cause) {
+        super(msg, cause);
+    }
+
+    public PropertyNotFoundException(String msg) {
+        super(msg);
+    }
+
+    public PropertyNotFoundException(Throwable cause) {
+        super(cause);
     }
 }
 
