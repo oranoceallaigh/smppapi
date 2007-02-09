@@ -1,5 +1,7 @@
 package ie.omk.smpp.util;
 
+import ie.omk.smpp.SMPPRuntimeException;
+
 import java.text.FieldPosition;
 import java.text.Format;
 import java.text.MessageFormat;
@@ -52,8 +54,11 @@ public class SMPPDateFormat extends Format {
     private int yearModifier = DEFAULT_YEAR_MODIFIER;
     
     public StringBuffer format(Object obj, StringBuffer toAppendTo, FieldPosition pos) {
-        if (obj == null || pos == null) {
+        if (toAppendTo == null || pos == null) {
             throw new NullPointerException();
+        }
+        if (obj == null) {
+            return toAppendTo;
         }
         if (!(obj instanceof SMPPDate)) {
             throw new IllegalArgumentException("Cannot format an object of type "
@@ -111,21 +116,18 @@ public class SMPPDateFormat extends Format {
         } else {
             return null;
         }
-        int year = Integer.parseInt(s.substring(0, 2));
-        int month = Integer.parseInt(s.substring(2, 4));
-        int day = Integer.parseInt(s.substring(4, 6));
-        int hour = Integer.parseInt(s.substring(6, 8));
-        int minute = Integer.parseInt(s.substring(8, 10));
-        int second = Integer.parseInt(s.substring(10, 12));
-        SMPPDate date;
-        if (absolute) {
-            date = checkAndCreateAbsolute(
-                    s, year, month, day, hour, minute, second, hasTz);
-        } else {
-            date = SMPPDate.getRelativeInstance(
-                    year, month, day, hour, minute, second);
+        SMPPDate date = null;
+        try {
+            if (absolute) {
+                date = parseAbsoluteDate(s, pos, hasTz);
+            } else {
+                date = parseRelativeDate(s, pos);
+            }
+            pos.setIndex(pos.getIndex() + updatePos);
+        } catch (SMPPRuntimeException x) {
+            // Fall-through...ParsePosition will not get updated, and
+            // error index should have been set.
         }
-        pos.setIndex(pos.getIndex() + updatePos);
         return date;
     }
 
@@ -149,40 +151,27 @@ public class SMPPDateFormat extends Format {
     }
 
     /**
-     * Check the bounds of the fields for an absolute date and create an
-     * absolute instance if all are within bounds.
-     * @param s The date string being parsed.
-     * @param year
-     * @param month
-     * @param day
-     * @param hour
-     * @param minute
-     * @param second
-     * @param hasTz If a timezone should be parsed from the string or not.
-     * @return An absolute instance of <code>SMPPDate</code>.
+     * Parse an absolute date from the string.
+     * @param s The string to parse from.
+     * @param pos The parse position.
+     * @param hasTz Parse timezone information if <code>true</code>.
+     * @return The parsed SMPP date.
+     * @throws SMPPRuntimeException If the date cannot be parsed.
      */
-    private SMPPDate checkAndCreateAbsolute(
-            String s,
-            int year,
-            int month,
-            int day,
-            int hour,
-            int minute,
-            int second,
-            boolean hasTz) {
-        boundsCheck(year, 0, 99, "Year");
-        boundsCheck(month, 1, 12, "Month");
-        boundsCheck(day, 1, 31, "Day");
-        boundsCheck(hour, 0, 23, "Hour");
-        boundsCheck(minute, 0, 59, "Minute");
+    private SMPPDate parseAbsoluteDate(String s, ParsePosition pos, boolean hasTz) {
+        int index = pos.getIndex();
+        int year = parseAndCheck(s, pos, index, index + 2, 0, 99);
+        int month = parseAndCheck(s, pos, index + 2, index + 4, 1, 12);
+        int day = parseAndCheck(s, pos, index + 4, index + 6, 1, 31);
+        int hour = parseAndCheck(s, pos, index + 6, index + 8, 0, 23);
+        int minute = parseAndCheck(s, pos, index + 8, index + 10, 0, 59);
+        int second = parseAndCheck(s, pos, index + 10, index + 12, 0, 59);
         Calendar cal;
         if (hasTz) {
-            char sign = s.charAt(15);
-            int tenth = Integer.parseInt(s.substring(12, 13));
-            int utcOffset = Integer.parseInt(s.substring(13, 15));
-            boundsCheck(second, 0, 59, "Second");
-            boundsCheck(tenth, 0, 9, "Tenths of a second");
-            boundsCheck(utcOffset, 0, 48, "UTC offset");
+            char sign = s.charAt(index + 15);
+            int tenth = parseAndCheck(s, pos, index + 12, index + 13, 0, 9);
+            int utcOffset = parseAndCheck(
+                    s, pos, index + 13, index + 15, 0, 48);
             cal = getCalendar(year, month, day, hour, minute, second,
                     tenth, utcOffset, sign);
         } else {
@@ -192,6 +181,25 @@ public class SMPPDateFormat extends Format {
         return SMPPDate.getAbsoluteInstance(cal, hasTz);
     }
 
+    /**
+     * Parse a relative date from the string.
+     * @param s The string to parse the date from.
+     * @param pos The parse position.
+     * @return The parsed SMPP date.
+     * @throws SMPPRuntimeException If the date cannot be parsed.
+     */
+    private SMPPDate parseRelativeDate(String s, ParsePosition pos) {
+        int index = pos.getIndex();
+        int year = parseAndCheck(s, pos, index, index + 2, 0, 99);
+        int month = parseAndCheck(s, pos, index + 2, index + 4, 0, 99);
+        int day = parseAndCheck(s, pos, index + 4, index + 6, 0, 99);
+        int hour = parseAndCheck(s, pos, index + 6, index + 8, 0, 99);
+        int minute = parseAndCheck(s, pos, index + 8, index + 10, 0, 99);
+        int second = parseAndCheck(s, pos, 10, 12, 0, 99);
+        return SMPPDate.getRelativeInstance(
+                year, month, day, hour, minute, second);
+    }
+    
     /**
      * Get a {@link java.util.Calendar} object, initialising its fields
      * to the supplied values. The values should be specified in their
@@ -257,20 +265,34 @@ public class SMPPDateFormat extends Format {
     }
     
     /**
-     * Check that a value lies within the max and min range and throw an
-     * exception if it does not.
-     * @param value The value to test for bounds.
+     * Parse an integer from a string and verify the value lies within
+     * a maximum and minimum range. If it does
+     * not, update the <code>ParsePosition&apos;s</code> error index to point
+     * to <code>start</code> and throw an <code>SMPPRuntimeException</code>.
+     * <code>SMPPRuntimeException</code> is also thrown in the case of a
+     * <code>NumberFormatException</code>.
+     * @param s The string to parse the integer from.
+     * @param pos The parse position to update in case of error.
+     * @param start The start of the substring containing the integer.
+     * @param end The end of the substring containing the integer.
      * @param min The minimum allowed value.
      * @param max The maximum allowed value.
-     * @param field The name of the field being tested - this will be placed
-     * into the exception message.
      */
-    private void boundsCheck(int value, int min, int max, String field) {
-        if (value < min || value > max) {
-            StringBuffer msg = new StringBuffer(field)
-            .append(" must be a value between ")
-            .append(min).append(" and ").append(max).append(".");
-            throw new IllegalArgumentException(msg.toString());
+    private int parseAndCheck(String s,
+            ParsePosition pos,
+            int start,
+            int end,
+            int min,
+            int max) {
+        try {
+            int n = Integer.parseInt(s.substring(start, end));
+            if (n < min || n > max) {
+                throw new NumberFormatException();
+            }
+            return n;
+        } catch (NumberFormatException x) {
+            pos.setErrorIndex(start);
+            throw new SMPPRuntimeException();
         }
     }
 }
