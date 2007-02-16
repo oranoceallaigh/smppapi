@@ -7,6 +7,7 @@ import ie.omk.smpp.util.SMPPIO;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.text.MessageFormat;
+import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -119,6 +120,75 @@ public class TLVTable extends HashMap<Tag, Object> {
         return get(tagObj);
     }
 
+    /**
+     * Get the tag&apos;s value as a string.
+     * @param tag The tag to retrieve the value for.
+     * @return The value as a string, or <code>null</code> if the specified
+     * tag is not set in this table.
+     */
+    public String getString(Tag tag) {
+        Object obj = get(tag);
+        return obj != null ? obj.toString() : null;
+    }
+
+    /**
+     * Get the tag&apos;s value as an int.
+     * @param tag The tag to retrieve the value for.
+     * @return The value as an integer, or <code>-1</code> if the specified
+     * tag is not set in this table.
+     * @throws ClassCastException If the value for the specified tag is not
+     * a number (castable as a <code>java.lang.Number</code>).
+     */
+    public int getInt(Tag tag) {
+        Object obj = get(tag);
+        if (obj != null) {
+            return ((Number) obj).intValue();
+        } else {
+            return -1;
+        }
+    }
+    
+    /**
+     * Get the tag&apos;s value as a long.
+     * @param tag The tag to retrieve the value for.
+     * @return The value as a long, or <code>-1</code> if the specified
+     * tag is not set in this table.
+     * @throws ClassCastException If the value for the specified tag is not
+     * a number (castable as a <code>java.lang.Number</code>).
+     */
+    public long getLong(Tag tag) {
+        Object obj = get(tag);
+        if (obj != null) {
+            return ((Number) obj).intValue();
+        } else {
+            return -1;
+        }
+    }
+
+    /**
+     * Get the tag&apos;s value as a bit set.
+     * @param tag The tag to retrieve the value for.
+     * @return The value, cast as a <code>java.util.BitSet</code>, or
+     * <code>null</code> if the specified tag is not set in this table.
+     * @throws ClassCastException If the value for the specified tag is not
+     * a bit mask.
+     */
+    public BitSet getBitmask(Tag tag) {
+        return ((BitSet) get(tag));
+    }
+    
+    /**
+     * Get the tag&apos;s value as a byte array.
+     * @param tag The tag to retrieve the value for.
+     * @return The value, cast as a <code>byte[]</code>, or <code>null</code>
+     * if the specified tag is not set in this table.
+     * @throws ClassCastException If the value for the specified tag is not
+     * a byte array.
+     */
+    public byte[] getBytes(Tag tag) {
+        return ((byte[]) get(tag));
+    }
+    
     @Override
     public Object put(Tag tag, Object value)
             throws BadValueTypeException, InvalidSizeForValueException {

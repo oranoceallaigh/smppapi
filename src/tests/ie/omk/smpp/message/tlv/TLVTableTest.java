@@ -104,6 +104,100 @@ public class TLVTableTest extends TestCase {
         }
     }
 
+    public void testGetStringReturnsNullOnUnsetTag() throws Exception {
+        TLVTable table = new TLVTable();
+        assertNull(table.getString(Tag.RECEIPTED_MESSAGE_ID));
+    }
+
+    public void testGetBitmaskReturnsNullOnUnsetTag() throws Exception {
+        TLVTable table = new TLVTable();
+        assertNull(table.getBitmask(Tag.MS_MSG_WAIT_FACILITIES));
+    }
+
+    public void testGetBytesReturnsNullOnUnsetTag() throws Exception {
+        TLVTable table = new TLVTable();
+        assertNull(table.getBytes(Tag.DEST_SUBADDRESS));
+    }
+
+    public void testGetIntReturnsNegativeOneOnUnsetTag() throws Exception {
+        TLVTable table = new TLVTable();
+        assertEquals(-1, table.getInt(Tag.DEST_TELEMATICS_ID));
+    }
+    
+    public void testGetLongReturnsNegativeOneOnUnsetTag() throws Exception {
+        TLVTable table = new TLVTable();
+        assertEquals(-1L, table.getLong(Tag.DEST_TELEMATICS_ID));
+    }
+    
+    public void testGetIntAndGetLongSucceed() throws Exception {
+        TLVTable table = new TLVTable();
+        table.put(Tag.DEST_ADDR_SUBUNIT, new Integer(56));
+        assertEquals(56, table.getInt(Tag.DEST_ADDR_SUBUNIT));
+        assertEquals(56L, table.getLong(Tag.DEST_ADDR_SUBUNIT));
+    }
+
+    public void testGetIntThrowsExceptionOnIncorrectType() throws Exception {
+        try {
+            TLVTable table = new TLVTable();
+            table.put(Tag.RECEIPTED_MESSAGE_ID, "messageID");
+            table.getInt(Tag.RECEIPTED_MESSAGE_ID);
+            fail("Expected a ClassCastException on call to getInt");
+        } catch (ClassCastException x) {
+        }
+    }
+
+    public void testGetLongThrowsExceptionOnIncorrectType() throws Exception {
+        try {
+            TLVTable table = new TLVTable();
+            table.put(Tag.RECEIPTED_MESSAGE_ID, "messageID");
+            table.getLong(Tag.RECEIPTED_MESSAGE_ID);
+            fail("Expected a ClassCastException on call to getInt");
+        } catch (ClassCastException x) {
+        }
+    }
+
+    public void testGetStringSucceeds() throws Exception {
+        TLVTable table = new TLVTable();
+        table.put(Tag.RECEIPTED_MESSAGE_ID, "messageID");
+        table.put(Tag.DEST_ADDR_SUBUNIT, new Integer(124));
+        assertEquals("messageID", table.getString(Tag.RECEIPTED_MESSAGE_ID));
+        assertEquals("124", table.getString(Tag.DEST_ADDR_SUBUNIT));
+    }
+
+    public void testGetBitmaskSucceeds() throws Exception {
+        final BitSet bitSet = new BitSet();
+        TLVTable table = new TLVTable();
+        table.put(Tag.MS_MSG_WAIT_FACILITIES, bitSet);
+        assertEquals(bitSet, table.getBitmask(Tag.MS_MSG_WAIT_FACILITIES));
+    }
+
+    public void testGetBitmaskThrowsExceptionOnIncorrectType() throws Exception {
+        try {
+            TLVTable table = new TLVTable();
+            table.put(Tag.RECEIPTED_MESSAGE_ID, "messageID");
+            table.getBitmask(Tag.RECEIPTED_MESSAGE_ID);
+            fail("Expected a ClassCastException on call to getBitmask");
+        } catch (ClassCastException x) {
+        }
+    }
+
+    public void testGetBytesSucceeds() throws Exception {
+        byte[] array = new byte[] {1, 2, 3, 4};
+        TLVTable table = new TLVTable();
+        table.put(Tag.DEST_SUBADDRESS, array);
+        assertTrue(Arrays.equals(array, table.getBytes(Tag.DEST_SUBADDRESS)));
+    }
+
+    public void testGetBytesThrowsExceptionOnIncorrectType() throws Exception {
+        try {
+            TLVTable table = new TLVTable();
+            table.put(Tag.MS_MSG_WAIT_FACILITIES, new BitSet());
+            table.getBytes(Tag.MS_MSG_WAIT_FACILITIES);
+            fail("Expected a ClassCastException on call to getBytes");
+        } catch (ClassCastException x) {
+        }
+    }
+    
     public void testTLVTableSerialize() {
         // If testTLVTableAddParams fails, this will fail too...make sure it's
         // working first!
