@@ -1,8 +1,4 @@
 $Id$
 
-Connection: Force binding to be done through the bind method. Do not allow
-sendRequest to be used for binding. Simplifies the "special case" handling...do
-the same thing for unbind.
-
 Code up Outbind and a simple outbind listener class!
 
