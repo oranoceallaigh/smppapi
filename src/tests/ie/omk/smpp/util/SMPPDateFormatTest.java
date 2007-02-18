@@ -61,10 +61,9 @@ public class SMPPDateFormatTest extends TestCase {
             // Pass
         }
         try {
-            SMPPDate date = (SMPPDate) dateFormat.parseObject("999999999999999-");
-            System.out.println(date.getCalendar().getTime());
+            dateFormat.parseObject("999999999999999-");
             fail("Should not have successfully parsed.");
-        } catch (IllegalArgumentException x) {
+        } catch (ParseException x) {
             // Pass
         }
     }
