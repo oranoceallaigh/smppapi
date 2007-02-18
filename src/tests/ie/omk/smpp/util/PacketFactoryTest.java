@@ -1,6 +1,7 @@
 package ie.omk.smpp.util;
 
 import ie.omk.smpp.BadCommandIDException;
+import ie.omk.smpp.SMPPRuntimeException;
 import ie.omk.smpp.message.SMPPPacket;
 import junit.framework.TestCase;
 
@@ -75,7 +76,7 @@ public class PacketFactoryTest extends TestCase {
             try {
                 PacketFactory.newResponse(p);
                 fail("Should not create a response to a response.");
-            } catch (IllegalArgumentException x) {
+            } catch (SMPPRuntimeException x) {
                 // Pass
             }
         }
