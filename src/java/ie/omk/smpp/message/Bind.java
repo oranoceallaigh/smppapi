@@ -16,7 +16,7 @@ public abstract class Bind extends SMPPPacket {
     private String systemId;
     private String password;
     private String systemType;
-    private SMPPVersion version;
+    private SMPPVersion version = VersionFactory.getDefaultVersion();
     private String addressRange;
     private int addressTon;
     private int addressNpi;
