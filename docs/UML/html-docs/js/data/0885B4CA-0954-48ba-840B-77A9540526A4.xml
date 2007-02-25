@@ -1,0 +1,2 @@
+tocTab[tocTab.length] = new Array("1:1", "", "Requirements", "EARoot/EA1/EA3.htm", "188.png", "1", "0", "", "Custom diagram");
+tocTab[tocTab.length] = new Array("1:2", "", "«Functional» REQ001 - Opening/Closing network connections", "EARoot/EA1/EA5.htm", "19.png", "149", "0", "", "Requirement");
