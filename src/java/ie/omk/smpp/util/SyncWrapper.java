@@ -322,6 +322,7 @@ public class SyncWrapper implements ConnectionObserver {
             }
             blockers.put(seq, null);
         }
+        packet.setSequenceNum(seq.longValue());
         SMPPPacket response = null;
         try {
             synchronized (seq) {
