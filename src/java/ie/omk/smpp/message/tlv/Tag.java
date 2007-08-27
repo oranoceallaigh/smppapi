@@ -8,7 +8,6 @@ import java.util.Map;
 /**
  * Enumeration class for optional parameter tag values.
  * 
- * @author Oran Kelly
  * @version $Id$
  */
 public final class Tag implements java.io.Serializable {
@@ -73,7 +72,7 @@ public final class Tag implements java.io.Serializable {
         new Tag(0x204, ParamDescriptor.INTEGER2, 2);
 
     public static final Tag USER_RESPONSE_CODE =
-        new Tag(0x205, ParamDescriptor.INTEGER2, 2);
+        new Tag(0x205, ParamDescriptor.INTEGER1, 1);
 
     public static final Tag SOURCE_PORT =
         new Tag(0x20a, ParamDescriptor.INTEGER2, 2);
@@ -153,6 +152,39 @@ public final class Tag implements java.io.Serializable {
     public static final Tag ITS_SESSION_INFO =
         new Tag(0x1383, ParamDescriptor.BYTES, 2);
 
+    public static final Tag BROADCAST_AREA_IDENTIFIER =
+        new Tag(0x0606, ParamDescriptor.BYTES, -1);
+    
+    public static final Tag BROADCAST_AREA_SUCCESS =
+        new Tag(0x0608, ParamDescriptor.INTEGER1, 1);
+    
+    public static final Tag BROADCAST_CONTENT_TYPE_INFO =
+        new Tag(0x0602, ParamDescriptor.BYTES, 1, 255);
+    
+    public static final Tag BROADCAST_CHANNEL_INDICATOR =
+        new Tag(0x0602, ParamDescriptor.INTEGER1, 1);
+    
+    public static final Tag BROADCAST_CONTENT_TYPE =
+        new Tag(0x0602, ParamDescriptor.BYTES, 1, 255);
+
+    public static final Tag BROADCAST_END_TIME = 
+        new Tag(0x0609, ParamDescriptor.DATE, 16, 16);
+    
+    public static final Tag BROADCAST_ERROR_STATUS =
+        new Tag(0x607, ParamDescriptor.INTEGER4, 4);
+
+    public static final Tag BROADCAST_FREQUENCY_INTERVAL =
+        new Tag(0x0605, ParamDescriptor.BYTES, 3);
+
+    public static final Tag BROADCAST_MESSAGE_CLASS =
+        new Tag(0x0603, ParamDescriptor.INTEGER1, 1);
+    
+    public static final Tag BROADCAST_REP_NUM = 
+        new Tag(0x604, ParamDescriptor.INTEGER2, 2);
+    
+    public static final Tag BROADCAST_SERVICE_GROUP =
+        new Tag(0x060A, ParamDescriptor.BYTES, 1, 255);
+    
     /**
      * Integer value of this tag.
      */
