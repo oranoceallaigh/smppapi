@@ -148,9 +148,10 @@ public class SMPPDate implements java.io.Serializable {
     }
 
     /**
-     * Get a calendar object representing the internal time of this SMPPDate. If
-     * this object represents a relative time specification, the information
-     * returned by this method may be nonsensical.
+     * Get a calendar object representing the internal time of this SMPPDate.
+     * This method should not be used to retrieve a calendar from relative
+     * time specifications. That is, if <code>this.isRelative() == true</code>,
+     * you should not attempt to use the object returned from this method.
      */
     public Calendar getCalendar() {
         Calendar cal = Calendar.getInstance();
