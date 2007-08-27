@@ -61,7 +61,7 @@ public final class Tag implements java.io.Serializable {
     public static final Tag USER_MESSAGE_REFERENCE = new Tag(0x204,
             Number.class, 2);
 
-    public static final Tag USER_RESPONSE_CODE = new Tag(0x205, Number.class, 2);
+    public static final Tag USER_RESPONSE_CODE = new Tag(0x205, Number.class, 1);
 
     public static final Tag SOURCE_PORT = new Tag(0x20a, Number.class, 2);
 
