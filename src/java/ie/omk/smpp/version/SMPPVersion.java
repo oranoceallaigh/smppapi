@@ -1,6 +1,7 @@
 package ie.omk.smpp.version;
 
 import ie.omk.smpp.Address;
+import ie.omk.smpp.util.APIConfig;
 import ie.omk.smpp.util.AlphabetEncoding;
 import ie.omk.smpp.util.MessageEncoding;
 
@@ -60,9 +61,14 @@ public abstract class SMPPVersion {
         } else if (id == V34.getVersionID()) {
             return V34;
         } else {
-            throw new VersionException("Unknown version id: 0x"
-                    + Integer.toHexString(id));
+            if (APIConfig.getInstance().getBoolean(APIConfig.LAX_VERSIONS, false)) {
+                if (id >= 0x00 && id <= 0x32) {
+                    return V33;
+                }
+            }
         }
+        throw new VersionException("Unknown version id: 0x"
+                + Integer.toHexString(id));
     }
 
     /**

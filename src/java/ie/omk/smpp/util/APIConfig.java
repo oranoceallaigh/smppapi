@@ -29,6 +29,17 @@ import org.apache.commons.logging.LogFactory;
  * </tr>
  * 
  * <tr>
+ * <td><code>smppapi.lax_versions</code></td>
+ * <td>Boolean</td>
+ * <td>
+ * Enable or disable interpreting interface_version values of
+ * 0x00 thru 0x32 (inclusive) as SMPP version 3.3. The specification
+ * is not entirely clear in its statement on whether this is allowed
+ * or not.
+ * </td>
+ * </tr>
+ * 
+ * <tr>
  * <td><code>smppapi.net.buffersize_in</code></td>
  * <td>Integer</td>
  * <td>Sets the size of the buffer used on the incoming stream connection from
@@ -129,6 +140,11 @@ public final class APIConfig extends Properties {
      */
     public static final String TCP_SOCKET_TIMEOUT = "smppapi.net.tcp.so_timeout";
 
+    /**
+     * See class description for documentation on the properties.
+     */
+    public static final String LAX_VERSIONS = "smppapi.lax_versions";
+    
     /**
      * See class description for documentation on the properties.
      */
