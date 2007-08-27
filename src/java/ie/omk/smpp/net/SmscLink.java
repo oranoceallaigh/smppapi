@@ -237,13 +237,13 @@ public abstract class SmscLink {
         synchronized (writeLock) {
             try {
                 if (snoopOut != null) {
-                    pak.writeTo(snoopOut);
+                    pak.writeTo(snoopOut, withOptional);
                 }
             } catch (IOException x) {
                 LOGGER.warn("IOException writing to snoop output stream.", x);
             }
 
-            pak.writeTo(out);
+            pak.writeTo(out, withOptional);
             if (autoFlush) {
                 out.flush();
             }
