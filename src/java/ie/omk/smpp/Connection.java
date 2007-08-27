@@ -1296,13 +1296,9 @@ public class Connection implements java.lang.Runnable {
      * Handle an incoming unbind response packet.
      */
     private void processInboundUnbindResp(UnbindResp resp) {
-        try {
-            if (state == UNBINDING && resp.getCommandStatus() == 0) {
-                LOGGER.info("Successfully unbound");
-                setState(UNBOUND);
-                this.link.close();
-            }
-        } catch (IOException x) {
+        if (state == UNBINDING && resp.getCommandStatus() == 0) {
+            LOGGER.info("Successfully unbound");
+            setState(UNBOUND);
         }
     }
 
