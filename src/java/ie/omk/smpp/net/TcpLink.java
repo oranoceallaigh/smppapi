@@ -68,8 +68,7 @@ public class TcpLink extends AbstractSmscLink {
      * @throws java.net.UnknownHostException
      *             If the host is not found.
      */
-    public TcpLink(String address, int port)
-            throws java.net.UnknownHostException {
+    public TcpLink(String address, int port) throws java.net.UnknownHostException {
         this.addr = InetAddress.getByName(address);
         if (port < 1) {
             this.port = DEFAULT_PORT;
@@ -86,7 +85,7 @@ public class TcpLink extends AbstractSmscLink {
      * @throws java.net.UnknownHostException
      *             If the host is not found.
      */
-    public TcpLink(InetAddress address) throws java.net.UnknownHostException {
+    public TcpLink(InetAddress address) {
         this(address, DEFAULT_PORT);
     }
 
@@ -100,8 +99,7 @@ public class TcpLink extends AbstractSmscLink {
      * @throws java.net.UnknownHostException
      *             If the host is not found.
      */
-    public TcpLink(InetAddress address, int port)
-            throws java.net.UnknownHostException {
+    public TcpLink(InetAddress address, int port) {
         this.addr = address;
         if (port < 1) {
             this.port = DEFAULT_PORT;
