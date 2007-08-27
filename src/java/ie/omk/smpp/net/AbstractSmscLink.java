@@ -122,12 +122,12 @@ public abstract class AbstractSmscLink implements SmscLink {
         synchronized (writeLock) {
             try {
                 if (snoopOut != null) {
-                    pak.writeTo(snoopOut);
+                    pak.writeTo(snoopOut, withOptional);
                 }
             } catch (IOException x) {
                 LOG.warn("IOException writing to snoop output stream.", x);
             }
-            pak.writeTo(out);
+            pak.writeTo(out, withOptional);
             if (autoFlush) {
                 out.flush();
             }
@@ -218,7 +218,7 @@ public abstract class AbstractSmscLink implements SmscLink {
     public final int available() {
         try {
             synchronized (readLock) {
-                return in.available();
+                return (in != null) ? in.available() : 0;
             }
         } catch (IOException x) {
             LOG.debug("IOException in available", x);
