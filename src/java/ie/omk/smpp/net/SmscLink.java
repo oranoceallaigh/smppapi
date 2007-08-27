@@ -332,7 +332,7 @@ public abstract class SmscLink {
     public final int available() {
         try {
             synchronized (readLock) {
-                return in.available();
+                return (in != null) ? in.available() : 0;
             }
         } catch (IOException x) {
             LOGGER.debug("IOException in available", x);
