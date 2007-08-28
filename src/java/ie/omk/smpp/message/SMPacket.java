@@ -182,9 +182,6 @@ public class SMPacket extends SMPPPacket {
      *            The index the message data begins at.
      * @param len
      *            The length of the message data.
-     * @param encoding
-     *            The encoding object representing the type of data in the
-     *            message. If null, uses ie.omk.smpp.util.BinaryEncoding.
      * @throws java.lang.ArrayIndexOutOfBoundsException
      *             if start or len is less than zero or if the byte array length
      *             is less than <code>start + len</code>.

@@ -552,10 +552,11 @@ public abstract class SMPPPacket implements Serializable {
     }
 
     /**
-     * Validate the mandatory parameters for this packet.
+     * Validate the mandatory parameters for this packet. If any
+     * mandatory parameter fails validation, a <code>
+     * ie.omk.smpp.version.VersionException</code> should be
+     * thrown.
      * @param smppVersion The version to validate against.
-     * @return <code>true</code> if the mandatory parameters are
-     * all valid, <code>false</code> otherwise.
      */
     protected void validateMandatory(SMPPVersion smppVersion) {
     }
@@ -566,8 +567,6 @@ public abstract class SMPPPacket implements Serializable {
      * required TLVs were only introduced in SMPP version 5.0, this
      * method will only ever be called when using a version that
      * is equivalent to or newer than that.
-     * 
-     * @param smppVersion The version to validate against.
      * @return <code>true</code> if all required TLVs are set,
      * <code>false</code> otherwise.
      */
