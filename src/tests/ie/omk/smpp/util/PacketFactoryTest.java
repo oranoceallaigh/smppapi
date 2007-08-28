@@ -108,11 +108,13 @@ public class PacketFactoryTest extends TestCase {
 }
 
 class VendorRequest extends SMPPPacket {
+    private static final long serialVersionUID = 1L;
     VendorRequest() {
         super(PacketFactoryTest.VENDOR_ID);
     }
 }
 class VendorResponse extends SMPPPacket {
+    private static final long serialVersionUID = 1L;
     public VendorResponse() {
         super(PacketFactoryTest.VENDOR_ID | 0x80000000);
     }
