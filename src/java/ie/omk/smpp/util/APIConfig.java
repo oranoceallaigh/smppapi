@@ -31,6 +31,23 @@ import org.slf4j.LoggerFactory;
  * </tr>
  * 
  * <tr>
+ * <td><code>smppapi.default_version</code></td>
+ * <td>String</td>
+ * <td>Set the default version that will be used for new Connections</td>
+ * </tr>
+ * 
+ * <tr>
+ * <td><code>smppapi.lax_versions</code></td>
+ * <td>Boolean</td>
+ * <td>
+ * Enable or disable interpreting interface_version values of
+ * 0x00 thru 0x32 (inclusive) as SMPP version 3.3. The specification
+ * is not entirely clear in its statement on whether this is allowed
+ * or not.
+ * </td>
+ * </tr>
+ * 
+ * <tr>
  * <td><code>smppapi.net.buffersize_in</code></td>
  * <td>Integer</td>
  * <td>Sets the size of the buffer used on the incoming stream connection from
@@ -129,6 +146,16 @@ import org.slf4j.LoggerFactory;
 public final class APIConfig extends Properties {
     private static final long serialVersionUID = 3668742926704484281L;
     
+    /**
+     * @see APIConfig
+     */
+    public static final String DEFAULT_VERSION = "smppapi.default_version";
+    
+    /**
+     * @see APIConfig
+     */
+    public static final String LAX_VERSIONS = "smppapi.lax_versions";
+
     /**
      * @see APIConfig
      */
