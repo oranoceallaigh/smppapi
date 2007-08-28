@@ -38,12 +38,12 @@ public class Connection {
     private String connectionId;
     private SMPPVersion version = VersionFactory.getDefaultVersion();
     private ConnectionType type;
-    private ConnectionState state = ConnectionState.UNBOUND;
+    private AtomicInteger state = new AtomicInteger(ConnectionState.UNBOUND.intValue());
     private SmscLink smscLink;
     private SequenceNumberScheme numberScheme = new DefaultSequenceScheme();
     private EventDispatcher eventDispatcher;
     private Thread receiver;
-    private boolean useOptionalParams = version.isSupportOptionalParams();
+    private boolean useOptionalParams = version.isSupportTLV();
     private boolean validating = true;
     
     public Connection(SmscLink link) {
@@ -92,7 +92,7 @@ public class Connection {
 
     public void setVersion(SMPPVersion version) {
         this.version = version;
-        this.useOptionalParams = version.isSupportOptionalParams();
+        this.useOptionalParams = version.isSupportTLV();
     }
 
     public SequenceNumberScheme getSequenceNumberScheme() {
@@ -144,12 +144,12 @@ public class Connection {
     }
     
     public void bind(Bind bindRequest) throws IOException {
-        if (state != ConnectionState.UNBOUND) {
+        if (getState() != ConnectionState.UNBOUND) {
             throw new IllegalStateException("Already binding or bound.");
         }
-        if (bindRequest instanceof BindTransmitter) {
+        if (bindRequest.getCommandId() == SMPPPacket.BIND_TRANSMITTER) {
             type = ConnectionType.TRANSMITTER;
-        } else if (bindRequest instanceof BindReceiver) {
+        } else if (bindRequest.getCommandId() == SMPPPacket.BIND_RECEIVER) {
             type = ConnectionType.RECEIVER;
         } else {
             type = ConnectionType.TRANSCEIVER;
@@ -164,35 +164,24 @@ public class Connection {
     }
 
     public void unbind() throws IOException {
-        unbind(new Unbind());
-    }
-    
-    public void unbind(Unbind unbindRequest) throws IOException {
-        if (state != ConnectionState.BOUND) {
-            throw new IllegalStateException("Not currently bound.");
-        }
-        setState(ConnectionState.UNBINDING);
-        sendPacketInternal(unbindRequest);
+        sendPacketInternal(new Unbind());
     }
     
     public void sendPacket(SMPPPacket packet) throws IOException {
-        if (state == ConnectionState.UNBOUND) {
-            throw new IllegalStateException("Not bound to the SMSC.");
-        }
         int commandId = packet.getCommandId();
-        if (validating) {
-            packet.validate(version);
+        switch (commandId) {
+        case SMPPPacket.BIND_TRANSMITTER:
+        case SMPPPacket.BIND_TRANSCEIVER:
+        case SMPPPacket.BIND_RECEIVER:
+            bind((Bind) packet);
+            return;
         }
-        // We allow the receiver to send any response type but a very
-        // limited set of requests.
-        if (type == ConnectionType.RECEIVER && (commandId & 0x80000000) == 0) {
-            switch (commandId) {
-            case SMPPPacket.BIND_RECEIVER:
-            case SMPPPacket.UNBIND:
-            case SMPPPacket.ENQUIRE_LINK:
-                // Ok to go ahead and send the packet.
-                break;
-            default:
+        if (type == ConnectionType.RECEIVER) {
+            // We allow the receiver to send any response type but a very
+            // limited set of requests.
+            if (packet.isRequest()
+                    && !(commandId == SMPPPacket.UNBIND
+                            || commandId == SMPPPacket.ENQUIRE_LINK)) {
                 throw new UnsupportedOperationException(
                         "Receiver connection cannot send command " + commandId);
             }
@@ -201,7 +190,7 @@ public class Connection {
     }
 
     public void closeLink() throws IOException {
-        if (state == ConnectionState.UNBOUND) {
+        if (getState() == ConnectionState.UNBOUND) {
             smscLink.close();
         } else {
             throw new IllegalStateException("Cannot close link while connection is bound.");
@@ -209,7 +198,7 @@ public class Connection {
     }
     
     public ConnectionState getState() {
-        return state;
+        return ConnectionState.valueOf(state.get());
     }
 
     void processReceivedPacket(SMPPPacket packet) {
@@ -230,8 +219,11 @@ public class Connection {
         }
     }
 
-    private void setState(ConnectionState state) {
-        this.state = state;
+    private void setState(ConnectionState fromState, ConnectionState toState) {
+        if (!state.compareAndSet(fromState.intValue(), toState.intValue())) {
+            log.error("Race condition in setting state - expected {} but is {}",
+                    fromState, getState());
+        }
     }
 
     private void initFromConfig() {
@@ -282,6 +274,9 @@ public class Connection {
         if (packet.getSequenceNum() < 0L && numberScheme != null) {
             packet.setSequenceNum(numberScheme.nextNumber());
         }
+        if (validating) {
+            packet.validate(version);
+        }
         smscLink.write(packet, useOptionalParams);
         processSentPacket(packet);
     }
@@ -304,48 +299,49 @@ public class Connection {
     }
     
     private void processSentBind(Bind bindRequest) {
-        setState(ConnectionState.BINDING);
+        setState(ConnectionState.UNBOUND, ConnectionState.BINDING);
     }
     
     private void processSentUnbind(Unbind unbindRequest) {
-        setState(ConnectionState.UNBINDING);
+        setState(ConnectionState.BOUND, ConnectionState.UNBINDING);
     }
     
     private void processSentUnbindResponse(UnbindResp unbindResponse) {
         int status = unbindResponse.getCommandStatus();
         if (status == 0) {
-            setState(ConnectionState.UNBOUND);
+            setState(ConnectionState.UNBINDING, ConnectionState.UNBOUND);
         }
     }
     
     private void processReceivedBindResponse(BindResp bindResponse) {
         int status = bindResponse.getCommandStatus();
         if (status == 0) {
-            setState(ConnectionState.BOUND);
+            setState(ConnectionState.BINDING, ConnectionState.BOUND);
             negotiateVersion(bindResponse);
             setLinkTimeout(APIConfig.LINK_TIMEOUT);
         } else {
             log.warn("Received a bind response with status {}", status);
-            setState(ConnectionState.UNBOUND);
+            setState(ConnectionState.BINDING, ConnectionState.UNBOUND);
         }
     }
     
     private void negotiateVersion(BindResp bindResponse) {
-        Number versionId = (Number) bindResponse.getOptionalParameter(
-                Tag.SC_INTERFACE_VERSION);
-        if (versionId == null) {
+        if (bindResponse.isSet(Tag.SC_INTERFACE_VERSION)) {
             log.info("SMSC did not supply SC_INTERFACE_VERSION."
                     + " Disabling optional parameter support.");
             useOptionalParams = false;
             return;
         }
+        int versionId = 0;
         try {
+            versionId =
+                bindResponse.getTLVTable().getInt(Tag.SC_INTERFACE_VERSION);
             SMPPVersion smscVersion =
-                VersionFactory.getVersion(versionId.intValue());
+                VersionFactory.getVersion(versionId);
             log.info("SMSC states its version as {}", smscVersion);
             if (smscVersion.isOlderThan(version)) {
                 version = smscVersion;
-                useOptionalParams = version.isSupportOptionalParams();
+                useOptionalParams = version.isSupportTLV();
             }
         } catch (VersionException x) {
             log.debug("SMSC implements a version I don't know: {}", versionId);
@@ -353,13 +349,13 @@ public class Connection {
     }
     
     private void processReceivedUnbind(Unbind unbindRequest) {
-        setState(ConnectionState.UNBINDING);
+        setState(ConnectionState.BOUND, ConnectionState.UNBINDING);
     }
     
     private void processReceivedUnbindResponse(UnbindResp unbindResponse) {
         int status = unbindResponse.getCommandStatus();
         if (status == 0) {
-            setState(ConnectionState.UNBOUND);
+            setState(ConnectionState.UNBINDING, ConnectionState.UNBOUND);
         } else {
             log.warn("Received an unbind response with status {}", status);
         }
