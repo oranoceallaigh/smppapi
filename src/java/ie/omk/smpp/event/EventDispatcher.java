@@ -16,7 +16,6 @@ import java.util.Iterator;
  * for their <code>Connection</code> objects which better suit how those
  * applications work.
  * 
- * @author Oran Kelly
  * @version $Id$
  * @see ie.omk.smpp.event.SimpleEventDispatcher
  */

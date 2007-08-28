@@ -10,8 +10,7 @@ package ie.omk.smpp.util;
  * behaviour, there is no requirement for 2 sequentially-requested numbers to be
  * numerically sequential.
  * 
- * @author Oran Kelly
- * @version 1.0
+ * @version $Id$
  */
 public interface SequenceNumberScheme {
 

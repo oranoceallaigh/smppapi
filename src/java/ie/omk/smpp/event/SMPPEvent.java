@@ -5,7 +5,6 @@ import ie.omk.smpp.Connection;
 /**
  * Abstract super class of SMPP control events.
  * 
- * @author Oran Kelly
  * @version $Id$
  */
 public abstract class SMPPEvent {

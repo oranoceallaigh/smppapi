@@ -55,7 +55,7 @@ public abstract class Message implements Serializable {
         this.encoding = encoding;
         sarIdentifier = SAR_IDENT_SEQUENCE.incrementAndGet();
         SMPPVersion version = VersionFactory.getDefaultVersion();
-        if (version.isSupportOptionalParams()) {
+        if (version.isSupportTLV()) {
             segmentSize =
                 APIConfig.getInstance().getInt(APIConfig.SEGMENT_SIZE, 254);
         } else {
@@ -178,7 +178,7 @@ public abstract class Message implements Serializable {
     
     private void setPayloadParameter(SMPPPacket packet, boolean useOptionalParameters) {
         if (useOptionalParameters) {
-            packet.setOptionalParameter(Tag.MESSAGE_PAYLOAD, getMessage());
+            packet.setTLV(Tag.MESSAGE_PAYLOAD, getMessage());
         } else {
             ((SMPacket) packet).setMessage(getMessage());
         }
@@ -226,12 +226,12 @@ public abstract class Message implements Serializable {
             byte[][] segments, SMPPPacket[] packets, int commandId) throws BadCommandIDException {
         for (int i = 0; i < segments.length; i++) {
             packets[i] = PacketFactory.newInstance(commandId);
-            packets[i].setOptionalParameter(Tag.MESSAGE_PAYLOAD, segments[i]);
-            packets[i].setOptionalParameter(
+            packets[i].setTLV(Tag.MESSAGE_PAYLOAD, segments[i]);
+            packets[i].setTLV(
                     Tag.SAR_SEGMENT_SEQNUM, new Integer(i));
-            packets[i].setOptionalParameter(
+            packets[i].setTLV(
                     Tag.SAR_TOTAL_SEGMENTS, new Integer(segments.length));
-            packets[i].setOptionalParameter(
+            packets[i].setTLV(
                     Tag.SAR_MSG_REF_NUM, new Integer(sarIdentifier));
         }
     }

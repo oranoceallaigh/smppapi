@@ -23,7 +23,6 @@ import org.slf4j.LoggerFactory;
  * </code> is complete.
  * </p>
  * 
- * @author Oran Kelly
  * @version $Id$
  * @see ie.omk.smpp.event.EventDispatcher
  */

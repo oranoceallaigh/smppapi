@@ -7,7 +7,6 @@ import ie.omk.smpp.Connection;
  * ignore this message as they don't need to do anything when the receiver
  * thread starts.
  * 
- * @author Oran Kelly
  * @version $Id$
  */
 public class ReceiverStartEvent extends SMPPEvent {

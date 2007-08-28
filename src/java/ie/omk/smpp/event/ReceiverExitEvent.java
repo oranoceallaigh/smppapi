@@ -14,7 +14,6 @@ import ie.omk.smpp.ConnectionState;
  * reestablished before binding to the SMSC is again possible. It is up to the
  * application to do any necessary clean up to the old network connection.
  * 
- * @author Oran Kelly
  * @version $Id$
  */
 public class ReceiverExitEvent extends SMPPEvent {

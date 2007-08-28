@@ -9,7 +9,6 @@ import ie.omk.smpp.Connection;
  * caught and the state the connection was in when it was caught are saved in
  * this event.
  * 
- * @author Oran Kelly
  * @version $Id$
  */
 public class ReceiverExceptionEvent extends SMPPEvent {

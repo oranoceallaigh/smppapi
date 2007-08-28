@@ -4,7 +4,6 @@ package ie.omk.smpp.util;
  * Exception thrown when an attempt to parse a String as an SMPPDate fails due
  * to a bad format.
  * 
- * @author Oran Kelly
  * @since 1.0
  */
 public class InvalidDateFormatException extends ie.omk.smpp.SMPPException {

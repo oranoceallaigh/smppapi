@@ -11,7 +11,6 @@ import java.io.OutputStream;
  * addresses that message submission failed for along with an error code for
  * each address indicating the reason for the failure.
  * 
- * @author Oran Kelly &lt;orank@users.sf.net&gt;
  */
 public class ErrorAddress extends Address {
     static final long serialVersionUID = 2352811393926037102L;

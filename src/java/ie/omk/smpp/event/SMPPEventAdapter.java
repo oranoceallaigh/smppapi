@@ -31,7 +31,6 @@ import org.slf4j.LoggerFactory;
  * various events. This makes it easy for an application to extend this class
  * and only override the methods it's interested in.
  * 
- * @author Oran Kelly
  * @version $Id$
  */
 public abstract class SMPPEventAdapter implements ConnectionObserver {

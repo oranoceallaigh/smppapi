@@ -3,8 +3,7 @@ package ie.omk.smpp;
 /**
  * AlreadyBoundException
  * 
- * @author Oran Kelly
- * @version 1.0
+ * @version $Id$
  */
 public class AlreadyBoundException extends ie.omk.smpp.SMPPRuntimeException {
     static final long serialVersionUID = 6996870876381065702L;

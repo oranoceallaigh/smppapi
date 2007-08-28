@@ -10,7 +10,6 @@ import ie.omk.smpp.message.SMPPPacket;
  * implementation of this interface to the Connection to be notified of SMPP
  * events (such as packet reception).
  * 
- * @author Oran Kelly
  * @version $Id$
  * @see Connection#addObserver
  */
