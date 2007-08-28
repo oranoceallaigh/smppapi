@@ -13,7 +13,9 @@ import java.util.List;
  * @version $Id$
  */
 public class DataSM extends SMPPPacket {
+    private static final long serialVersionUID = 1L;
     private static final BodyDescriptor BODY_DESCRIPTOR = new BodyDescriptor();
+
     private String serviceType;
     private Address source;
     private Address destination;

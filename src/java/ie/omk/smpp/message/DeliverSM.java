@@ -10,10 +10,10 @@ import org.slf4j.LoggerFactory;
  * message using registered delivery that a message has reached it's end point
  * successfully.
  * 
- * @author Oran Kelly
  * @version $Id: $
  */
 public class DeliverSM extends SMPacket {
+    private static final long serialVersionUID = 1L;
     private static final String SPEC_VIOLATION = "Setting the {} on a "
         + "deliver_sm is in violation of the SMPP specification";
     

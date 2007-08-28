@@ -5,10 +5,11 @@ package ie.omk.smpp.message;
  * ESME or SMSC, does not understand a message transmitted to it or if a
  * transmitted protocol message is badly formed.
  * 
- * @author Oran Kelly
- * @version 1.0
+ * @version $Id$
  */
 public class GenericNack extends SMPPPacket {
+    private static final long serialVersionUID = 1L;
+
     /**
      * Construct a new GenericNack.
      */

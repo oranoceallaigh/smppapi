@@ -3,10 +3,10 @@ package ie.omk.smpp.message;
 /**
  * Bind to the SMSC as a transmitter.
  * 
- * @author Oran Kelly
- * @version 1.0
+ * @version $Id$
  */
 public class BindTransmitter extends Bind {
+    private static final long serialVersionUID = 1L;
     /**
      * Construct a new BindTransmitter.
      */

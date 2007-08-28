@@ -3,10 +3,11 @@ package ie.omk.smpp.message;
 /**
  * SMSC response to an Unbind request.
  * 
- * @author Oran Kelly
- * @version 1.0
+ * @version $Id$
  */
 public class UnbindResp extends SMPPPacket {
+    private static final long serialVersionUID = 1L;
+
     /**
      * Construct a new UnbindResp.
      */

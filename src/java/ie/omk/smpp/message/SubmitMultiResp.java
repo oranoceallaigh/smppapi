@@ -14,10 +14,10 @@ import java.util.ListIterator;
 /**
  * Submit to multiple destinations response.
  * 
- * @author Oran Kelly
  * @version $Id: $
  */
 public class SubmitMultiResp extends SMPPPacket {
+    private static final long serialVersionUID = 1L;
     private static final BodyDescriptor BODY_DESCRIPTOR = new BodyDescriptor();
     
     private String messageId;

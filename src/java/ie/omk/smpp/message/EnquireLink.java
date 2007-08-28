@@ -6,10 +6,11 @@ package ie.omk.smpp.message;
  * still alive and responding to messages. Usually used by the SMSC after a
  * period of inactivity to decide whether to close the link.
  * 
- * @author Oran Kelly
- * @version 1.0
+ * @version $Id$
  */
 public class EnquireLink extends SMPPPacket {
+    private static final long serialVersionUID = 1L;
+
     /**
      * Construct a new EnquireLink.
      */

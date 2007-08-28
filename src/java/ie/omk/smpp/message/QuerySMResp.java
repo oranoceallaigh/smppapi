@@ -10,10 +10,10 @@ import java.util.List;
  * SMSC response to a QuerySM request. Contains the current state of a short
  * message at the SMSC.
  * 
- * @author Oran Kelly
- * @version 1.0
+ * @version $Id$
  */
 public class QuerySMResp extends SMPPPacket {
+    private static final long serialVersionUID = 1L;
     private static final BodyDescriptor BODY_DESCRIPTOR = new BodyDescriptor();
     
     private String messageId;

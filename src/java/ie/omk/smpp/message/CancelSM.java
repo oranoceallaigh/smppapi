@@ -17,11 +17,12 @@ import java.util.List;
  * destination <br>
  * </ul>
  * 
- * @author Oran Kelly
- * @version 1.0
+ * @version $Id$
  */
 public class CancelSM extends SMPPPacket {
+    private static final long serialVersionUID = 1L;
     private static final BodyDescriptor BODY_DESCRIPTOR = new BodyDescriptor();
+
     private String serviceType;
     private String messageId;
     private Address source;

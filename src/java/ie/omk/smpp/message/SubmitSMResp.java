@@ -8,10 +8,11 @@ import java.util.List;
 /**
  * Submit short message response.
  * 
- * @author Oran Kelly
- * @version 1.0
+ * @version $Id$
  */
 public class SubmitSMResp extends SMPPPacket {
+    private static final long serialVersionUID = 1L;
+
     private String messageId;
     
     /**

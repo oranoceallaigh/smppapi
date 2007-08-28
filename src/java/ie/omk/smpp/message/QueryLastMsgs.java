@@ -13,10 +13,10 @@ import java.util.List;
  * source <br>
  * </ul>
  * 
- * @author Oran Kelly
- * @version 1.0
+ * @version $Id$
  */
 public class QueryLastMsgs extends SMPPPacket {
+    private static final long serialVersionUID = 1L;
     private static final BodyDescriptor BODY_DESCRIPTOR = new BodyDescriptor();
     
     /**

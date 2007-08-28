@@ -8,10 +8,11 @@ import java.util.List;
  * SMSC response to a ParamRetrieve request. Returns the value of the requested
  * parameter.
  * 
- * @author Oran Kelly
- * @version 1.0
+ * @version $Id$
  */
 public class ParamRetrieveResp extends SMPPPacket {
+    private static final long serialVersionUID = 1L;
+
     /** String value of the requested parameter */
     private String paramValue;
 

@@ -14,6 +14,7 @@ import java.util.List;
  * QueryMsgDetailsResp to extend.
  */
 public class SMPacket extends SMPPPacket {
+    private static final long serialVersionUID = 1L;
     protected static final BodyDescriptor BODY_DESCRIPTOR = new BodyDescriptor();
 
     protected String serviceType;

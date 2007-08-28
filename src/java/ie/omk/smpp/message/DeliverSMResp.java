@@ -9,10 +9,11 @@ import java.util.List;
 /**
  * ESME response to a Deliver message request.
  * 
- * @author Oran Kelly
  * @version $Id: $
  */
 public class DeliverSMResp extends SMPPPacket {
+    private static final long serialVersionUID = 1L;
+
     private String messageId;
     
     /**

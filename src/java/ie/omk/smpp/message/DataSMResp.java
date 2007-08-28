@@ -10,6 +10,8 @@ import java.util.List;
  * @version $Id$
  */
 public class DataSMResp extends SMPPPacket {
+    private static final long serialVersionUID = 1L;
+
     private String messageId;
     
     /**

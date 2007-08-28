@@ -12,10 +12,10 @@ import java.util.List;
  * Replace a message. This message submits a short message to the SMSC replacing
  * a previously submitted message.
  * 
- * @author Oran Kelly
  * @version $Id: $
  */
 public class ReplaceSM extends SMPacket {
+    private static final long serialVersionUID = 1L;
     private static final BodyDescriptor BODY_DESCRIPTOR = new BodyDescriptor();
     
     static {

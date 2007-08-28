@@ -12,6 +12,7 @@ import java.util.List;
  * @version $Id$
  */
 public class QueryLastMsgsResp extends SMPPPacket {
+    private static final long serialVersionUID = 1L;
     private static final BodyDescriptor BODY_DESCRIPTOR = new BodyDescriptor();
     private static final int MAX_SIZE = 255;
     

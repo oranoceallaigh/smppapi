@@ -3,13 +3,16 @@ package ie.omk.smpp.message;
 import ie.omk.smpp.SMPPRuntimeException;
 import ie.omk.smpp.message.param.ParamDescriptor;
 import ie.omk.smpp.message.tlv.TLVTable;
+import ie.omk.smpp.message.tlv.TLVTableImpl;
 import ie.omk.smpp.message.tlv.Tag;
 import ie.omk.smpp.util.ParsePosition;
 import ie.omk.smpp.util.SMPPIO;
 import ie.omk.smpp.version.SMPPVersion;
+import ie.omk.smpp.version.VersionException;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.Serializable;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,10 +20,9 @@ import java.util.List;
 /**
  * This is the abstract class that all SMPP messages are inherited from.
  * 
- * @author Oran Kelly
- * @version 1.0
+ * @version $Id$
  */
-public abstract class SMPPPacket {
+public abstract class SMPPPacket implements Serializable {
     private static final String INCORRECT_PARAM_COUNT =
         "Number of mandatory parameters supplied does not match the body descriptor!";
 
@@ -123,6 +125,36 @@ public abstract class SMPPPacket {
     /** Command Id: Data message response. */
     public static final int DATA_SM_RESP = 0x80000103;
 
+    /**
+     * Command Id: Submit broadcast message
+     */
+    public static final int BROADCAST_SM = 0x00000111;
+    
+    /**
+     * Command Id: Broadcast message response.
+     */
+    public static final int BROADCAST_SM_RESP = 0x80000111;
+    
+    /**
+     * Command Id: Query broadcast message.
+     */
+    public static final int QUERY_BROADCAST_SM = 0x00000112;
+    
+    /**
+     * Command Id: Query broadcast message response.
+     */
+    public static final int QUERY_BROADCAST_SM_RESP = 0x80000112;
+    
+    /**
+     * Command Id: Cancel broadcast message.
+     */
+    public static final int CANCEL_BROADCAST_SM = 0x00000113;
+    
+    /**
+     * Command Id: Cancel broadcast message response.
+     */
+    public static final int CANCEL_BROADCAST_SM_RESP = 0x80000113;
+    
     /** Message state at Smsc: En route */
     public static final int SM_STATE_EN_ROUTE = 1;
 
@@ -201,8 +233,10 @@ public abstract class SMPPPacket {
     /** Packet sequence number. */
     protected long sequenceNum = -1;
 
-    /** Optional parameter table. */
-    protected TLVTable tlvTable = new TLVTable();
+    /**
+     * TLV table.
+     */
+    protected TLVTable tlvTable = new TLVTableImpl();
 
     /**
      * Create a new SMPPPacket with specified Id.
@@ -296,66 +330,58 @@ public abstract class SMPPPacket {
     }
 
     /**
-     * Set the optional parameter (TLV) table. This method discards the entire
-     * optional paramter table and replaces it with <code>table</code>. The
-     * discarded table is returned. If <code>null</code> is passed in, a new,
-     * empty TLVTable object will be created.
+     * Set a TLV parameter. This is a convenience method and is equivalent
+     * to <code>getTLVTable().put(tag, value)</code>.
      * 
-     * @see ie.omk.smpp.message.tlv.TLVTable
-     * @return the old tlvTable.
-     */
-    public TLVTable setTLVTable(TLVTable tlvTable) {
-        TLVTable oldTable = this.tlvTable;
-        if (tlvTable == null) {
-            this.tlvTable = new TLVTable();
-        } else {
-            this.tlvTable = tlvTable;
-        }
-        return oldTable;
-    }
-
-    /**
-     * Set an optional parameter. This is a convenience method and merely calls
-     * {@link ie.omk.smpp.message.tlv.TLVTable#set}on this message's optional
-     * parameter table.
-     * 
-     * @param tag
-     *            the tag of the parameter to set.
-     * @param value
-     *            the value object to set.
+     * @param tag The tag of the parameter to set.
+     * @param value The value object to set.
      * @throws ie.omk.smpp.message.tlv.BadValueTypeException
-     *             if the type of <code>value</code> is incorrect for the
+     *             If the type of <code>value</code> is incorrect for the
      *             <code>tag</code>.
-     * @return the previous value of the parameter, or null if it was unset.
+     * @return The previous value of the parameter, or null if it was unset.
+     * @see TLVTable#put
+     */
+    public Object setTLV(Tag tag, Object value) {
+        return tlvTable.put(tag, value);
+    }
+    
+    /**
+     * @deprecated Use setTLV(Tag, Object)
      */
     public Object setOptionalParameter(Tag tag, Object value) {
         return tlvTable.put(tag, value);
     }
 
     /**
-     * Remove, or un-set, an optional parameter.
-     * @param tag The tag for the optional parameter to remove.
+     * Remove, or un-set, a TLV parameter. Equivalent to
+     * <code>getTLVTable().remove(tag)</code>.
+     * @param tag The tag for the TLV parameter to remove.
      */
     public void removeOptionalParameter(Tag tag) {
         tlvTable.remove(tag);
     }
     
     /**
-     * Get an optional parameter. This is a convenience method and merely calls
-     * {@link ie.omk.smpp.message.tlv.TLVTable#get}on this message's optional
-     * parameter table.
+     * Get a TLV parameter. This is a convenience method and is equivalent
+     * to <code>getTLVTable().get(tag)</code>.
      * 
-     * @param tag
-     *            the tag of the parameter value to get.
+     * @param tag the tag of the TLV parameter to get.
+     */
+    public Object getTLV(Tag tag) {
+        return tlvTable.get(tag);
+    }
+    
+    /**
+     * @deprecated Use getTLV(Tag)
      */
     public Object getOptionalParameter(Tag tag) {
         return tlvTable.get(tag);
     }
 
     /**
-     * Check if a particular optional parameter is set. This is a convenience
-     * method and merely calls {@link ie.omk.smpp.message.tlv.TLVTable#isSet}on
-     * this message's optional parameter table.
+     * Check if a particular TLV parameter is set. This is a convenience
+     * method and is equivalent to <code>getTLVTable().containsKey(tag)
+     * </code>.
      * 
      * @param tag
      *            the tag of the parameter to check.
@@ -479,12 +505,20 @@ public abstract class SMPPPacket {
      * <li>The specified version does not support this packet type</li>
      * <li>A mandatory parameter field is too short or long, or specifies an
      * unsupported value</li>
+     * <li>For SMPP version 5.0 or newer, if the packet does not contain
+     * all required TLVs.</li>
      * </ul>
      * @param smppVersion The version to validate against.
+     * @throws VersionException If the package fails validation.
      */
-    public void validate(SMPPVersion smppVersion) {
+    public final void validate(SMPPVersion smppVersion) {
         // TODO: you need to remove the isSupported from Versioning.
         validateMandatory(smppVersion);
+        if (smppVersion.isNewerThan(SMPPVersion.VERSION_5_0)) {
+            if (!validateTLVTable(smppVersion)) {
+                throw new VersionException("Packet does not contain all required TLVs.");
+            }
+        }
     }
     
     /**
@@ -520,14 +554,35 @@ public abstract class SMPPPacket {
     /**
      * Validate the mandatory parameters for this packet.
      * @param smppVersion The version to validate against.
+     * @return <code>true</code> if the mandatory parameters are
+     * all valid, <code>false</code> otherwise.
      */
     protected void validateMandatory(SMPPVersion smppVersion) {
     }
 
     /**
+     * Validate that the TLV table contains all required parameters.
+     * @param smppVersion The version to validate against. Since
+     * required TLVs were only introduced in SMPP version 5.0, this
+     * method will only ever be called when using a version that
+     * is equivalent to or newer than that.
+     * 
+     * @param smppVersion The version to validate against.
+     * @return <code>true</code> if all required TLVs are set,
+     * <code>false</code> otherwise.
+     */
+    protected boolean validateTLVTable(SMPPVersion smppVersion) {
+        return true;
+    }
+    
+    /**
      * Set the mandatory parameters of this packet from the supplied list.
      * <code>params</code> will contain the set of objects parsed from
      * a byte array according to the packet&apos;s body descriptor.
+     * 
+     * This default implementation does nothing and is intended to
+     * be overridden by sub-classes.
+     * 
      * @param params The mandatory parameters parsed from a byte array
      * according to the packet&apos;s body descriptor.
      */

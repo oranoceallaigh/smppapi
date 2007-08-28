@@ -9,10 +9,10 @@ import java.util.List;
 /**
  * Query the state of a message.
  * 
- * @author Oran Kelly
  * @version $Id: $
  */
 public class QuerySM extends SMPPPacket {
+    private static final long serialVersionUID = 1L;
     private static final BodyDescriptor BODY_DESCRIPTOR = new BodyDescriptor();
     
     private String messageId;

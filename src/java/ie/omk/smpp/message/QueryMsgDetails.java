@@ -10,10 +10,10 @@ import java.util.List;
  * Query Message details. Get all information about an existing message at the
  * SMSC.
  * 
- * @author Oran Kelly
  * @version $Id: $
  */
 public class QueryMsgDetails extends SMPPPacket {
+    private static final long serialVersionUID = 1L;
     private static final BodyDescriptor BODY_DESCRIPTOR = new BodyDescriptor();
     
     /**

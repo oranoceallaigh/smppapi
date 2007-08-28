@@ -8,10 +8,11 @@ import java.util.List;
  * Parameter retrieve. Gets the current value of a configurable parameter at the
  * SMSC.
  * 
- * @author Oran Kelly
- * @version 1.0
+ * @version $Id$
  */
 public class ParamRetrieve extends SMPPPacket {
+    private static final long serialVersionUID = 1L;
+
     /** Name of the parameter to retrieve */
     private String paramName;
 

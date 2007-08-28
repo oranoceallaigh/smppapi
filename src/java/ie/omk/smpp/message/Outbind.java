@@ -10,7 +10,9 @@ import java.util.List;
  * $Id:$
  */
 public class Outbind extends SMPPPacket {
+    private static final long serialVersionUID = 1L;
     private static final BodyDescriptor BODY_DESCRIPTOR = new BodyDescriptor();
+
     private String systemId;
     private String password;
 

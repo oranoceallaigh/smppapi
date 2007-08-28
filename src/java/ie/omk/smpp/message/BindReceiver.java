@@ -4,10 +4,10 @@ package ie.omk.smpp.message;
  * Bind to the SMSC as receiver. This message is used to bind to the SMSC as a
  * Receiver ESME.
  * 
- * @author Oran Kelly
- * @version 1.0
+ * @version $Id$
  */
 public class BindReceiver extends ie.omk.smpp.message.Bind {
+    private static final long serialVersionUID = 1L;
     /**
      * Constructs a new BindReceiver.
      */

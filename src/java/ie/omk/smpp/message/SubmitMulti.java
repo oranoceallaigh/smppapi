@@ -13,10 +13,10 @@ import java.util.List;
 /**
  * Submit a message to multiple destinations.
  * 
- * @author Oran Kelly
  * @version $Id: $
  */
 public class SubmitMulti extends SMPacket {
+    private static final long serialVersionUID = 1L;
     private static final BodyDescriptor BODY_DESCRIPTOR = new BodyDescriptor();
     
     /** Table of destinations */

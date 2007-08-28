@@ -13,10 +13,10 @@ import java.util.List;
  * Response to Query message details. Gives all details of a specified message
  * at the SMSC.
  * 
- * @author Oran Kelly
  * @version $Id: $
  */
 public class QueryMsgDetailsResp extends SMPacket {
+    private static final long serialVersionUID = 1L;
     private static final BodyDescriptor BODY_DESCRIPTOR = new BodyDescriptor();
     
     /**

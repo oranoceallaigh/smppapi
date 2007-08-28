@@ -3,10 +3,10 @@ package ie.omk.smpp.message;
 /**
  * SMSC response to a BindTransceiver request.
  * 
- * @author Oran Kelly
- * @version 1.0
+ * @version $Id$
  */
 public class BindTransceiverResp extends BindResp {
+    private static final long serialVersionUID = 1L;
     /**
      * Construct a new BindTransceiverResp.
      */

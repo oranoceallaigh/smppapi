@@ -8,8 +8,7 @@ import java.util.List;
 /**
  * SMSC response to a Bind request.
  * 
- * @author Oran Kelly
- * @version 1.0
+ * @version $Id$
  */
 public abstract class BindResp extends SMPPPacket {
     private static final BodyDescriptor BODY_DESCRIPTOR = new BodyDescriptor();

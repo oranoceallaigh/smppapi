@@ -5,6 +5,8 @@ package ie.omk.smpp.message;
  * @version $Id$
  */
 public class CancelSMResp extends SMPPPacket {
+    private static final long serialVersionUID = 1L;
+
     /**
      * Construct a new CancelSMResp.
      */

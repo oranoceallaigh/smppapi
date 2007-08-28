@@ -5,10 +5,11 @@ package ie.omk.smpp.message;
  * acknowledge that this entity is still alive and capable of submitting, or
  * responding to, SMPP messages.
  * 
- * @author Oran Kelly
- * @version 1.0
+ * @version $Id$
  */
 public class EnquireLinkResp extends SMPPPacket {
+    private static final long serialVersionUID = 1L;
+
     /**
      * Construct a new EnquireLinkResp.
      */

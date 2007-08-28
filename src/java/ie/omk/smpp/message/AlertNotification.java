@@ -14,10 +14,10 @@ import java.util.List;
  * <p>
  * Note that there is no response packet to an <code>alert_notification</code>.
  * 
- * @version 1.0
- * @author Oran Kelly
+ * @version $Id$
  */
 public class AlertNotification extends SMPPPacket {
+    private static final long serialVersionUID = 1L;
     private static final BodyDescriptor BODY_DESCRIPTOR = new BodyDescriptor();
     private Address source;
     private Address destination;
