@@ -12,9 +12,9 @@ import java.util.BitSet;
 
 import junit.framework.TestCase;
 
-public class TLVTableTest extends TestCase {
+public class TLVTableImplTest extends TestCase {
     public void testTLVTableAddParams() {
-        TLVTable table = new TLVTable();
+        TLVTableImpl table = new TLVTableImpl();
 
         try {
             assertFalse(table.containsKey(Tag.DEST_ADDR_SUBUNIT));
@@ -71,7 +71,7 @@ public class TLVTableTest extends TestCase {
     }
     
     public void testTLVTableFailAddParams() {
-        TLVTable tab = new TLVTable();
+        TLVTableImpl tab = new TLVTableImpl();
 
         try {
             // Try and set a string that's too long.
@@ -105,32 +105,32 @@ public class TLVTableTest extends TestCase {
     }
 
     public void testGetStringReturnsNullOnUnsetTag() throws Exception {
-        TLVTable table = new TLVTable();
+        TLVTableImpl table = new TLVTableImpl();
         assertNull(table.getString(Tag.RECEIPTED_MESSAGE_ID));
     }
 
     public void testGetBitmaskReturnsNullOnUnsetTag() throws Exception {
-        TLVTable table = new TLVTable();
+        TLVTableImpl table = new TLVTableImpl();
         assertNull(table.getBitmask(Tag.MS_MSG_WAIT_FACILITIES));
     }
 
     public void testGetBytesReturnsNullOnUnsetTag() throws Exception {
-        TLVTable table = new TLVTable();
+        TLVTableImpl table = new TLVTableImpl();
         assertNull(table.getBytes(Tag.DEST_SUBADDRESS));
     }
 
     public void testGetIntReturnsNegativeOneOnUnsetTag() throws Exception {
-        TLVTable table = new TLVTable();
+        TLVTableImpl table = new TLVTableImpl();
         assertEquals(-1, table.getInt(Tag.DEST_TELEMATICS_ID));
     }
     
     public void testGetLongReturnsNegativeOneOnUnsetTag() throws Exception {
-        TLVTable table = new TLVTable();
+        TLVTableImpl table = new TLVTableImpl();
         assertEquals(-1L, table.getLong(Tag.DEST_TELEMATICS_ID));
     }
     
     public void testGetIntAndGetLongSucceed() throws Exception {
-        TLVTable table = new TLVTable();
+        TLVTableImpl table = new TLVTableImpl();
         table.put(Tag.DEST_ADDR_SUBUNIT, new Integer(56));
         assertEquals(56, table.getInt(Tag.DEST_ADDR_SUBUNIT));
         assertEquals(56L, table.getLong(Tag.DEST_ADDR_SUBUNIT));
@@ -138,7 +138,7 @@ public class TLVTableTest extends TestCase {
 
     public void testGetIntThrowsExceptionOnIncorrectType() throws Exception {
         try {
-            TLVTable table = new TLVTable();
+            TLVTableImpl table = new TLVTableImpl();
             table.put(Tag.RECEIPTED_MESSAGE_ID, "messageID");
             table.getInt(Tag.RECEIPTED_MESSAGE_ID);
             fail("Expected a ClassCastException on call to getInt");
@@ -148,7 +148,7 @@ public class TLVTableTest extends TestCase {
 
     public void testGetLongThrowsExceptionOnIncorrectType() throws Exception {
         try {
-            TLVTable table = new TLVTable();
+            TLVTableImpl table = new TLVTableImpl();
             table.put(Tag.RECEIPTED_MESSAGE_ID, "messageID");
             table.getLong(Tag.RECEIPTED_MESSAGE_ID);
             fail("Expected a ClassCastException on call to getInt");
@@ -157,7 +157,7 @@ public class TLVTableTest extends TestCase {
     }
 
     public void testGetStringSucceeds() throws Exception {
-        TLVTable table = new TLVTable();
+        TLVTableImpl table = new TLVTableImpl();
         table.put(Tag.RECEIPTED_MESSAGE_ID, "messageID");
         table.put(Tag.DEST_ADDR_SUBUNIT, new Integer(124));
         assertEquals("messageID", table.getString(Tag.RECEIPTED_MESSAGE_ID));
@@ -166,14 +166,14 @@ public class TLVTableTest extends TestCase {
 
     public void testGetBitmaskSucceeds() throws Exception {
         final BitSet bitSet = new BitSet();
-        TLVTable table = new TLVTable();
+        TLVTableImpl table = new TLVTableImpl();
         table.put(Tag.MS_MSG_WAIT_FACILITIES, bitSet);
         assertEquals(bitSet, table.getBitmask(Tag.MS_MSG_WAIT_FACILITIES));
     }
 
     public void testGetBitmaskThrowsExceptionOnIncorrectType() throws Exception {
         try {
-            TLVTable table = new TLVTable();
+            TLVTableImpl table = new TLVTableImpl();
             table.put(Tag.RECEIPTED_MESSAGE_ID, "messageID");
             table.getBitmask(Tag.RECEIPTED_MESSAGE_ID);
             fail("Expected a ClassCastException on call to getBitmask");
@@ -183,14 +183,14 @@ public class TLVTableTest extends TestCase {
 
     public void testGetBytesSucceeds() throws Exception {
         byte[] array = new byte[] {1, 2, 3, 4};
-        TLVTable table = new TLVTable();
+        TLVTableImpl table = new TLVTableImpl();
         table.put(Tag.DEST_SUBADDRESS, array);
         assertTrue(Arrays.equals(array, table.getBytes(Tag.DEST_SUBADDRESS)));
     }
 
     public void testGetBytesThrowsExceptionOnIncorrectType() throws Exception {
         try {
-            TLVTable table = new TLVTable();
+            TLVTableImpl table = new TLVTableImpl();
             table.put(Tag.MS_MSG_WAIT_FACILITIES, new BitSet());
             table.getBytes(Tag.MS_MSG_WAIT_FACILITIES);
             fail("Expected a ClassCastException on call to getBytes");
@@ -203,7 +203,7 @@ public class TLVTableTest extends TestCase {
         // working first!
         // First, create a table with at least one parameter in it for
         // each type of encoder defined.
-        TLVTable origTable = new TLVTable();
+        TLVTableImpl origTable = new TLVTableImpl();
         byte[] b = {0x56, 0x67, 0x69};
         BitSet bitSet = new BitSet();
         bitSet.set(3);
@@ -230,20 +230,20 @@ public class TLVTableTest extends TestCase {
         }
 
         ParsePosition position = new ParsePosition(0);
-        TLVTable newTable = new TLVTable();
+        TLVTableImpl newTable = new TLVTableImpl();
         newTable.readFrom(serialized, position, serialized.length);
         doTableAssertions(origTable, newTable);
         assertEquals(serialized.length, position.getIndex());
 
         position = new ParsePosition(0);
-        newTable = new TLVTable();
+        newTable = new TLVTableImpl();
         newTable.readFrom(serialized, position, serialized.length);
         doTableAssertions(origTable, newTable);
         assertEquals(serialized.length, position.getIndex());
     }
 
     /**
-     * This test creates a byte array representing a TLVTable which contains a
+     * This test creates a byte array representing a TLVTableImpl which contains a
      * tag that the API does not know about. The API should be able to decode
      * any optional parameter that is well-formed - the fact that it doesn't
      * know about it beforehand should not cause an error in the API.
@@ -296,7 +296,7 @@ public class TLVTableTest extends TestCase {
         byte[] b = out.toByteArray();
         try {
             // Run the test - attempt to deserialize the table.
-            TLVTable tab = new TLVTable();
+            TLVTableImpl tab = new TLVTableImpl();
             ParsePosition position = new ParsePosition(0);
             tab.readFrom(b, position, b.length);
             assertEquals(b.length, position.getIndex());
@@ -320,7 +320,7 @@ public class TLVTableTest extends TestCase {
         }
     }
     
-    private void doTableAssertions(TLVTable origTable, TLVTable newTable) {
+    private void doTableAssertions(TLVTableImpl origTable, TLVTableImpl newTable) {
         assertEquals(((Number) origTable.get(Tag.DEST_ADDR_SUBUNIT)).longValue(),
                 ((Number) newTable.get(Tag.DEST_ADDR_SUBUNIT)).longValue());
         assertEquals(((Number) origTable.get(Tag.DEST_TELEMATICS_ID)).longValue(),
