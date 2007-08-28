@@ -48,11 +48,6 @@ public class SyncWrapper implements ConnectionObserver {
             connection.sendPacket(packet);
         }
     };
-    private ConnectionCaller unbindCaller = new ConnectionCaller() {
-        public void execute(Connection connection, SMPPPacket packet) throws IOException {
-            connection.unbind((Unbind) packet);
-        }
-    };
 
     public SyncWrapper(Connection connection) {
         this.connection = connection;
@@ -149,7 +144,7 @@ public class SyncWrapper implements ConnectionObserver {
      */
     public UnbindResp unbind() throws IOException {
         UnbindResp unbindResp = (UnbindResp) sendAndWait(
-                new Unbind(), unbindCaller, packetTimeout);
+                new Unbind(), packetCaller, packetTimeout);
         if (unbindResp == null) {
             throw new ReadTimeoutException();
         } else {
