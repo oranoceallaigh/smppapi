@@ -162,10 +162,10 @@ public final class Tag implements java.io.Serializable {
         new Tag(0x0602, ParamDescriptor.BYTES, 1, 255);
     
     public static final Tag BROADCAST_CHANNEL_INDICATOR =
-        new Tag(0x0602, ParamDescriptor.INTEGER1, 1);
+        new Tag(0x0600, ParamDescriptor.INTEGER1, 1);
     
     public static final Tag BROADCAST_CONTENT_TYPE =
-        new Tag(0x0602, ParamDescriptor.BYTES, 1, 255);
+        new Tag(0x0601, ParamDescriptor.BYTES, 1, 255);
 
     public static final Tag BROADCAST_END_TIME = 
         new Tag(0x0609, ParamDescriptor.DATE, 16, 16);
