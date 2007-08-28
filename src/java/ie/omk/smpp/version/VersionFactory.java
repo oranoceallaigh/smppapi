@@ -1,18 +1,26 @@
 package ie.omk.smpp.version;
 
+import ie.omk.smpp.util.APIConfig;
+import ie.omk.smpp.util.PropertyNotFoundException;
+
 /**
  * Factory class for SMPP versions.
  * @version $Id:$
  */
 public class VersionFactory {
-
     /**
      * Get the default SMPP version implemented by this API. This APIs
      * default is currently version 3.4.
      * @return The default SMPP version.
      */
     public static SMPPVersion getDefaultVersion() {
-        return SMPPVersion.VERSION_3_4;
+        APIConfig cfg = APIConfig.getInstance();
+        try {
+            int versionNum = cfg.getInt(APIConfig.DEFAULT_VERSION);
+            return VersionFactory.getVersion(versionNum);
+        } catch (PropertyNotFoundException x) {
+            return SMPPVersion.VERSION_5_0;
+        }
     }
 
     /**
@@ -27,10 +35,16 @@ public class VersionFactory {
             return SMPPVersion.VERSION_3_3;
         } else if (id == SMPPVersion.VERSION_3_4.getVersionID()) {
             return SMPPVersion.VERSION_3_4;
+        } else if (id == SMPPVersion.VERSION_5_0.getVersionID()) {
+            return SMPPVersion.VERSION_5_0;
         } else {
-            throw new VersionException("Unknown version id: 0x"
-                    + Integer.toHexString(id));
+            if (APIConfig.getInstance().getBoolean(APIConfig.LAX_VERSIONS, false)) {
+                if (id >= 0x00 && id <= 0x32) {
+                    return SMPPVersion.VERSION_3_3;
+                }
+            }
         }
+        throw new VersionException("Unknown version id: 0x"
+                + Integer.toHexString(id));
     }
-
 }

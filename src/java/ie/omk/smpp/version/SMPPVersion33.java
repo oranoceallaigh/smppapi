@@ -15,17 +15,28 @@ public class SMPPVersion33 extends AbstractSMPPVersion {
     public boolean isSupported(int commandID) {
         // Turn off the msb, which is used to signify a response packet..
         switch (commandID & 0x7fffffff) {
-        case SMPPPacket.BIND_TRANSCEIVER:
-        case SMPPPacket.DATA_SM:
-        case SMPPPacket.ALERT_NOTIFICATION:
-            return false;
+        case SMPPPacket.BIND_RECEIVER:
+        case SMPPPacket.BIND_TRANSMITTER:
+        case SMPPPacket.CANCEL_SM:
+        case SMPPPacket.DELIVER_SM:
+        case SMPPPacket.ENQUIRE_LINK:
+        case SMPPPacket.GENERIC_NACK:
+        case SMPPPacket.PARAM_RETRIEVE:
+        case SMPPPacket.QUERY_LAST_MSGS:
+        case SMPPPacket.QUERY_MSG_DETAILS:
+        case SMPPPacket.QUERY_SM:
+        case SMPPPacket.REPLACE_SM:
+        case SMPPPacket.SUBMIT_MULTI:
+        case SMPPPacket.SUBMIT_SM:
+        case SMPPPacket.UNBIND:
+            return true;
 
         default:
-            return true;
+            return false;
         }
     }
 
-    public boolean isSupportOptionalParams() {
+    public boolean isSupportTLV() {
         return false;
     }
 
