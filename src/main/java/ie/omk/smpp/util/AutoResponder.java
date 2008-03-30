@@ -47,6 +47,22 @@ public class AutoResponder implements SessionObserver {
     private boolean ackDeliverSm;
     private boolean ackDataSm;
     private boolean ackEnquireLink;
+
+    /**
+     * Constructor that will initialise with all 'ack' properties initially set
+     * to false.
+     */
+    public AutoResponder() {
+    }
+    
+    /**
+     * Constructor that will initialise with all 'ack' properties initially set
+     * to <code>respond</code>.
+     * @param respond The value to assign to all of this class' ack properties.
+     */
+    public AutoResponder(boolean respond) {
+        ackUnbind = ackDeliverSm = ackDataSm = ackEnquireLink = respond;
+    }
     
     public boolean isAckDataSm() {
         return ackDataSm;
