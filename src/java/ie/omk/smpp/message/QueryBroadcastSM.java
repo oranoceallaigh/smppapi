@@ -1,28 +1,24 @@
 package ie.omk.smpp.message;
 
-import java.util.List;
-
 import ie.omk.smpp.Address;
-import ie.omk.smpp.message.param.ParamDescriptor;
+import ie.omk.smpp.util.PacketDecoder;
+import ie.omk.smpp.util.PacketEncoder;
+
+import java.io.IOException;
 
 /**
  * Query the status of a previously submitted broadcast message.
  * @version $Id:$
+ * @since 0.4.0
  */
 public class QueryBroadcastSM extends SMPPPacket {
     private static final long serialVersionUID = 1L;
-    private static final BodyDescriptor bodyDescriptor = new BodyDescriptor();
 
     private String messageId;
     private Address source;
     
-    static {
-        bodyDescriptor.add(ParamDescriptor.CSTRING)
-        .add(ParamDescriptor.ADDRESS);
-    };
-    
     public QueryBroadcastSM() {
-        super (SMPPPacket.QUERY_BROADCAST_SM);
+        super (CommandId.QUERY_BROADCAST_SM);
     }
 
     public String getMessageId() {
@@ -42,21 +38,41 @@ public class QueryBroadcastSM extends SMPPPacket {
     }
 
     @Override
-    protected BodyDescriptor getBodyDescriptor() {
-        return bodyDescriptor;
+    public boolean equals(Object obj) {
+        boolean equals = super.equals(obj);
+        if (equals) {
+            QueryBroadcastSM other = (QueryBroadcastSM) obj;
+            equals |= safeCompare(messageId, other.messageId);
+            equals |= safeCompare(source, other.source);
+        }
+        return equals;
     }
     
     @Override
-    protected Object[] getMandatoryParameters() {
-        return new Object[] {
-                messageId,
-                source,
-        };
+    public int hashCode() {
+        int hc = super.hashCode();
+        hc += (messageId != null) ? messageId.hashCode() : 0;
+        hc += (source != null) ? source.hashCode() : 0;
+        return hc;
+    }
+
+    @Override
+    protected void readMandatory(PacketDecoder decoder) {
+        messageId = decoder.readCString();
+        source = decoder.readAddress();
     }
     
     @Override
-    protected void setMandatoryParameters(List<Object> params) {
-        messageId = (String) params.get(0);
-        source = (Address) params.get(1);
+    protected void writeMandatory(PacketEncoder encoder) throws IOException {
+        encoder.writeCString(messageId);
+        encoder.writeAddress(source);
+    }
+    
+    @Override
+    protected int getMandatorySize() {
+        int length = 1;
+        length += sizeOf(messageId);
+        length += sizeOf(source);
+        return length;
     }
 }

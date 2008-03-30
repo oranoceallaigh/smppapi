@@ -1,11 +1,11 @@
 package ie.omk.smpp.message.param;
 
-import ie.omk.smpp.util.ParsePosition;
+import ie.omk.smpp.util.PacketDecoder;
+import ie.omk.smpp.util.PacketEncoder;
 
 import java.io.IOException;
-import java.io.OutputStream;
 
-public class NullParamDescriptor implements ParamDescriptor {
+public class NullParamDescriptor extends AbstractDescriptor {
     private static final long serialVersionUID = 1;
     
     public int getLengthSpecifier() {
@@ -16,10 +16,10 @@ public class NullParamDescriptor implements ParamDescriptor {
         return 0;
     }
 
-    public void writeObject(Object obj, OutputStream out) throws IOException {
+    public void writeObject(Object obj, PacketEncoder encoder) throws IOException {
     }
 
-    public Object readObject(byte[] data, ParsePosition position, int length) {
+    public Object readObject(PacketDecoder decoder, int length) {
         return null;
     }
 }

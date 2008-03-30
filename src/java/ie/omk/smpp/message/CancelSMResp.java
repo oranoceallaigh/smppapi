@@ -11,7 +11,7 @@ public class CancelSMResp extends SMPPPacket {
      * Construct a new CancelSMResp.
      */
     public CancelSMResp() {
-        super(CANCEL_SM_RESP);
+        super(CommandId.CANCEL_SM_RESP);
     }
 
     /**
@@ -23,5 +23,10 @@ public class CancelSMResp extends SMPPPacket {
      */
     public CancelSMResp(SMPPPacket request) {
         super(request);
+    }
+    
+    @Override
+    public int hashCode() {
+        return super.hashCode() * 37;
     }
 }

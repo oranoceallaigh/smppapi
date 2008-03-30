@@ -1,10 +1,11 @@
 package ie.omk.smpp.message;
 
 import ie.omk.smpp.Address;
-import ie.omk.smpp.message.param.ParamDescriptor;
+import ie.omk.smpp.util.PacketDecoder;
+import ie.omk.smpp.util.PacketEncoder;
 import ie.omk.smpp.version.SMPPVersion;
 
-import java.util.List;
+import java.io.IOException;
 
 /**
  * Query the last number of messages sent from a certain ESME. Relevant
@@ -17,7 +18,6 @@ import java.util.List;
  */
 public class QueryLastMsgs extends SMPPPacket {
     private static final long serialVersionUID = 1L;
-    private static final BodyDescriptor BODY_DESCRIPTOR = new BodyDescriptor();
     
     /**
      * The source address for which to query messages. The last <code>
@@ -31,16 +31,11 @@ public class QueryLastMsgs extends SMPPPacket {
      */
     private int msgCount;
 
-    static {
-        BODY_DESCRIPTOR.add(ParamDescriptor.ADDRESS)
-        .add(ParamDescriptor.INTEGER1);
-    }
-    
     /**
      * Construct a new QueryLastMsgs.
      */
     public QueryLastMsgs() {
-        super(QUERY_LAST_MSGS);
+        super(CommandId.QUERY_LAST_MSGS);
     }
 
     public Address getSource() {
@@ -73,6 +68,25 @@ public class QueryLastMsgs extends SMPPPacket {
     }
 
     @Override
+    public boolean equals(Object obj) {
+        boolean equals = super.equals(obj);
+        if (equals) {
+            QueryLastMsgs other = (QueryLastMsgs) obj;
+            equals |= safeCompare(source, other.source);
+            equals |= msgCount == other.msgCount;
+        }
+        return equals;
+    }
+    
+    @Override
+    public int hashCode() {
+        int hc = super.hashCode();
+        hc += (source != null) ? source.hashCode() : 0;
+        hc += Integer.valueOf(msgCount).hashCode();
+        return hc;
+    }
+
+    @Override
     protected void toString(StringBuffer buffer) {
         buffer.append("source=").append(source)
         .append("msgCount=").append(msgCount);
@@ -84,21 +98,21 @@ public class QueryLastMsgs extends SMPPPacket {
     }
     
     @Override
-    protected BodyDescriptor getBodyDescriptor() {
-        return BODY_DESCRIPTOR;
+    protected void readMandatory(PacketDecoder decoder) {
+        source = decoder.readAddress();
+        msgCount = decoder.readUInt1();
     }
     
     @Override
-    protected Object[] getMandatoryParameters() {
-        return new Object[] {
-                source,
-                Integer.valueOf(msgCount),
-        };
+    protected void writeMandatory(PacketEncoder encoder) throws IOException {
+        encoder.writeAddress(source);
+        encoder.writeUInt1(msgCount);
     }
     
     @Override
-    protected void setMandatoryParameters(List<Object> params) {
-        source = (Address) params.get(0);
-        msgCount = ((Number) params.get(1)).intValue();
+    protected int getMandatorySize() {
+        int length = 1;
+        length += sizeOf(source);
+        return length;
     }
 }

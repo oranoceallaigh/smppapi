@@ -213,4 +213,12 @@ public abstract class SMPPDate implements java.io.Serializable {
     public boolean hasTimezone() {
         return false;
     }
+
+    /**
+     * Return the length this SMPP date would encode as.
+     * @return The number of bytes this SMPP date encodes to on the wire.
+     */
+    public int getLength() {
+        return 0;
+    }
 }

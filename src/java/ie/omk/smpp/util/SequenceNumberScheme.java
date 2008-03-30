@@ -2,7 +2,7 @@ package ie.omk.smpp.util;
 
 /**
  * SMPP packet sequence numbering scheme interface. Implementations of this
- * interface provide a {@link ie.omk.smpp.Connection}with a unique number for
+ * interface provide a {@link ie.omk.smpp.Session}with a unique number for
  * each call to <code>nextNumber</code>. This number is used as the packet's
  * sequence number in the SMPP header. The default implementation (
  * {@link DefaultSequenceScheme}) counts monotonically from 1 upwards for each

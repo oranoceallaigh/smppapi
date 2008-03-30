@@ -12,7 +12,7 @@ public class ReplaceSMResp extends SMPPPacket {
      * Construct a new ReplaceSMResp.
      */
     public ReplaceSMResp() {
-        super(REPLACE_SM_RESP);
+        super(CommandId.REPLACE_SM_RESP);
     }
 
     /**
@@ -24,6 +24,11 @@ public class ReplaceSMResp extends SMPPPacket {
      */
     public ReplaceSMResp(SMPPPacket request) {
         super(request);
+    }
+    
+    @Override
+    public int hashCode() {
+        return super.hashCode() * 19;
     }
 }
 

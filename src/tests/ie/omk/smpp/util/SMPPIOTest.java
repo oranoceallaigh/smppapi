@@ -1,11 +1,14 @@
 package ie.omk.smpp.util;
 
+import static org.testng.Assert.assertEquals;
+
 import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
 
-import junit.framework.TestCase;
+import org.testng.annotations.Test;
 
-public class SMPPIOTest extends TestCase {
+@Test
+public class SMPPIOTest {
 
     public void testWriteByte() throws Exception {
         testWriteByte(0, allZero(1));
@@ -112,34 +115,34 @@ public class SMPPIOTest extends TestCase {
     }
 
     private void testBytesToByte(byte[] array, int expected) {
-        int actual = SMPPIO.bytesToByte(array, 0);
-        assertEquals(expected, actual);
+        int actual = SMPPIO.readUInt1(array, 0);
+        assertEquals(actual, expected);
     }
     
     private void testBytesToShort(byte[] array, int expected) {
-        int actual = SMPPIO.bytesToShort(array, 0);
-        assertEquals(expected, actual);
+        int actual = SMPPIO.readUInt2(array, 0);
+        assertEquals(actual, expected);
     }
     
     private void testBytesToInt(byte[] array, int expected) {
-        int actual = SMPPIO.bytesToInt(array, 0);
-        assertEquals(expected, actual);
+        int actual = SMPPIO.readInt4(array, 0);
+        assertEquals(actual, expected);
     }
     
     private void testBytesToLongInt(byte[] array, long expected) {
-        long actual = SMPPIO.bytesToLongInt(array, 0);
-        assertEquals(expected, actual);
+        long actual = SMPPIO.readUInt4(array, 0);
+        assertEquals(actual, expected);
     }
     
     private void testBytesToLong(byte[] array, long expected) {
-        long actual = SMPPIO.bytesToLong(array, 0);
-        assertEquals(expected, actual);
+        long actual = SMPPIO.readInt8(array, 0);
+        assertEquals(actual, expected);
     }
     
     private void compareArrays(byte[] expected, byte[] actual) {
-        assertEquals(expected.length, actual.length);
+        assertEquals(actual.length, expected.length);
         for (int i = 0; i < expected.length; i++) {
-            assertEquals(expected[i], actual[i]);
+            assertEquals(actual[i], expected[i]);
         }
     }
 

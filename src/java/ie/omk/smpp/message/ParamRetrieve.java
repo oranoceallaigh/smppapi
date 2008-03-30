@@ -1,8 +1,10 @@
 package ie.omk.smpp.message;
 
+import ie.omk.smpp.util.PacketDecoder;
+import ie.omk.smpp.util.PacketEncoder;
 import ie.omk.smpp.version.SMPPVersion;
 
-import java.util.List;
+import java.io.IOException;
 
 /**
  * Parameter retrieve. Gets the current value of a configurable parameter at the
@@ -20,7 +22,7 @@ public class ParamRetrieve extends SMPPPacket {
      * Construct a new ParamRetrieve.
      */
     public ParamRetrieve() {
-        super(PARAM_RETRIEVE);
+        super(CommandId.PARAM_RETRIEVE);
     }
 
     /**
@@ -37,6 +39,23 @@ public class ParamRetrieve extends SMPPPacket {
     }
 
     @Override
+    public boolean equals(Object obj) {
+        boolean equals = super.equals(obj);
+        if (equals) {
+            ParamRetrieve other = (ParamRetrieve) obj;
+            equals |= safeCompare(paramName, other.paramName);
+        }
+        return equals;
+    }
+    
+    @Override
+    public int hashCode() {
+        int hc = super.hashCode();
+        hc += (paramName != null) ? paramName.hashCode() : 0;
+        return hc;
+    }
+
+    @Override
     protected void toString(StringBuffer buffer) {
         buffer.append("paramName=").append(paramName);
     }
@@ -45,21 +64,19 @@ public class ParamRetrieve extends SMPPPacket {
     protected void validateMandatory(SMPPVersion smppVersion) {
         smppVersion.validateParamName(paramName);
     }
-    
+
     @Override
-    protected BodyDescriptor getBodyDescriptor() {
-        return BodyDescriptor.ONE_CSTRING;
+    protected void readMandatory(PacketDecoder decoder) {
+        paramName = decoder.readCString();
     }
     
     @Override
-    protected Object[] getMandatoryParameters() {
-        return new Object[] {
-                paramName,
-        };
+    protected void writeMandatory(PacketEncoder encoder) throws IOException {
+        encoder.writeCString(paramName);
     }
     
     @Override
-    protected void setMandatoryParameters(List<Object> params) {
-        paramName = (String) params.get(0);
+    protected int getMandatorySize() {
+        return 1 + sizeOf(paramName);
     }
 }

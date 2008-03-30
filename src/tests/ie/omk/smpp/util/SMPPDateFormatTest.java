@@ -1,13 +1,17 @@
 package ie.omk.smpp.util;
 
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.fail;
+
 import java.text.ParseException;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
-import junit.framework.TestCase;
+import org.testng.annotations.Test;
 
-public class SMPPDateFormatTest extends TestCase {
+@Test
+public class SMPPDateFormatTest {
 
     private SMPPDateFormat dateFormat = new SMPPDateFormat();
     
@@ -77,7 +81,7 @@ public class SMPPDateFormatTest extends TestCase {
         cal.setTimeZone(tz);
         
         SMPPDate date = SMPPDate.getAbsoluteInstance(cal, true);
-        assertEquals("050422143212516-", dateFormat.format(date));
+        assertEquals(dateFormat.format(date), "050422143212516-");
         
         // Get a timezone 8 hours ahead of UTC
         tz = TimeZone.getTimeZone(
@@ -85,20 +89,20 @@ public class SMPPDateFormatTest extends TestCase {
         cal.setTimeZone(tz);
         cal.set(2005, 3, 22, 14, 32, 12);
         date = SMPPDate.getAbsoluteInstance(cal, true);
-        assertEquals("050422143212532+", dateFormat.format(date));
+        assertEquals(dateFormat.format(date), "050422143212532+");
     }
     
     public void testFormatAbsolute12() throws Exception {
         Calendar cal = new GregorianCalendar(2005, 3, 22, 14, 32, 12);
         cal.set(Calendar.MILLISECOND, 500);
         SMPPDate date = SMPPDate.getAbsoluteInstance(cal, false);
-        assertEquals("050422143212", dateFormat.format(date));
+        assertEquals(dateFormat.format(date), "050422143212");
     }
     
     public void testFormatRelative16() throws Exception {
         SMPPDate date = SMPPDate.getRelativeInstance(
                 1, 2, 3, 4, 5, 6);
-        assertEquals("010203040506000R", dateFormat.format(date));
+        assertEquals(dateFormat.format(date), "010203040506000R");
     }
     
     private void bothAssertions(SMPPDate date,
@@ -129,15 +133,15 @@ public class SMPPDateFormatTest extends TestCase {
             int tenths,
             int tzOffset,
             char sign) {
-        assertEquals(year, date.getYear());
-        assertEquals(month, date.getMonth());
-        assertEquals(day, date.getDay());
-        assertEquals(hour, date.getHour());
-        assertEquals(min, date.getMinute());
-        assertEquals(sec, date.getSecond());
-        assertEquals(tenths, date.getTenth());
-        assertEquals(tzOffset, date.getUtcOffset());
-        assertEquals(sign, date.getSign());
+        assertEquals(date.getYear(), year);
+        assertEquals(date.getMonth(), month);
+        assertEquals(date.getDay(), day);
+        assertEquals(date.getHour(), hour);
+        assertEquals(date.getMinute(), min);
+        assertEquals(date.getSecond(), sec);
+        assertEquals(date.getTenth(), tenths);
+        assertEquals(date.getUtcOffset(), tzOffset);
+        assertEquals(date.getSign(), sign);
     }
     
     private void calAssertions(SMPPDate date,
@@ -151,15 +155,15 @@ public class SMPPDateFormatTest extends TestCase {
             int tzOffset,
             char sign) {
         Calendar cal = date.getCalendar();
-        assertEquals(year, cal.get(Calendar.YEAR));
-        assertEquals(month, cal.get(Calendar.MONTH));
-        assertEquals(day, cal.get(Calendar.DAY_OF_MONTH));
-        assertEquals(hour, cal.get(Calendar.HOUR_OF_DAY));
-        assertEquals(min, cal.get(Calendar.MINUTE));
-        assertEquals(sec, cal.get(Calendar.SECOND));
-        assertEquals(milli, cal.get(Calendar.MILLISECOND));
+        assertEquals(cal.get(Calendar.YEAR), year);
+        assertEquals(cal.get(Calendar.MONTH), month);
+        assertEquals(cal.get(Calendar.DAY_OF_MONTH), day);
+        assertEquals(cal.get(Calendar.HOUR_OF_DAY), hour);
+        assertEquals(cal.get(Calendar.MINUTE), min);
+        assertEquals(cal.get(Calendar.SECOND), sec);
+        assertEquals(cal.get(Calendar.MILLISECOND), milli);
         if (sign != (char) 0) {
-            assertEquals(tzOffset, cal.getTimeZone().getRawOffset());
+            assertEquals(cal.getTimeZone().getRawOffset(), tzOffset);
         }
     }
 }

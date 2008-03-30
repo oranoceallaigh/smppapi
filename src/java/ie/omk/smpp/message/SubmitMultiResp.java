@@ -2,12 +2,12 @@ package ie.omk.smpp.message;
 
 import ie.omk.smpp.Address;
 import ie.omk.smpp.ErrorAddress;
-import ie.omk.smpp.message.param.ListParamDescriptor;
-import ie.omk.smpp.message.param.ParamDescriptor;
+import ie.omk.smpp.util.PacketDecoder;
+import ie.omk.smpp.util.PacketEncoder;
 import ie.omk.smpp.version.SMPPVersion;
 
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 
@@ -18,24 +18,17 @@ import java.util.ListIterator;
  */
 public class SubmitMultiResp extends SMPPPacket {
     private static final long serialVersionUID = 1L;
-    private static final BodyDescriptor BODY_DESCRIPTOR = new BodyDescriptor();
     
     private String messageId;
     
     /** Table of unsuccessful destinations */
     private List<ErrorAddress> unsuccessfulTable = new ArrayList<ErrorAddress>();
 
-    static {
-        BODY_DESCRIPTOR.add(ParamDescriptor.CSTRING)
-        .add(ParamDescriptor.INTEGER1)
-        .add(new ListParamDescriptor(ParamDescriptor.ERROR_ADDRESS, 1));
-    }
-    
     /**
      * Construct a new Unbind.
      */
     public SubmitMultiResp() {
-        super(SUBMIT_MULTI_RESP);
+        super(CommandId.SUBMIT_MULTI_RESP);
     }
 
     /**
@@ -103,6 +96,25 @@ public class SubmitMultiResp extends SMPPPacket {
     }
 
     @Override
+    public boolean equals(Object obj) {
+        boolean equals = super.equals(obj);
+        if (equals) {
+            SubmitMultiResp other = (SubmitMultiResp) obj;
+            equals |= safeCompare(messageId, other.messageId);
+            equals |= safeCompare(unsuccessfulTable, other.unsuccessfulTable);
+        }
+        return equals;
+    }
+    
+    @Override
+    public int hashCode() {
+        int hc = super.hashCode();
+        hc += (messageId != null) ? messageId.hashCode() : 0;
+        hc += (unsuccessfulTable != null) ? unsuccessfulTable.hashCode() : 0;
+        return hc;
+    }
+
+    @Override
     protected void toString(StringBuffer buffer) {
         buffer.append("messageId=").append(messageId)
         .append(",unsuccessfulCount=").append(unsuccessfulTable.size())
@@ -114,28 +126,33 @@ public class SubmitMultiResp extends SMPPPacket {
         smppVersion.validateMessageId(messageId);
         smppVersion.validateNumUnsuccessful(unsuccessfulTable.size());
     }
-    
-    @Override
-    protected BodyDescriptor getBodyDescriptor() {
-        return BODY_DESCRIPTOR;
-    }
 
     @Override
-    protected Object[] getMandatoryParameters() {
-        return new Object[] {
-                messageId,
-                Integer.valueOf(unsuccessfulTable.size()),
-                unsuccessfulTable,
-        };
+    protected void readMandatory(PacketDecoder decoder) {
+        messageId = decoder.readCString();
+        int count = decoder.readUInt1();
+        unsuccessfulTable = new ArrayList<ErrorAddress>();
+        for (int i = 0; i < count; i++) {
+            unsuccessfulTable.add(decoder.readErrorAddress());
+        }
     }
     
     @Override
-    protected void setMandatoryParameters(List<Object> params) {
-        messageId = (String) params.get(0);
-        // Index 1 intentionally skipped
-        List list = (List) params.get(2);
-        for (Iterator iter = list.iterator(); iter.hasNext();) {
-            unsuccessfulTable.add((ErrorAddress) iter.next());
+    protected void writeMandatory(PacketEncoder encoder) throws IOException {
+        encoder.writeCString(messageId);
+        encoder.writeUInt1(unsuccessfulTable.size());
+        for (ErrorAddress errorAddress : unsuccessfulTable) {
+            encoder.writeErrorAddress(errorAddress);
         }
+    }
+    
+    @Override
+    protected int getMandatorySize() {
+        int length = 2;
+        length += sizeOf(messageId);
+        for (ErrorAddress ea : unsuccessfulTable) {
+            length += ea.getLength();
+        }
+        return length;
     }
 }

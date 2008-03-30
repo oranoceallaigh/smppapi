@@ -1,9 +1,7 @@
 package ie.omk.smpp;
 
-import ie.omk.smpp.util.ParsePosition;
-import ie.omk.smpp.util.SMPPIO;
-
-import java.io.OutputStream;
+import ie.omk.smpp.util.PacketDecoder;
+import ie.omk.smpp.util.PacketEncoder;
 
 /**
  * An address that message submission was unsuccessfully submitted to. This
@@ -75,15 +73,14 @@ public class ErrorAddress extends Address {
         return super.getLength() + 4;
     }
 
-    public void writeTo(OutputStream out) throws java.io.IOException {
-        super.writeTo(out);
-        SMPPIO.writeLongInt(error, out);
+    public void writeTo(PacketEncoder encoder) throws java.io.IOException {
+        super.writeTo(encoder);
+        encoder.writeUInt4(error);
     }
 
-    public void readFrom(byte[] ea, ParsePosition position) {
-        super.readFrom(ea, position);
-        error = SMPPIO.bytesToLongInt(ea, position.getIndex());
-        position.inc(4);
+    public void readFrom(PacketDecoder decoder) {
+        super.readFrom(decoder);
+        error = decoder.readUInt4();
     }
     
     @Override

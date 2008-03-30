@@ -11,7 +11,7 @@ public class BindTransmitter extends Bind {
      * Construct a new BindTransmitter.
      */
     public BindTransmitter() {
-        super(BIND_TRANSMITTER);
+        super(CommandId.BIND_TRANSMITTER);
     }
 }
 

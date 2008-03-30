@@ -12,7 +12,7 @@ public class BindReceiver extends ie.omk.smpp.message.Bind {
      * Constructs a new BindReceiver.
      */
     public BindReceiver() {
-        super(BIND_RECEIVER);
+        super(CommandId.BIND_RECEIVER);
     }
 }
 

@@ -14,6 +14,11 @@ public class Unbind extends SMPPPacket {
      * Construct a new Unbind.
      */
     public Unbind() {
-        super(UNBIND);
+        super(CommandId.UNBIND);
+    }
+    
+    @Override
+    public int hashCode() {
+        return super.hashCode() * 89;
     }
 }

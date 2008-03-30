@@ -1,10 +1,9 @@
 package ie.omk.smpp.message;
 
 import ie.omk.smpp.Address;
-import ie.omk.smpp.util.ParsePosition;
-import ie.omk.smpp.util.SMPPIO;
+import ie.omk.smpp.util.PacketDecoder;
+import ie.omk.smpp.util.PacketEncoder;
 
-import java.io.OutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -74,31 +73,26 @@ public class DestinationTable implements Serializable {
         return Collections.unmodifiableCollection(distributionLists);
     }
     
-    public void writeTo(OutputStream out) throws java.io.IOException {
+    public void writeTo(PacketEncoder encoder) throws java.io.IOException {
         for (Address address : addresses) {
-            SMPPIO.writeByte(1, out);
-            address.writeTo(out);
+            encoder.writeUInt1(1);
+            encoder.writeAddress(address);
         }
         for (String list : distributionLists) {
-            SMPPIO.writeByte(2, out);
-            SMPPIO.writeCString(list, out);
+            encoder.writeUInt1(2);
+            encoder.writeCString(list);
         }
     }
 
-    public void readFrom(byte[] table, ParsePosition position, int count) {
+    public void readFrom(PacketDecoder decoder, int count) {
         for (int i = 0; i < count; i++) {
-            int type = SMPPIO.bytesToByte(table, position.getIndex());
-            position.inc();
+            int type = decoder.readUInt1();
             if (type == 1) {
                 // SME address..
-                Address a = new Address();
-                a.readFrom(table, position);
-                addresses.add(a);
+                addresses.add(decoder.readAddress());
             } else if (type == 2) {
                 // Distribution list name
-                String d = SMPPIO.readCString(table, position.getIndex());
-                position.inc(d.length() + 1);
-                distributionLists.add(d);
+                distributionLists.add(decoder.readCString());
             } else {
                 LoggerFactory.getLogger(DestinationTable.class).warn(
                         "Unidentified destination type on input.");
@@ -108,6 +102,9 @@ public class DestinationTable implements Serializable {
     }
 
     public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
         if (obj == null || !(obj instanceof DestinationTable)) {
             return false;
         }

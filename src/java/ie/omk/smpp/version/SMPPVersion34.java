@@ -1,6 +1,6 @@
 package ie.omk.smpp.version;
 
-import ie.omk.smpp.message.SMPPPacket;
+import ie.omk.smpp.message.CommandId;
 
 public class SMPPVersion34 extends AbstractSMPPVersion {
     private static final long serialVersionUID = 1;
@@ -13,21 +13,21 @@ public class SMPPVersion34 extends AbstractSMPPVersion {
     public boolean isSupported(int commandID) {
         // Turn off the msb, which is used to signify a response packet..
         switch (commandID & 0x7fffffff) {
-        case SMPPPacket.ALERT_NOTIFICATION:
-        case SMPPPacket.BIND_RECEIVER:
-        case SMPPPacket.BIND_TRANSCEIVER:
-        case SMPPPacket.BIND_TRANSMITTER:
-        case SMPPPacket.CANCEL_SM:
-        case SMPPPacket.DATA_SM:
-        case SMPPPacket.DELIVER_SM:
-        case SMPPPacket.ENQUIRE_LINK:
-        case SMPPPacket.GENERIC_NACK:
-        case SMPPPacket.OUTBIND:
-        case SMPPPacket.QUERY_SM:
-        case SMPPPacket.REPLACE_SM:
-        case SMPPPacket.SUBMIT_MULTI:
-        case SMPPPacket.SUBMIT_SM:
-        case SMPPPacket.UNBIND:
+        case CommandId.ALERT_NOTIFICATION:
+        case CommandId.BIND_RECEIVER:
+        case CommandId.BIND_TRANSCEIVER:
+        case CommandId.BIND_TRANSMITTER:
+        case CommandId.CANCEL_SM:
+        case CommandId.DATA_SM:
+        case CommandId.DELIVER_SM:
+        case CommandId.ENQUIRE_LINK:
+        case CommandId.GENERIC_NACK:
+        case CommandId.OUTBIND:
+        case CommandId.QUERY_SM:
+        case CommandId.REPLACE_SM:
+        case CommandId.SUBMIT_MULTI:
+        case CommandId.SUBMIT_SM:
+        case CommandId.UNBIND:
             return true;
 
         default:

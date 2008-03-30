@@ -1,9 +1,9 @@
 package ie.omk.smpp.message.param;
 
-import ie.omk.smpp.util.ParsePosition;
+import ie.omk.smpp.util.PacketDecoder;
+import ie.omk.smpp.util.PacketEncoder;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.BitSet;
 
 /**
@@ -14,7 +14,7 @@ import java.util.BitSet;
  * too.
  * @version $Id:$
  */
-public class BitmaskParamDescriptor implements ParamDescriptor {
+public class BitmaskParamDescriptor extends AbstractDescriptor {
     private static final long serialVersionUID = 1;
     
     public BitmaskParamDescriptor() {
@@ -28,18 +28,18 @@ public class BitmaskParamDescriptor implements ParamDescriptor {
         return 1;
     }
 
-    public void writeObject(Object obj, OutputStream out) throws IOException {
-        out.write(bitsetToInt((BitSet) obj));
+    public void writeObject(Object obj, PacketEncoder encoder) throws IOException {
+        encoder.writeUInt1(bitsetToInt((BitSet) obj));
     }
 
-    public Object readObject(byte[] data, ParsePosition position, int length) {
+    public Object readObject(PacketDecoder decoder, int length) {
+        int bits = decoder.readUInt1();
         BitSet bitset = new BitSet();
         for (int i = 0; i < 8; i++) {
-            if ((data[position.getIndex()] & (byte) (1 << i)) != 0) {
+            if ((bits & (1 << i)) != 0) {
                 bitset.set(i);
             }
         }
-        position.inc();
         return bitset;
     }
     

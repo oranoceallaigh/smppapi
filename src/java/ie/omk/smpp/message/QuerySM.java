@@ -1,10 +1,11 @@
 package ie.omk.smpp.message;
 
 import ie.omk.smpp.Address;
-import ie.omk.smpp.message.param.ParamDescriptor;
+import ie.omk.smpp.util.PacketDecoder;
+import ie.omk.smpp.util.PacketEncoder;
 import ie.omk.smpp.version.SMPPVersion;
 
-import java.util.List;
+import java.io.IOException;
 
 /**
  * Query the state of a message.
@@ -13,21 +14,15 @@ import java.util.List;
  */
 public class QuerySM extends SMPPPacket {
     private static final long serialVersionUID = 1L;
-    private static final BodyDescriptor BODY_DESCRIPTOR = new BodyDescriptor();
     
     private String messageId;
     private Address source;
-    
-    static {
-        BODY_DESCRIPTOR.add(ParamDescriptor.CSTRING)
-        .add(ParamDescriptor.ADDRESS);
-    }
     
     /**
      * Construct a new QuerySM.
      */
     public QuerySM() {
-        super(QUERY_SM);
+        super(CommandId.QUERY_SM);
     }
     
     public String getMessageId() {
@@ -47,6 +42,25 @@ public class QuerySM extends SMPPPacket {
     }
 
     @Override
+    public boolean equals(Object obj) {
+        boolean equals = super.equals(obj);
+        if (equals) {
+            QuerySM other = (QuerySM) obj;
+            equals |= safeCompare(messageId, other.messageId);
+            equals |= safeCompare(source, other.source);
+        }
+        return equals;
+    }
+    
+    @Override
+    public int hashCode() {
+        int hc = super.hashCode();
+        hc += (messageId != null) ? messageId.hashCode() : 0;
+        hc += (source != null) ? source.hashCode() : 0;
+        return hc;
+    }
+
+    @Override
     protected void toString(StringBuffer buffer) {
         buffer.append("messageId=").append(messageId)
         .append(",source=").append(source);
@@ -59,21 +73,19 @@ public class QuerySM extends SMPPPacket {
     }
     
     @Override
-    protected BodyDescriptor getBodyDescriptor() {
-        return BODY_DESCRIPTOR;
+    protected void readMandatory(PacketDecoder decoder) {
+        messageId = decoder.readCString();
+        source = decoder.readAddress();
+    }
+
+    @Override
+    protected void writeMandatory(PacketEncoder encoder) throws IOException {
+        encoder.writeCString(messageId);
+        encoder.writeAddress(source);
     }
     
     @Override
-    protected Object[] getMandatoryParameters() {
-        return new Object[] {
-                messageId,
-                source,
-        };
-    }
-    
-    @Override
-    protected void setMandatoryParameters(List<Object> params) {
-        messageId = (String) params.get(0);
-        source = (Address) params.get(1);
+    protected int getMandatorySize() {
+        return 1 + sizeOf(messageId) + sizeOf(source);
     }
 }

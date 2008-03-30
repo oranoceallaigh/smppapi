@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @version $Id$
  */
-public class TcpLink extends AbstractSmscLink {
+public class TcpLink extends AbstractStreamLink {
     private static final String STACK_TRACE_ERR = "Stack trace:";
 
     private static final String SOCKET_NOT_OPEN_ERR = "Socket connection is not open";
@@ -227,14 +227,8 @@ public class TcpLink extends AbstractSmscLink {
     protected void implClose() throws java.io.IOException {
         if (isConnected()) {
             LOG.info("Shutting down socket connection");
-            try {
-                sock.close();
-                sock = null;
-            } catch (IOException ix) {
-                LOG.warn("I/O exception closing socket", ix);
-                ix.fillInStackTrace();
-                throw ix;
-            }
+            sock.close();
+            sock = null;
         }
     }
 

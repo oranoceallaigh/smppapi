@@ -1,18 +1,17 @@
 package ie.omk.smpp.message;
 
-import ie.omk.smpp.message.param.ParamDescriptor;
+import ie.omk.smpp.util.PacketDecoder;
+import ie.omk.smpp.util.PacketEncoder;
 import ie.omk.smpp.version.SMPPVersion;
 import ie.omk.smpp.version.VersionFactory;
 
-import java.util.List;
+import java.io.IOException;
 
 /**
  * Abstract parent of BindTransmitter, BindReceiver and BindTransceiver.
  * @version $Id: $
  */
 public abstract class Bind extends SMPPPacket {
-    private static final BodyDescriptor BODY_DESCRIPTOR = new BodyDescriptor();
-
     private String systemId;
     private String password;
     private String systemType;
@@ -21,16 +20,6 @@ public abstract class Bind extends SMPPPacket {
     private int addressTon;
     private int addressNpi;
 
-    static {
-        BODY_DESCRIPTOR.add(ParamDescriptor.CSTRING)
-        .add(ParamDescriptor.CSTRING)
-        .add(ParamDescriptor.CSTRING)
-        .add(ParamDescriptor.INTEGER1)
-        .add(ParamDescriptor.INTEGER1)
-        .add(ParamDescriptor.INTEGER1)
-        .add(ParamDescriptor.CSTRING);
-    }
-    
     public Bind(int id) {
         super(id);
     }
@@ -91,6 +80,35 @@ public abstract class Bind extends SMPPPacket {
         this.version = version;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        boolean equals = super.equals(obj);
+        if (equals) {
+            Bind other = (Bind) obj;
+            equals |= safeCompare(systemId, other.systemId);
+            equals |= safeCompare(password, other.password);
+            equals |= safeCompare(systemType, other.systemType);
+            equals |= safeCompare(version, other.version);
+            equals |= addressTon == other.addressTon;
+            equals |= addressNpi == other.addressNpi;
+            equals |= safeCompare(addressRange, other.addressRange);
+        }
+        return equals;
+    }
+    
+    @Override
+    public int hashCode() {
+        int hc1 = (systemId != null) ? systemId.hashCode() : 13;
+        int hc2 = (password != null) ? password.hashCode() : 23;
+        int hc3 = (systemType != null) ? systemType.hashCode() : 31;
+        int hc4 = (version != null) ? version.hashCode() : 37;
+        int hc5 = Integer.valueOf(addressTon).hashCode();
+        int hc6 = Integer.valueOf(addressNpi).hashCode();
+        int hc7 = (addressRange != null) ? addressRange.hashCode() : 41;
+        int hc8 = super.hashCode();
+        return hc1 + hc2 + hc3 + hc4 + hc5 + hc6 + hc7 + hc8;
+    }
+    
     protected void toString(StringBuffer buffer) {
         buffer.append("systemId=").append(systemId)
         .append(",password=").append(password)
@@ -110,33 +128,36 @@ public abstract class Bind extends SMPPPacket {
         smppVersion.validateNpi(addressNpi);
         smppVersion.validateAddressRange(addressRange);
     }
-    
+
     @Override
-    protected BodyDescriptor getBodyDescriptor() {
-        return BODY_DESCRIPTOR;
+    protected void readMandatory(PacketDecoder decoder) {
+        systemId = decoder.readCString();
+        password = decoder.readCString();
+        systemType = decoder.readCString();
+        version = VersionFactory.getVersion(decoder.readUInt1());
+        addressTon = decoder.readUInt1();
+        addressNpi = decoder.readUInt1();
+        addressRange = decoder.readCString();
     }
 
     @Override
-    protected Object[] getMandatoryParameters() {
-        return new Object[] {
-                systemId,
-                password,
-                systemType,
-                Integer.valueOf(version.getVersionID()),
-                Integer.valueOf(addressTon),
-                Integer.valueOf(addressNpi),
-                addressRange,
-        };
+    protected void writeMandatory(PacketEncoder encoder) throws IOException {
+        encoder.writeCString(systemId);
+        encoder.writeCString(password);
+        encoder.writeCString(systemType);
+        encoder.writeUInt1(version.getVersionID());
+        encoder.writeUInt1(addressTon);
+        encoder.writeUInt1(addressNpi);
+        encoder.writeCString(addressRange);
     }
     
     @Override
-    protected void setMandatoryParameters(List<Object> params) {
-        systemId = (String) params.get(0);
-        password = (String) params.get(1);
-        systemType = (String) params.get(2);
-        version = VersionFactory.getVersion(((Number) params.get(3)).intValue());
-        addressTon = ((Number) params.get(4)).intValue();
-        addressNpi = ((Number) params.get(5)).intValue();
-        addressRange = (String) params.get(6);
+    protected int getMandatorySize() {
+        int length = 7;
+        length += sizeOf(systemId);
+        length += sizeOf(password);
+        length += sizeOf(systemType);
+        length += sizeOf(addressRange);
+        return length;
     }
 }

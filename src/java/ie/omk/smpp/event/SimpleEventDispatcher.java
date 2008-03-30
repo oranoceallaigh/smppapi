@@ -1,6 +1,6 @@
 package ie.omk.smpp.event;
 
-import ie.omk.smpp.Connection;
+import ie.omk.smpp.Session;
 import ie.omk.smpp.message.SMPPPacket;
 
 import org.slf4j.Logger;
@@ -38,7 +38,7 @@ public class SimpleEventDispatcher extends AbstractEventDispatcher {
     /**
      * Create a new SimpleEventDispatcher and register one observer on it.
      */
-    public SimpleEventDispatcher(ConnectionObserver observer) {
+    public SimpleEventDispatcher(SessionObserver observer) {
         addObserver(observer);
     }
 
@@ -58,9 +58,9 @@ public class SimpleEventDispatcher extends AbstractEventDispatcher {
      * @param event
      *            the SMPP event to notify observers of.
      */
-    public void notifyObservers(Connection conn, SMPPEvent event) {
-        ConnectionObserver[] observerList = getObserverList();
-        for (ConnectionObserver observer : observerList) {
+    public void notifyObservers(Session conn, SMPPEvent event) {
+        SessionObserver[] observerList = getObserverList();
+        for (SessionObserver observer : observerList) {
             try {
                 observer.update(conn, event);
             } catch (Exception x) {
@@ -77,9 +77,9 @@ public class SimpleEventDispatcher extends AbstractEventDispatcher {
      * @param packet
      *            the received packet to notify observers of.
      */
-    public void notifyObservers(Connection conn, SMPPPacket packet) {
-        ConnectionObserver[] observerList = getObserverList();
-        for (ConnectionObserver observer : observerList) {
+    public void notifyObservers(Session conn, SMPPPacket packet) {
+        SessionObserver[] observerList = getObserverList();
+        for (SessionObserver observer : observerList) {
             try {
                 observer.packetReceived(conn, packet);
             } catch (Exception x) {

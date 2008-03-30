@@ -1,29 +1,35 @@
 package ie.omk.smpp.event;
 
-import ie.omk.smpp.Connection;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertSame;
+import static org.testng.Assert.assertTrue;
+import ie.omk.smpp.Session;
 import ie.omk.smpp.message.SMPPPacket;
-import junit.framework.TestCase;
+
+import org.testng.annotations.Test;
 
 /**
  * @version $Id:$
  */
-public class SimpleEventDispatcherTest extends TestCase {
+@Test
+public class SimpleEventDispatcherTest {
 
     public void testAddObserver() {
         SimpleEventDispatcher dispatcher = new SimpleEventDispatcher();
         TestConnectionObserver observer = new TestConnectionObserver();
         dispatcher.addObserver(observer);
         assertTrue(dispatcher.contains(observer));
-        assertSame(observer, dispatcher.observerIterator().next());
+        assertSame(dispatcher.observerIterator().next(), observer);
     }
 
     public void testAddObserverDetectsDuplicates() {
         SimpleEventDispatcher dispatcher = new SimpleEventDispatcher();
         TestConnectionObserver observer = new TestConnectionObserver();
         dispatcher.addObserver(observer);
-        assertEquals(1, dispatcher.size());
+        assertEquals(dispatcher.size(), 1);
         dispatcher.addObserver(observer);
-        assertEquals(1, dispatcher.size());
+        assertEquals(dispatcher.size(), 1);
     }
     
     public void testRemove() {
@@ -37,7 +43,7 @@ public class SimpleEventDispatcherTest extends TestCase {
         dispatcher.addObserver(ob2);
         dispatcher.addObserver(ob3);
         dispatcher.addObserver(ob4);
-        assertEquals(4, dispatcher.size());
+        assertEquals(dispatcher.size(), 4);
         
         dispatcher.removeObserver(ob2);
         dispatcher.removeObserver(ob3);
@@ -47,17 +53,17 @@ public class SimpleEventDispatcherTest extends TestCase {
         assertTrue(dispatcher.contains(ob4));
 
         dispatcher.removeObserver(ob1);
-        assertEquals(1, dispatcher.size());
+        assertEquals(dispatcher.size(), 1);
         assertFalse(dispatcher.contains(ob1));
         assertFalse(dispatcher.contains(ob2));
         assertFalse(dispatcher.contains(ob3));
         assertTrue(dispatcher.contains(ob4));
     }
     
-    private class TestConnectionObserver implements ConnectionObserver {
-        public void packetReceived(Connection source, SMPPPacket packet) {
+    private class TestConnectionObserver implements SessionObserver {
+        public void packetReceived(Session source, SMPPPacket packet) {
         }
-        public void update(Connection source, SMPPEvent event) {
+        public void update(Session source, SMPPEvent event) {
         }
     }
 }

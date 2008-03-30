@@ -1,21 +1,15 @@
 package ie.omk.smpp.message.param;
 
-import ie.omk.smpp.util.ParsePosition;
+import ie.omk.smpp.util.PacketDecoder;
+import ie.omk.smpp.util.PacketEncoder;
 import ie.omk.smpp.util.SMPPDate;
 import ie.omk.smpp.util.SMPPDateFormat;
-import ie.omk.smpp.util.SMPPIO;
 
 import java.io.IOException;
-import java.io.OutputStream;
-import java.text.ParseException;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-public class DateParamDescriptor implements ParamDescriptor {
+public class DateParamDescriptor extends AbstractDescriptor {
     private static final long serialVersionUID = 1;
     private static final SMPPDateFormat DATE_FORMAT = new SMPPDateFormat();
-    private static final Logger LOG = LoggerFactory.getLogger(DateParamDescriptor.class);
     
     public int getLengthSpecifier() {
         return -1;
@@ -30,29 +24,11 @@ public class DateParamDescriptor implements ParamDescriptor {
         }
     }
 
-    public void writeObject(Object obj, OutputStream out) throws IOException {
-        if (obj != null) {
-            String str = DATE_FORMAT.format((SMPPDate) obj);
-            SMPPIO.writeCString(str, out);
-        } else {
-            out.write((byte) 0);
-        }
+    public void writeObject(Object obj, PacketEncoder encoder) throws IOException {
+        encoder.writeDate((SMPPDate) obj);
     }
 
-    public Object readObject(byte[] data, ParsePosition position, int length) {
-        SMPPDate date = null;
-        String str = null;
-        try {
-            str = SMPPIO.readCString(data, position.getIndex());
-            if (str.length() > 0) {
-                date = (SMPPDate) DATE_FORMAT.parseObject(str);
-                position.inc(str.length() + 1);
-            } else {
-                position.inc();
-            }
-        } catch (ParseException x) {
-            LOG.error("Could not parse date string \"{}\"", str);
-        }
-        return date;
+    public Object readObject(PacketDecoder decoder, int length) {
+        return decoder.readDate();
     }
 }

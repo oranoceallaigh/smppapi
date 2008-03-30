@@ -1,9 +1,9 @@
 package ie.omk.smpp.message.tlv;
 
-import ie.omk.smpp.util.ParsePosition;
+import ie.omk.smpp.util.PacketDecoder;
+import ie.omk.smpp.util.PacketEncoder;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.BitSet;
 import java.util.Map;
 
@@ -56,28 +56,9 @@ import java.util.Map;
  * @version $Id$
  */
 public interface TLVTable extends Map<Tag, Object> {
-    /**
-     * Decode a full set of optional parameters from a byte array.
-     * 
-     * @param data
-     *            The byte array to decode from.
-     * @param position
-     *            The array index of byte to begin parsing the parameter table
-     *            from.
-     * @param length
-     *            The length in the byte array of all the optional parameters.
-     */
-    void readFrom(byte[] data, ParsePosition position, int length);
-
-    /**
-     * Encode all the optional parameters in this table to an output stream.
-     * 
-     * @param out
-     *            The output stream to encode the parameters to.
-     * @throws java.io.IOException
-     *             If an error occurs writing to the output stream.
-     */
-    void writeTo(OutputStream out) throws IOException;
+    // TODO docs
+    void readFrom(PacketDecoder decoder, int length);
+    void writeTo(PacketEncoder encoder) throws IOException;
 
     /**
      * Get the value for a tag. This is a convenience method to convert

@@ -1,0 +1,45 @@
+.smppapiDoc {
+    background-color: white;
+    color: black;
+    font-family: sans-serif;
+}
+.smppapiDoc H1 {
+    text-align: center;
+    border-style: dotted;
+    border-width: 6px 0px 6px 0px;
+    border-color: navy;
+    font-family: serif;
+}
+.smppapiDoc H2 {
+    font-family: serif;
+    counter-increment: top-count;
+    counter-reset: sub1-count 0;
+}
+.smppapiDoc H2:before {
+    content: counter(top-count);
+    margin-right: 0.75em;
+}
+.smppapiDoc H3 {
+    font-family: serif;
+    counter-increment: sub1-count;
+}
+.smppapiDoc H3:before {
+    content: counter(top-count) "." counter(sub1-count);
+    margin-right: 0.75em;
+}
+.smppapiDoc DIV.codeblock {
+    border: 1px solid black;
+    background-color: #ddd;
+    white-space: pre;
+    font-family: monospace;
+    font-size: 10pt;
+    margin: 0em 2.5em 0em 2.5em;
+    padding-left: 1em;
+}
+.smppapiDoc .copyright {
+    font-size: smaller;
+    font-weight: bold;
+    text-align: center;
+    margin-top: 3em;
+    border-top: 3px black double;
+}

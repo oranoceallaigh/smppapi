@@ -1,10 +1,11 @@
 package ie.omk.smpp.message;
 
-import ie.omk.smpp.message.param.ParamDescriptor;
+import ie.omk.smpp.util.PacketDecoder;
+import ie.omk.smpp.util.PacketEncoder;
 import ie.omk.smpp.util.SMPPDate;
 import ie.omk.smpp.version.SMPPVersion;
 
-import java.util.List;
+import java.io.IOException;
 
 /**
  * SMSC response to a QuerySM request. Contains the current state of a short
@@ -14,25 +15,17 @@ import java.util.List;
  */
 public class QuerySMResp extends SMPPPacket {
     private static final long serialVersionUID = 1L;
-    private static final BodyDescriptor BODY_DESCRIPTOR = new BodyDescriptor();
     
     private String messageId;
     private SMPPDate finalDate;
-    private int messageState;
+    private MessageState messageState = MessageState.UNKNOWN;
     private int errorCode;
-    
-    static {
-        BODY_DESCRIPTOR.add(ParamDescriptor.CSTRING)
-        .add(ParamDescriptor.DATE)
-        .add(ParamDescriptor.INTEGER1)
-        .add(ParamDescriptor.INTEGER1);
-    }
     
     /**
      * Construct a new QuerySMResp.
      */
     public QuerySMResp() {
-        super(QUERY_SM_RESP);
+        super(CommandId.QUERY_SM_RESP);
     }
 
     /**
@@ -70,12 +63,35 @@ public class QuerySMResp extends SMPPPacket {
         this.messageId = messageId;
     }
 
-    public int getMessageState() {
+    public MessageState getMessageState() {
         return messageState;
     }
 
-    public void setMessageState(int messageState) {
+    public void setMessageState(MessageState messageState) {
         this.messageState = messageState;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        boolean equals = super.equals(obj);
+        if (equals) {
+            QuerySMResp other = (QuerySMResp) obj;
+            equals |= safeCompare(messageId, other.messageId);
+            equals |= safeCompare(finalDate, other.finalDate);
+            equals |= messageState == other.messageState;
+            equals |= errorCode == other.errorCode;
+        }
+        return equals;
+    }
+    
+    @Override
+    public int hashCode() {
+        int hc = super.hashCode();
+        hc += (messageId != null) ? messageId.hashCode() : 0;
+        hc += (finalDate != null) ? finalDate.hashCode() : 0;
+        hc += Integer.valueOf(messageState.getValue()).hashCode();
+        hc += Integer.valueOf(errorCode).hashCode();
+        return hc;
     }
 
     @Override
@@ -89,30 +105,30 @@ public class QuerySMResp extends SMPPPacket {
     @Override
     protected void validateMandatory(SMPPVersion smppVersion) {
         smppVersion.validateMessageId(messageId);
-        smppVersion.validateMessageState(messageState);
         smppVersion.validateErrorCode(errorCode);
     }
     
     @Override
-    protected BodyDescriptor getBodyDescriptor() {
-        return BODY_DESCRIPTOR;
+    protected void readMandatory(PacketDecoder decoder) {
+        messageId = decoder.readCString();
+        finalDate = decoder.readDate();
+        messageState = MessageState.getMessageState(decoder.readUInt1());
+        errorCode = decoder.readUInt1();
     }
 
     @Override
-    protected Object[] getMandatoryParameters() {
-        return new Object[] {
-                messageId,
-                finalDate,
-                Integer.valueOf(messageState),
-                Integer.valueOf(errorCode),
-        };
+    protected void writeMandatory(PacketEncoder encoder) throws IOException {
+        encoder.writeCString(messageId);
+        encoder.writeDate(finalDate);
+        encoder.writeUInt1(messageState.getValue());
+        encoder.writeUInt1(errorCode);
     }
-
+    
     @Override
-    protected void setMandatoryParameters(List<Object> params) {
-        messageId = (String) params.get(0);
-        finalDate = (SMPPDate) params.get(1);
-        messageState = ((Number) params.get(2)).intValue();
-        errorCode = ((Number) params.get(3)).intValue();
+    protected int getMandatorySize() {
+        int length = 3;
+        length += sizeOf(messageId);
+        length += sizeOf(finalDate);
+        return length;
     }
 }

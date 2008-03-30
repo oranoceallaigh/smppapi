@@ -1,229 +1,25 @@
 package ie.omk.smpp.message;
 
+import ie.omk.smpp.Address;
 import ie.omk.smpp.SMPPRuntimeException;
-import ie.omk.smpp.message.param.ParamDescriptor;
 import ie.omk.smpp.message.tlv.TLVTable;
 import ie.omk.smpp.message.tlv.TLVTableImpl;
 import ie.omk.smpp.message.tlv.Tag;
-import ie.omk.smpp.util.ParsePosition;
-import ie.omk.smpp.util.SMPPIO;
+import ie.omk.smpp.util.PacketDecoder;
+import ie.omk.smpp.util.PacketEncoder;
+import ie.omk.smpp.util.SMPPDate;
 import ie.omk.smpp.version.SMPPVersion;
 import ie.omk.smpp.version.VersionException;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.Serializable;
-import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * This is the abstract class that all SMPP messages are inherited from.
  * 
  * @version $Id$
  */
-public abstract class SMPPPacket implements Serializable {
-    private static final String INCORRECT_PARAM_COUNT =
-        "Number of mandatory parameters supplied does not match the body descriptor!";
-
-    /** Command Id: Negative Acknowledgement */
-    public static final int GENERIC_NACK = 0x80000000;
-
-    /** Command Id: Bind Receiver */
-    public static final int BIND_RECEIVER = 0x00000001;
-
-    /** Command Id: Bind Receiver Response */
-    public static final int BIND_RECEIVER_RESP = 0x80000001;
-
-    /** Command Id: Bind transmitter */
-    public static final int BIND_TRANSMITTER = 0x00000002;
-
-    /** Command Id: Bind transmitter response */
-    public static final int BIND_TRANSMITTER_RESP = 0x80000002;
-
-    /** Command Id: Query message */
-    public static final int QUERY_SM = 0x00000003;
-
-    /** Command Id: Query message response */
-    public static final int QUERY_SM_RESP = 0x80000003;
-
-    /** Command Id: Submit message */
-    public static final int SUBMIT_SM = 0x00000004;
-
-    /** Command Id: Submit message response */
-    public static final int SUBMIT_SM_RESP = 0x80000004;
-
-    /** Command Id: Deliver Short message */
-    public static final int DELIVER_SM = 0x00000005;
-
-    /** Command Id: Deliver message response */
-    public static final int DELIVER_SM_RESP = 0x80000005;
-
-    /** Command Id: Unbind */
-    public static final int UNBIND = 0x00000006;
-
-    /** Command Id: Unbind response */
-    public static final int UNBIND_RESP = 0x80000006;
-
-    /** Command Id: Replace message */
-    public static final int REPLACE_SM = 0x00000007;
-
-    /** Command Id: replace message response */
-    public static final int REPLACE_SM_RESP = 0x80000007;
-
-    /** Command Id: Cancel message */
-    public static final int CANCEL_SM = 0x00000008;
-
-    /** Command Id: Cancel message response */
-    public static final int CANCEL_SM_RESP = 0x80000008;
-
-    /** Command Id: Bind transceiver */
-    public static final int BIND_TRANSCEIVER = 0x00000009;
-
-    /** Command Id: Bind transceiever response. */
-    public static final int BIND_TRANSCEIVER_RESP = 0x80000009;
-
-    /** Command Id: Outbind. */
-    public static final int OUTBIND = 0x0000000b;
-
-    /** Command Id: Enquire Link */
-    public static final int ENQUIRE_LINK = 0x00000015;
-
-    /** Command Id: Enquire link respinse */
-    public static final int ENQUIRE_LINK_RESP = 0x80000015;
-
-    /** Command Id: Submit multiple messages */
-    public static final int SUBMIT_MULTI = 0x00000021;
-
-    /** Command Id: Submit multi response */
-    public static final int SUBMIT_MULTI_RESP = 0x80000021;
-
-    /** Command Id: Parameter retrieve */
-    public static final int PARAM_RETRIEVE = 0x00000022;
-
-    /** Command Id: Paramater retrieve response */
-    public static final int PARAM_RETRIEVE_RESP = 0x80000022;
-
-    /** Command Id: Query last messages */
-    public static final int QUERY_LAST_MSGS = 0x00000023;
-
-    /** Command Id: Query last messages response */
-    public static final int QUERY_LAST_MSGS_RESP = 0x80000023;
-
-    /** Command Id: Query message details */
-    public static final int QUERY_MSG_DETAILS = 0x00000024;
-
-    /** Command Id: Query message details response */
-    public static final int QUERY_MSG_DETAILS_RESP = 0x80000024;
-
-    /** Command Id: alert notification. */
-    public static final int ALERT_NOTIFICATION = 0x00000102;
-
-    /** Command Id: Data message. */
-    public static final int DATA_SM = 0x00000103;
-
-    /** Command Id: Data message response. */
-    public static final int DATA_SM_RESP = 0x80000103;
-
-    /**
-     * Command Id: Submit broadcast message
-     */
-    public static final int BROADCAST_SM = 0x00000111;
-    
-    /**
-     * Command Id: Broadcast message response.
-     */
-    public static final int BROADCAST_SM_RESP = 0x80000111;
-    
-    /**
-     * Command Id: Query broadcast message.
-     */
-    public static final int QUERY_BROADCAST_SM = 0x00000112;
-    
-    /**
-     * Command Id: Query broadcast message response.
-     */
-    public static final int QUERY_BROADCAST_SM_RESP = 0x80000112;
-    
-    /**
-     * Command Id: Cancel broadcast message.
-     */
-    public static final int CANCEL_BROADCAST_SM = 0x00000113;
-    
-    /**
-     * Command Id: Cancel broadcast message response.
-     */
-    public static final int CANCEL_BROADCAST_SM_RESP = 0x80000113;
-    
-    /** Message state at Smsc: En route */
-    public static final int SM_STATE_EN_ROUTE = 1;
-
-    /** Message state at Smsc: Delivered (final) */
-    public static final int SM_STATE_DELIVERED = 2;
-
-    /** Message state at Smsc: Expired (final) */
-    public static final int SM_STATE_EXPIRED = 3;
-
-    /** Message state at Smsc: Deleted (final) */
-    public static final int SM_STATE_DELETED = 4;
-
-    /** Message state at Smsc: Undeliverable (final) */
-    public static final int SM_STATE_UNDELIVERABLE = 5;
-
-    /** Message state at Smsc: Accepted */
-    public static final int SM_STATE_ACCEPTED = 6;
-
-    /** Message state at Smsc: Invalid message (final) */
-    public static final int SM_STATE_INVALID = 7;
-
-    /** Esm class: Mobile Terminated; Normal delivery, no address swapping */
-    public static final int SMC_MT = 1;
-
-    /** Esm class: Mobile originated */
-    public static final int SMC_MO = 2;
-
-    /** Esm class: Mobile Originated / Terminated */
-    public static final int SMC_MOMT = 3;
-
-    /** Esm class: Delivery receipt, no address swapping */
-    public static final int SMC_RECEIPT = 4;
-
-    /** Esm class: Predefined message */
-    public static final int SMC_DEFMSG = 8;
-
-    /** Esm class: Normal delivery , address swapping on */
-    public static final int SMC_LOOPBACK_RECEIPT = 16;
-
-    /** Esm class: Delivery receipt, address swapping on */
-    public static final int SMC_RECEIPT_SWAP = 20;
-
-    /** Esm class: Store message, do not send to Kernel */
-    public static final int SMC_STORE = 32;
-
-    /** Esm class: Store message and send to kernel */
-    public static final int SMC_STORE_FORWARD = 36;
-
-    /** Esm class: Distribution submission */
-    public static final int SMC_DLIST = 64;
-
-    /** Esm class: Multiple recipient submission */
-    public static final int SMC_MULTI = 128;
-
-    /** Esm class: Distribution list and multiple recipient submission */
-    public static final int SMC_CAS_DL = 256;
-
-    /** Esm class: Escalated message FFU */
-    public static final int SMC_ESCALATED = 512;
-
-    /** Esm class: Submit with replace message */
-    public static final int SMC_SUBMIT_REPLACE = 1024;
-
-    /** Esm class: Memory capacity error */
-    public static final int SMC_MCE = 2048;
-
-    /** Esme error code: No error */
-    public static final int ESME_ROK = 0;
-
+public abstract class SMPPPacket implements Serializable, Cloneable {
     /** Command ID. */
     protected int commandId;
 
@@ -239,10 +35,9 @@ public abstract class SMPPPacket implements Serializable {
     protected TLVTable tlvTable = new TLVTableImpl();
 
     /**
-     * Create a new SMPPPacket with specified Id.
-     * 
-     * @param commandId
-     *            Command Id value
+     * Create a new SMPPPacket with the specified Id. This version of the
+     * constructor is provided as an extension point for custom packets.
+     * @param commandId The command ID.
      */
     protected SMPPPacket(int commandId) {
         this.commandId = commandId;
@@ -266,7 +61,7 @@ public abstract class SMPPPacket implements Serializable {
      * false</code> if it is a response.
      */
     public boolean isRequest() {
-        return (commandId & 0x80000000) == 0;
+        return !isResponse();
     }
 
     /**
@@ -346,38 +141,24 @@ public abstract class SMPPPacket implements Serializable {
     }
     
     /**
-     * @deprecated Use setTLV(Tag, Object)
-     */
-    public Object setOptionalParameter(Tag tag, Object value) {
-        return tlvTable.put(tag, value);
-    }
-
-    /**
-     * Remove, or un-set, a TLV parameter. Equivalent to
-     * <code>getTLVTable().remove(tag)</code>.
-     * @param tag The tag for the TLV parameter to remove.
-     */
-    public void removeOptionalParameter(Tag tag) {
-        tlvTable.remove(tag);
-    }
-    
-    /**
      * Get a TLV parameter. This is a convenience method and is equivalent
      * to <code>getTLVTable().get(tag)</code>.
-     * 
      * @param tag the tag of the TLV parameter to get.
      */
     public Object getTLV(Tag tag) {
         return tlvTable.get(tag);
     }
-    
-    /**
-     * @deprecated Use getTLV(Tag)
-     */
-    public Object getOptionalParameter(Tag tag) {
-        return tlvTable.get(tag);
-    }
 
+    /**
+     * Remove a TLV parameter. This is a convenience method and is equivalent
+     * to <code>getTLVTable().remove(tag)</code>.
+     * @param tag The TLV to remove.
+     * @return The TLV, if it was set or <code>null</code> if it wasn't.
+     */
+    public Object removeTLV(Tag tag) {
+        return tlvTable.remove(tag);
+    }
+    
     /**
      * Check if a particular TLV parameter is set. This is a convenience
      * method and is equivalent to <code>getTLVTable().containsKey(tag)
@@ -397,7 +178,7 @@ public abstract class SMPPPacket implements Serializable {
      * network.
      */
     public final int getLength() {
-        return 16 + getBodyLength() + tlvTable.getLength();
+        return 16 + getMandatorySize() + tlvTable.getLength();
     }
     
     /**
@@ -408,8 +189,8 @@ public abstract class SMPPPacket implements Serializable {
      * @throws IOException
      *             if there's an error writing to the output stream.
      */
-    public final void writeTo(OutputStream out) throws IOException {
-        this.writeTo(out, true);
+    public void writeTo(PacketEncoder encoder) throws IOException {
+        this.writeTo(encoder, true);
     }
 
     /**
@@ -423,17 +204,19 @@ public abstract class SMPPPacket implements Serializable {
      * @throws IOException
      *             if there's an error writing to the output stream.
      */
-    public final void writeTo(OutputStream out, boolean withOptional)
+    public final void writeTo(PacketEncoder encoder, boolean withOptional)
             throws IOException {
-        int commandLen = getLength();
-
-        SMPPIO.writeInt(commandLen, out);
-        SMPPIO.writeInt(commandId, out);
-        SMPPIO.writeInt(commandStatus, out);
-        SMPPIO.writeLongInt(sequenceNum, out);
-        writeMandatory(out);
+        int commandLen = 16 + getMandatorySize();
         if (withOptional) {
-            tlvTable.writeTo(out);
+            commandLen += tlvTable.getLength();
+        }
+        encoder.writeInt4(commandLen);
+        encoder.writeInt4(commandId);
+        encoder.writeInt4(commandStatus);
+        encoder.writeUInt4(sequenceNum);
+        writeMandatory(encoder);
+        if (withOptional) {
+            tlvTable.writeTo(encoder);
         }
     }
 
@@ -452,47 +235,16 @@ public abstract class SMPPPacket implements Serializable {
      * a <code>BindTransmitter</code> object to parse data that contains a
      * <code>BindTransceiver</code> packet).
      */
-    public void readFrom(byte[] data, int offset) throws SMPPProtocolException {
-        // Clear out the TLVTable..
+    public void readFrom(PacketDecoder decoder) throws SMPPProtocolException {
         tlvTable.clear();
-
-        if (data.length < (offset + 16)) {
-            throw new SMPPProtocolException("Not enough bytes for a header: "
-                    + (data.length - (offset + 16)));
-        }
-
-        int len = SMPPIO.bytesToInt(data, offset);
-        int id = SMPPIO.bytesToInt(data, offset + 4);
-
-        if (id != commandId) {
-            // Command type mismatch...ye can't do that, lad!
-            throw new SMPPRuntimeException(
-                    "Packet of type " + getClass().getName()
-                    + " cannot parse commandId " + commandId);
-        }
-        if (data.length < (offset + len)) {
-            // not enough bytes there for me to read in, buddy!
-            throw new SMPPProtocolException(
-                    "Insufficient bytes available: need = " + len
-                    + ", available = " + (data.length - offset));
-        }
-        commandStatus = SMPPIO.bytesToInt(data, offset + 8);
-        sequenceNum = SMPPIO.bytesToLongInt(data, offset + 12);
-        try {
-            if (commandStatus == 0) {
-                // Read the mandatory body parameters..
-                ParsePosition pos = new ParsePosition(16 + offset);
-                List<Object> mandatory = readMandatory(data, pos);
-                setMandatoryParameters(mandatory);
-
-                // Read the optional parameters..
-                if (offset + len > pos.getIndex()) {
-                    tlvTable.readFrom(data, pos, len);
-                }
+        int startPos = decoder.getParsePosition();
+        int commandLen = readHeader(decoder);
+        if (commandStatus == 0) {
+            readMandatory(decoder);
+            int tlvLength = commandLen - (decoder.getParsePosition() - startPos);
+            if (tlvLength > 0) {
+                tlvTable.readFrom(decoder, tlvLength);
             }
-        } catch (ArrayIndexOutOfBoundsException x) {
-            throw new SMPPProtocolException(
-                    "Ran out of bytes to read for the packet body", x);
         }
     }
 
@@ -543,6 +295,84 @@ public abstract class SMPPPacket implements Serializable {
         .append("]]");
         return buffer.toString();
     }
+
+    /**
+     * Get the encoded size of an address, which may be <code>null</code>.
+     * @param address A (possibly <code>null</code>) address object.
+     * @return The encoded size of the address.
+     */
+    public int sizeOf(Address address) {
+        return address != null ? address.getLength() : 3;
+    }
+    
+    /**
+     * Get the encoded size of a date, which may be <code>null</code>.
+     * @param date A (possibly <code>null</code>) date object.
+     * @return The encoded size of the address.
+     */
+    public int sizeOf(SMPPDate date) {
+        return date != null ? date.getLength() : 1;
+    }
+    
+    /**
+     * Get the encoded size of a byte array, which may be <code>null</code>.
+     * @param array A (possibly <code>null</code>) byte array.
+     * @return The encoded size of the array.
+     */
+    public int sizeOf(byte[] array) {
+        return array != null ? array.length : 0;
+    }
+    
+    /**
+     * Get the encoded size of a string, which may be <code>null</code>.
+     * @param string A (possibly <code>null</code>) string object.
+     * @return The length of the string.
+     */
+    public int sizeOf(String string) {
+        return string != null ? string.length() : 0;
+    }
+    
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        return super.clone();
+    }
+    
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (null == obj || getClass() != obj.getClass()) {
+            return false;
+        }
+        SMPPPacket other = (SMPPPacket) obj;
+        return commandId == other.commandId
+                && commandStatus == other.commandStatus
+                && sequenceNum == other.sequenceNum;
+    }
+    
+    @Override
+    public int hashCode() {
+        return new Integer(commandId).hashCode()
+                + new Integer(commandStatus).hashCode()
+                + new Long(sequenceNum).hashCode();
+    }
+    
+    /**
+     * Utility method to compare two objects, even if one or both are
+     * <code>null</code>.
+     * @param obj1 The first object to compare.
+     * @param obj2 The second object to compare.
+     * @return <code>true</code> if the objects are equal, or if they are
+     * both <code>null</code>. <code>false</code> otherwise.
+     */
+    protected boolean safeCompare(Object obj1, Object obj2) {
+        if (obj1 == null) {
+            return obj2 == null;
+        } else {
+            return obj1.equals(obj2);
+        }
+    }
     
     /**
      * Get the mandatory parameters in string form (for display purposes only).
@@ -573,121 +403,61 @@ public abstract class SMPPPacket implements Serializable {
     protected boolean validateTLVTable(SMPPVersion smppVersion) {
         return true;
     }
+
+    /**
+     * Read the mandatory parameters from a packet decoder. This default
+     * implementation is empty, parsing no mandatory parameters. Sub-classes
+     * may override this as they wish.
+     * @param decoder The decoder to read fields from.
+     */
+    protected void readMandatory(PacketDecoder decoder) {
+    }
     
     /**
-     * Set the mandatory parameters of this packet from the supplied list.
-     * <code>params</code> will contain the set of objects parsed from
-     * a byte array according to the packet&apos;s body descriptor.
-     * 
-     * This default implementation does nothing and is intended to
-     * be overridden by sub-classes.
-     * 
-     * @param params The mandatory parameters parsed from a byte array
-     * according to the packet&apos;s body descriptor.
+     * Write the mandatory parameters to a packet encoder.
+     * @param encoder The encoder to write mandatory parameters to.
+     * @throws IOException If an problem occurs while writing.
      */
-    protected void setMandatoryParameters(List<Object> params) {
+    protected void writeMandatory(PacketEncoder encoder) throws IOException {
     }
 
     /**
-     * Get this packet&apos;s body descriptor. This default implementation
-     * returns <code>null</code>, implying the packet does not have any
-     * mandatory parameters.
-     * @return This packet&apos;s body descriptor;
+     * Get the encoded size of the mandatory parameters of this packet.
+     * @return The number of bytes the mandatory parameters will encode to.
      */
-    protected BodyDescriptor getBodyDescriptor() {
-        return null;
+    protected int getMandatorySize() {
+        return 0;
     }
     
     /**
-     * Get the objects that make up this packet&apos;s mandatory parameters.
-     * This method is called when the packet is being written out. It must
-     * never return <code>null</code>. This default implementation returns
-     * a zero-length array, implying the packet does not have any mandatory
-     * parameters. The objects returned by this method <b>must</b> match
-     * with the body descriptor.
-     * @return An array of mandatory parameters.
+     * Parse the header parameters for an SMPP packet.
+     * @param decoder The decoder to read fields from.
+     * @return The value of the "command length" header parameter.
+     * @throws SMPPProtocolException If the header information is invalid.
+     * This exception might be thrown if there are not enough bytes to parse
+     * a header or if the command length specifies a number of bytes that are
+     * not available in the <code>data</code>.
+     * @throws SMPPRuntimeException If the command ID in the data does not
+     * match the command ID of the implementing class.
      */
-    protected Object[] getMandatoryParameters() {
-        return new Object[0];
-    }
-    
-    /**
-     * Read this packet's mandatory parameters from a byte array.
-     * 
-     * @param data
-     *            the byte array to read the mandatory parameters from.
-     * @param offset
-     *            the offset into b that the mandatory parameter's begin at.
-     * @throws ie.omk.smpp.message.SMPPProtocolException
-     *             if there is an error parsing the packet fields.
-     */
-    private List<Object> readMandatory(byte[] data, ParsePosition pos) throws SMPPProtocolException {
-        List<Object> body = new ArrayList<Object>();
-        BodyDescriptor bodyDescriptor = getBodyDescriptor();
-        if (bodyDescriptor == null) {
-            return body;
+    private int readHeader(PacketDecoder decoder) {
+        if (decoder.getAvailableBytes() < 16) {
+            throw new SMPPProtocolException("Not enough bytes for a header: "
+                    + decoder.getAvailableBytes());
         }
-        try {
-            for (ParamDescriptor param : bodyDescriptor.getBody()) {
-                int length = -1;
-                int lengthSpecifier = param.getLengthSpecifier();
-                if (lengthSpecifier > -1) {
-                    length = getLengthFromBody(body, lengthSpecifier);
-                }
-                Object obj = param.readObject(data, pos, length);
-                body.add(obj);
-            }
-        } catch (ParseException x) {
-            throw new SMPPRuntimeException("Could not parse packet body.", x);
+        int commandLen = (int) decoder.readUInt4();
+        if (commandLen < 0) {
+            throw new SMPPProtocolException("Packet is too large for smppapi!");
         }
-        return body;
-    }
-    
-    private int getLengthFromBody(List<Object> body, int lengthSpecifier)
-    throws ParseException {
-        int length = 0;
-        try {
-            length = ((Number) body.get(lengthSpecifier)).intValue();
-        } catch (ArrayIndexOutOfBoundsException x) {
-            throw new ParseException(
-                    "Cannot read count from link index " + lengthSpecifier, 0);
-        } catch (ClassCastException x) {
-            throw new ParseException("Mandatory parameter at index "
-                    + lengthSpecifier + " is not a java.lang.Number", 0);
+        int id = (int) decoder.readUInt4();
+        if (id != commandId) {
+            // Command type mismatch...ye can't do that, lad!
+            throw new SMPPRuntimeException(
+                    "Packet of type " + getClass().getName()
+                    + " cannot parse commandId " + commandId);
         }
-        return length;
-    }
-    
-    private void writeMandatory(OutputStream out) throws IOException {
-        BodyDescriptor bodyDescriptor = getBodyDescriptor();
-        if (bodyDescriptor == null) {
-            return;
-        }
-        Object[] body = getMandatoryParameters();
-        if (body.length != bodyDescriptor.getSize()) {
-            throw new SMPPRuntimeException(INCORRECT_PARAM_COUNT);
-        }
-        int index = 0;
-        for (ParamDescriptor param : bodyDescriptor.getBody()) {
-            param.writeObject(body[index], out);
-            index++;
-        }
-    }
-    
-    private int getBodyLength() {
-        int size = 0;
-        BodyDescriptor bodyDescriptor = getBodyDescriptor();
-        if (bodyDescriptor != null) {
-            Object[] body = getMandatoryParameters();
-            if (body.length != bodyDescriptor.getSize()) {
-                throw new SMPPRuntimeException(INCORRECT_PARAM_COUNT);
-            }
-            int index = 0;
-            for (ParamDescriptor param : bodyDescriptor.getBody()) {
-                size += param.sizeOf(body[index]);
-                index++;
-            }
-        }
-        return size;
+        commandStatus = (int) decoder.readUInt4();
+        sequenceNum = (int) decoder.readUInt4();
+        return commandLen;
     }
 }

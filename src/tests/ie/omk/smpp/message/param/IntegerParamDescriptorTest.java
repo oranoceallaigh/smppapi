@@ -1,13 +1,18 @@
 package ie.omk.smpp.message.param;
 
-import ie.omk.smpp.util.ParsePosition;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+
+import ie.omk.smpp.util.PacketDecoderImpl;
+import ie.omk.smpp.util.PacketEncoderImpl;
 import ie.omk.smpp.util.SMPPIO;
 
 import java.io.ByteArrayOutputStream;
 
-import junit.framework.TestCase;
+import org.testng.annotations.Test;
 
-public class IntegerParamDescriptorTest extends TestCase {
+@Test
+public class IntegerParamDescriptorTest {
 
     private IntegerParamDescriptor integer1 = new IntegerParamDescriptor(1);
     private IntegerParamDescriptor integer2 = new IntegerParamDescriptor(2);
@@ -57,27 +62,28 @@ public class IntegerParamDescriptorTest extends TestCase {
     
     private void doSizeOf(IntegerParamDescriptor descriptor, int intSize) throws Exception {
         Integer value = new Integer(231);
-        assertEquals(intSize, descriptor.sizeOf(value));
-        assertEquals(intSize, descriptor.sizeOf(null));
+        assertEquals(descriptor.sizeOf(value), intSize);
+        assertEquals(descriptor.sizeOf(null), intSize);
     }
     
     private void doWriteObject(IntegerParamDescriptor descriptor, long value) throws Exception {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        descriptor.writeObject(value, out);
+        PacketEncoderImpl encoder = new PacketEncoderImpl(out);
+        descriptor.writeObject(value, encoder);
         byte[] array = out.toByteArray();
-        assertEquals(descriptor.sizeOf(value), array.length);
+        assertEquals(array.length, descriptor.sizeOf(value));
         switch (descriptor.sizeOf(value)) {
         case 8:
-            assertEquals(value, SMPPIO.bytesToLong(array, 0));
+            assertEquals(SMPPIO.readInt8(array, 0), value);
             break;
         case 4:
-            assertEquals(value, SMPPIO.bytesToLongInt(array, 0));
+            assertEquals(SMPPIO.readUInt4(array, 0), value);
             break;
         case 2:
-            assertEquals((int) value, SMPPIO.bytesToShort(array, 0));
+            assertEquals(SMPPIO.readUInt2(array, 0), (int) value);
             break;
         default:
-            assertEquals((int) value, (int) array[0] & 0xff);
+            assertEquals((int) array[0] & 0xff, (int) value);
             break;
         }
     }
@@ -99,10 +105,10 @@ public class IntegerParamDescriptorTest extends TestCase {
             break;
         }
         byte[] array = out.toByteArray();
-        ParsePosition position = new ParsePosition(0);
-        Number number = (Number) descriptor.readObject(array, position, -1);
+        PacketDecoderImpl decoder = new PacketDecoderImpl(array);
+        Number number = (Number) descriptor.readObject(decoder, -1);
         assertNotNull(number);
-        assertEquals(value, number.longValue());
-        assertEquals(descriptor.sizeOf(value), position.getIndex());
+        assertEquals(number.longValue(), value);
+        assertEquals(decoder.getParsePosition(), descriptor.sizeOf(value));
     }
 }

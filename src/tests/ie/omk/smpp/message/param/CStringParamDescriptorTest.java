@@ -1,63 +1,66 @@
 package ie.omk.smpp.message.param;
 
-import ie.omk.smpp.util.ParsePosition;
+import static org.testng.Assert.assertEquals;
+import ie.omk.smpp.util.PacketDecoderImpl;
+import ie.omk.smpp.util.PacketEncoderImpl;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 
-import junit.framework.TestCase;
+import org.testng.annotations.Test;
 
-public class CStringParamDescriptorTest extends TestCase {
+@Test
+public class CStringParamDescriptorTest {
 
     private final String testString = new String("A test string");
     private CStringParamDescriptor descriptor = new CStringParamDescriptor();
     
     public void testSizeOf() {
-        assertEquals(1, descriptor.sizeOf(null));
-        assertEquals(1, descriptor.sizeOf(""));
-        assertEquals(testString.length() + 1, descriptor.sizeOf(testString));
+        assertEquals(descriptor.sizeOf(null), 1);
+        assertEquals(descriptor.sizeOf(""), 1);
+        assertEquals(descriptor.sizeOf(testString), testString.length() + 1);
     }
     
-    public void testWriteObject() throws IOException {
-        ByteArrayOutputStream out;
-        byte[] array;
-        
-        out = new ByteArrayOutputStream();
-        descriptor.writeObject(null, out);
-        array = out.toByteArray();
-        assertEquals(1, array.length);
-        assertEquals((byte) 0, array[0]);
-
-        out = new ByteArrayOutputStream();
-        descriptor.writeObject("", out);
-        array = out.toByteArray();
-        assertEquals(1, array.length);
-        assertEquals((byte) 0, array[0]);
-
-        out = new ByteArrayOutputStream();
-        descriptor.writeObject(testString, out);
-        array = out.toByteArray();
-        assertEquals(testString.length() + 1, array.length);
-        assertEquals((byte) 0, array[array.length - 1]);
-        assertEquals(testString, new String(array, 0, array.length - 1, "US-ASCII"));
+    public void testWriteNullString() throws Exception {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        PacketEncoderImpl encoder = new PacketEncoderImpl(out);
+        descriptor.writeObject(null, encoder);
+        byte[] array = out.toByteArray();
+        assertEquals(array.length, 1);
+        assertEquals(array[0], (byte) 0);
     }
     
-    public void testReadObject() throws Exception {
-        ParsePosition position = new ParsePosition(0);
+    public void testWriteEmptyString() throws Exception {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        PacketEncoderImpl encoder = new PacketEncoderImpl(out);
+        descriptor.writeObject("", encoder);
+        byte[] array = out.toByteArray();
+        assertEquals(array.length, 1);
+        assertEquals(array[0], (byte) 0);
+    }
+
+    public void testWriteString() throws Exception {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        PacketEncoderImpl encoder = new PacketEncoderImpl(out);
+        descriptor.writeObject(testString, encoder);
+        byte[] array = out.toByteArray();
+        assertEquals(array.length, testString.length() + 1);
+        assertEquals(array[array.length - 1], (byte) 0);
+        assertEquals(new String(array, 0, array.length - 1, "US-ASCII"), testString);
+    }
+
+    public void testReadEmptyString() throws Exception {
+        PacketDecoderImpl decoder = new PacketDecoderImpl(new byte[] {0});
+        String string = (String) descriptor.readObject(decoder, 0);
+        assertEquals(string, "");
+    }
+
+    public void testReadString() throws Exception {
         byte[] array = new byte[testString.length() + 1];
         System.arraycopy(testString.getBytes("US-ASCII"), 0, array, 0, testString.length());
         array[array.length - 1] = (byte) 0;
-        
-        String string =
-            (String) descriptor.readObject(new byte[] {0}, position, -1);
-        assertNotNull(string);
-        assertEquals("", string);
-        assertEquals(1, position.getIndex());
-
-        position = new ParsePosition(0);
-        string = (String) descriptor.readObject(array, position, -1);
-        assertNotNull(string);
-        assertEquals(testString, string);
-        assertEquals(testString.length() + 1, position.getIndex());
+        PacketDecoderImpl decoder = new PacketDecoderImpl(array);
+        String string = (String) descriptor.readObject(decoder, 0);
+        assertEquals(string, testString);
+        assertEquals(decoder.getParsePosition(), testString.length() + 1);
     }
 }

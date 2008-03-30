@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @version $Id: $
  */
-public class DeliverSM extends SMPacket {
+public class DeliverSM extends SubmitSM {
     private static final long serialVersionUID = 1L;
     private static final String SPEC_VIOLATION = "Setting the {} on a "
         + "deliver_sm is in violation of the SMPP specification";
@@ -21,7 +21,7 @@ public class DeliverSM extends SMPacket {
      * Construct a new DeliverSM.
      */
     public DeliverSM() {
-        super(SMPPPacket.DELIVER_SM);
+        super(CommandId.DELIVER_SM);
     }
 
     /**
@@ -42,5 +42,10 @@ public class DeliverSM extends SMPacket {
         LoggerFactory.getLogger(DeliverSM.class).warn(
                 SPEC_VIOLATION, "expiry time");
         super.setExpiryTime(d);
+    }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode() * 103;
     }
 }

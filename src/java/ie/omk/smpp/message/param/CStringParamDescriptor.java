@@ -1,13 +1,11 @@
 package ie.omk.smpp.message.param;
 
-import ie.omk.smpp.util.ParsePosition;
-import ie.omk.smpp.util.SMPPIO;
+import ie.omk.smpp.util.PacketDecoder;
+import ie.omk.smpp.util.PacketEncoder;
 
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
 
-public class CStringParamDescriptor implements ParamDescriptor {
+public class CStringParamDescriptor extends AbstractDescriptor {
     private static final long serialVersionUID = 1;
 
     public int getLengthSpecifier() {
@@ -22,24 +20,15 @@ public class CStringParamDescriptor implements ParamDescriptor {
         }
     }
 
-    public void writeObject(Object str, OutputStream out) throws IOException {
-        SMPPIO.writeCString((String) str, out);
+    public void writeObject(Object str, PacketEncoder encoder) throws IOException {
+        if (str != null) {
+            encoder.writeCString(str.toString());
+        } else {
+            encoder.writeCString("");
+        }
     }
 
-    public Object readObject(byte[] data, ParsePosition position, int length) {
-        String s;
-        int index = position.getIndex();
-        try {
-            if (length > -1) {
-                s = new String(data, index, length - 1, "US-ASCII");
-                position.inc(length);
-            } else {
-                s = SMPPIO.readCString(data, index);
-                position.inc(s.length() + 1);
-            }
-        } catch (UnsupportedEncodingException x) {
-            throw new RuntimeException("ASCII not supported.", x);
-        }
-        return s;
+    public Object readObject(PacketDecoder decoder, int length) {
+        return decoder.readCString();
     }
 }

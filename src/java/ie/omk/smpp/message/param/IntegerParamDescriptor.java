@@ -1,16 +1,15 @@
 package ie.omk.smpp.message.param;
 
-import ie.omk.smpp.util.ParsePosition;
-import ie.omk.smpp.util.SMPPIO;
+import ie.omk.smpp.util.PacketDecoder;
+import ie.omk.smpp.util.PacketEncoder;
 
 import java.io.IOException;
-import java.io.OutputStream;
 
 /**
  * Mandatory parameter descriptor for an integer.
  * @version $Id:$
  */
-public class IntegerParamDescriptor implements ParamDescriptor {
+public class IntegerParamDescriptor extends AbstractDescriptor {
     private static final long serialVersionUID = 1;
 
     /**
@@ -30,47 +29,41 @@ public class IntegerParamDescriptor implements ParamDescriptor {
         return length;
     }
 
-    public void writeObject(Object obj, OutputStream out) throws IOException {
-        long value;
-        if (obj != null) {
-            value = ((Number) obj).longValue();
-        } else {
-            value = 0L;
+    public void writeObject(Object obj, PacketEncoder encoder) throws IOException {
+        if (!(obj instanceof Number)) {
+            throw new IllegalArgumentException("Invalid object type.");
         }
+        long value = ((Number) obj).longValue();
         switch (length) {
         case 8:
-            SMPPIO.writeLong(value, out);
+            encoder.writeInt8(value);
             break;
         case 4:
-            SMPPIO.writeLongInt(value, out);
+            encoder.writeUInt4(value);
             break;
         case 2:
-            SMPPIO.writeShort((int) value, out);
+            encoder.writeUInt2((int) value);
             break;
         default:
-            SMPPIO.writeByte((int) value, out);
+            encoder.writeUInt1((int) value);
             break;
         }
     }
 
-    public Object readObject(byte[] data, ParsePosition position, int length) {
+    public Object readObject(PacketDecoder decoder, int length) {
         Number value;
         switch (this.length) {
         case 8:
-            value = new Long(SMPPIO.bytesToLong(data, position.getIndex()));
-            position.inc(8);
+            value = new Long(decoder.readInt8());
             break;
         case 4:
-            value = new Long(SMPPIO.bytesToLongInt(data, position.getIndex()));
-            position.inc(4);
+            value = new Long(decoder.readUInt4());
             break;
         case 2:
-            value = new Integer(SMPPIO.bytesToShort(data, position.getIndex()));
-            position.inc(2);
+            value = new Integer(decoder.readUInt2());
             break;
         default:
-            value = new Integer((int) data[position.getIndex()] & 0xff);
-            position.inc();
+            value = new Integer(decoder.readUInt1());
             break;
         }
         return value;

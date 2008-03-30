@@ -1,40 +1,42 @@
 package ie.omk.smpp.message;
 
 import ie.omk.smpp.Address;
-import ie.omk.smpp.UnsupportedOperationException;
-import ie.omk.smpp.message.param.BytesParamDescriptor;
-import ie.omk.smpp.message.param.DestinationTableParamDescriptor;
-import ie.omk.smpp.message.param.ParamDescriptor;
+import ie.omk.smpp.util.PacketDecoder;
+import ie.omk.smpp.util.PacketEncoder;
 import ie.omk.smpp.util.SMPPDate;
 import ie.omk.smpp.version.SMPPVersion;
 
-import java.util.List;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
 
 /**
  * Submit a message to multiple destinations.
  * 
  * @version $Id: $
  */
-public class SubmitMulti extends SMPacket {
+public class SubmitMulti extends SMPPPacket {
     private static final long serialVersionUID = 1L;
-    private static final BodyDescriptor BODY_DESCRIPTOR = new BodyDescriptor();
     
-    /** Table of destinations */
+    private String serviceType;
+    private Address source;
     private DestinationTable destinationTable = new DestinationTable();
+    private int esmClass;
+    private int protocolID;
+    private int priority;
+    private SMPPDate deliveryTime;
+    private SMPPDate expiryTime;
+    private int registered;
+    private int replaceIfPresent;
+    private int dataCoding;
+    private int defaultMsg;
+    private byte[] message;
 
-    static {
-        List<ParamDescriptor> body = BODY_DESCRIPTOR.getBody();
-        body.addAll(SMPacket.BODY_DESCRIPTOR.getBody());
-        body.set(2, ParamDescriptor.INTEGER1);
-        body.add(3, new DestinationTableParamDescriptor(2));
-        body.set(14, new BytesParamDescriptor(13));
-    }
-    
     /**
      * Construct a new SubmitMulti.
      */
     public SubmitMulti() {
-        super(SUBMIT_MULTI);
+        super(CommandId.SUBMIT_MULTI);
     }
 
     /**
@@ -44,6 +46,102 @@ public class SubmitMulti extends SMPacket {
      */
     public DestinationTable getDestinationTable() {
         return destinationTable;
+    }
+
+    public int getDataCoding() {
+        return dataCoding;
+    }
+
+    public void setDataCoding(int dataCoding) {
+        this.dataCoding = dataCoding;
+    }
+
+    public int getDefaultMsg() {
+        return defaultMsg;
+    }
+
+    public void setDefaultMsg(int defaultMsg) {
+        this.defaultMsg = defaultMsg;
+    }
+
+    public SMPPDate getDeliveryTime() {
+        return deliveryTime;
+    }
+
+    public void setDeliveryTime(SMPPDate deliveryTime) {
+        this.deliveryTime = deliveryTime;
+    }
+
+    public int getEsmClass() {
+        return esmClass;
+    }
+
+    public void setEsmClass(int esmClass) {
+        this.esmClass = esmClass;
+    }
+
+    public SMPPDate getExpiryTime() {
+        return expiryTime;
+    }
+
+    public void setExpiryTime(SMPPDate expiryTime) {
+        this.expiryTime = expiryTime;
+    }
+
+    public byte[] getMessage() {
+        return message;
+    }
+
+    public void setMessage(byte[] message) {
+        this.message = message;
+    }
+
+    public int getPriority() {
+        return priority;
+    }
+
+    public void setPriority(int priority) {
+        this.priority = priority;
+    }
+
+    public int getProtocolID() {
+        return protocolID;
+    }
+
+    public void setProtocolID(int protocolID) {
+        this.protocolID = protocolID;
+    }
+
+    public int getRegistered() {
+        return registered;
+    }
+
+    public void setRegistered(int registered) {
+        this.registered = registered;
+    }
+
+    public int getReplaceIfPresent() {
+        return replaceIfPresent;
+    }
+
+    public void setReplaceIfPresent(int replaceIfPresent) {
+        this.replaceIfPresent = replaceIfPresent;
+    }
+
+    public String getServiceType() {
+        return serviceType;
+    }
+
+    public void setServiceType(String serviceType) {
+        this.serviceType = serviceType;
+    }
+
+    public Address getSource() {
+        return source;
+    }
+
+    public void setSource(Address source) {
+        this.source = source;
     }
 
     /**
@@ -83,9 +181,51 @@ public class SubmitMulti extends SMPacket {
         return destinationTable.size();
     }
 
-    public void setDestination(Address destination) {
-        throw new UnsupportedOperationException("SubmitMulti does not support"
-                + " the setDestination operation");
+    @Override
+    public boolean equals(Object obj) {
+        boolean equals = super.equals(obj);
+        if (equals) {
+            SubmitMulti other = (SubmitMulti) obj;
+            equals |= safeCompare(serviceType, other.serviceType);
+            equals |= safeCompare(source, other.source);
+            equals |= safeCompare(destinationTable, other.destinationTable);
+            equals |= esmClass == other.esmClass;
+            equals |= protocolID == other.protocolID;
+            equals |= priority == other.priority;
+            equals |= safeCompare(deliveryTime, other.deliveryTime);
+            equals |= safeCompare(expiryTime, other.expiryTime);
+            equals |= registered == other.registered;
+            equals |= replaceIfPresent == other.replaceIfPresent;
+            equals |= dataCoding == other.dataCoding;
+            equals |= defaultMsg == other.defaultMsg;
+            equals |= Arrays.equals(message, other.message);
+        }
+        return equals;
+    }
+    
+    @Override
+    public int hashCode() {
+        int hc = super.hashCode();
+        hc += (serviceType != null) ? serviceType.hashCode() : 0;
+        hc += (source != null) ? source.hashCode() : 0;
+        hc += (destinationTable != null) ? destinationTable.hashCode() : 0;
+        hc += Integer.valueOf(esmClass).hashCode();
+        hc += Integer.valueOf(protocolID).hashCode();
+        hc += Integer.valueOf(priority).hashCode();
+        hc += (deliveryTime != null) ? deliveryTime.hashCode() : 0;
+        hc += (expiryTime != null) ? expiryTime.hashCode() : 0;
+        hc += Integer.valueOf(registered).hashCode();
+        hc += Integer.valueOf(replaceIfPresent).hashCode();
+        hc += Integer.valueOf(dataCoding).hashCode();
+        hc += Integer.valueOf(defaultMsg).hashCode();
+        if (message != null) {
+            try {
+                hc += new String(message, "US-ASCII").hashCode();
+            } catch (UnsupportedEncodingException x) {
+                throw new RuntimeException(x);
+            }
+        }
+        return hc;
     }
 
     @Override
@@ -122,40 +262,57 @@ public class SubmitMulti extends SMPacket {
             smppVersion.validateDistListName(distributionList);
         }
     }
-    
-    @Override
-    protected BodyDescriptor getBodyDescriptor() {
-        return BODY_DESCRIPTOR;
-    }
 
     @Override
-    protected Object[] getMandatoryParameters() {
-        Object[] superObj = super.getMandatoryParameters();
-        Object[] obj = new Object[15];
-        obj[0] = superObj[0];
-        obj[1] = superObj[1];
-        obj[2] = Integer.valueOf(destinationTable.size());
-        obj[3] = destinationTable;
-        System.arraycopy(superObj, 3, obj, 4, 11);
-        return obj;
+    protected void readMandatory(PacketDecoder decoder) {
+        serviceType = decoder.readCString();
+        source = decoder.readAddress();
+        int numDests = decoder.readUInt1();
+        destinationTable = new DestinationTable();
+        destinationTable.readFrom(decoder, numDests);
+        esmClass = decoder.readUInt1();
+        protocolID = decoder.readUInt1();
+        priority = decoder.readUInt1();
+        deliveryTime = decoder.readDate();
+        expiryTime = decoder.readDate();
+        registered = decoder.readUInt1();
+        replaceIfPresent = decoder.readUInt1();
+        dataCoding = decoder.readUInt1();
+        defaultMsg = decoder.readUInt1();
+        int len = decoder.readUInt1();
+        message = decoder.readBytes(len);
     }
     
     @Override
-    protected void setMandatoryParameters(List<Object> params) {
-        serviceType = (String) params.get(0);
-        source = (Address) params.get(1);
-        // Intentionally skipping index 2
-        destinationTable = (DestinationTable) params.get(3);
-        esmClass = ((Number) params.get(4)).intValue();
-        protocolID = ((Number) params.get(5)).intValue();
-        priority = ((Number) params.get(6)).intValue();
-        deliveryTime = (SMPPDate) params.get(7);
-        expiryTime = (SMPPDate) params.get(8);
-        registered = ((Number) params.get(9)).intValue();
-        replaceIfPresent = ((Number) params.get(10)).intValue();
-        dataCoding = ((Number) params.get(11)).intValue();
-        defaultMsg = ((Number) params.get(12)).intValue();
-        // Intentionally skipping param[13]
-        message = (byte[]) params.get(14);
+    protected void writeMandatory(PacketEncoder encoder) throws IOException {
+        encoder.writeCString(serviceType);
+        encoder.writeAddress(source);
+        int numDests = destinationTable.size();
+        encoder.writeUInt1(numDests);
+        destinationTable.writeTo(encoder);
+        encoder.writeUInt1(esmClass);
+        encoder.writeUInt1(protocolID);
+        encoder.writeUInt1(priority);
+        encoder.writeDate(deliveryTime);
+        encoder.writeDate(expiryTime);
+        encoder.writeUInt1(registered);
+        encoder.writeUInt1(replaceIfPresent);
+        encoder.writeUInt1(dataCoding);
+        encoder.writeUInt1(defaultMsg);
+        int len = (message != null) ? message.length : 0;
+        encoder.writeUInt1(len);
+        encoder.writeBytes(message, 0, len);
+    }
+    
+    @Override
+    protected int getMandatorySize() {
+        int l = 10;
+        l += sizeOf(serviceType);
+        l += sizeOf(source);
+        l += destinationTable.getLength();
+        l += sizeOf(deliveryTime);
+        l += sizeOf(expiryTime);
+        l += sizeOf(message);
+        return l;
     }
 }

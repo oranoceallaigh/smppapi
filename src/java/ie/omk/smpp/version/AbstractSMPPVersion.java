@@ -47,6 +47,9 @@ public abstract class AbstractSMPPVersion implements SMPPVersion {
     }
 
     public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
         if (obj == null || !(obj instanceof SMPPVersion)) {
             return false;
         } else {

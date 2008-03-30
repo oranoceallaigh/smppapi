@@ -1,5 +1,7 @@
 package ie.omk.smpp.util;
 
+import ie.omk.smpp.SMPPRuntimeException;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
@@ -17,88 +19,90 @@ public final class SMPPIO {
     }
     
     /**
-     * Read a nul-terminated ASCII string from a byte array.
-     * 
-     * @return A java String object representing the read string without the
-     *         terminating nul.
+     * Read a C-String (a string terminated by a nul-byte) from the byte
+     * array. The bytes will be interpreted as US-ASCII characters.
+     * @param bytes The bytes to decode the string from.
+     * @param offset The offset in <code>bytes</code> to begin reading the
+     * string from.
+     * @return The decoded string.
+     * @throws ArrayIndexOutOfBoundsException if no <code>nul</code> byte
+     * is detected in the array.
      */
-    public static String readCString(byte[] b, int offset) {
-        String s;
+    public static String readCString(byte[] bytes, int offset) {
         try {
-            int p = offset;
-            while (b[p] != (byte) 0) {
-                p++;
-            }
-
-            if (p > offset) {
-                s = new String(b, offset, p - offset, US_ASCII);
-            } else {
-                s = "";
-            }
-        } catch (java.io.UnsupportedEncodingException x) {
-            s = "";
-        }
-        return s;
-    }
-
-    /**
-     * Read an ASCII string from a byte array.
-     * @param b The byte array to read from.
-     * @param offset The offset into <code>b</code> to begin reading from.
-     * @param len The length of the string to read.
-     * @return A string decoded from <code>b</code> of length <code>len</code>.
-     * ASCII is used to convert the bytes into characters.
-     */
-    public static String readString(byte[] b, int offset, int len) {
-        String s = "";
-        try {
-            if (len > 0) {
-                s = new String(b, offset, len - offset, US_ASCII);
-            }
+            int endIndex = offset;
+            for (; bytes[endIndex] != (byte) 0; endIndex++);
+            return new String(bytes, offset, (endIndex - offset), "US-ASCII");
         } catch (UnsupportedEncodingException x) {
-            // JVM is required to support US-ASCII
+            throw new SMPPRuntimeException("JVM does not support ASCII!", x);
         }
-        return s;
     }
 
     /**
-     * Decode a 1-byte integer from a byte array.
+     * Read a fixed-length String from <code>bytes</code>. The bytes will be
+     * interpreted as US-ASCII characters.
+     * @param bytes The bytes to decode the string from.
+     * @param offset The offset in the array to begin parsing from.
+     * @param length The number of bytes to parse for the string.
+     * @return The decoded String.
+     * @throws ArrayIndexOutOfBoundsException if there are insufficient bytes
+     * to parse the string.
+     */
+    public static String readString(byte[] bytes, int offset, int length) {
+        try {
+            if (offset + length > bytes.length) {
+                throw new ArrayIndexOutOfBoundsException(offset + length);
+            }
+            return new String(bytes, offset, length, "US-ASCII");
+        } catch (UnsupportedEncodingException x) {
+            throw new SMPPRuntimeException("JVM does not support ASCII??", x);
+        }
+    }
+
+    /**
+     * Read an unsigned 1-byte integer from a byte array.
      * @param b The byte array to read the integer from.
-     * @param offset The offset at which the (most significant) first byte of
-     * the short resides.
+     * @param offset The offset in the array to read the integer from.
      * @return The decoded integer value.
      * @throws ArrayIndexOutOfBoundsException If there are not enough bytes in
      * the array.
      */
-    public static int bytesToByte(byte[] b, int offset) {
+    public static int readUInt1(byte[] b, int offset) {
         return (int) b[offset] & 0xff;
     }
     
     /**
-     * Decode a 2-byte integer from a byte array.
+     * Read a 2-byte unsigned integer from a byte array.
      * @param b The byte array to read the integer from.
      * @param offset The offset at which the (most significant) first byte of
-     * the short resides.
+     * the integer resides.
      * @return The decoded integer value.
      * @throws ArrayIndexOutOfBoundsException If there are not enough bytes in
      * the array.
      */
-    public static int bytesToShort(byte[] b, int offset) {
+    public static int readUInt2(byte[] b, int offset) {
         int value = (int) b[offset + 1] & 0xff;
         value |= ((int) b[offset] & 0xff) << 8;
         return value;
     }
     
     /**
-     * Decode a 4-byte integer from a byte array.
+     * Read a 4-byte integer from a byte array. <b>Warning:</b> SMPP integers
+     * are unsigned, whereas Java integers are signed. This method will take
+     * the 4 bytes as they appear in the array and assemble them into a
+     * Java int. If the <u>unsigned</u> value exceeds <code>Integer.MAX_VALUE
+     * </code>, then the Java value will actually be a negative number.
+     * <p>If you are more interested in the actual value, then use
+     * the {@link #readUInt4} method, which will return the real value in a
+     * Java <code>long</code> primitive.
      * @param b The byte array to read the integer from.
      * @param offset The offset at which the (most significant) first byte of
-     * the int resides.
+     * the integer resides.
      * @return The decoded integer value.
      * @throws ArrayIndexOutOfBoundsException If there are not enough bytes in
      * the array.
      */
-    public static int bytesToInt(byte[] b, int offset) {
+    public static int readInt4(byte[] b, int offset) {
         int value = (int) b[offset + 3] & 0xff;
         value |= ((int) b[offset] & 0xff) << 24;
         value |= ((int) b[offset + 1] & 0xff) << 16;
@@ -107,9 +111,29 @@ public final class SMPPIO {
     }
 
     /**
-     * Decode a 4-byte integer from a byte array, returning a long. This
-     * method is provided as SMPP bytes are unsigned, so we need a
-     * <code>long</code> to contain them in Java.
+     * Read a 4-byte unsigned integer from a byte array, returning a long. This
+     * method is provided as SMPP integers are unsigned, so a <code>long</code>
+     * primitive is needed in Java to support the full range of unsigned
+     * values.
+     * @param b The byte array to read the integer from.
+     * @param offset The offset at which the (most significant) first byte of
+     * the integer resides.
+     * @return The decoded integer value.
+     * @throws ArrayIndexOutOfBoundsException If there are not enough bytes in
+     * the array.
+     */
+    public static long readUInt4(byte[] b, int offset) {
+        long value = (long) b[offset + 3] & 0xffL;
+        value |= ((long) b[offset] & 0xffL) << 24;
+        value |= ((long) b[offset + 1] & 0xffL) << 16;
+        value |= ((long) b[offset + 2] & 0xffL) << 8;
+        return value;
+    }
+
+    /**
+     * Read an 8-byte integer from a byte array. Care should be taken as
+     * values read from the wire that exceed <code>Long.MAX_VALUE</code>
+     * will be interpreted by Java as negative numbers.
      * @param b The byte array to read the integer from.
      * @param offset The offset at which the (most significant) first byte of
      * the int resides.
@@ -117,32 +141,15 @@ public final class SMPPIO {
      * @throws ArrayIndexOutOfBoundsException If there are not enough bytes in
      * the array.
      */
-    public static long bytesToLongInt(byte[] b, int offset) {
-        long value = (long) b[offset + 3] & 0xff;
-        value |= ((long) b[offset] & 0xff) << 24;
-        value |= ((long) b[offset + 1] & 0xff) << 16;
-        value |= ((long) b[offset + 2] & 0xff) << 8;
-        return value;
-    }
-
-    /**
-     * Decode an 8-byte integer from a byte array.
-     * @param b The byte array to read the integer from.
-     * @param offset The offset at which the (most significant) first byte of
-     * the int resides.
-     * @return The decoded long integer value.
-     * @throws ArrayIndexOutOfBoundsException If there are not enough bytes in
-     * the array.
-     */
-    public static long bytesToLong(byte[] b, int offset) {
-        long value = (long) b[offset + 7] & 0xff;
-        value |= ((long) b[offset] & 0xff) << 56;
-        value |= ((long) b[offset + 1] & 0xff) << 48;
-        value |= ((long) b[offset + 2] & 0xff) << 40;
-        value |= ((long) b[offset + 3] & 0xff) << 32;
-        value |= ((long) b[offset + 4] & 0xff) << 24;
-        value |= ((long) b[offset + 5] & 0xff) << 16;
-        value |= ((long) b[offset + 6] & 0xff) << 8;
+    public static long readInt8(byte[] b, int offset) {
+        long value = (long) b[offset + 7] & 0xffL;
+        value |= ((long) b[offset] & 0xffL) << 56;
+        value |= ((long) b[offset + 1] & 0xffL) << 48;
+        value |= ((long) b[offset + 2] & 0xffL) << 40;
+        value |= ((long) b[offset + 3] & 0xffL) << 32;
+        value |= ((long) b[offset + 4] & 0xffL) << 24;
+        value |= ((long) b[offset + 5] & 0xffL) << 16;
+        value |= ((long) b[offset + 6] & 0xffL) << 8;
         return value;
     }
 
@@ -164,7 +171,7 @@ public final class SMPPIO {
      */
     public static void writeShort(int value, OutputStream out) throws IOException {
         out.write(value >>> 8);
-        out.write(value & 0xff);
+        out.write(value);
     }
 
     /**
@@ -177,7 +184,7 @@ public final class SMPPIO {
         out.write(value >>> 24);
         out.write(value >>> 16);
         out.write(value >>> 8);
-        out.write(value & 0xff);
+        out.write(value);
     }
 
     /**
@@ -189,10 +196,10 @@ public final class SMPPIO {
      * @throws IOException If an error occurs writing to the stream.
      */
     public static void writeLongInt(long value, OutputStream out) throws IOException {
-        out.write((int) (value >>> 24L));
-        out.write((int) (value >>> 16L));
-        out.write((int) (value >>> 8L));
-        out.write((int) (value & 0xffL));
+        out.write((int) (value >>> 24));
+        out.write((int) (value >>> 16));
+        out.write((int) (value >>> 8));
+        out.write((int) value);
     }
 
     /**
@@ -202,14 +209,14 @@ public final class SMPPIO {
      * @throws IOException If an error occurs writing to the stream.
      */
     public static void writeLong(long value, OutputStream out) throws IOException {
-        out.write((int) (value >>> 56L));
-        out.write((int) (value >>> 48L));
-        out.write((int) (value >>> 40L));
-        out.write((int) (value >>> 32L));
-        out.write((int) (value >>> 24L));
-        out.write((int) (value >>> 16L));
-        out.write((int) (value >>> 8L));
-        out.write((int) (value & 0xffL));
+        out.write((int) (value >>> 56));
+        out.write((int) (value >>> 48));
+        out.write((int) (value >>> 40));
+        out.write((int) (value >>> 32));
+        out.write((int) (value >>> 24));
+        out.write((int) (value >>> 16));
+        out.write((int) (value >>> 8));
+        out.write((int) value);
     }
     
     /**
@@ -226,30 +233,24 @@ public final class SMPPIO {
     public static void writeCString(String s, OutputStream out)
             throws java.io.IOException {
         writeString(s, out);
-        out.write((byte) 0);
+        out.write(0);
     }
 
     /**
      * Write a String of specified length to an OutputStream.
-     * 
-     * @param s
-     *            The String to write
-     * @param len
-     *            The length of the String to write. If this is longer than the
-     *            length of the String, the whole String will be sent.
-     * @param out
-     *            The OutputStream to use
-     * @throws java.io.IOException
-     *             If an I/O error occurs
-     * @see java.io.OutputStream
+     * @param s The String to write
+     * @param len The number of bytes to write. If <code>len</code> is greater
+     * than the number of characters in the string, an exception will be
+     * thrown.
+     * @param out The OutputStream to write to.
+     * @throws java.io.IOException If an I/O error occurs
+     * @throws ArrayIndexOutOfBoundsException If there are not enough characters
+     * to satisfy the <code>len</code> parameter.
      */
     public static void writeString(String s, int len, OutputStream out) throws IOException {
         if (s != null) {
-            if (len > s.length()) {
-                writeString(s, out);
-            } else {
-                writeString(s.substring(0, len), out);
-            }
+            byte[] b = s.getBytes(US_ASCII);
+            out.write(b, 0, len);
         }
     }
 

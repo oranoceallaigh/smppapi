@@ -1,11 +1,20 @@
 package ie.omk.smpp.util;
 
-import java.io.IOException;
-
-import ie.omk.smpp.Connection;
-import ie.omk.smpp.event.ConnectionObserver;
+import ie.omk.smpp.Session;
+import ie.omk.smpp.event.SessionObserver;
 import ie.omk.smpp.event.SMPPEvent;
+import ie.omk.smpp.message.CommandId;
+import ie.omk.smpp.message.DataSM;
+import ie.omk.smpp.message.DataSMResp;
+import ie.omk.smpp.message.DeliverSM;
+import ie.omk.smpp.message.DeliverSMResp;
+import ie.omk.smpp.message.EnquireLink;
+import ie.omk.smpp.message.EnquireLinkResp;
 import ie.omk.smpp.message.SMPPPacket;
+import ie.omk.smpp.message.Unbind;
+import ie.omk.smpp.message.UnbindResp;
+
+import java.io.IOException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,7 +22,7 @@ import org.slf4j.LoggerFactory;
 /**
  * A connection observer that can automatically respond to some of the basic
  * packet types. An instance of this class can be added as an observer to
- * a {@link ie.omk.smpp.Connection} and configured to send response packets
+ * a {@link ie.omk.smpp.Session} and configured to send response packets
  * to any of unbind, deliver_sm, data_sm or enquire_link requests.
  * <p>
  * After construction, the default configuration for an <code>AutoResponder
@@ -31,7 +40,7 @@ import org.slf4j.LoggerFactory;
  * </p>
  * @version $Id:$
  */
-public class AutoResponder implements ConnectionObserver {
+public class AutoResponder implements SessionObserver {
     private static final Logger LOG = LoggerFactory.getLogger(AutoResponder.class);
     
     private boolean ackUnbind;
@@ -71,41 +80,40 @@ public class AutoResponder implements ConnectionObserver {
         this.ackUnbind = ackUnbind;
     }
 
-    public void packetReceived(Connection source, SMPPPacket packet) {
+    public void packetReceived(Session source, SMPPPacket packet) {
         switch (packet.getCommandId()) {
-        case SMPPPacket.DELIVER_SM:
+        case CommandId.DELIVER_SM:
             if (ackDeliverSm) {
-                respond(source, packet);
+                respond(source, new DeliverSMResp((DeliverSM) packet));
             }
             break;
-        case SMPPPacket.DATA_SM:
+        case CommandId.DATA_SM:
             if (ackDataSm) {
-                respond(source, packet);
+                respond(source, new DataSMResp((DataSM) packet));
             }
             break;
-        case SMPPPacket.ENQUIRE_LINK:
+        case CommandId.ENQUIRE_LINK:
             if (ackEnquireLink) {
-                respond(source, packet);
+                respond(source, new EnquireLinkResp((EnquireLink) packet));
             }
             break;
-        case SMPPPacket.UNBIND:
+        case CommandId.UNBIND:
             if (ackUnbind) {
-                respond(source, packet);
+                respond(source, new UnbindResp((Unbind) packet));
             }
             break;
         }
     }
 
-    public void update(Connection source, SMPPEvent event) {
+    public void update(Session source, SMPPEvent event) {
     }
     
-    private void respond(Connection connection, SMPPPacket packet) {
+    private void respond(Session connection, SMPPPacket response) {
         try {
-            SMPPPacket response = PacketFactory.newResponse(packet);
             connection.sendPacket(response);
         } catch (IOException x) {
-            LOG.error("IOException while trying to respond to packet {}: {}",
-                    packet, x.getMessage());
+            LOG.error("IOException while trying to send packet {}: {}",
+                    response, x.getMessage());
             LOG.debug("Stack trace", x);
         }
     }

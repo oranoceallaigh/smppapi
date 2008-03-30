@@ -1,6 +1,6 @@
 package ie.omk.smpp.event;
 
-import ie.omk.smpp.Connection;
+import ie.omk.smpp.Session;
 import ie.omk.smpp.message.SMPPPacket;
 
 /**
@@ -23,7 +23,7 @@ class FIFOQueue {
         }
     }
 
-    public void put(Connection c, SMPPPacket p) throws QueueFullException {
+    public void put(Session c, SMPPPacket p) throws QueueFullException {
         if (isFull()) {
             throw new QueueFullException();
         }
@@ -33,7 +33,7 @@ class FIFOQueue {
         }
     }
 
-    public void put(Connection c, SMPPEvent e) throws QueueFullException {
+    public void put(Session c, SMPPEvent e) throws QueueFullException {
         if (isFull()) {
             throw new QueueFullException();
         }

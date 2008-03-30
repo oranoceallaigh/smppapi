@@ -15,7 +15,12 @@ public class EnquireLink extends SMPPPacket {
      * Construct a new EnquireLink.
      */
     public EnquireLink() {
-        super(ENQUIRE_LINK);
+        super(CommandId.ENQUIRE_LINK);
+    }
+    
+    @Override
+    public int hashCode() {
+        return super.hashCode() * 47;
     }
 }
 

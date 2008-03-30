@@ -6,7 +6,6 @@ import ie.omk.smpp.message.SMPPPacket;
 import ie.omk.smpp.net.ReadTimeoutException;
 import ie.omk.smpp.util.APIConfig;
 import ie.omk.smpp.util.PacketFactory;
-import ie.omk.smpp.util.SMPPIO;
 
 import java.io.IOException;
 
@@ -17,32 +16,75 @@ import org.slf4j.LoggerFactory;
  * Receiver thread for the connection.
  * @version $Id:$
  */
-class ReceiverThread extends Thread {
+public class ReceiverThread implements Receiver, Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(ReceiverThread.class);
-    
-    private Connection connection;
-    private byte[] buffer = new byte[128];
-    
-    ReceiverThread(Connection connection) {
-        this.connection = connection;
-        setDaemon(true);
+
+    private Thread thread;
+    private boolean running;
+    private Session session;
+    private PacketFactory packetFactory = new PacketFactory();
+
+    public ReceiverThread() {
+        thread = new Thread(this);
+        thread.setDaemon(true);
     }
     
-    @Override
+    public ReceiverThread(Session session) {
+        this();
+        this.session = session;
+    }
+    
+    public PacketFactory getPacketFactory() {
+        return packetFactory;
+    }
+
+    public void setPacketFactory(PacketFactory packetFactory) {
+        this.packetFactory = packetFactory;
+    }
+
+    public Session getSession() {
+        return session;
+    }
+    
+    public void setSession(Session session) {
+        this.session = session;
+    }
+    
+    public String getName() {
+        return thread.getName();
+    }
+    
+    public void setName(String name) {
+        thread.setName(name);
+    }
+    
     public void run() {
         LOG.debug("Receiver thread starting.");
         SMPPEvent exitEvent = null;
         try {
+            running = true;
             exitEvent = processPackets();
         } catch (Exception x) {
-            exitEvent = new ReceiverExitEvent(connection, x);
+            exitEvent = new ReceiverExitEvent(session, x);
         }
-        connection.getEventDispatcher().notifyObservers(connection, exitEvent);
+        session.getEventDispatcher().notifyObservers(session, exitEvent);
         LOG.debug("Destroying event dispatcher.");
-        connection.getEventDispatcher().destroy();
+        session.getEventDispatcher().destroy();
         LOG.debug("Receiver thread exiting.");
     }
 
+    public boolean isStarted() {
+        return thread.isAlive();
+    }
+
+    public void start() {
+        thread.start();
+    }
+    
+    public void stop() {
+        running = false;
+    }
+    
     private ReceiverExitEvent processPackets() throws Exception {
         ReceiverExitEvent exitEvent = null;
         int ioExceptions = 0;
@@ -50,20 +92,20 @@ class ReceiverThread extends Thread {
                 APIConfig.TOO_MANY_IO_EXCEPTIONS, 5);
         
         SMPPPacket packet = null;
-        while (connection.getState() != ConnectionState.UNBOUND) {
+        while (running && session.getState() != SessionState.UNBOUND) {
             try {
                 packet = readNextPacket();
                 if (packet == null) {
                     continue;
                 }
-                connection.processReceivedPacket(packet);
-                connection.getEventDispatcher().notifyObservers(connection, packet);
+                session.processReceivedPacket(packet);
+                session.getEventDispatcher().notifyObservers(session, packet);
                 ioExceptions = 0;
             } catch (ReadTimeoutException x) {
-                ConnectionState state = connection.getState();
-                if (state == ConnectionState.BINDING) {
+                SessionState state = session.getState();
+                if (state == SessionState.BINDING) {
                     LOG.debug("Bind timeout occurred.");
-                    exitEvent = new ReceiverExitEvent(connection, null, state);
+                    exitEvent = new ReceiverExitEvent(session, null, state);
                     exitEvent.setReason(ReceiverExitEvent.BIND_TIMEOUT);
                     break;
                 }
@@ -71,33 +113,20 @@ class ReceiverThread extends Thread {
                 LOG.debug("Exception in receiver", x);
                 ioExceptions++;
                 if (ioExceptions >= ioExceptionLimit) {
-                    ConnectionState state = connection.getState();
-                    exitEvent = new ReceiverExitEvent(connection, x, state);
+                    SessionState state = session.getState();
+                    exitEvent = new ReceiverExitEvent(session, x, state);
                     exitEvent.setReason(ReceiverExitEvent.EXCEPTION);
                     break;
                 }
             }
         }
         if (exitEvent == null) {
-            exitEvent = new ReceiverExitEvent(connection);
+            exitEvent = new ReceiverExitEvent(session);
         }
         return exitEvent;
     }
     
     private SMPPPacket readNextPacket() throws IOException {
-        buffer = connection.getSmscLink().read(buffer);
-        return decodePacket(buffer);
-    }
-    
-    private SMPPPacket decodePacket(byte[] array) {
-        int commandId = SMPPIO.bytesToInt(array, 4);
-        SMPPPacket packet = PacketFactory.newInstance(commandId);
-        if (packet != null) {
-            packet.readFrom(array, 0);
-        } else {
-            LOG.warn("Received an unparsable packet with command id {}",
-                    commandId);
-        }
-        return packet;
+        return session.getSmscLink().read();
     }
 }

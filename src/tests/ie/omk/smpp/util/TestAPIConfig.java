@@ -1,36 +1,47 @@
 package ie.omk.smpp.util;
 
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertSame;
+import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
+
 import java.math.BigInteger;
 import java.net.URL;
 
-import junit.framework.TestCase;
+import org.testng.annotations.BeforeTest;
+import org.testng.annotations.Test;
 
-public class TestAPIConfig extends TestCase {
+@Test
+public class TestAPIConfig {
 
     private APIConfig config;
     
-    public TestAPIConfig(String name) {
-        super(name);
+    @BeforeTest
+    public void setUp() throws Exception {
+        config = APIConfig.getInstance();
     }
-
+    
     public void testGetInstance() throws Exception {
         assertNotNull(APIConfig.getInstance());
     }
     
     public void testConvertToNumber() throws Exception {
-        assertEquals(0L, config.convertToNumber("0"));
-        assertEquals(1L, config.convertToNumber("1"));
-        assertEquals(1827L, config.convertToNumber("1827"));
-        assertEquals(-89123144L, config.convertToNumber("-89123144"));
-        assertEquals(2048, config.convertToNumber("2k"));
-        assertEquals(1048576L, config.convertToNumber("1m"));
-        assertEquals(116L, config.convertToNumber("1110100b"));
-        assertEquals(117L, config.convertToNumber("000001110101b"));
-        assertEquals(0xfeed9128L, config.convertToNumber("0xfeed9128"));
-        assertEquals(0xdeadbeefL, config.convertToNumber("0XdeadBEEF"));
-        assertEquals(034L, config.convertToNumber("034"));
-        assertEquals(8L, config.convertToNumber("010"));
-        assertEquals(9L, config.convertToNumber("011"));
+        assertEquals(config.convertToNumber("0"), 0L);
+        assertEquals(config.convertToNumber("1"), 1L);
+        assertEquals(config.convertToNumber("1827"), 1827L);
+        assertEquals(config.convertToNumber("-89123144"), -89123144L);
+        assertEquals(config.convertToNumber("2k"), 2048);
+        assertEquals(config.convertToNumber("1m"), 1048576L);
+        assertEquals(config.convertToNumber("1110100b"), 116L);
+        assertEquals(config.convertToNumber("000001110101b"), 117L);
+        assertEquals(config.convertToNumber("0xfeed9128"), 0xfeed9128L);
+        assertEquals(config.convertToNumber("0XdeadBEEF"), 0xdeadbeefL);
+        assertEquals(config.convertToNumber("034"), 034L);
+        assertEquals(config.convertToNumber("010"), 8L);
+        assertEquals(config.convertToNumber("011"), 9L);
         
         try {
             config.convertToNumber("deadbeef");
@@ -111,9 +122,9 @@ public class TestAPIConfig extends TestCase {
         config.setProperty("s.tooHigh",
                 Integer.toString((int) Short.MAX_VALUE + 5));
 
-        assertEquals(5, config.getShort("random.property", (short) 5));
-        assertEquals(056, config.getShort("s.number"));
-        assertEquals(056, config.getShort("s.number", (short) 2048));
+        assertEquals(config.getShort("random.property", (short) 5), 5);
+        assertEquals(config.getShort("s.number"), 056);
+        assertEquals(config.getShort("s.number", (short) 2048), 056);
         try {
             config.getShort("random.property");
             fail("Expected PropertyNotFoundException");
@@ -144,9 +155,9 @@ public class TestAPIConfig extends TestCase {
         config.setProperty("i.tooHigh",
                 Long.toString((long) Integer.MAX_VALUE + 5L));
 
-        assertEquals(5, config.getInt("random.property", 5));
-        assertEquals(4096, config.getInt("i.number"));
-        assertEquals(4096, config.getInt("i.number", 2048));
+        assertEquals(config.getInt("random.property", 5), 5);
+        assertEquals(config.getInt("i.number"), 4096);
+        assertEquals(config.getInt("i.number", 2048), 4096);
         try {
             config.getInt("random.property");
             fail("Expected PropertyNotFoundException");
@@ -178,9 +189,9 @@ public class TestAPIConfig extends TestCase {
         config.setProperty("L.tooLow", tooLow.toString(10));
         config.setProperty("L.tooHigh", tooHigh.toString(10));
 
-        assertEquals(5L, config.getLong("random.property", 5L));
-        assertEquals(4096L, config.getLong("L.number"));
-        assertEquals(4096L, config.getLong("L.number", 2048L));
+        assertEquals(config.getLong("random.property", 5L), 5L);
+        assertEquals(config.getLong("L.number"), 4096L);
+        assertEquals(config.getLong("L.number", 2048L), 4096L);
         try {
             config.getLong("random.property");
             fail("Expected PropertyNotFoundException");
@@ -219,9 +230,9 @@ public class TestAPIConfig extends TestCase {
             // pass
         }
         assertTrue(config.getBoolean(APIConfig.LINK_AUTO_FLUSH));
-        assertEquals(120000, config.getInt(APIConfig.LINK_TIMEOUT));
-        assertEquals(3, config.getInt(APIConfig.TOO_MANY_IO_EXCEPTIONS));
-        assertEquals(180000, config.getInt(APIConfig.BIND_TIMEOUT));
+        assertEquals(config.getInt(APIConfig.LINK_TIMEOUT), 120000);
+        assertEquals(config.getInt(APIConfig.TOO_MANY_IO_EXCEPTIONS), 3);
+        assertEquals(config.getInt(APIConfig.BIND_TIMEOUT), 180000);
         assertNull(config.getProperty(APIConfig.EVENT_DISPATCHER_CLASS, null));
         assertNull(config.getProperty(APIConfig.EVENT_THREAD_FIFO_QUEUE_SIZE, null));
         assertNull(config.getProperty(APIConfig.EVENT_THREAD_POOL_SIZE, null));
@@ -229,23 +240,18 @@ public class TestAPIConfig extends TestCase {
     }
     
     public void testConfigure() throws Exception {
-        URL url = getClass().getResource("TestAPIConfig.properties");
+        URL url = getClass().getClassLoader().getResource("TestAPIConfig.properties");
         assertNotNull(url);
         APIConfig.configure(url);
-        assertSame(config, APIConfig.getInstance());
+        assertSame(APIConfig.getInstance(), config);
         config = APIConfig.getInstance();
         
-        assertEquals("Some text", config.getProperty("apiConfig.string"));
-        assertEquals(0x89L, config.getLong("apiConfig.hexNumber"));
-        assertEquals(0164, config.getInt("apiConfig.octalNumber"));
-        assertEquals(5, config.getInt("apiConfig.binaryNumber"));
-        assertEquals(34 * 1024, config.getInt("apiConfig.kiloBytes"));
-        assertEquals(2L * 1024L * 1024L, config.getLong("apiConfig.megaBytes"));
+        assertEquals(config.getProperty("apiConfig.string"), "Some text");
+        assertEquals(config.getLong("apiConfig.hexNumber"), 0x89L);
+        assertEquals(config.getInt("apiConfig.octalNumber"), 0164);
+        assertEquals(config.getInt("apiConfig.binaryNumber"), 5);
+        assertEquals(config.getInt("apiConfig.kiloBytes"), 34 * 1024);
+        assertEquals(config.getLong("apiConfig.megaBytes"), 2L * 1024L * 1024L);
         assertTrue(config.getBoolean("apiConfig.bool"));
-    }
-    
-    protected void setUp() throws Exception {
-        super.setUp();
-        config = APIConfig.getInstance();
     }
 }

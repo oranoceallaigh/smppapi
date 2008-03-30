@@ -91,6 +91,11 @@ class AbsoluteSMPPDate extends SMPPDate {
         return sign;
     }
     
+    @Override
+    public int getLength() {
+        return hasTimeZone ? 17 : 13;
+    }
+    
     public boolean equals(Object obj) {
         if (obj == null || !(obj instanceof AbsoluteSMPPDate)) {
             return false;

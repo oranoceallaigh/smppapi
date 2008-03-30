@@ -11,7 +11,7 @@ public class BindTransceiver extends Bind {
      * Construct a new BindTransceiver.
      */
     public BindTransceiver() {
-        super(BIND_TRANSCEIVER);
+        super(CommandId.BIND_TRANSCEIVER);
     }
 }
 

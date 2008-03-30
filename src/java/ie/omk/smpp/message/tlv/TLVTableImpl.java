@@ -1,11 +1,10 @@
 package ie.omk.smpp.message.tlv;
 
 import ie.omk.smpp.message.param.ParamDescriptor;
-import ie.omk.smpp.util.ParsePosition;
-import ie.omk.smpp.util.SMPPIO;
+import ie.omk.smpp.util.PacketDecoder;
+import ie.omk.smpp.util.PacketEncoder;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.text.MessageFormat;
 import java.util.BitSet;
 import java.util.LinkedHashMap;
@@ -24,25 +23,15 @@ public class TLVTableImpl extends LinkedHashMap<Tag, Object> implements TLVTable
     
     /**
      * Decode a full set of optional parameters from a byte array.
-     * 
-     * @param data
-     *            The byte array to decode from.
-     * @param position
-     *            The array index of byte to begin parsing the parameter table
-     *            from.
-     * @param length
-     *            The length in the byte array of all the optional parameters.
      */
-    public void readFrom(byte[] data, ParsePosition position, int length) {
-        int endIndex = position.getIndex() + length;
-        while (position.getIndex() < endIndex) {
+    public void readFrom(PacketDecoder decoder, int length) {
+        int endIndex = (decoder.getParsePosition() + length) - 1;
+        while (decoder.getParsePosition() < endIndex) {
             Object val = null;
-            Tag tag = Tag.getTag(SMPPIO.bytesToShort(
-                    data, position.getIndex()));
-            int valueLen = SMPPIO.bytesToShort(data, position.getIndex() + 2);
-            position.inc(4);
+            Tag tag = Tag.getTag(decoder.readUInt2());
+            int valueLen = decoder.readUInt2();
             ParamDescriptor descriptor = tag.getParamDescriptor();
-            val = descriptor.readObject(data, position, valueLen);
+            val = descriptor.readObject(decoder, valueLen);
             put(tag, val);
         }
     }
@@ -55,15 +44,15 @@ public class TLVTableImpl extends LinkedHashMap<Tag, Object> implements TLVTable
      * @throws java.io.IOException
      *             If an error occurs writing to the output stream.
      */
-    public void writeTo(OutputStream out) throws IOException {
+    public void writeTo(PacketEncoder encoder) throws IOException {
         for (Map.Entry<Tag, Object> entry : entrySet()) {
             Tag tag = entry.getKey();
             Object value = entry.getValue();
             ParamDescriptor descriptor = tag.getParamDescriptor();
             int valueLen = descriptor.sizeOf(value);
-            SMPPIO.writeShort(tag.intValue(), out);
-            SMPPIO.writeShort(valueLen, out);
-            descriptor.writeObject(value, out);
+            encoder.writeUInt2(tag.intValue());
+            encoder.writeUInt2(valueLen);
+            descriptor.writeObject(value, encoder);
         }
     }
 
@@ -160,7 +149,7 @@ public class TLVTableImpl extends LinkedHashMap<Tag, Object> implements TLVTable
     public Object put(Tag tag, Object value)
             throws BadValueTypeException, InvalidSizeForValueException {
         ParamDescriptor descriptor = tag.getParamDescriptor();
-        if (descriptor == ParamDescriptor.NULL && value != null) {
+        if (descriptor.equals(BasicDescriptors.NULL) && value != null) {
             String error = MessageFormat.format(
                     "Tag {0} does not accept any value.",
                     new Object[] {tag});

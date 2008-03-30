@@ -1,6 +1,6 @@
 package ie.omk.smpp.event;
 
-import ie.omk.smpp.Connection;
+import ie.omk.smpp.Session;
 
 /**
  * Event generated when the receiver thread starts. Usually applications can
@@ -13,7 +13,7 @@ public class ReceiverStartEvent extends SMPPEvent {
     /**
      * Create a new ReceiverStartEvent.
      */
-    public ReceiverStartEvent(Connection source) {
+    public ReceiverStartEvent(Session source) {
         super(RECEIVER_START, source);
     }
 }

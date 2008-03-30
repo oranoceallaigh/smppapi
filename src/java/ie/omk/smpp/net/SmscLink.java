@@ -60,8 +60,9 @@ public interface SmscLink {
      * hold all of the packet&apos;s data, otherwise a new array is created
      * and returned with the packet data.
      * @throws IOException
+     * @throws ReadTimeoutException
      */
-    byte[] read(byte[] buffer) throws IOException;
+    SMPPPacket read() throws IOException;
     
     /**
      * Get the current timeout for the underlying link. If read timeouts

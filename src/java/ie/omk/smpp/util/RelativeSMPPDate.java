@@ -61,6 +61,11 @@ class RelativeSMPPDate extends SMPPDate {
         return true;
     }
     
+    @Override
+    public int getLength() {
+        return 17;
+    }
+    
     public boolean equals(Object obj) {
         if (obj == null || !(obj instanceof RelativeSMPPDate)) {
             return false;

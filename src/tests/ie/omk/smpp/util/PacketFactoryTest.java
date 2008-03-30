@@ -1,69 +1,82 @@
 package ie.omk.smpp.util;
 
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 import ie.omk.smpp.BadCommandIDException;
 import ie.omk.smpp.SMPPRuntimeException;
+import ie.omk.smpp.message.CommandId;
 import ie.omk.smpp.message.SMPPPacket;
-import junit.framework.TestCase;
 
-public class PacketFactoryTest extends TestCase {
+import org.testng.annotations.Test;
+
+@Test
+public class PacketFactoryTest {
 
     public static final int VENDOR_ID = 0x10201;
     private final int[] allIds = new int[] {
-            SMPPPacket.ALERT_NOTIFICATION,
-            SMPPPacket.BIND_RECEIVER,
-            SMPPPacket.BIND_RECEIVER_RESP,
-            SMPPPacket.BIND_TRANSCEIVER,
-            SMPPPacket.BIND_TRANSCEIVER_RESP,
-            SMPPPacket.BIND_TRANSMITTER,
-            SMPPPacket.BIND_TRANSMITTER_RESP,
-            SMPPPacket.CANCEL_SM,
-            SMPPPacket.CANCEL_SM_RESP,
-            SMPPPacket.DATA_SM,
-            SMPPPacket.DATA_SM_RESP,
-            SMPPPacket.DELIVER_SM,
-            SMPPPacket.DELIVER_SM_RESP,
-            SMPPPacket.ENQUIRE_LINK,
-            SMPPPacket.ENQUIRE_LINK_RESP,
-            SMPPPacket.GENERIC_NACK,
-            SMPPPacket.OUTBIND,
-            SMPPPacket.PARAM_RETRIEVE,
-            SMPPPacket.PARAM_RETRIEVE_RESP,
-            SMPPPacket.QUERY_LAST_MSGS,
-            SMPPPacket.QUERY_LAST_MSGS_RESP,
-            SMPPPacket.QUERY_MSG_DETAILS,
-            SMPPPacket.QUERY_MSG_DETAILS_RESP,
-            SMPPPacket.QUERY_SM,
-            SMPPPacket.QUERY_SM_RESP,
-            SMPPPacket.REPLACE_SM,
-            SMPPPacket.REPLACE_SM_RESP,
-            SMPPPacket.SUBMIT_MULTI,
-            SMPPPacket.SUBMIT_MULTI_RESP,
-            SMPPPacket.SUBMIT_SM,
-            SMPPPacket.SUBMIT_SM_RESP,
-            SMPPPacket.UNBIND,
-            SMPPPacket.UNBIND_RESP,
+            CommandId.ALERT_NOTIFICATION,
+            CommandId.BIND_RECEIVER,
+            CommandId.BIND_RECEIVER_RESP,
+            CommandId.BIND_TRANSCEIVER,
+            CommandId.BIND_TRANSCEIVER_RESP,
+            CommandId.BIND_TRANSMITTER,
+            CommandId.BIND_TRANSMITTER_RESP,
+            CommandId.BROADCAST_SM,
+            CommandId.BROADCAST_SM_RESP,
+            CommandId.CANCEL_BROADCAST_SM,
+            CommandId.CANCEL_BROADCAST_SM_RESP,
+            CommandId.CANCEL_SM,
+            CommandId.CANCEL_SM_RESP,
+            CommandId.DATA_SM,
+            CommandId.DATA_SM_RESP,
+            CommandId.DELIVER_SM,
+            CommandId.DELIVER_SM_RESP,
+            CommandId.ENQUIRE_LINK,
+            CommandId.ENQUIRE_LINK_RESP,
+            CommandId.GENERIC_NACK,
+            CommandId.OUTBIND,
+            CommandId.PARAM_RETRIEVE,
+            CommandId.PARAM_RETRIEVE_RESP,
+            CommandId.QUERY_BROADCAST_SM,
+            CommandId.QUERY_BROADCAST_SM_RESP,
+            CommandId.QUERY_LAST_MSGS,
+            CommandId.QUERY_LAST_MSGS_RESP,
+            CommandId.QUERY_MSG_DETAILS,
+            CommandId.QUERY_MSG_DETAILS_RESP,
+            CommandId.QUERY_SM,
+            CommandId.QUERY_SM_RESP,
+            CommandId.REPLACE_SM,
+            CommandId.REPLACE_SM_RESP,
+            CommandId.SUBMIT_MULTI,
+            CommandId.SUBMIT_MULTI_RESP,
+            CommandId.SUBMIT_SM,
+            CommandId.SUBMIT_SM_RESP,
+            CommandId.UNBIND,
+            CommandId.UNBIND_RESP,
     };
+    private PacketFactory packetFactory = new PacketFactory();
     
     public void testCreatePackets() throws Exception {
         for (int id : allIds) {
-            PacketFactory.newInstance(id);
+            packetFactory.newInstance(id);
         }
     }
     
     public void testCreateResponses() throws Exception {
         for (int id : allIds) {
-            SMPPPacket p = PacketFactory.newInstance(id);
+            SMPPPacket p = packetFactory.newInstance(id);
             if (p.isResponse()) {
                 continue;
             }
             // Commands that have no responses
-            if (id == SMPPPacket.ALERT_NOTIFICATION || id == SMPPPacket.OUTBIND) {
+            if (id == CommandId.ALERT_NOTIFICATION || id == CommandId.OUTBIND) {
                 continue;
             }
             p.setSequenceNum(89);
-            SMPPPacket o = PacketFactory.newResponse(p);
-            assertEquals(id | 0x80000000, o.getCommandId());
-            assertEquals(p.getSequenceNum(), o.getSequenceNum());
+            SMPPPacket o = packetFactory.newResponse(p);
+            assertEquals(o.getCommandId(), id | 0x80000000);
+            assertEquals(o.getSequenceNum(), p.getSequenceNum());
         }
     }
     
@@ -72,9 +85,9 @@ public class PacketFactoryTest extends TestCase {
             if ((id & 0x80000000) == 0) {
                 continue;
             }
-            SMPPPacket p = PacketFactory.newInstance(id);
+            SMPPPacket p = packetFactory.newInstance(id);
             try {
-                PacketFactory.newResponse(p);
+                packetFactory.newResponse(p);
                 fail("Should not create a response to a response.");
             } catch (SMPPRuntimeException x) {
                 // Pass
@@ -84,26 +97,26 @@ public class PacketFactoryTest extends TestCase {
     
     public void testCustomCommand() throws Exception {
         try {
-            PacketFactory.newInstance(VENDOR_ID);
+            packetFactory.newInstance(VENDOR_ID);
             fail("Vendor ID should not be recognized yet.");
         } catch (BadCommandIDException x) {
             // Pass
         }
-        PacketFactory.registerVendorPacket(
+        packetFactory.registerVendorPacket(
                 VENDOR_ID, VendorRequest.class, VendorResponse.class);
-        SMPPPacket packet = PacketFactory.newInstance(VENDOR_ID);
+        SMPPPacket packet = packetFactory.newInstance(VENDOR_ID);
         assertTrue(packet instanceof VendorRequest);
-        assertEquals(VENDOR_ID, packet.getCommandId());
+        assertEquals(packet.getCommandId(), VENDOR_ID);
         
-        packet = PacketFactory.newInstance(VENDOR_ID | 0x80000000);
+        packet = packetFactory.newInstance(VENDOR_ID | 0x80000000);
         assertTrue(packet instanceof VendorResponse);
-        assertEquals(VENDOR_ID | 0x80000000, packet.getCommandId());
+        assertEquals(packet.getCommandId(), VENDOR_ID | 0x80000000);
         
-        packet = PacketFactory.newInstance(VENDOR_ID);
+        packet = packetFactory.newInstance(VENDOR_ID);
         packet.setSequenceNum(101);
-        SMPPPacket response = PacketFactory.newResponse(packet);
+        SMPPPacket response = packetFactory.newResponse(packet);
         assertTrue(response instanceof VendorResponse);
-        assertEquals(101, response.getSequenceNum());
+        assertEquals(response.getSequenceNum(), 101);
     }
 }
 

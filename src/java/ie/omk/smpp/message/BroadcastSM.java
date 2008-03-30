@@ -1,21 +1,22 @@
 package ie.omk.smpp.message;
 
-import java.util.List;
-
 import ie.omk.smpp.Address;
-import ie.omk.smpp.message.param.ParamDescriptor;
 import ie.omk.smpp.message.tlv.TLVTable;
 import ie.omk.smpp.message.tlv.Tag;
+import ie.omk.smpp.util.PacketDecoder;
+import ie.omk.smpp.util.PacketEncoder;
 import ie.omk.smpp.util.SMPPDate;
 import ie.omk.smpp.version.SMPPVersion;
+
+import java.io.IOException;
 
 /**
  * Submit a broadcast message to the SMSC.
  * @version $Id:$
+ * @since 0.4.0
  */
 public class BroadcastSM extends SMPPPacket {
     private static final long serialVersionUID = 1L;
-    private static final BodyDescriptor bodyDescriptor = new BodyDescriptor();
     
     private String serviceType;
     private Address source;
@@ -27,22 +28,8 @@ public class BroadcastSM extends SMPPPacket {
     private int dataCoding;
     private int defaultMsg;
     
-    static {
-        bodyDescriptor.add(ParamDescriptor.CSTRING)
-        .add(ParamDescriptor.INTEGER1)
-        .add(ParamDescriptor.INTEGER1)
-        .add(ParamDescriptor.CSTRING)
-        .add(ParamDescriptor.CSTRING)
-        .add(ParamDescriptor.INTEGER1)
-        .add(ParamDescriptor.DATE)
-        .add(ParamDescriptor.DATE)
-        .add(ParamDescriptor.INTEGER1)
-        .add(ParamDescriptor.INTEGER1)
-        .add(ParamDescriptor.INTEGER1);
-    }
-    
     public BroadcastSM() {
-        super (SMPPPacket.BROADCAST_SM);
+        super (CommandId.BROADCAST_SM);
     }
 
     public int getDataCoding() {
@@ -118,36 +105,73 @@ public class BroadcastSM extends SMPPPacket {
     }
 
     @Override
-    protected BodyDescriptor getBodyDescriptor() {
-        return bodyDescriptor;
-    }
-
-    @Override
-    protected Object[] getMandatoryParameters() {
-        return new Object[] {
-                serviceType,
-                source,
-                messageId,
-                Integer.valueOf(priority),
-                deliveryTime,
-                expiryTime,
-                Integer.valueOf(replaceIfPresent),
-                Integer.valueOf(dataCoding),
-                Integer.valueOf(defaultMsg),
-        };
+    public boolean equals(Object obj) {
+        boolean equals = super.equals(obj);
+        if (equals) {
+            BroadcastSM other = (BroadcastSM) obj;
+            equals |= safeCompare(serviceType, other.serviceType);
+            equals |= safeCompare(source, other.source);
+            equals |= safeCompare(messageId, other.messageId);
+            equals |= priority == other.priority;
+            equals |= safeCompare(deliveryTime, other.deliveryTime);
+            equals |= safeCompare(expiryTime, other.expiryTime);
+            equals |= replaceIfPresent == other.replaceIfPresent;
+            equals |= dataCoding == other.dataCoding;
+            equals |= defaultMsg == other.defaultMsg;
+        }
+        return equals;
     }
     
     @Override
-    protected void setMandatoryParameters(List<Object> params) {
-        serviceType = (String) params.get(0);
-        source = (Address) params.get(1);
-        messageId = (String) params.get(2);
-        priority = ((Number) params.get(3)).intValue();
-        deliveryTime = (SMPPDate) params.get(4);
-        expiryTime = (SMPPDate) params.get(5);
-        replaceIfPresent = ((Number) params.get(6)).intValue();
-        dataCoding = ((Number) params.get(7)).intValue();
-        defaultMsg = ((Number) params.get(8)).intValue();
+    public int hashCode() {
+        int hc = super.hashCode();
+        hc += (serviceType != null) ? serviceType.hashCode() : 13;
+        hc += (source != null) ? source.hashCode() : 13;
+        hc += (messageId != null) ? messageId.hashCode() : 13;
+        hc += Integer.valueOf(priority).hashCode();
+        hc += (deliveryTime != null) ? deliveryTime.hashCode() : 13;
+        hc += (expiryTime != null) ? expiryTime.hashCode() : 13;
+        hc += Integer.valueOf(replaceIfPresent).hashCode();
+        hc += Integer.valueOf(dataCoding).hashCode();
+        hc += Integer.valueOf(defaultMsg).hashCode();
+        return hc;
+    }
+    
+    @Override
+    protected void readMandatory(PacketDecoder decoder) {
+        serviceType = decoder.readCString();
+        source = decoder.readAddress();
+        messageId = decoder.readCString();
+        priority = decoder.readUInt1();
+        deliveryTime = decoder.readDate();
+        expiryTime = decoder.readDate();
+        replaceIfPresent = decoder.readUInt1();
+        dataCoding = decoder.readUInt1();
+        defaultMsg = decoder.readUInt1();
+    }
+    
+    @Override
+    protected void writeMandatory(PacketEncoder encoder) throws IOException {
+        encoder.writeCString(serviceType);
+        encoder.writeAddress(source);
+        encoder.writeCString(messageId);
+        encoder.writeUInt1(priority);
+        encoder.writeDate(deliveryTime);
+        encoder.writeDate(expiryTime);
+        encoder.writeUInt1(replaceIfPresent);
+        encoder.writeUInt1(dataCoding);
+        encoder.writeUInt1(defaultMsg);
+    }
+    
+    @Override
+    protected int getMandatorySize() {
+        int length = 6;
+        length += sizeOf(serviceType);
+        length += sizeOf(source);
+        length += sizeOf(messageId);
+        length += sizeOf(deliveryTime);
+        length += sizeOf(expiryTime);
+        return length;
     }
     
     @Override

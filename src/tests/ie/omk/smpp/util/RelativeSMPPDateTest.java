@@ -1,22 +1,28 @@
 package ie.omk.smpp.util;
 
-import junit.framework.TestCase;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
 
-public class RelativeSMPPDateTest extends TestCase {
+import org.testng.annotations.Test;
+
+@Test
+public class RelativeSMPPDateTest {
 
     public void testRelativeDate() {
         SMPPDate d = SMPPDate.getRelativeInstance(2, 5, 12, 9, 55, 3);
         assertTrue(d.isRelative());
         assertFalse(d.isAbsolute());
-        assertEquals('R', d.getSign());
-        assertEquals(2, d.getYear());
-        assertEquals(5, d.getMonth());
-        assertEquals(12, d.getDay());
-        assertEquals(9, d.getHour());
-        assertEquals(55, d.getMinute());
-        assertEquals(3, d.getSecond());
-        assertEquals(0, d.getTenth());
-        assertEquals(0, d.getUtcOffset());
+        assertEquals(d.getSign(), 'R');
+        assertEquals(d.getYear(), 2);
+        assertEquals(d.getMonth(), 5);
+        assertEquals(d.getDay(), 12);
+        assertEquals(d.getHour(), 9);
+        assertEquals(d.getMinute(), 55);
+        assertEquals(d.getSecond(), 3);
+        assertEquals(d.getTenth(), 0);
+        assertEquals(d.getUtcOffset(), 0);
         assertNull(d.getTimeZone());
     }
 
@@ -28,12 +34,12 @@ public class RelativeSMPPDateTest extends TestCase {
         assertEquals(date1, date1);
         assertEquals(date2, date2);
         assertEquals(date3, date3);
-        assertEquals(date1, date2);
         assertEquals(date2, date1);
+        assertEquals(date1, date2);
         assertFalse(date1.equals(date3));
         assertFalse(date3.equals(date1));
         
-        assertEquals(date1.hashCode(), date2.hashCode());
+        assertEquals(date2.hashCode(), date1.hashCode());
         assertFalse(date1.hashCode() == date3.hashCode());
     }
 }

@@ -9,6 +9,10 @@ import ie.omk.smpp.message.BindTransceiver;
 import ie.omk.smpp.message.BindTransceiverResp;
 import ie.omk.smpp.message.BindTransmitter;
 import ie.omk.smpp.message.BindTransmitterResp;
+import ie.omk.smpp.message.BroadcastSM;
+import ie.omk.smpp.message.BroadcastSMResp;
+import ie.omk.smpp.message.CancelBroadcastSM;
+import ie.omk.smpp.message.CancelBroadcastSMResp;
 import ie.omk.smpp.message.CancelSM;
 import ie.omk.smpp.message.CancelSMResp;
 import ie.omk.smpp.message.DataSM;
@@ -21,6 +25,8 @@ import ie.omk.smpp.message.GenericNack;
 import ie.omk.smpp.message.Outbind;
 import ie.omk.smpp.message.ParamRetrieve;
 import ie.omk.smpp.message.ParamRetrieveResp;
+import ie.omk.smpp.message.QueryBroadcastSM;
+import ie.omk.smpp.message.QueryBroadcastSMResp;
 import ie.omk.smpp.message.QueryLastMsgs;
 import ie.omk.smpp.message.QueryLastMsgsResp;
 import ie.omk.smpp.message.QueryMsgDetails;
@@ -38,7 +44,6 @@ import ie.omk.smpp.message.Unbind;
 import ie.omk.smpp.message.UnbindResp;
 
 import java.lang.reflect.Constructor;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -51,49 +56,34 @@ import org.slf4j.LoggerFactory;
  */
 public final class PacketFactory {
     private static final Logger LOG = LoggerFactory.getLogger(PacketFactory.class);
-    private static final PacketFactory INSTANCE = new PacketFactory();
     
-    private final Map<Integer, Class<? extends SMPPPacket>> commands;
+    private final Map<Integer, Class<? extends SMPPPacket>> commands =
+        new HashMap<Integer, Class<? extends SMPPPacket>>();
     private final Map<Integer, Class<? extends SMPPPacket>> userCommands =
         new HashMap<Integer, Class<? extends SMPPPacket>>();
     
-    private PacketFactory() {
-        Map<Integer, Class<? extends SMPPPacket>> commands =
-            new HashMap<Integer, Class<? extends SMPPPacket>>();
-        commands.put(Integer.valueOf(SMPPPacket.ALERT_NOTIFICATION), AlertNotification.class);
-        commands.put(Integer.valueOf(SMPPPacket.BIND_RECEIVER), BindReceiver.class);
-        commands.put(Integer.valueOf(SMPPPacket.BIND_RECEIVER_RESP), BindReceiverResp.class);
-        commands.put(Integer.valueOf(SMPPPacket.BIND_TRANSCEIVER), BindTransceiver.class);
-        commands.put(Integer.valueOf(SMPPPacket.BIND_TRANSCEIVER_RESP), BindTransceiverResp.class);
-        commands.put(Integer.valueOf(SMPPPacket.BIND_TRANSMITTER), BindTransmitter.class);
-        commands.put(Integer.valueOf(SMPPPacket.BIND_TRANSMITTER_RESP), BindTransmitterResp.class);
-        commands.put(Integer.valueOf(SMPPPacket.CANCEL_SM), CancelSM.class);
-        commands.put(Integer.valueOf(SMPPPacket.CANCEL_SM_RESP), CancelSMResp.class);
-        commands.put(Integer.valueOf(SMPPPacket.DATA_SM), DataSM.class);
-        commands.put(Integer.valueOf(SMPPPacket.DATA_SM_RESP), DataSMResp.class);
-        commands.put(Integer.valueOf(SMPPPacket.DELIVER_SM), DeliverSM.class);
-        commands.put(Integer.valueOf(SMPPPacket.DELIVER_SM_RESP), DeliverSMResp.class);
-        commands.put(Integer.valueOf(SMPPPacket.ENQUIRE_LINK), EnquireLink.class);
-        commands.put(Integer.valueOf(SMPPPacket.ENQUIRE_LINK_RESP), EnquireLinkResp.class);
-        commands.put(Integer.valueOf(SMPPPacket.GENERIC_NACK), GenericNack.class);
-        commands.put(Integer.valueOf(SMPPPacket.OUTBIND), Outbind.class);
-        commands.put(Integer.valueOf(SMPPPacket.PARAM_RETRIEVE), ParamRetrieve.class);
-        commands.put(Integer.valueOf(SMPPPacket.PARAM_RETRIEVE_RESP), ParamRetrieveResp.class);
-        commands.put(Integer.valueOf(SMPPPacket.QUERY_LAST_MSGS), QueryLastMsgs.class);
-        commands.put(Integer.valueOf(SMPPPacket.QUERY_LAST_MSGS_RESP), QueryLastMsgsResp.class);
-        commands.put(Integer.valueOf(SMPPPacket.QUERY_MSG_DETAILS), QueryMsgDetails.class);
-        commands.put(Integer.valueOf(SMPPPacket.QUERY_MSG_DETAILS_RESP), QueryMsgDetailsResp.class);
-        commands.put(Integer.valueOf(SMPPPacket.QUERY_SM), QuerySM.class);
-        commands.put(Integer.valueOf(SMPPPacket.QUERY_SM_RESP), QuerySMResp.class);
-        commands.put(Integer.valueOf(SMPPPacket.REPLACE_SM), ReplaceSM.class);
-        commands.put(Integer.valueOf(SMPPPacket.REPLACE_SM_RESP), ReplaceSMResp.class);
-        commands.put(Integer.valueOf(SMPPPacket.SUBMIT_MULTI), SubmitMulti.class);
-        commands.put(Integer.valueOf(SMPPPacket.SUBMIT_MULTI_RESP), SubmitMultiResp.class);
-        commands.put(Integer.valueOf(SMPPPacket.SUBMIT_SM), SubmitSM.class);
-        commands.put(Integer.valueOf(SMPPPacket.SUBMIT_SM_RESP), SubmitSMResp.class);
-        commands.put(Integer.valueOf(SMPPPacket.UNBIND), Unbind.class);
-        commands.put(Integer.valueOf(SMPPPacket.UNBIND_RESP), UnbindResp.class);
-        this.commands = Collections.unmodifiableMap(commands);
+    public PacketFactory() {
+        add(new AlertNotification());
+        add(new BindReceiver(), new BindReceiverResp());
+        add(new BindTransceiver(), new BindTransceiverResp());
+        add(new BindTransmitter(), new BindTransmitterResp());
+        add(new BroadcastSM(), new BroadcastSMResp());
+        add(new CancelBroadcastSM(), new CancelBroadcastSMResp());
+        add(new CancelSM(), new CancelSMResp());
+        add(new DataSM(), new DataSMResp());
+        add(new DeliverSM(), new DeliverSMResp());
+        add(new EnquireLink(), new EnquireLinkResp());
+        add(new GenericNack());
+        add(new Outbind());
+        add(new ParamRetrieve(), new ParamRetrieveResp());
+        add(new QueryBroadcastSM(), new QueryBroadcastSMResp());
+        add(new QueryLastMsgs(), new QueryLastMsgsResp());
+        add(new QueryMsgDetails(), new QueryMsgDetailsResp());
+        add(new QuerySM(), new QuerySMResp());
+        add(new ReplaceSM(), new ReplaceSMResp());
+        add(new SubmitMulti(), new SubmitMultiResp());
+        add(new SubmitSM(), new SubmitSMResp());
+        add(new Unbind(), new UnbindResp());
     }
 
     /**
@@ -107,8 +97,8 @@ public final class PacketFactory {
      * @throws ie.omk.smpp.BadCommandIDException
      *             if the command ID is not recognized.
      */
-    public static SMPPPacket newInstance(int id) {
-        return INSTANCE.newInstance(id, null);
+    public SMPPPacket newInstance(int id) {
+        return newInstance(id, null);
     }
     
     /**
@@ -122,13 +112,13 @@ public final class PacketFactory {
      * @throws SMPPRuntimeException If an attempt is made to create a
      * response to a response packet.
      */
-    public static SMPPPacket newResponse(SMPPPacket packet) {
+    public SMPPPacket newResponse(SMPPPacket packet) {
         if (packet.isResponse()) {
             throw new SMPPRuntimeException(
                     "Cannot create a response to a response!");
         }
         int id = packet.getCommandId();
-        SMPPPacket response = INSTANCE.newInstance(id | 0x80000000, packet);
+        SMPPPacket response = newInstance(id | 0x80000000, packet);
         response.setSequenceNum(packet.getSequenceNum());
         return response;
     }
@@ -152,21 +142,51 @@ public final class PacketFactory {
      * @param responseType The class which implements the vendor response
      * packet.
      */
-    public static void registerVendorPacket(int id,
+    public void registerVendorPacket(int id,
             Class<? extends SMPPPacket> requestType,
             Class<? extends SMPPPacket> responseType) {
-        INSTANCE.userCommands.put(Integer.valueOf(id), requestType);
+        userCommands.put(Integer.valueOf(id), requestType);
         if (responseType != null) {
-            INSTANCE.userCommands.put(
+            userCommands.put(
                     Integer.valueOf(id | 0x80000000), responseType);
         }
     }
 
-    public static void unregisterVendorPacket(int id) {
-        INSTANCE.userCommands.remove(Integer.valueOf(id));
-        INSTANCE.userCommands.remove(Integer.valueOf(id | 0x80000000));
+    /**
+     * Remove a vendor packet definition from this factory.
+     * @param id The ID of the vendor packet to remove. This will also
+     * unregister the response packet if it exists.
+     */
+    public void unregisterVendorPacket(int id) {
+        userCommands.remove(Integer.valueOf(id));
+        userCommands.remove(Integer.valueOf(id | 0x80000000));
+    }
+
+    /**
+     * Add an internal API-defined packet type.
+     * @param command The request packet to add.
+     */
+    private void add(SMPPPacket command) {
+        int commandId = command.getCommandId();
+        Class<? extends SMPPPacket> commandClass = command.getClass();
+        commands.put(Integer.valueOf(commandId), commandClass);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Mapping id {} to class {}", commandId, commandClass.getName());
+        }
     }
     
+    /**
+     * Add an internal API-defined packet type.
+     * @param requestClass The request packet to add.
+     * @param responseClass The response packet to add.
+     */
+    private void add(SMPPPacket request, SMPPPacket response) {
+        add(request);
+        if (response != null) {
+            add(response);
+        }
+    }
+
     /**
      * Get a new instance of an SMPP packet for the specified ID.
      * @param id The command ID to get the packet object for.

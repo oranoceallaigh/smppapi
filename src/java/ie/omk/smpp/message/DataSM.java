@@ -1,10 +1,11 @@
 package ie.omk.smpp.message;
 
 import ie.omk.smpp.Address;
-import ie.omk.smpp.message.param.ParamDescriptor;
+import ie.omk.smpp.util.PacketDecoder;
+import ie.omk.smpp.util.PacketEncoder;
 import ie.omk.smpp.version.SMPPVersion;
 
-import java.util.List;
+import java.io.IOException;
 
 /**
  * Transfer data between the SC and an ESME. This message type is used to
@@ -14,7 +15,6 @@ import java.util.List;
  */
 public class DataSM extends SMPPPacket {
     private static final long serialVersionUID = 1L;
-    private static final BodyDescriptor BODY_DESCRIPTOR = new BodyDescriptor();
 
     private String serviceType;
     private Address source;
@@ -23,20 +23,11 @@ public class DataSM extends SMPPPacket {
     private int registered;
     private int dataCoding;
     
-    static {
-        BODY_DESCRIPTOR.add(ParamDescriptor.CSTRING)
-        .add(ParamDescriptor.ADDRESS)
-        .add(ParamDescriptor.ADDRESS)
-        .add(ParamDescriptor.INTEGER1)
-        .add(ParamDescriptor.INTEGER1)
-        .add(ParamDescriptor.INTEGER1);
-    }
-    
     /**
      * Construct a new DataSM
      */
     public DataSM() {
-        super(DATA_SM);
+        super(CommandId.DATA_SM);
     }
 
     public int getDataCoding() {
@@ -88,6 +79,33 @@ public class DataSM extends SMPPPacket {
     }
 
     @Override
+    public boolean equals(Object obj) {
+        boolean equals = super.equals(obj);
+        if (equals) {
+            DataSM other = (DataSM) obj;
+            equals |= safeCompare(serviceType, other.serviceType);
+            equals |= safeCompare(source, other.source);
+            equals |= safeCompare(destination, other.destination);
+            equals |= esmClass == other.esmClass;
+            equals |= registered == other.registered;
+            equals |= dataCoding == other.dataCoding;
+        }
+        return equals;
+    }
+    
+    @Override
+    public int hashCode() {
+        int hc = super.hashCode();
+        hc += (serviceType != null) ? serviceType.hashCode() : 0;
+        hc += (source != null) ? source.hashCode() : 0;
+        hc += (destination != null) ? destination.hashCode() : 0;
+        hc += Integer.valueOf(esmClass).hashCode();
+        hc += Integer.valueOf(registered).hashCode();
+        hc += Integer.valueOf(dataCoding).hashCode();
+        return hc;
+    }
+
+    @Override
     protected void toString(StringBuffer buffer) {
         buffer.append("serviceType=").append(serviceType)
         .append(",source=").append(source)
@@ -106,31 +124,33 @@ public class DataSM extends SMPPPacket {
         smppVersion.validateRegisteredDelivery(registered);
         smppVersion.validateDataCoding(dataCoding);
     }
-    
+
     @Override
-    protected BodyDescriptor getBodyDescriptor() {
-        return BODY_DESCRIPTOR;
+    protected void readMandatory(PacketDecoder decoder) {
+        serviceType = decoder.readCString();
+        source = decoder.readAddress();
+        destination = decoder.readAddress();
+        esmClass = decoder.readUInt1();
+        registered = decoder.readUInt1();
+        dataCoding = decoder.readUInt1();
     }
     
     @Override
-    protected Object[] getMandatoryParameters() {
-        return new Object[] {
-                serviceType,
-                source,
-                destination,
-                Integer.valueOf(esmClass),
-                Integer.valueOf(registered),
-                Integer.valueOf(dataCoding),
-        };
+    protected void writeMandatory(PacketEncoder encoder) throws IOException {
+        encoder.writeCString(serviceType);
+        encoder.writeAddress(source);
+        encoder.writeAddress(destination);
+        encoder.writeUInt1(esmClass);
+        encoder.writeUInt1(registered);
+        encoder.writeUInt1(dataCoding);
     }
     
     @Override
-    protected void setMandatoryParameters(List<Object> params) {
-        serviceType = (String) params.get(0);
-        source = (Address) params.get(1);
-        destination = (Address) params.get(2);
-        esmClass = ((Number) params.get(3)).intValue();
-        registered = ((Number) params.get(4)).intValue();
-        dataCoding = ((Number) params.get(5)).intValue();
+    protected int getMandatorySize() {
+        int l = 4;
+        l += sizeOf(serviceType);
+        l += sizeOf(source);
+        l += sizeOf(destination);
+        return l;
     }
 }

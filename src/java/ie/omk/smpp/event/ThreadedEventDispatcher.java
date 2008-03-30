@@ -1,6 +1,6 @@
 package ie.omk.smpp.event;
 
-import ie.omk.smpp.Connection;
+import ie.omk.smpp.Session;
 import ie.omk.smpp.message.SMPPPacket;
 import ie.omk.smpp.util.APIConfig;
 import ie.omk.smpp.util.PropertyNotFoundException;
@@ -163,7 +163,7 @@ public class ThreadedEventDispatcher extends AbstractEventDispatcher implements 
 
     // notifyObservers is always single-threaded access as there's only 1
     // receiver thread!
-    public void notifyObservers(Connection conn, SMPPEvent e) {
+    public void notifyObservers(Session conn, SMPPEvent e) {
         LOG.debug("Notifying observers of a new SMPP event {}", e.getType());
         queue.put(conn, e);
         if (threadsWaiting > 0) {
@@ -173,7 +173,7 @@ public class ThreadedEventDispatcher extends AbstractEventDispatcher implements 
         }
     }
 
-    public void notifyObservers(Connection conn, SMPPPacket pak) {
+    public void notifyObservers(Session conn, SMPPPacket pak) {
         if (LOG.isDebugEnabled()) {
             LOG.debug("Notifying observers of a new SMPP packet ({}, {})",
                     Integer.toHexString(pak.getCommandId()),
@@ -210,8 +210,8 @@ public class ThreadedEventDispatcher extends AbstractEventDispatcher implements 
                 if (nd == null) {
                     continue;
                 }
-                ConnectionObserver[] observers = getObserverList();
-                for (ConnectionObserver observer : observers) {
+                SessionObserver[] observers = getObserverList();
+                for (SessionObserver observer : observers) {
                     if (nd.hasEvent()) {
                         observer.packetReceived(nd.getConnection(), nd.getPacket());
                     } else {

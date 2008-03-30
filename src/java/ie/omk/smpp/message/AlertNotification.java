@@ -1,10 +1,11 @@
 package ie.omk.smpp.message;
 
 import ie.omk.smpp.Address;
-import ie.omk.smpp.message.param.ParamDescriptor;
+import ie.omk.smpp.util.PacketDecoder;
+import ie.omk.smpp.util.PacketEncoder;
 import ie.omk.smpp.version.SMPPVersion;
 
-import java.util.List;
+import java.io.IOException;
 
 /**
  * Alert notification. This packet type is sent from the SMSC to an ESME to
@@ -16,22 +17,17 @@ import java.util.List;
  * 
  * @version $Id$
  */
-public class AlertNotification extends SMPPPacket {
+public class AlertNotification extends SMPPPacket implements Cloneable {
     private static final long serialVersionUID = 1L;
-    private static final BodyDescriptor BODY_DESCRIPTOR = new BodyDescriptor();
+
     private Address source;
     private Address destination;
 
-    static {
-        BODY_DESCRIPTOR.add(ParamDescriptor.ADDRESS)
-        .add(ParamDescriptor.ADDRESS);
-    }
-    
     /**
      * Create a new alert_notification object.
      */
     public AlertNotification() {
-        super(ALERT_NOTIFICATION);
+        super(CommandId.ALERT_NOTIFICATION);
     }
 
     public Address getDestination() {
@@ -51,6 +47,30 @@ public class AlertNotification extends SMPPPacket {
     }
 
     @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (null == obj || !(obj instanceof AlertNotification)) {
+            return false;
+        }
+        boolean equals = super.equals(obj);
+        if (equals) {
+            AlertNotification other = (AlertNotification) obj;
+            equals |= safeCompare(source, other.source);
+            equals |= safeCompare(destination, other.destination);
+        }
+        return equals;
+    }
+    
+    @Override
+    public int hashCode() {
+        int hc1 = (source != null) ? super.hashCode() : 13;
+        int hc2 = (destination != null) ? super.hashCode() : 23;
+        return super.hashCode() + hc1 + hc2;
+    }
+    
+    @Override
     protected void toString(StringBuffer buffer) {
         buffer.append("source=").append(source)
         .append(",destination=").append(destination);
@@ -61,24 +81,25 @@ public class AlertNotification extends SMPPPacket {
         smppVersion.validateAddress(source);
         smppVersion.validateAddress(destination);
     }
-    
+
     @Override
-    protected BodyDescriptor getBodyDescriptor() {
-        return BODY_DESCRIPTOR;
+    protected void writeMandatory(PacketEncoder encoder) throws IOException {
+        encoder.writeAddress(source);
+        encoder.writeAddress(destination);
+    }
+
+    @Override
+    protected void readMandatory(PacketDecoder decoder) {
+        source = decoder.readAddress();
+        destination = decoder.readAddress();
     }
     
     @Override
-    protected Object[] getMandatoryParameters() {
-        return new Object[] {
-                source,
-                destination,
-        };
-    }
-    
-    @Override
-    protected void setMandatoryParameters(List<Object> params) {
-        source = (Address) params.get(0);
-        destination = (Address) params.get(1);
+    protected int getMandatorySize() {
+        int length = 0;
+        length += sizeOf(source);
+        length += sizeOf(destination);
+        return length;
     }
 }
 

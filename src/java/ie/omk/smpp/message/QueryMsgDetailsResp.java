@@ -1,13 +1,14 @@
 package ie.omk.smpp.message;
 
 import ie.omk.smpp.Address;
-import ie.omk.smpp.message.param.BytesParamDescriptor;
-import ie.omk.smpp.message.param.DestinationTableParamDescriptor;
-import ie.omk.smpp.message.param.ParamDescriptor;
+import ie.omk.smpp.util.PacketDecoder;
+import ie.omk.smpp.util.PacketEncoder;
 import ie.omk.smpp.util.SMPPDate;
 import ie.omk.smpp.version.SMPPVersion;
 
-import java.util.List;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
 
 /**
  * Response to Query message details. Gives all details of a specified message
@@ -15,39 +16,29 @@ import java.util.List;
  * 
  * @version $Id: $
  */
-public class QueryMsgDetailsResp extends SMPacket {
+public class QueryMsgDetailsResp extends SMPPPacket {
     private static final long serialVersionUID = 1L;
-    private static final BodyDescriptor BODY_DESCRIPTOR = new BodyDescriptor();
     
-    /**
-     * Table of destinations the message was routed to.
-     */
+    private String serviceType;
+    private Address source;
     private DestinationTable destinationTable = new DestinationTable();
-
-    static {
-        BODY_DESCRIPTOR.add(ParamDescriptor.CSTRING)
-        .add(ParamDescriptor.ADDRESS)
-        .add(ParamDescriptor.INTEGER1)
-        .add(new DestinationTableParamDescriptor(2))
-        .add(ParamDescriptor.INTEGER1)
-        .add(ParamDescriptor.INTEGER1)
-        .add(ParamDescriptor.DATE)
-        .add(ParamDescriptor.DATE)
-        .add(ParamDescriptor.INTEGER1)
-        .add(ParamDescriptor.INTEGER1)
-        .add(ParamDescriptor.INTEGER1)
-        .add(new BytesParamDescriptor(10))
-        .add(ParamDescriptor.CSTRING)
-        .add(ParamDescriptor.DATE)
-        .add(ParamDescriptor.INTEGER1)
-        .add(ParamDescriptor.INTEGER1);
-    }
+    private int protocolID;
+    private int priority;
+    private SMPPDate deliveryTime;
+    private SMPPDate expiryTime;
+    private int registered;
+    private int dataCoding;
+    private byte[] message;
+    private String messageId;
+    private SMPPDate finalDate;
+    private MessageState messageStatus = MessageState.UNKNOWN;
+    private int errorCode;
 
     /**
      * Construct a new QueryMsgDetailsResp.
      */
     public QueryMsgDetailsResp() {
-        super(QUERY_MSG_DETAILS_RESP);
+        super(CommandId.QUERY_MSG_DETAILS_RESP);
     }
 
     /**
@@ -117,11 +108,11 @@ public class QueryMsgDetailsResp extends SMPacket {
         this.messageId = messageId;
     }
 
-    public int getMessageStatus() {
+    public MessageState getMessageStatus() {
         return messageStatus;
     }
 
-    public void setMessageStatus(int messageStatus) {
+    public void setMessageStatus(MessageState messageStatus) {
         this.messageStatus = messageStatus;
     }
 
@@ -210,6 +201,55 @@ public class QueryMsgDetailsResp extends SMPacket {
     }
 
     @Override
+    public boolean equals(Object obj) {
+        boolean equals = super.equals(obj);
+        if (equals) {
+            QueryMsgDetailsResp other = (QueryMsgDetailsResp) obj;
+            equals |= safeCompare(serviceType, other.serviceType);
+            equals |= safeCompare(source, other.source);
+            equals |= safeCompare(destinationTable, other.destinationTable);
+            equals |= protocolID == other.protocolID;
+            equals |= priority == other.priority;
+            equals |= safeCompare(deliveryTime, other.deliveryTime);
+            equals |= safeCompare(expiryTime, other.expiryTime);
+            equals |= registered == other.registered;
+            equals |= dataCoding == other.dataCoding;
+            equals |= Arrays.equals(message, other.message);
+            equals |= messageId == other.messageId;
+            equals |= safeCompare(finalDate, other.finalDate);
+            equals |= messageStatus == other.messageStatus;
+            equals |= errorCode == other.errorCode;
+        }
+        return equals;
+    }
+    
+    @Override
+    public int hashCode() {
+        int hc = super.hashCode();
+        hc += (serviceType != null) ? serviceType.hashCode() : 0;
+        hc += (source != null) ? source.hashCode() : 0;
+        hc += (destinationTable != null) ? destinationTable.hashCode() : 13;
+        hc += Integer.valueOf(protocolID).hashCode();
+        hc += Integer.valueOf(priority).hashCode();
+        hc += (deliveryTime != null) ? deliveryTime.hashCode() : 0;
+        hc += (expiryTime != null) ? expiryTime.hashCode() : 0;
+        hc += Integer.valueOf(registered).hashCode();
+        hc += Integer.valueOf(dataCoding).hashCode();
+        if (message != null) {
+            try {
+                hc += new String(message, "US-ASCII").hashCode();
+            } catch (UnsupportedEncodingException x) {
+                throw new RuntimeException(x);
+            }
+        }
+        hc += Integer.valueOf(messageId).hashCode();
+        hc += (finalDate != null) ? finalDate.hashCode() : 0;
+        hc += Integer.valueOf(messageStatus.getValue()).hashCode();
+        hc += Integer.valueOf(errorCode).hashCode();
+        return hc;
+    }
+
+    @Override
     protected void toString(StringBuffer buffer) {
         buffer.append("serviceType=").append(serviceType)
         .append(",source=").append(source)
@@ -221,7 +261,7 @@ public class QueryMsgDetailsResp extends SMPacket {
         .append(",expiryTime=").append(expiryTime)
         .append(",registered=").append(registered)
         .append(",dataCoding=").append(dataCoding)
-        .append(",smLength=").append(getMessageLen())
+        .append(",smLength=").append(sizeOf(message))
         .append(",message=").append(message)
         .append(",messageId=").append(messageId)
         .append(",finalDate=").append(finalDate)
@@ -244,60 +284,64 @@ public class QueryMsgDetailsResp extends SMPacket {
         smppVersion.validatePriorityFlag(priority);
         smppVersion.validateRegisteredDelivery(registered);
         smppVersion.validateDataCoding(dataCoding);
-        smppVersion.validateMessage(message, 0, getMessageLen());
+        smppVersion.validateMessage(message, 0, sizeOf(message));
         smppVersion.validateMessageId(messageId);
-        smppVersion.validateMessageState(messageStatus);
         smppVersion.validateErrorCode(errorCode);
-    }
-    
-    @Override
-    protected BodyDescriptor getBodyDescriptor() {
-        return BODY_DESCRIPTOR;
-    }
-    
-    @Override
-    protected Object[] getMandatoryParameters() {
-        int length = 0;
-        if (message != null) {
-            length = message.length;
-        }
-        return new Object[] {
-                serviceType,
-                source,
-                Integer.valueOf(destinationTable.size()),
-                destinationTable,
-                Integer.valueOf(protocolID),
-                Integer.valueOf(priority),
-                deliveryTime,
-                expiryTime,
-                Integer.valueOf(registered),
-                Integer.valueOf(dataCoding),
-                Integer.valueOf(length),
-                message,
-                messageId,
-                finalDate,
-                Integer.valueOf(messageStatus),
-                Integer.valueOf(errorCode),
-        };
     }
 
     @Override
-    protected void setMandatoryParameters(List<Object> params) {
-        serviceType = (String) params.get(0);
-        source = (Address) params.get(1);
-        // index 2 intentionally skipped
-        destinationTable = (DestinationTable) params.get(3);
-        protocolID = ((Number) params.get(4)).intValue();
-        priority = ((Number) params.get(5)).intValue();
-        deliveryTime = (SMPPDate) params.get(6);
-        expiryTime = (SMPPDate) params.get(7);
-        registered = ((Number) params.get(8)).intValue();
-        dataCoding = ((Number) params.get(9)).intValue();
-        // index 10 intentionally skipped
-        message = (byte[]) params.get(11);
-        messageId = (String) params.get(12);
-        finalDate = (SMPPDate) params.get(13);
-        messageStatus = ((Number) params.get(14)).intValue();
-        errorCode = ((Number) params.get(15)).intValue();
+    protected void readMandatory(PacketDecoder decoder) {
+        serviceType = decoder.readCString();
+        source = decoder.readAddress();
+        int tableSize = decoder.readUInt1();
+        destinationTable = new DestinationTable();
+        destinationTable.readFrom(decoder, tableSize);
+        protocolID = decoder.readUInt1();
+        priority = decoder.readUInt1();
+        deliveryTime = decoder.readDate();
+        expiryTime = decoder.readDate();
+        registered = decoder.readUInt1();
+        dataCoding = decoder.readUInt1();
+        int messageLen = decoder.readUInt1();
+        message = decoder.readBytes(messageLen);
+        messageId = decoder.readCString();
+        finalDate = decoder.readDate();
+        messageStatus = MessageState.getMessageState(decoder.readUInt1());
+        errorCode = decoder.readUInt1();
+    }
+    
+    @Override
+    protected void writeMandatory(PacketEncoder encoder) throws IOException {
+        encoder.writeCString(serviceType);
+        encoder.writeAddress(source);
+        encoder.writeUInt1(destinationTable.size());
+        destinationTable.writeTo(encoder);
+        encoder.writeUInt1(protocolID);
+        encoder.writeUInt1(priority);
+        encoder.writeDate(deliveryTime);
+        encoder.writeDate(expiryTime);
+        encoder.writeUInt1(registered);
+        encoder.writeUInt1(dataCoding);
+        int messageLen = (message != null) ? message.length : 0;
+        encoder.writeUInt1(messageLen);
+        encoder.writeBytes(message, 0, messageLen);
+        encoder.writeCString(messageId);
+        encoder.writeDate(finalDate);
+        encoder.writeUInt1(messageStatus.getValue());
+        encoder.writeUInt1(errorCode);
+    }
+    
+    @Override
+    protected int getMandatorySize() {
+        int length = 10;
+        length += sizeOf(serviceType);
+        length += sizeOf(source);
+        length += destinationTable.getLength();
+        length += sizeOf(deliveryTime);
+        length += sizeOf(expiryTime);
+        length += sizeOf(message);
+        length += sizeOf(messageId);
+        length += sizeOf(finalDate);
+        return length;
     }
 }

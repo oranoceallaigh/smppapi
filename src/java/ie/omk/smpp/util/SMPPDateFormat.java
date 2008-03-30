@@ -99,7 +99,10 @@ public class SMPPDateFormat extends Format {
      * their allowed range.
      */
     public Object parseObject(String source, ParsePosition pos) {
-        String s = source.substring(pos.getIndex());
+        String s = source;
+        if (pos.getIndex() > 0) {
+            s = source.substring(pos.getIndex());
+        }
         int updatePos = 0;
         boolean absolute = false;
         boolean hasTz = true;

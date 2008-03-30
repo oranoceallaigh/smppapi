@@ -1,10 +1,7 @@
 package ie.omk.smpp;
 
-import ie.omk.smpp.util.GSMConstants;
-import ie.omk.smpp.util.ParsePosition;
-import ie.omk.smpp.util.SMPPIO;
-
-import java.io.OutputStream;
+import ie.omk.smpp.util.PacketDecoder;
+import ie.omk.smpp.util.PacketEncoder;
 
 /**
  * Object representing a Short Message Entity's address. An address consists of
@@ -13,14 +10,13 @@ import java.io.OutputStream;
  * @see ie.omk.smpp.util.GSMConstants
  */
 public class Address implements java.io.Serializable {
-    
-    static final long serialVersionUID = -1899181032052084902L;
+    private static final long serialVersionUID = -1899181032052084902L;
     
     /** Type of number. */
-    private int ton = GSMConstants.GSM_TON_UNKNOWN;
+    private int ton = Ton.UNKNOWN;
 
     /** Numbering plan indicator. */
-    private int npi = GSMConstants.GSM_NPI_UNKNOWN;
+    private int npi = Npi.UNKNOWN;
 
     /** The address. */
     private String address = "";
@@ -94,13 +90,12 @@ public class Address implements java.io.Serializable {
      * Get a unique hash code for this address.
      */
     public int hashCode() {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         buf.append(Integer.toString(ton)).append(':');
         buf.append(Integer.toString(npi)).append(':');
         if (address != null) {
             buf.append(address);
         }
-
         return buf.hashCode();
     }
 
@@ -109,6 +104,9 @@ public class Address implements java.io.Serializable {
      * address fields are equal.
      */
     public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
         if (obj instanceof Address) {
             Address a = (Address) obj;
             return (a.ton == ton) && (a.npi == npi) && (a.address.equals(address));
@@ -125,38 +123,20 @@ public class Address implements java.io.Serializable {
     }
 
     /**
-     * Encode this object as bytes to the output stream. An address encodes as a
-     * single byte for the TON, a single byte for the NPI and a nul-terminated
-     * ASCII character string.
-     * 
-     * @param out
-     *            The output stream to encode the address to.
-     * @throws java.io.IOException
-     *             If an I/O error occurs while writing to the output stream.
      */
-    public void writeTo(OutputStream out) throws java.io.IOException {
-        SMPPIO.writeByte(ton, out);
-        SMPPIO.writeByte(npi, out);
-        SMPPIO.writeCString(address, out);
+    public void writeTo(PacketEncoder encoder) throws java.io.IOException {
+        encoder.writeUInt1(ton);
+        encoder.writeUInt1(npi);
+        encoder.writeCString(address);
     }
 
     /**
-     * Decode this address from a byte array.
-     * 
-     * @param addr
-     *            The byte array to read the address from.
-     * @param position
-     *            The position in the array to begin parsing the address from.
-     * @throws java.lang.ArrayIndexOutOfBoundsException
-     *             If the byte array does not contain enough bytes to decode an
-     *             address.
+     * TODO: doc
      */
-    public void readFrom(byte[] addr, ParsePosition position) {
-        int offset = position.getIndex();
-        ton = SMPPIO.bytesToByte(addr, offset + 0);
-        npi = SMPPIO.bytesToByte(addr, offset + 1);
-        address = SMPPIO.readCString(addr, offset + 2);
-        position.inc(address.length() + 3);
+    public void readFrom(PacketDecoder decoder) {
+        ton = decoder.readUInt1();
+        npi = decoder.readUInt1();
+        address = decoder.readCString();
     }
 
     public String toString() {

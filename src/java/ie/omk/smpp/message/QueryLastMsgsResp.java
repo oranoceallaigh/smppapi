@@ -1,10 +1,10 @@
 package ie.omk.smpp.message;
 
-import ie.omk.smpp.message.param.ListParamDescriptor;
-import ie.omk.smpp.message.param.ParamDescriptor;
+import ie.omk.smpp.util.PacketDecoder;
+import ie.omk.smpp.util.PacketEncoder;
 
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -13,22 +13,16 @@ import java.util.List;
  */
 public class QueryLastMsgsResp extends SMPPPacket {
     private static final long serialVersionUID = 1L;
-    private static final BodyDescriptor BODY_DESCRIPTOR = new BodyDescriptor();
     private static final int MAX_SIZE = 255;
     
     /** The table of messages returned */
     private List<String> messageTable = new ArrayList<String>();
 
-    static {
-        BODY_DESCRIPTOR.add(ParamDescriptor.INTEGER1)
-        .add(new ListParamDescriptor(ParamDescriptor.CSTRING, 0));
-    }
-    
     /**
      * Construct a new QueryLastMsgsResp.
      */
     public QueryLastMsgsResp() {
-        super(QUERY_LAST_MSGS_RESP);
+        super(CommandId.QUERY_LAST_MSGS_RESP);
     }
 
     /**
@@ -74,31 +68,52 @@ public class QueryLastMsgsResp extends SMPPPacket {
     }
 
     @Override
+    public boolean equals(Object obj) {
+        boolean equals = super.equals(obj);
+        if (equals) {
+            QueryLastMsgsResp other = (QueryLastMsgsResp) obj;
+            equals |= safeCompare(messageTable, other.messageTable);
+        }
+        return equals;
+    }
+    
+    @Override
+    public int hashCode() {
+        int hc = super.hashCode();
+        hc += (messageTable != null) ? messageTable.hashCode() : 71;
+        return hc;
+    }
+
+    @Override
     protected void toString(StringBuffer buffer) {
         buffer.append("msgCount=").append(messageTable.size())
         .append(",messageIds=").append(messageTable);
     }
 
     @Override
-    protected BodyDescriptor getBodyDescriptor() {
-        return BODY_DESCRIPTOR;
-    }
-    
-    @Override
-    protected Object[] getMandatoryParameters() {
-        return new Object[] {
-                Integer.valueOf(messageTable.size()),
-                messageTable,
-        };
-    }
-    
-    @Override
-    protected void setMandatoryParameters(List<Object> params) {
-        // Copy the message ID list into a type safe collection.
-        List list = (List) params.get(1);
-        messageTable = new ArrayList<String>(list.size());
-        for (Iterator iter = list.iterator(); iter.hasNext();) {
-            messageTable.add((String) iter.next());
+    protected void readMandatory(PacketDecoder decoder) {
+        messageTable = new ArrayList<String>();
+        int count = decoder.readUInt1();
+        for (int i = 0; i < count; i++) {
+            messageTable.add(decoder.readCString());
         }
+    }
+    
+    @Override
+    protected void writeMandatory(PacketEncoder encoder) throws IOException {
+        int count = messageTable.size();
+        encoder.writeUInt1(count);
+        for (String s : messageTable) {
+            encoder.writeCString(s);
+        }
+    }
+    
+    @Override
+    protected int getMandatorySize() {
+        int length = 1;
+        for (String s : messageTable) {
+            length += (1 + sizeOf(s));
+        }
+        return length;
     }
 }

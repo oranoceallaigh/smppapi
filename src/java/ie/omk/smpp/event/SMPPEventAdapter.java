@@ -1,6 +1,6 @@
 package ie.omk.smpp.event;
 
-import ie.omk.smpp.Connection;
+import ie.omk.smpp.Session;
 import ie.omk.smpp.SMPPRuntimeException;
 import ie.omk.smpp.message.BindResp;
 import ie.omk.smpp.message.CancelSMResp;
@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @version $Id$
  */
-public abstract class SMPPEventAdapter implements ConnectionObserver {
+public abstract class SMPPEventAdapter implements SessionObserver {
     private static final Map<Class<? extends SMPPPacket>, Method> HANDLERS =
         new HashMap<Class<? extends SMPPPacket>, Method>();
 
@@ -47,7 +47,7 @@ public abstract class SMPPEventAdapter implements ConnectionObserver {
     public SMPPEventAdapter() {
     }
 
-    public final void update(Connection source, SMPPEvent event) {
+    public final void update(Session source, SMPPEvent event) {
         try {
             switch (event.getType()) {
             case SMPPEvent.RECEIVER_START:
@@ -76,7 +76,7 @@ public abstract class SMPPEventAdapter implements ConnectionObserver {
         }
     }
 
-    public final void packetReceived(Connection source, SMPPPacket pak) {
+    public final void packetReceived(Session source, SMPPPacket pak) {
         try {
             Method handler = HANDLERS.get(pak.getClass());
             if (handler != null) {
@@ -106,7 +106,7 @@ public abstract class SMPPEventAdapter implements ConnectionObserver {
      * @param rev
      *            the receiver exit event object received from the API.
      */
-    public void receiverExit(Connection source, ReceiverExitEvent rev) {
+    public void receiverExit(Session source, ReceiverExitEvent rev) {
         // default: do nothing
     }
 
@@ -123,7 +123,7 @@ public abstract class SMPPEventAdapter implements ConnectionObserver {
      * @param rev
      *            the receiver exit event object received from the API.
      */
-    public void receiverExitException(Connection source, ReceiverExitEvent rev) {
+    public void receiverExitException(Session source, ReceiverExitEvent rev) {
         // default: do nothing
     }
 
@@ -140,7 +140,7 @@ public abstract class SMPPEventAdapter implements ConnectionObserver {
      *            the receiver exception event received from the API, which
      *            contains the caught exception.
      */
-    public void receiverException(Connection source, ReceiverExceptionEvent rev) {
+    public void receiverException(Session source, ReceiverExceptionEvent rev) {
         // default: do nothing
     }
 
@@ -154,100 +154,100 @@ public abstract class SMPPEventAdapter implements ConnectionObserver {
      * @param rs
      *            the receiver start event received from the API.
      */
-    public void receiverStart(Connection source, ReceiverStartEvent rs) {
+    public void receiverStart(Session source, ReceiverStartEvent rs) {
         // default: do nothing
     }
 
     /**
      * PLACEHOLDER. This method will currently never be called.
      */
-    public void userEvent(Connection source, SMPPEvent ev) {
+    public void userEvent(Session source, SMPPEvent ev) {
         // default: do nothing
     }
 
     /**
      * DeliverSM packet received from the SMSC.
      */
-    public void deliverSM(Connection source, DeliverSM dm) {
+    public void deliverSM(Session source, DeliverSM dm) {
     }
 
     /**
      * SubmitSM response packet received from the SMSC.
      */
-    public void submitSMResponse(Connection source, SubmitSMResp smr) {
+    public void submitSMResponse(Session source, SubmitSMResp smr) {
     }
 
     /**
      * SubmitMulti response packet received from the SMSC.
      */
-    public void submitMultiResponse(Connection source, SubmitMultiResp smr) {
+    public void submitMultiResponse(Session source, SubmitMultiResp smr) {
     }
 
     /**
      * CancelSM response packet received from the SMSC.
      */
-    public void cancelSMResponse(Connection source, CancelSMResp cmr) {
+    public void cancelSMResponse(Session source, CancelSMResp cmr) {
     }
 
     /**
      * ReplaceSM response packet received from the SMSC.
      */
-    public void replaceSMResponse(Connection source, ReplaceSMResp rmr) {
+    public void replaceSMResponse(Session source, ReplaceSMResp rmr) {
     }
 
     /**
      * ParamRetrieve response packet received from the SMSC.
      */
-    public void paramRetrieveResponse(Connection source, ParamRetrieveResp prr) {
+    public void paramRetrieveResponse(Session source, ParamRetrieveResp prr) {
     }
 
     /**
      * One of a QuerySM, QueryLastMsgs or QueryMsgDetails response packet has
      * been received from the SMSC.
      */
-    public void queryResponse(Connection source, SMPPPacket qr) {
+    public void queryResponse(Session source, SMPPPacket qr) {
     }
 
     /**
      * EnquireLink packet received from the SMSC.
      */
-    public void queryLink(Connection source, EnquireLink el) {
+    public void queryLink(Session source, EnquireLink el) {
     }
 
     /**
      * EnquireLink response packet received from the SMSC.
      */
-    public void queryLinkResponse(Connection source, EnquireLinkResp elr) {
+    public void queryLinkResponse(Session source, EnquireLinkResp elr) {
     }
 
     /**
      * Unbind packet received from the SMSC.
      */
-    public void unbind(Connection source, Unbind ubd) {
+    public void unbind(Session source, Unbind ubd) {
     }
 
     /**
      * Unbind response packet received from the SMSC.
      */
-    public void unbindResponse(Connection source, UnbindResp ubr) {
+    public void unbindResponse(Session source, UnbindResp ubr) {
     }
 
     /**
      * Bind response packet received from the SMSC.
      */
-    public void bindResponse(Connection source, BindResp br) {
+    public void bindResponse(Session source, BindResp br) {
     }
 
     /**
      * GenericNack packet received from the SMSC.
      */
-    public void genericNack(Connection source, GenericNack nack) {
+    public void genericNack(Session source, GenericNack nack) {
     }
 
     /**
      * An unidentified packet has been received from the SMSC.
      */
-    public void unidentified(Connection source, SMPPPacket pak) {
+    public void unidentified(Session source, SMPPPacket pak) {
     }
     
     private static void initHandlers() {
@@ -286,7 +286,7 @@ public abstract class SMPPEventAdapter implements ConnectionObserver {
     
     private static Method getMethod(String name, Class argClass) throws NoSuchMethodException {
         Class[] args = new Class[] {
-                Connection.class,
+                Session.class,
                 argClass,
         };
         return SMPPEventAdapter.class.getMethod(name, args);

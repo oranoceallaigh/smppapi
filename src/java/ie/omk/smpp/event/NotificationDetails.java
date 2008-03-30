@@ -1,22 +1,22 @@
 package ie.omk.smpp.event;
 
-import ie.omk.smpp.Connection;
+import ie.omk.smpp.Session;
 import ie.omk.smpp.message.SMPPPacket;
 
 class NotificationDetails {
-    private Connection connection;
+    private Session connection;
     private SMPPEvent event;
     private SMPPPacket packet;
 
     public NotificationDetails() {
     }
     
-    public Connection getConnection() {
+    public Session getConnection() {
         return connection;
     }
 
 
-    public void setConnection(Connection conn) {
+    public void setConnection(Session conn) {
         this.connection = conn;
     }
 
@@ -41,7 +41,7 @@ class NotificationDetails {
     }
 
 
-    public void setDetails(Connection c, SMPPEvent e, SMPPPacket p) {
+    public void setDetails(Session c, SMPPEvent e, SMPPPacket p) {
         connection = c;
         event = e;
         packet = p;

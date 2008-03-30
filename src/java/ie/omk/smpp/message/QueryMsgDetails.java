@@ -1,10 +1,11 @@
 package ie.omk.smpp.message;
 
 import ie.omk.smpp.Address;
-import ie.omk.smpp.message.param.ParamDescriptor;
+import ie.omk.smpp.util.PacketDecoder;
+import ie.omk.smpp.util.PacketEncoder;
 import ie.omk.smpp.version.SMPPVersion;
 
-import java.util.List;
+import java.io.IOException;
 
 /**
  * Query Message details. Get all information about an existing message at the
@@ -14,7 +15,6 @@ import java.util.List;
  */
 public class QueryMsgDetails extends SMPPPacket {
     private static final long serialVersionUID = 1L;
-    private static final BodyDescriptor BODY_DESCRIPTOR = new BodyDescriptor();
     
     /**
      * Original message ID of the required message.
@@ -29,17 +29,11 @@ public class QueryMsgDetails extends SMPPPacket {
      */
     private int smLength;
 
-    static {
-        BODY_DESCRIPTOR.add(ParamDescriptor.CSTRING)
-        .add(ParamDescriptor.ADDRESS)
-        .add(ParamDescriptor.INTEGER1);
-    }
-    
     /**
      * Construct a new QueryMsgDetails.
      */
     public QueryMsgDetails() {
-        super(QUERY_MSG_DETAILS);
+        super(CommandId.QUERY_MSG_DETAILS);
     }
     
     public String getMessageId() {
@@ -82,6 +76,27 @@ public class QueryMsgDetails extends SMPPPacket {
     }
 
     @Override
+    public boolean equals(Object obj) {
+        boolean equals = super.equals(obj);
+        if (equals) {
+            QueryMsgDetails other = (QueryMsgDetails) obj;
+            equals |= safeCompare(messageId, other.messageId);
+            equals |= safeCompare(source, other.source);
+            equals |= smLength == other.smLength;
+        }
+        return equals;
+    }
+    
+    @Override
+    public int hashCode() {
+        int hc = super.hashCode();
+        hc += (messageId != null) ? messageId.hashCode() : 0;
+        hc += (source != null) ? source.hashCode() : 0;
+        hc += Integer.valueOf(smLength).hashCode();
+        return hc;
+    }
+
+    @Override
     protected void toString(StringBuffer buffer) {
         buffer.append("messageId=").append(messageId)
         .append(",source=").append(source)
@@ -95,23 +110,24 @@ public class QueryMsgDetails extends SMPPPacket {
     }
     
     @Override
-    protected BodyDescriptor getBodyDescriptor() {
-        return BODY_DESCRIPTOR;
+    protected void readMandatory(PacketDecoder decoder) {
+        messageId = decoder.readCString();
+        source = decoder.readAddress();
+        smLength = decoder.readUInt1();
     }
     
     @Override
-    protected Object[] getMandatoryParameters() {
-        return new Object[] {
-                messageId,
-                source,
-                Integer.valueOf(smLength),
-        };
+    protected void writeMandatory(PacketEncoder encoder) throws IOException {
+        encoder.writeCString(messageId);
+        encoder.writeAddress(source);
+        encoder.writeUInt1(smLength);
     }
     
     @Override
-    protected void setMandatoryParameters(List<Object> params) {
-        messageId = (String) params.get(0);
-        source = (Address) params.get(1);
-        smLength = ((Number) params.get(2)).intValue();
+    protected int getMandatorySize() {
+        int length = 2;
+        length += sizeOf(messageId);
+        length += sizeOf(source);
+        return length;
     }
 }

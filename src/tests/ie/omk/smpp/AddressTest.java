@@ -1,36 +1,33 @@
 package ie.omk.smpp;
 
-import ie.omk.smpp.util.GSMConstants;
-import ie.omk.smpp.util.ParsePosition;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
+import ie.omk.smpp.util.PacketDecoderImpl;
+import ie.omk.smpp.util.PacketEncoderImpl;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
-import junit.framework.TestCase;
+import org.testng.annotations.Test;
 
-public class AddressTest extends TestCase {
-    public AddressTest(String n) {
-        super(n);
-    }
-
+@Test
+public class AddressTest {
     private void testSize(Address addr) {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-
+        PacketEncoderImpl encoder = new PacketEncoderImpl(out);
         try {
-            addr.writeTo(out);
+            addr.writeTo(encoder);
         } catch (IOException x) {
             fail("Serializing address caused I/O Exception:\n" + x.toString());
             return;
         }
-
         byte[] array = out.toByteArray();
-
-        ParsePosition position = new ParsePosition(0);
-        Address deserialized = new Address();
-        deserialized.readFrom(array, position);
-        assertEquals(array.length, position.getIndex());
-        assertEquals("serialized. ", addr.getLength(), array.length);
-        assertEquals("deserialized.", array.length, deserialized.getLength());
+        PacketDecoderImpl decoder = new PacketDecoderImpl(array);
+        Address deserialized = decoder.readAddress();
+        assertEquals(decoder.getParsePosition(), array.length);
+        assertEquals(addr.getLength(), array.length, "serialized. ");
+        assertEquals(array.length, deserialized.getLength(), "deserialized.");
     }
 
     public void testEmptyFieldSize() {
@@ -39,21 +36,21 @@ public class AddressTest extends TestCase {
 
     public void testFilledFieldSize() {
         Address addr = new Address();
-        addr.setTON(GSMConstants.GSM_TON_INTERNATIONAL);
-        addr.setNPI(GSMConstants.GSM_NPI_ISDN);
+        addr.setTON(Ton.INTERNATIONAL);
+        addr.setNPI(Npi.ISDN);
         addr.setAddress("353851234567");
         testSize(addr);
     }
 
     public void testEquals() {
-        Address a1 = new Address(GSMConstants.GSM_TON_NETWORK,
-                GSMConstants.GSM_NPI_NATIONAL, "353851234567");
-        Address a2 = new Address(GSMConstants.GSM_TON_NETWORK,
-                GSMConstants.GSM_NPI_NATIONAL, "353851234567");
-        Address a3 = new Address(GSMConstants.GSM_TON_NATIONAL,
-                GSMConstants.GSM_NPI_NATIONAL, "441237654321");
+        Address a1 = new Address(Ton.NETWORK,
+                Npi.NATIONAL, "353851234567");
+        Address a2 = new Address(Ton.NETWORK,
+                Npi.NATIONAL, "353851234567");
+        Address a3 = new Address(Ton.NATIONAL,
+                Npi.NATIONAL, "441237654321");
 
-        assertEquals(a1, a2);
+        assertEquals(a2, a1);
         assertTrue(!(a1.equals(a3)));
     }
 }

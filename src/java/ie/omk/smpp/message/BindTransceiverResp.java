@@ -11,7 +11,7 @@ public class BindTransceiverResp extends BindResp {
      * Construct a new BindTransceiverResp.
      */
     public BindTransceiverResp() {
-        super(BIND_TRANSCEIVER_RESP);
+        super(CommandId.BIND_TRANSCEIVER_RESP);
     }
 
     /**

@@ -1,30 +1,34 @@
 package ie.omk.smpp.version;
 
+import static org.testng.Assert.assertSame;
+import static org.testng.Assert.fail;
 import ie.omk.smpp.util.APIConfig;
-import junit.framework.TestCase;
 
-public class VersionFactoryTest extends TestCase {
+import org.testng.annotations.BeforeTest;
+import org.testng.annotations.Test;
+
+@Test
+public class VersionFactoryTest {
 
     private APIConfig cfg;
     
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+    @BeforeTest
+    public void setUp() throws Exception {
         cfg = APIConfig.getInstance();
     }
     
     public void testGetDefaultVersionNoConfig() {
         cfg.remove(APIConfig.DEFAULT_VERSION);
-        assertSame(SMPPVersion.VERSION_5_0, VersionFactory.getDefaultVersion());
+        assertSame(VersionFactory.getDefaultVersion(), SMPPVersion.VERSION_5_0);
     }
     
     public void testGetDefaultVersionStrictWithValidConfig() {
         cfg.setProperty(APIConfig.DEFAULT_VERSION, "0x33");
-        assertSame(SMPPVersion.VERSION_3_3, VersionFactory.getDefaultVersion());
+        assertSame(VersionFactory.getDefaultVersion(), SMPPVersion.VERSION_3_3);
         cfg.setProperty(APIConfig.DEFAULT_VERSION, "0x34");
-        assertSame(SMPPVersion.VERSION_3_4, VersionFactory.getDefaultVersion());
+        assertSame(VersionFactory.getDefaultVersion(), SMPPVersion.VERSION_3_4);
         cfg.setProperty(APIConfig.DEFAULT_VERSION, "0x50");
-        assertSame(SMPPVersion.VERSION_5_0, VersionFactory.getDefaultVersion());
+        assertSame(VersionFactory.getDefaultVersion(), SMPPVersion.VERSION_5_0);
         
         cfg.setProperty(APIConfig.DEFAULT_VERSION, "0x1a");
         try {
@@ -37,11 +41,11 @@ public class VersionFactoryTest extends TestCase {
     
     public void testGetDefaultVersionLaxWithValidConfig() {
         cfg.setProperty(APIConfig.DEFAULT_VERSION, "0x33");
-        assertSame(SMPPVersion.VERSION_3_3, VersionFactory.getDefaultVersion());
+        assertSame(VersionFactory.getDefaultVersion(), SMPPVersion.VERSION_3_3);
         cfg.setProperty(APIConfig.DEFAULT_VERSION, "0x34");
-        assertSame(SMPPVersion.VERSION_3_4, VersionFactory.getDefaultVersion());
+        assertSame(VersionFactory.getDefaultVersion(), SMPPVersion.VERSION_3_4);
         cfg.setProperty(APIConfig.DEFAULT_VERSION, "0x50");
-        assertSame(SMPPVersion.VERSION_5_0, VersionFactory.getDefaultVersion());
+        assertSame(VersionFactory.getDefaultVersion(), SMPPVersion.VERSION_5_0);
 
         cfg.setProperty(APIConfig.DEFAULT_VERSION, "0xab");
         try {
@@ -54,9 +58,9 @@ public class VersionFactoryTest extends TestCase {
     
     public void testGetVersionStrict() throws Exception {
         cfg.setProperty(APIConfig.LAX_VERSIONS, "false");
-        assertSame(SMPPVersion.VERSION_3_3, VersionFactory.getVersion(0x33));
-        assertSame(SMPPVersion.VERSION_3_4, VersionFactory.getVersion(0x34));
-        assertSame(SMPPVersion.VERSION_5_0, VersionFactory.getVersion(0x50));
+        assertSame(VersionFactory.getVersion(0x33), SMPPVersion.VERSION_3_3);
+        assertSame(VersionFactory.getVersion(0x34), SMPPVersion.VERSION_3_4);
+        assertSame(VersionFactory.getVersion(0x50), SMPPVersion.VERSION_5_0);
         int[] false_versions = { 0, 0x13, 0x2c, 0x32, 0x40, 0x80 };
         for (int i = 0; i < false_versions.length; i++) {
             try {
@@ -72,7 +76,7 @@ public class VersionFactoryTest extends TestCase {
     public void testGetVersionLax() throws Exception {
         cfg.setProperty(APIConfig.LAX_VERSIONS, "true");
         for (int i = 0; i <= 0x33; i++) {
-            assertSame(SMPPVersion.VERSION_3_3, VersionFactory.getVersion(i));
+            assertSame(VersionFactory.getVersion(i), SMPPVersion.VERSION_3_3);
         }
     }
 }

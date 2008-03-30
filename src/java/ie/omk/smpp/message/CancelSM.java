@@ -1,10 +1,11 @@
 package ie.omk.smpp.message;
 
 import ie.omk.smpp.Address;
-import ie.omk.smpp.message.param.ParamDescriptor;
+import ie.omk.smpp.util.PacketDecoder;
+import ie.omk.smpp.util.PacketEncoder;
 import ie.omk.smpp.version.SMPPVersion;
 
-import java.util.List;
+import java.io.IOException;
 
 /**
  * Cancal message. This SMPP message is used to cancel a previously submitted
@@ -21,25 +22,17 @@ import java.util.List;
  */
 public class CancelSM extends SMPPPacket {
     private static final long serialVersionUID = 1L;
-    private static final BodyDescriptor BODY_DESCRIPTOR = new BodyDescriptor();
 
     private String serviceType;
     private String messageId;
     private Address source;
     private Address destination;
     
-    static {
-        BODY_DESCRIPTOR.add(ParamDescriptor.CSTRING)
-        .add(ParamDescriptor.CSTRING)
-        .add(ParamDescriptor.ADDRESS)
-        .add(ParamDescriptor.ADDRESS);
-    }
-    
     /**
      * Construct a new CancelSM.
      */
     public CancelSM() {
-        super(CANCEL_SM);
+        super(CommandId.CANCEL_SM);
     }
 
     public Address getDestination() {
@@ -75,6 +68,29 @@ public class CancelSM extends SMPPPacket {
     }
 
     @Override
+    public boolean equals(Object obj) {
+        boolean equals = super.equals(obj);
+        if (equals) {
+            CancelSM other = (CancelSM) obj;
+            equals |= safeCompare(serviceType, other.serviceType);
+            equals |= safeCompare(messageId, other.messageId);
+            equals |= safeCompare(source, other.source);
+            equals |= safeCompare(destination, other.destination);
+        }
+        return equals;
+    }
+    
+    @Override
+    public int hashCode() {
+        int hc = super.hashCode();
+        hc += (serviceType != null) ? serviceType.hashCode() : 0;
+        hc += (messageId != null) ? messageId.hashCode() : 0;
+        hc += (source != null) ? source.hashCode() : 0;
+        hc += (destination != null) ? destination.hashCode() : 0;
+        return hc;
+    }
+    
+    @Override
     protected void toString(StringBuffer buffer) {
         buffer.append("serviceType=").append(serviceType)
         .append(",messageId=").append(messageId)
@@ -91,25 +107,28 @@ public class CancelSM extends SMPPPacket {
     }
     
     @Override
-    protected BodyDescriptor getBodyDescriptor() {
-        return BODY_DESCRIPTOR;
+    protected void readMandatory(PacketDecoder decoder) {
+        serviceType = decoder.readCString();
+        messageId = decoder.readCString();
+        source = decoder.readAddress();
+        destination = decoder.readAddress();
     }
     
     @Override
-    protected Object[] getMandatoryParameters() {
-        return new Object[] {
-                serviceType,
-                messageId,
-                source,
-                destination,
-        };
+    protected void writeMandatory(PacketEncoder encoder) throws IOException {
+        encoder.writeCString(serviceType);
+        encoder.writeCString(messageId);
+        encoder.writeAddress(source);
+        encoder.writeAddress(destination);
     }
     
     @Override
-    protected void setMandatoryParameters(List<Object> params) {
-        serviceType = (String) params.get(0);
-        messageId = (String) params.get(1);
-        source  = (Address) params.get(2);
-        destination = (Address) params.get(3);
+    protected int getMandatorySize() {
+        int length = 2;
+        length += sizeOf(serviceType);
+        length += sizeOf(messageId);
+        length += sizeOf(source);
+        length += sizeOf(destination);
+        return length;
     }
 }

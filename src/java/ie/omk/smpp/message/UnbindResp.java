@@ -12,7 +12,7 @@ public class UnbindResp extends SMPPPacket {
      * Construct a new UnbindResp.
      */
     public UnbindResp() {
-        super(UNBIND_RESP);
+        super(CommandId.UNBIND_RESP);
     }
 
     /**
@@ -24,5 +24,10 @@ public class UnbindResp extends SMPPPacket {
      */
     public UnbindResp(SMPPPacket request) {
         super(request);
+    }
+    
+    @Override
+    public int hashCode() {
+        return super.hashCode() * 83;
     }
 }

@@ -1,9 +1,10 @@
 package ie.omk.smpp.message;
 
-import ie.omk.smpp.message.param.ParamDescriptor;
+import ie.omk.smpp.util.PacketDecoder;
+import ie.omk.smpp.util.PacketEncoder;
 import ie.omk.smpp.version.SMPPVersion;
 
-import java.util.List;
+import java.io.IOException;
 
 /**
  * SMSC response to a Bind request.
@@ -11,14 +12,8 @@ import java.util.List;
  * @version $Id$
  */
 public abstract class BindResp extends SMPPPacket {
-    private static final BodyDescriptor BODY_DESCRIPTOR = new BodyDescriptor();
-    
     private String systemId;
 
-    static {
-        BODY_DESCRIPTOR.add(ParamDescriptor.CSTRING);
-    }
-    
     /**
      * Construct a new BindResp.
      */
@@ -39,6 +34,22 @@ public abstract class BindResp extends SMPPPacket {
     }
 
     @Override
+    public boolean equals(Object obj) {
+        boolean equals = super.equals(obj);
+        if (equals) {
+            BindResp other = (BindResp) obj;
+            equals |= safeCompare(systemId, other.systemId);
+        }
+        return equals;
+    }
+    
+    @Override
+    public int hashCode() {
+        int hc1 = (systemId != null) ? systemId.hashCode() : 996631;
+        return super.hashCode() + hc1;
+    }
+    
+    @Override
     protected void toString(StringBuffer buffer) {
         buffer.append("systemId=").append(systemId);
     }
@@ -47,21 +58,19 @@ public abstract class BindResp extends SMPPPacket {
     protected void validateMandatory(SMPPVersion smppVersion) {
         smppVersion.validateSystemId(systemId);
     }
-    
+
     @Override
-    protected BodyDescriptor getBodyDescriptor() {
-        return BODY_DESCRIPTOR;
+    protected void readMandatory(PacketDecoder decoder) {
+        systemId = decoder.readCString();
     }
     
     @Override
-    protected Object[] getMandatoryParameters() {
-        return new Object[] {
-                systemId,
-        };
+    protected void writeMandatory(PacketEncoder encoder) throws IOException {
+        encoder.writeCString(systemId);
     }
     
     @Override
-    protected void setMandatoryParameters(List<Object> params) {
-        systemId = (String) params.get(0);
+    protected int getMandatorySize() {
+        return 1 + sizeOf(systemId);
     }
 }

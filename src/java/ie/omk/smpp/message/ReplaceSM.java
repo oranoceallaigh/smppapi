@@ -1,12 +1,14 @@
 package ie.omk.smpp.message;
 
 import ie.omk.smpp.Address;
-import ie.omk.smpp.message.param.BytesParamDescriptor;
-import ie.omk.smpp.message.param.ParamDescriptor;
+import ie.omk.smpp.util.PacketDecoder;
+import ie.omk.smpp.util.PacketEncoder;
 import ie.omk.smpp.util.SMPPDate;
 import ie.omk.smpp.version.SMPPVersion;
 
-import java.util.List;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
 
 /**
  * Replace a message. This message submits a short message to the SMSC replacing
@@ -14,28 +16,124 @@ import java.util.List;
  * 
  * @version $Id: $
  */
-public class ReplaceSM extends SMPacket {
+public class ReplaceSM extends SMPPPacket {
     private static final long serialVersionUID = 1L;
-    private static final BodyDescriptor BODY_DESCRIPTOR = new BodyDescriptor();
     
-    static {
-        BODY_DESCRIPTOR.add(ParamDescriptor.CSTRING)
-        .add(ParamDescriptor.ADDRESS)
-        .add(ParamDescriptor.DATE)
-        .add(ParamDescriptor.DATE)
-        .add(ParamDescriptor.INTEGER1)
-        .add(ParamDescriptor.INTEGER1)
-        .add(ParamDescriptor.INTEGER1)
-        .add(new BytesParamDescriptor(6));
-    }
-    
+    private String messageId;
+    private Address source;
+    private SMPPDate deliveryTime;
+    private SMPPDate expiryTime;
+    private int registered;
+    private int defaultMsg;
+    private byte[] message;
+
     /**
      * Construct a new ReplaceSM.
      */
     public ReplaceSM() {
-        super(REPLACE_SM);
+        super(CommandId.REPLACE_SM);
     }
     
+    public int getDefaultMsg() {
+        return defaultMsg;
+    }
+
+    public void setDefaultMsg(int defaultMsg) {
+        this.defaultMsg = defaultMsg;
+    }
+
+    public SMPPDate getDeliveryTime() {
+        return deliveryTime;
+    }
+
+    public void setDeliveryTime(SMPPDate deliveryTime) {
+        this.deliveryTime = deliveryTime;
+    }
+
+    public SMPPDate getExpiryTime() {
+        return expiryTime;
+    }
+
+    public void setExpiryTime(SMPPDate expiryTime) {
+        this.expiryTime = expiryTime;
+    }
+
+    public byte[] getMessage() {
+        return message;
+    }
+
+    public void setMessage(byte[] message) {
+        this.message = message;
+    }
+
+    public String getMessageId() {
+        return messageId;
+    }
+
+    public void setMessageId(String messageId) {
+        this.messageId = messageId;
+    }
+
+    public int getRegistered() {
+        return registered;
+    }
+
+    public void setRegistered(int registered) {
+        this.registered = registered;
+    }
+
+    public Address getSource() {
+        return source;
+    }
+
+    public void setSource(Address source) {
+        this.source = source;
+    }
+
+    /**
+     * Get the number of octets in the message payload.
+     * 
+     * @return The number of octets (bytes) in the message payload.
+     */
+    public int getMessageLen() {
+        return sizeOf(message);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        boolean equals = super.equals(obj);
+        if (equals) {
+            ReplaceSM other = (ReplaceSM) obj;
+            equals |= safeCompare(messageId, other.messageId);
+            equals |= safeCompare(source, other.source);
+            equals |= safeCompare(deliveryTime, other.deliveryTime);
+            equals |= safeCompare(expiryTime, other.expiryTime);
+            equals |= registered == other.registered;
+            equals |= defaultMsg == other.defaultMsg;
+            equals |= Arrays.equals(message, other.message);
+        }
+        return equals;
+    }
+    
+    @Override
+    public int hashCode() {
+        int hc = super.hashCode();
+        hc += (messageId != null) ? messageId.hashCode() : 0;
+        hc += (source != null) ? source.hashCode() : 0;
+        hc += (deliveryTime != null) ? deliveryTime.hashCode() : 0;
+        hc += (expiryTime != null) ? expiryTime.hashCode() : 0;
+        hc += Integer.valueOf(registered).hashCode();
+        hc += Integer.valueOf(defaultMsg).hashCode();
+        if (message != null) {
+            try {
+                hc += new String(message, "US-ASCII").hashCode();
+            } catch (UnsupportedEncodingException x) {
+                throw new RuntimeException(x);
+            }
+        }
+        return hc;
+    }
+
     @Override
     protected void toString(StringBuffer buffer) {
         buffer.append("messageId=").append(messageId)
@@ -58,37 +156,38 @@ public class ReplaceSM extends SMPacket {
     }
     
     @Override
-    protected BodyDescriptor getBodyDescriptor() {
-        return BODY_DESCRIPTOR;
+    protected void readMandatory(PacketDecoder decoder) {
+        messageId = decoder.readCString();
+        source = decoder.readAddress();
+        deliveryTime = decoder.readDate();
+        expiryTime = decoder.readDate();
+        registered = decoder.readUInt1();
+        defaultMsg = decoder.readUInt1();
+        int len = decoder.readUInt1();
+        message = decoder.readBytes(len);
     }
     
     @Override
-    protected Object[] getMandatoryParameters() {
-        int length = 0;
-        if (message != null) {
-            length = message.length;
-        }
-        return new Object[] {
-                messageId,
-                source,
-                deliveryTime,
-                expiryTime,
-                Integer.valueOf(registered),
-                Integer.valueOf(defaultMsg),
-                Integer.valueOf(length),
-                message,
-        };
+    protected void writeMandatory(PacketEncoder encoder) throws IOException {
+        encoder.writeCString(messageId);
+        encoder.writeAddress(source);
+        encoder.writeDate(deliveryTime);
+        encoder.writeDate(expiryTime);
+        encoder.writeUInt1(registered);
+        encoder.writeUInt1(defaultMsg);
+        int len = (message != null) ? message.length : 0;
+        encoder.writeUInt1(len);
+        encoder.writeBytes(message, 0, len);
     }
     
     @Override
-    protected void setMandatoryParameters(List<Object> params) {
-        messageId = (String) params.get(0);
-        source = (Address) params.get(1);
-        deliveryTime = (SMPPDate) params.get(2);
-        expiryTime = (SMPPDate) params.get(3);
-        registered = ((Number) params.get(4)).intValue();
-        defaultMsg = ((Number) params.get(5)).intValue();
-        // index 6 intentionally skipped
-        message = (byte[]) params.get(7);
+    protected int getMandatorySize() {
+        int length = 4;
+        length += sizeOf(messageId);
+        length += sizeOf(source);
+        length += sizeOf(deliveryTime);
+        length += sizeOf(expiryTime);
+        length += sizeOf(message);
+        return length;
     }
 }

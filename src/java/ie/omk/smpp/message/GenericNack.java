@@ -14,11 +14,16 @@ public class GenericNack extends SMPPPacket {
      * Construct a new GenericNack.
      */
     public GenericNack() {
-        super(GENERIC_NACK);
+        super(CommandId.GENERIC_NACK);
     }
 
     public GenericNack(SMPPPacket request) {
         super(request);
+    }
+    
+    @Override
+    public int hashCode() {
+        return super.hashCode() * 29;
     }
 }
 

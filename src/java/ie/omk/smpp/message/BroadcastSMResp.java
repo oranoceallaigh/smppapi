@@ -1,11 +1,14 @@
 package ie.omk.smpp.message;
 
-import java.util.List;
+import ie.omk.smpp.util.PacketDecoder;
+import ie.omk.smpp.util.PacketEncoder;
+
+import java.io.IOException;
 
 /**
  * BroadcastSM response packet.
  * @version $Id:$
- *
+ * @since 0.4.0
  */
 public class BroadcastSMResp extends SMPPPacket {
     private static final long serialVersionUID = 1L;
@@ -13,7 +16,7 @@ public class BroadcastSMResp extends SMPPPacket {
     private String messageId;
     
     public BroadcastSMResp() {
-        super(SMPPPacket.BROADCAST_SM_RESP);
+        super(CommandId.BROADCAST_SM_RESP);
     }
     
     public void setMessageId(String messageId) {
@@ -25,17 +28,32 @@ public class BroadcastSMResp extends SMPPPacket {
     }
 
     @Override
-    protected BodyDescriptor getBodyDescriptor() {
-        return BodyDescriptor.ONE_CSTRING;
+    public boolean equals(Object obj) {
+        boolean equals = super.equals(obj);
+        if (equals) {
+            BroadcastSMResp other = (BroadcastSMResp) obj;
+            equals |= safeCompare(messageId, other.messageId);
+        }
+        return equals;
     }
     
     @Override
-    protected Object[] getMandatoryParameters() {
-        return new Object[] {messageId};
+    public int hashCode() {
+        return (messageId != null) ? messageId.hashCode() : "".hashCode();
     }
     
     @Override
-    protected void setMandatoryParameters(List<Object> params) {
-        messageId = (String) params.get(0);
+    protected void readMandatory(PacketDecoder decoder) {
+        messageId = decoder.readCString();
+    }
+    
+    @Override
+    protected void writeMandatory(PacketEncoder encoder) throws IOException {
+        encoder.writeCString(messageId);
+    }
+    
+    @Override
+    protected int getMandatorySize() {
+        return 1 + sizeOf(messageId);
     }
 }

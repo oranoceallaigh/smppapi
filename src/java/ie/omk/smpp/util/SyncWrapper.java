@@ -1,8 +1,8 @@
 package ie.omk.smpp.util;
 
-import ie.omk.smpp.Connection;
-import ie.omk.smpp.ConnectionType;
-import ie.omk.smpp.event.ConnectionObserver;
+import ie.omk.smpp.Session;
+import ie.omk.smpp.SessionType;
+import ie.omk.smpp.event.SessionObserver;
 import ie.omk.smpp.event.SMPPEvent;
 import ie.omk.smpp.message.Bind;
 import ie.omk.smpp.message.BindReceiver;
@@ -30,26 +30,26 @@ import org.slf4j.LoggerFactory;
  * is available to be returned.
  * @version $Id:$
  */
-public class SyncWrapper implements ConnectionObserver {
+public class SyncWrapper implements SessionObserver {
     private static final Logger LOG = LoggerFactory.getLogger(SyncWrapper.class);
     
-    private Connection connection;
+    private Session connection;
     private Map<Number, SMPPPacket> blockers = new HashMap<Number, SMPPPacket>();
     private List<SMPPPacket> packetQueue = new ArrayList<SMPPPacket>();
     private long packetTimeout;
     
     private ConnectionCaller bindCaller = new ConnectionCaller() {
-        public void execute(Connection connection, SMPPPacket packet) throws IOException {
+        public void execute(Session connection, SMPPPacket packet) throws IOException {
             connection.bind((Bind) packet);
         }
     };
     private ConnectionCaller packetCaller = new ConnectionCaller() {
-        public void execute(Connection connection, SMPPPacket packet) throws IOException {
+        public void execute(Session connection, SMPPPacket packet) throws IOException {
             connection.sendPacket(packet);
         }
     };
 
-    public SyncWrapper(Connection connection) {
+    public SyncWrapper(Session connection) {
         this.connection = connection;
     }
 
@@ -66,7 +66,7 @@ public class SyncWrapper implements ConnectionObserver {
      * @throws ReadTimeoutException If the bind timeout
      * expires before the response is received from the SMSC.
      */
-    public BindResp bind(ConnectionType type,
+    public BindResp bind(SessionType type,
             String systemID,
             String password,
             String systemType) throws IOException {
@@ -89,7 +89,7 @@ public class SyncWrapper implements ConnectionObserver {
      * @throws ReadTimeoutException If the bind timeout
      * expires before the response is received from the SMSC.
      */
-    public BindResp bind(ConnectionType type,
+    public BindResp bind(SessionType type,
             String systemID,
             String password,
             String systemType,
@@ -97,9 +97,9 @@ public class SyncWrapper implements ConnectionObserver {
             int numberPlanIndicator,
             String addressRange) throws IOException {
         Bind bindRequest;
-        if (type == ConnectionType.TRANSMITTER) {
+        if (type == SessionType.TRANSMITTER) {
             bindRequest = new BindTransmitter();
-        } else if (type == ConnectionType.RECEIVER) {
+        } else if (type == SessionType.RECEIVER) {
             bindRequest = new BindReceiver();
         } else {
             bindRequest = new BindTransceiver();
@@ -172,7 +172,7 @@ public class SyncWrapper implements ConnectionObserver {
         }
     }
     
-    public void packetReceived(Connection source, SMPPPacket packet) {
+    public void packetReceived(Session source, SMPPPacket packet) {
         if (packet.isResponse()) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Response received: there are {} threads blocked.",
@@ -197,7 +197,7 @@ public class SyncWrapper implements ConnectionObserver {
         }
     }
 
-    public void update(Connection source, SMPPEvent event) {
+    public void update(Session source, SMPPEvent event) {
         // TODO: need to handle SMPPEvent
         LOG.warn("SyncWrapper ignoring an SMPP event.");
     }
@@ -338,6 +338,6 @@ public class SyncWrapper implements ConnectionObserver {
     }
     
     private interface ConnectionCaller {
-        void execute(Connection connection, SMPPPacket packet) throws IOException;
+        void execute(Session connection, SMPPPacket packet) throws IOException;
     }
 }

@@ -1,8 +1,10 @@
 package ie.omk.smpp.message;
 
+import ie.omk.smpp.util.PacketDecoder;
+import ie.omk.smpp.util.PacketEncoder;
 import ie.omk.smpp.version.SMPPVersion;
 
-import java.util.List;
+import java.io.IOException;
 
 /**
  * SMSC response to a ParamRetrieve request. Returns the value of the requested
@@ -20,7 +22,7 @@ public class ParamRetrieveResp extends SMPPPacket {
      * Construct a new BindReceiverResp.
      */
     public ParamRetrieveResp() {
-        super(PARAM_RETRIEVE_RESP);
+        super(CommandId.PARAM_RETRIEVE_RESP);
     }
 
     /**
@@ -49,6 +51,23 @@ public class ParamRetrieveResp extends SMPPPacket {
     }
 
     @Override
+    public boolean equals(Object obj) {
+        boolean equals = super.equals(obj);
+        if (equals) {
+            ParamRetrieveResp other = (ParamRetrieveResp) obj;
+            equals |= safeCompare(paramValue, other.paramValue);
+        }
+        return equals;
+    }
+    
+    @Override
+    public int hashCode() {
+        int hc = super.hashCode();
+        hc += (paramValue != null) ? paramValue.hashCode() : 0;
+        return hc;
+    }
+
+    @Override
     protected void toString(StringBuffer buffer) {
         buffer.append("paramValue=").append(paramValue);
     }
@@ -59,19 +78,17 @@ public class ParamRetrieveResp extends SMPPPacket {
     }
     
     @Override
-    protected BodyDescriptor getBodyDescriptor() {
-        return BodyDescriptor.ONE_CSTRING;
+    protected void readMandatory(PacketDecoder decoder) {
+        paramValue = decoder.readCString();
     }
     
     @Override
-    protected Object[] getMandatoryParameters() {
-        return new Object[] {
-                paramValue,
-        };
+    protected void writeMandatory(PacketEncoder encoder) throws IOException {
+        encoder.writeCString(paramValue);
     }
-
+    
     @Override
-    protected void setMandatoryParameters(List<Object> params) {
-        paramValue = (String) params.get(0);
+    protected int getMandatorySize() {
+        return 1 + sizeOf(paramValue);
     }
 }

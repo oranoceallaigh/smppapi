@@ -1,13 +1,18 @@
 package ie.omk.smpp.util;
 
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
+
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
-import junit.framework.TestCase;
+import org.testng.annotations.Test;
 
-public class AbsoluteSMPPDateTest extends TestCase {
+@Test
+public class AbsoluteSMPPDateTest {
 
     public void testAbsoluteDate() {
         Calendar cal = new GregorianCalendar();
@@ -19,18 +24,18 @@ public class AbsoluteSMPPDateTest extends TestCase {
         SMPPDate d = SMPPDate.getAbsoluteInstance(cal, true);
         assertFalse(d.isRelative());
         assertTrue(d.isAbsolute());
-        assertEquals(cal.get(Calendar.YEAR), d.getYear());
-        assertEquals(cal.get(Calendar.MONTH) + 1, d.getMonth());
-        assertEquals(cal.get(Calendar.DAY_OF_MONTH), d.getDay());
-        assertEquals(cal.get(Calendar.HOUR_OF_DAY), d.getHour());
-        assertEquals(cal.get(Calendar.MINUTE), d.getMinute());
-        assertEquals(cal.get(Calendar.SECOND), d.getSecond());
-        assertEquals(cal.get(Calendar.MILLISECOND) / 100, d.getTenth());
-        assertEquals(cal.getTimeZone(), d.getTimeZone());
+        assertEquals(d.getYear(), cal.get(Calendar.YEAR));
+        assertEquals(d.getMonth(), cal.get(Calendar.MONTH) + 1);
+        assertEquals(d.getDay(), cal.get(Calendar.DAY_OF_MONTH));
+        assertEquals(d.getHour(), cal.get(Calendar.HOUR_OF_DAY));
+        assertEquals(d.getMinute(), cal.get(Calendar.MINUTE));
+        assertEquals(d.getSecond(), cal.get(Calendar.SECOND));
+        assertEquals(d.getTenth(), cal.get(Calendar.MILLISECOND) / 100);
+        assertEquals(d.getTimeZone(), cal.getTimeZone());
         if (localZone.getRawOffset() < 0) {
-            assertEquals('-', d.getSign());
+            assertEquals(d.getSign(), '-');
         } else {
-            assertEquals('+', d.getSign());
+            assertEquals(d.getSign(), '+');
         }
     }
     
@@ -45,9 +50,9 @@ public class AbsoluteSMPPDateTest extends TestCase {
 
         assertEquals(now1WithTz, now1WithTz);
         assertEquals(now2WithTz, now2WithTz);
-        assertEquals(now1WithTz, now2WithTz);
         assertEquals(now2WithTz, now1WithTz);
-        assertEquals(now1WithTz.hashCode(), now2WithTz.hashCode());
+        assertEquals(now1WithTz, now2WithTz);
+        assertEquals(now2WithTz.hashCode(), now1WithTz.hashCode());
 
         assertEquals(now3NoTz, now3NoTz);
         assertFalse(now1WithTz.equals(now3NoTz));

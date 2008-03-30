@@ -41,7 +41,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @version $Id$
  */
-public class ObjectLink extends AbstractSmscLink {
+public class ObjectLink extends AbstractStreamLink {
 
     private static final Logger LOG = LoggerFactory.getLogger(ObjectLink.class);
     
@@ -126,7 +126,8 @@ public class ObjectLink extends AbstractSmscLink {
 
         int l = pak.getLength();
         out.setBuf(buf, l);
-        pak.writeTo(out);
+        // TODO
+//        pak.writeTo(out);
 
         return out.getBuf();
     }

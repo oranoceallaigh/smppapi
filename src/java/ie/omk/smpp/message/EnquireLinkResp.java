@@ -14,7 +14,7 @@ public class EnquireLinkResp extends SMPPPacket {
      * Construct a new EnquireLinkResp.
      */
     public EnquireLinkResp() {
-        super(ENQUIRE_LINK_RESP);
+        super(CommandId.ENQUIRE_LINK_RESP);
     }
 
     /**
@@ -26,6 +26,11 @@ public class EnquireLinkResp extends SMPPPacket {
      */
     public EnquireLinkResp(SMPPPacket request) {
         super(request);
+    }
+    
+    @Override
+    public int hashCode() {
+        return super.hashCode() * 53;
     }
 }
 

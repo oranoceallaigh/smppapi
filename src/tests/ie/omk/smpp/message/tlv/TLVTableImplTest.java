@@ -1,18 +1,22 @@
 package ie.omk.smpp.message.tlv;
 
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 import ie.omk.smpp.message.param.BitmaskParamDescriptor;
-import ie.omk.smpp.message.param.ParamDescriptor;
-import ie.omk.smpp.util.ParsePosition;
-import ie.omk.smpp.util.SMPPIO;
+import ie.omk.smpp.util.PacketDecoderImpl;
+import ie.omk.smpp.util.PacketEncoderImpl;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.BitSet;
 
-import junit.framework.TestCase;
+import org.testng.annotations.Test;
 
-public class TLVTableImplTest extends TestCase {
+@Test
+public class TLVTableImplTest {
     public void testTLVTableAddParams() {
         TLVTableImpl table = new TLVTableImpl();
 
@@ -121,19 +125,19 @@ public class TLVTableImplTest extends TestCase {
 
     public void testGetIntReturnsNegativeOneOnUnsetTag() throws Exception {
         TLVTableImpl table = new TLVTableImpl();
-        assertEquals(-1, table.getInt(Tag.DEST_TELEMATICS_ID));
+        assertEquals(table.getInt(Tag.DEST_TELEMATICS_ID), -1);
     }
     
     public void testGetLongReturnsNegativeOneOnUnsetTag() throws Exception {
         TLVTableImpl table = new TLVTableImpl();
-        assertEquals(-1L, table.getLong(Tag.DEST_TELEMATICS_ID));
+        assertEquals(table.getLong(Tag.DEST_TELEMATICS_ID), -1L);
     }
     
     public void testGetIntAndGetLongSucceed() throws Exception {
         TLVTableImpl table = new TLVTableImpl();
         table.put(Tag.DEST_ADDR_SUBUNIT, new Integer(56));
-        assertEquals(56, table.getInt(Tag.DEST_ADDR_SUBUNIT));
-        assertEquals(56L, table.getLong(Tag.DEST_ADDR_SUBUNIT));
+        assertEquals(table.getInt(Tag.DEST_ADDR_SUBUNIT), 56);
+        assertEquals(table.getLong(Tag.DEST_ADDR_SUBUNIT), 56L);
     }
 
     public void testGetIntThrowsExceptionOnIncorrectType() throws Exception {
@@ -160,15 +164,15 @@ public class TLVTableImplTest extends TestCase {
         TLVTableImpl table = new TLVTableImpl();
         table.put(Tag.RECEIPTED_MESSAGE_ID, "messageID");
         table.put(Tag.DEST_ADDR_SUBUNIT, new Integer(124));
-        assertEquals("messageID", table.getString(Tag.RECEIPTED_MESSAGE_ID));
-        assertEquals("124", table.getString(Tag.DEST_ADDR_SUBUNIT));
+        assertEquals(table.getString(Tag.RECEIPTED_MESSAGE_ID), "messageID");
+        assertEquals(table.getString(Tag.DEST_ADDR_SUBUNIT), "124");
     }
 
     public void testGetBitmaskSucceeds() throws Exception {
         final BitSet bitSet = new BitSet();
         TLVTableImpl table = new TLVTableImpl();
         table.put(Tag.MS_MSG_WAIT_FACILITIES, bitSet);
-        assertEquals(bitSet, table.getBitmask(Tag.MS_MSG_WAIT_FACILITIES));
+        assertEquals(table.getBitmask(Tag.MS_MSG_WAIT_FACILITIES), bitSet);
     }
 
     public void testGetBitmaskThrowsExceptionOnIncorrectType() throws Exception {
@@ -185,7 +189,7 @@ public class TLVTableImplTest extends TestCase {
         byte[] array = new byte[] {1, 2, 3, 4};
         TLVTableImpl table = new TLVTableImpl();
         table.put(Tag.DEST_SUBADDRESS, array);
-        assertTrue(Arrays.equals(array, table.getBytes(Tag.DEST_SUBADDRESS)));
+        assertEquals(table.getBytes(Tag.DEST_SUBADDRESS), array);
     }
 
     public void testGetBytesThrowsExceptionOnIncorrectType() throws Exception {
@@ -217,8 +221,9 @@ public class TLVTableImplTest extends TestCase {
         origTable.put(Tag.MS_MSG_WAIT_FACILITIES, bitSet);
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
+        PacketEncoderImpl encoder = new PacketEncoderImpl(out);
         try {
-            origTable.writeTo(out);
+            origTable.writeTo(encoder);
         } catch (IOException x) {
             fail("I/O Exception while writing to output stream.");
         }
@@ -229,17 +234,17 @@ public class TLVTableImplTest extends TestCase {
             fail("Table getLength is different to actual encoded length");
         }
 
-        ParsePosition position = new ParsePosition(0);
+        PacketDecoderImpl decoder = new PacketDecoderImpl(serialized);
         TLVTableImpl newTable = new TLVTableImpl();
-        newTable.readFrom(serialized, position, serialized.length);
+        newTable.readFrom(decoder, serialized.length);
         doTableAssertions(origTable, newTable);
-        assertEquals(serialized.length, position.getIndex());
+        assertEquals(decoder.getParsePosition(), serialized.length);
 
-        position = new ParsePosition(0);
+        decoder.setParsePosition(0);
         newTable = new TLVTableImpl();
-        newTable.readFrom(serialized, position, serialized.length);
+        newTable.readFrom(decoder, serialized.length);
         doTableAssertions(origTable, newTable);
-        assertEquals(serialized.length, position.getIndex());
+        assertEquals(decoder.getParsePosition(), serialized.length);
     }
 
     /**
@@ -248,38 +253,29 @@ public class TLVTableImplTest extends TestCase {
      * any optional parameter that is well-formed - the fact that it doesn't
      * know about it beforehand should not cause an error in the API.
      */
+    // TODO dependencies
     public void testTLVTableDeSerializeUnknown() throws Exception {
         // Set up a byte array which contains 2 known optional parameters
         // followed by 2 unknowns.
+        final Integer testIntValue = new Integer(0xbcad);
+        final String testStringValue = "smppapi tlv tests";
+        TLVTableImpl table = new TLVTableImpl();
+        table.put(Tag.DEST_TELEMATICS_ID, testIntValue);
+        table.put(Tag.ADDITIONAL_STATUS_INFO_TEXT, testStringValue);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        ParamDescriptor descriptor;
-        int length = 0;
-
-        descriptor = Tag.DEST_TELEMATICS_ID.getParamDescriptor();
-        Integer i = new Integer(0xbcad);
-        length = descriptor.sizeOf(i);
-        SMPPIO.writeShort(Tag.DEST_TELEMATICS_ID.intValue(), out);
-        SMPPIO.writeShort(length, out);
-        descriptor.writeObject(i, out);
-
-        String v = "smppapi tlv tests";
-        descriptor = Tag.ADDITIONAL_STATUS_INFO_TEXT.getParamDescriptor();
-        length = descriptor.sizeOf(v);
-        SMPPIO.writeShort(Tag.ADDITIONAL_STATUS_INFO_TEXT.intValue(), out);
-        SMPPIO.writeShort(length, out);
-        descriptor.writeObject(v, out);
-
+        PacketEncoderImpl encoder = new PacketEncoderImpl(out);
+        table.writeTo(encoder);
         // Tag '0xcafe', length 2.
-        byte[] cafe = new byte[] {
+        encoder.writeBytes(new byte[] {
                 (byte) 0xca,
                 (byte) 0xfe,
                 (byte) 0x00,
                 (byte) 0x02,
                 (byte) 0xfe,
                 (byte) 0xed,
-        };
+        });
         // Tag '0xbeef', length 5
-        byte[] beef = new byte[] {
+        encoder.writeBytes(new byte[] {
                 (byte) 0xbe,
                 (byte) 0xef,
                 (byte) 0x00,
@@ -289,30 +285,28 @@ public class TLVTableImplTest extends TestCase {
                 (byte) 0xde,
                 (byte) 0xad,
                 (byte) 0x99,
-        };
-        out.write(cafe);
-        out.write(beef);
+        });
 
         byte[] b = out.toByteArray();
         try {
             // Run the test - attempt to deserialize the table.
+            PacketDecoderImpl decoder = new PacketDecoderImpl(out.toByteArray());
             TLVTableImpl tab = new TLVTableImpl();
-            ParsePosition position = new ParsePosition(0);
-            tab.readFrom(b, position, b.length);
-            assertEquals(b.length, position.getIndex());
-            assertEquals(tab.get(Tag.DEST_TELEMATICS_ID), i);
-            assertEquals(tab.get(Tag.ADDITIONAL_STATUS_INFO_TEXT), v);
+            tab.readFrom(decoder, b.length);
+            assertEquals(decoder.getParsePosition(), b.length);
+            assertEquals(tab.get(Tag.DEST_TELEMATICS_ID), testIntValue);
+            assertEquals(tab.get(Tag.ADDITIONAL_STATUS_INFO_TEXT), testStringValue);
 
             b = (byte[]) tab.get(0xcafe);
             byte[] expectedValue = {(byte) 0xfe, (byte) 0xed};
 
-            assertTrue(Arrays.equals(b, expectedValue));
+            assertEquals(b, expectedValue);
 
             b = (byte[]) tab.get(0xbeef);
             expectedValue = new byte[] {(byte) 0xba, (byte) 0xbe, (byte) 0xde,
                     (byte) 0xad, (byte) 0x99, };
 
-            assertTrue(Arrays.equals(b, expectedValue));
+            assertEquals(b, expectedValue);
 
         } catch (Exception x) {
             x.printStackTrace(System.err);
@@ -329,8 +323,8 @@ public class TLVTableImplTest extends TestCase {
                 ((Number) newTable.get(Tag.QOS_TIME_TO_LIVE)).longValue());
         assertEquals(origTable.get(Tag.ADDITIONAL_STATUS_INFO_TEXT),
                 newTable.get(Tag.ADDITIONAL_STATUS_INFO_TEXT));
-        assertTrue(Arrays.equals((byte[]) origTable.get(Tag.CALLBACK_NUM_ATAG),
-                        (byte[]) newTable.get(Tag.CALLBACK_NUM_ATAG)));
+        assertEquals((byte[]) newTable.get(Tag.CALLBACK_NUM_ATAG),
+                (byte[]) origTable.get(Tag.CALLBACK_NUM_ATAG));
         assertEquals((BitSet) origTable.get(Tag.MS_MSG_WAIT_FACILITIES),
                 (BitSet) newTable.get(Tag.MS_MSG_WAIT_FACILITIES));
     }

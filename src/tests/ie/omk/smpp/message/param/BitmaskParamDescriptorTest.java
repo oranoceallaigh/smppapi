@@ -1,24 +1,27 @@
 package ie.omk.smpp.message.param;
 
-import ie.omk.smpp.util.ParsePosition;
+import static org.testng.Assert.assertEquals;
+import ie.omk.smpp.util.PacketDecoderImpl;
+import ie.omk.smpp.util.PacketEncoderImpl;
 
 import java.io.ByteArrayOutputStream;
-import java.util.Arrays;
 import java.util.BitSet;
 
-import junit.framework.TestCase;
+import org.testng.annotations.Test;
 
-public class BitmaskParamDescriptorTest extends TestCase {
+@Test
+public class BitmaskParamDescriptorTest {
     
     private ParamDescriptor descriptor = new BitmaskParamDescriptor();
 
     public void testWriteObjectWithNoBitsSet() throws Exception {
         BitSet bitset = new BitSet();
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        descriptor.writeObject(bitset, out);
+        PacketEncoderImpl encoder = new PacketEncoderImpl(out);
+        descriptor.writeObject(bitset, encoder);
         byte[] actual = out.toByteArray();
-        assertEquals(1, actual.length);
-        assertTrue(Arrays.equals(new byte[] { 0 }, actual));
+        assertEquals(actual.length, 1);
+        assertEquals(actual, new byte[] { 0 });
     }
     
     public void testWriteObject() throws Exception {
@@ -28,33 +31,33 @@ public class BitmaskParamDescriptorTest extends TestCase {
         bitset.set(6);
         bitset.set(7);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        descriptor.writeObject(bitset, out);
+        PacketEncoderImpl encoder = new PacketEncoderImpl(out);
+        descriptor.writeObject(bitset, encoder);
         byte[] actual = out.toByteArray();
-        assertEquals(1, actual.length);
-        assertTrue(Arrays.equals(new byte[] { (byte) 0xd8 }, actual));
+        assertEquals(actual.length, 1);
+        assertEquals(actual, new byte[] { (byte) 0xd8 });
     }
     
     public void testReadObjectWithNoBitsSet() throws Exception {
-        ParsePosition position = new ParsePosition(0);
-        BitSet bitset = (BitSet) descriptor.readObject(
-                new byte[] { 0 }, position, 1);
-        assertEquals(0, bitset.length());
-        assertEquals(-1, bitset.nextSetBit(0));
-        assertEquals(1, position.getIndex());
+        PacketDecoderImpl decoder = new PacketDecoderImpl(new byte[] {0});
+        BitSet bitset = (BitSet) descriptor.readObject(decoder, 1);
+        assertEquals(bitset.length(), 0);
+        assertEquals(bitset.nextSetBit(0), -1);
+        assertEquals(decoder.getParsePosition(), 1);
     }
     
     public void testReadObjectWithSize1() throws Exception {
         // We're reading from an offset here, the first byte should be ignored.
-        ParsePosition position = new ParsePosition(3);
-        BitSet bitset = (BitSet) descriptor.readObject(
-                new byte[] { 0, 0x7f, 0x7f, 0x77 }, position, 1);
-        assertEquals(0, bitset.nextSetBit(0));
-        assertEquals(1, bitset.nextSetBit(1));
-        assertEquals(2, bitset.nextSetBit(2));
-        assertEquals(4, bitset.nextSetBit(3));
-        assertEquals(5, bitset.nextSetBit(5));
-        assertEquals(6, bitset.nextSetBit(6));
-        assertEquals(-1, bitset.nextSetBit(7));
-        assertEquals(4, position.getIndex());
+        PacketDecoderImpl decoder =
+            new PacketDecoderImpl(new byte[] {0, 0x7f, 0x7f, 0x77}, 3);
+        BitSet bitset = (BitSet) descriptor.readObject(decoder, 1);
+        assertEquals(bitset.nextSetBit(0), 0);
+        assertEquals(bitset.nextSetBit(1), 1);
+        assertEquals(bitset.nextSetBit(2), 2);
+        assertEquals(bitset.nextSetBit(3), 4);
+        assertEquals(bitset.nextSetBit(5), 5);
+        assertEquals(bitset.nextSetBit(6), 6);
+        assertEquals(bitset.nextSetBit(7), -1);
+        assertEquals(decoder.getParsePosition(), 4);
     }
 }

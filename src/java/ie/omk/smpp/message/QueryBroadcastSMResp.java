@@ -2,13 +2,16 @@ package ie.omk.smpp.message;
 
 import ie.omk.smpp.message.tlv.TLVTable;
 import ie.omk.smpp.message.tlv.Tag;
+import ie.omk.smpp.util.PacketDecoder;
+import ie.omk.smpp.util.PacketEncoder;
 import ie.omk.smpp.version.SMPPVersion;
 
-import java.util.List;
+import java.io.IOException;
 
 /**
  * QueryBroadcastSM response packet.
  * @version $Id:$
+ * @since 0.4.0
  */
 public class QueryBroadcastSMResp extends SMPPPacket {
     private static final long serialVersionUID = 1L;
@@ -16,7 +19,7 @@ public class QueryBroadcastSMResp extends SMPPPacket {
     private String messageId;
     
     public QueryBroadcastSMResp() {
-        super (SMPPPacket.QUERY_BROADCAST_SM_RESP);
+        super (CommandId.QUERY_BROADCAST_SM_RESP);
     }
 
     public String getMessageId() {
@@ -28,18 +31,30 @@ public class QueryBroadcastSMResp extends SMPPPacket {
     }
     
     @Override
-    protected BodyDescriptor getBodyDescriptor() {
-        return BodyDescriptor.ONE_CSTRING;
+    public boolean equals(Object obj) {
+        boolean equals = super.equals(obj);
+        if (equals) {
+            QueryBroadcastSMResp other = (QueryBroadcastSMResp) obj;
+            equals |= safeCompare(messageId, other.messageId);
+        }
+        return equals;
     }
     
     @Override
-    protected Object[] getMandatoryParameters() {
-        return new Object[] {messageId};
+    public int hashCode() {
+        int hc = super.hashCode();
+        hc += (messageId != null) ? messageId.hashCode() : 0;
+        return hc;
+    }
+
+    @Override
+    protected void readMandatory(PacketDecoder decoder) {
+        messageId = decoder.readCString();
     }
     
     @Override
-    protected void setMandatoryParameters(List<Object> params) {
-        messageId = (String) params.get(0);
+    protected void writeMandatory(PacketEncoder encoder) throws IOException {
+        encoder.writeCString(messageId);
     }
     
     @Override
@@ -50,5 +65,10 @@ public class QueryBroadcastSMResp extends SMPPPacket {
         valid &= tlvTable.containsKey(Tag.BROADCAST_AREA_IDENTIFIER);
         valid &= tlvTable.containsKey(Tag.BROADCAST_AREA_SUCCESS);
         return valid;
+    }
+    
+    @Override
+    protected int getMandatorySize() {
+        return 1 + sizeOf(messageId);
     }
 }

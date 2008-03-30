@@ -1,30 +1,25 @@
 package ie.omk.smpp.message;
 
-import java.util.List;
-
 import ie.omk.smpp.Address;
-import ie.omk.smpp.message.param.ParamDescriptor;
+import ie.omk.smpp.util.PacketDecoder;
+import ie.omk.smpp.util.PacketEncoder;
+
+import java.io.IOException;
 
 /**
  * Cancel a previously submitted broadcast message.
  * @version $Id:$
+ * @since 0.4.0
  */
 public class CancelBroadcastSM extends SMPPPacket {
     private static final long serialVersionUID = 1L;
-    private static final BodyDescriptor bodyDescriptor = new BodyDescriptor();
     
     private String serviceType;
     private String messageId;
     private Address source;
     
-    static {
-        bodyDescriptor.add(ParamDescriptor.CSTRING)
-        .add(ParamDescriptor.CSTRING)
-        .add(ParamDescriptor.ADDRESS);
-    }
-    
     public CancelBroadcastSM() {
-        super (SMPPPacket.CANCEL_BROADCAST_SM);
+        super (CommandId.CANCEL_BROADCAST_SM);
     }
 
     public String getMessageId() {
@@ -52,23 +47,46 @@ public class CancelBroadcastSM extends SMPPPacket {
     }
     
     @Override
-    protected BodyDescriptor getBodyDescriptor() {
-        return bodyDescriptor;
+    public boolean equals(Object obj) {
+        boolean equals = super.equals(obj);
+        if (equals) {
+            CancelBroadcastSM other = (CancelBroadcastSM) obj;
+            equals |= safeCompare(serviceType, other.serviceType);
+            equals |= safeCompare(messageId, other.messageId);
+            equals |= safeCompare(source, other.source);
+        }
+        return equals;
     }
     
     @Override
-    protected Object[] getMandatoryParameters() {
-        return new Object[] {
-                serviceType,
-                messageId,
-                source,
-        };
+    public int hashCode() {
+        int hc = super.hashCode();
+        hc += (serviceType != null) ? serviceType.hashCode() : 0;
+        hc += (messageId != null) ? messageId.hashCode() : 31;
+        hc += (source != null) ? source.hashCode() : 97;
+        return hc;
+    }
+
+    @Override
+    protected void readMandatory(PacketDecoder decoder) {
+        serviceType = decoder.readCString();
+        messageId = decoder.readCString();
+        source = decoder.readAddress();
     }
     
     @Override
-    protected void setMandatoryParameters(List<Object> params) {
-        serviceType = (String) params.get(0);
-        messageId = (String) params.get(1);
-        source = (Address) params.get(3);
+    protected void writeMandatory(PacketEncoder encoder) throws IOException {
+        encoder.writeCString(serviceType);
+        encoder.writeCString(messageId);
+        encoder.writeAddress(source);
+    }
+    
+    @Override
+    protected int getMandatorySize() {
+        int length = 2;
+        length += sizeOf(serviceType);
+        length += sizeOf(messageId);
+        length += sizeOf(source);
+        return length;
     }
 }

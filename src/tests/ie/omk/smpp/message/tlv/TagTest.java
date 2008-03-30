@@ -1,44 +1,49 @@
 package ie.omk.smpp.message.tlv;
 
-import ie.omk.smpp.message.param.ParamDescriptor;
-import junit.framework.TestCase;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertSame;
+import static org.testng.Assert.assertTrue;
 
-public class TagTest extends TestCase {
+import org.testng.annotations.Test;
+
+@Test
+public class TagTest {
     
     public void testTag() {
         Tag testTag = Tag.SMS_SIGNAL;
         int testTagVal = 0x1203;
 
-        assertEquals(testTagVal, testTag.intValue());
-        assertEquals(testTagVal, testTag.intValue());
+        assertEquals(testTag.intValue(), testTagVal);
+        assertEquals(testTag.intValue(), testTagVal);
 
-        assertSame(testTag, Tag.getTag(testTagVal));
-        assertEquals(testTag, Tag.getTag(testTagVal));
+        assertSame(Tag.getTag(testTagVal), testTag);
+        assertEquals(Tag.getTag(testTagVal), testTag);
         assertTrue(testTag.equals(testTagVal));
 
-        assertEquals(new Integer(testTagVal).hashCode(), testTag.hashCode());
+        assertEquals(testTag.hashCode(), new Integer(testTagVal).hashCode());
 
         //
         // Define a new Tag type
         //
         int newTagVal = 0x1456;
-        Tag newTag = Tag.defineTag(0x1456, ParamDescriptor.INTEGER4, 4);
+        Tag newTag = Tag.defineTag(0x1456, BasicDescriptors.INTEGER4, 4);
 
         assertTrue(newTag.equals(newTagVal));
-        assertSame(newTag, Tag.getTag(newTagVal));
+        assertSame(Tag.getTag(newTagVal), newTag);
     }
 
     public void testDefineAndUndefine() throws Exception {
         final int TAG_VALUE = 9000;
         assertFalse(Tag.isTagDefined(TAG_VALUE));
-        Tag.defineTag(TAG_VALUE, ParamDescriptor.CSTRING, 30);
+        Tag.defineTag(TAG_VALUE, BasicDescriptors.CSTRING, 30);
         assertTrue(Tag.isTagDefined(TAG_VALUE));
         Tag tag = Tag.getTag(TAG_VALUE);
-        assertEquals(ParamDescriptor.CSTRING, tag.getParamDescriptor());
-        assertEquals(TAG_VALUE, tag.intValue());
-        assertEquals(30, tag.getMaxLength());
-        assertEquals(30, tag.getMinLength());
-        assertEquals(30, tag.getLength());
+        assertEquals(tag.getParamDescriptor(), BasicDescriptors.CSTRING);
+        assertEquals(tag.intValue(), TAG_VALUE);
+        assertEquals(tag.getMaxLength(), 30);
+        assertEquals(tag.getMinLength(), 30);
+        assertEquals(tag.getLength(), 30);
         Tag.undefineTag(tag);
         assertFalse(Tag.isTagDefined(TAG_VALUE));
     }

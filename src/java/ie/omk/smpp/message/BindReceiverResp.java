@@ -11,7 +11,7 @@ public class BindReceiverResp extends BindResp {
      * Construct a new BindReceiverResp.
      */
     public BindReceiverResp() {
-        super(BIND_RECEIVER_RESP);
+        super(CommandId.BIND_RECEIVER_RESP);
     }
 
     public BindReceiverResp(SMPPPacket request) {

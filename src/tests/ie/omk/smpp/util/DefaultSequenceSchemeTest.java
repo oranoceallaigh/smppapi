@@ -1,36 +1,40 @@
 package ie.omk.smpp.util;
 
-import junit.framework.TestCase;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
-public class DefaultSequenceSchemeTest extends TestCase {
+import org.testng.annotations.Test;
+
+@Test
+public class DefaultSequenceSchemeTest {
 
     public void testNextNumber() {
         DefaultSequenceScheme seq = new DefaultSequenceScheme();
-        assertEquals(1L, seq.nextNumber());
-        assertEquals(2L, seq.nextNumber());
-        assertEquals(3L, seq.nextNumber());
-        assertEquals(4L, seq.nextNumber());
-        assertEquals(5L, seq.nextNumber());
-        assertEquals(6L, seq.nextNumber());
+        assertEquals(seq.nextNumber(), 1L);
+        assertEquals(seq.nextNumber(), 2L);
+        assertEquals(seq.nextNumber(), 3L);
+        assertEquals(seq.nextNumber(), 4L);
+        assertEquals(seq.nextNumber(), 5L);
+        assertEquals(seq.nextNumber(), 6L);
     }
     public void testPeek() {
         DefaultSequenceScheme seq = new DefaultSequenceScheme();
-        assertEquals(1L, seq.peek());
-        assertEquals(1L, seq.nextNumber());
-        assertEquals(2L, seq.peek());
-        assertEquals(2L, seq.peek());
-        assertEquals(2L, seq.peek());
-        assertEquals(2L, seq.peek());
-        assertEquals(2L, seq.nextNumber());
-        assertEquals(3L, seq.peek());
-        assertEquals(13L, seq.peek(10L));
+        assertEquals(seq.peek(), 1L);
+        assertEquals(seq.nextNumber(), 1L);
+        assertEquals(seq.peek(), 2L);
+        assertEquals(seq.peek(), 2L);
+        assertEquals(seq.peek(), 2L);
+        assertEquals(seq.peek(), 2L);
+        assertEquals(seq.nextNumber(), 2L);
+        assertEquals(seq.peek(), 3L);
+        assertEquals(seq.peek(10L), 13L);
     }
     public void testReset() {
         DefaultSequenceScheme seq = new DefaultSequenceScheme();
         while (seq.nextNumber() < 1450L);
-        assertEquals(1451, seq.peek());
+        assertEquals(seq.peek(), 1451);
         seq.reset();
-        assertEquals(1, seq.nextNumber());
+        assertEquals(seq.nextNumber(), 1);
     }
 
     public void testWrap() {

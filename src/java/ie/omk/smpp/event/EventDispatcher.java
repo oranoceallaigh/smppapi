@@ -1,6 +1,6 @@
 package ie.omk.smpp.event;
 
-import ie.omk.smpp.Connection;
+import ie.omk.smpp.Session;
 import ie.omk.smpp.message.SMPPPacket;
 
 import java.util.Collection;
@@ -8,7 +8,7 @@ import java.util.Iterator;
 
 /**
  * This interface defines the observable side of the observer pattern for
- * asynchronous SMPP event notification. Each {@link ie.omk.smpp.Connection}
+ * asynchronous SMPP event notification. Each {@link ie.omk.smpp.Session}
  * object will have an implementation of the <code>EventDispatcher</code>
  * interface which it uses to deliver events to interested listeners. By
  * removing the actual dispatching of events from the internals of the
@@ -47,7 +47,7 @@ public interface EventDispatcher {
      * @param observer
      *            the observer object to add.
      */
-    void addObserver(ConnectionObserver observer);
+    void addObserver(SessionObserver observer);
 
     /**
      * Remove an observer from this event dispatcher.
@@ -55,7 +55,7 @@ public interface EventDispatcher {
      * @param observer
      *            the observer object to remove from the registered observers.
      */
-    void removeObserver(ConnectionObserver observer);
+    void removeObserver(SessionObserver observer);
 
     /**
      * Get a read-only collection view of all the observers registered with
@@ -64,14 +64,14 @@ public interface EventDispatcher {
      * @return A read-only collection of all the observers registered with
      * this dispatcher.
      */
-    Collection<ConnectionObserver> getObservers();
+    Collection<SessionObserver> getObservers();
     
     /**
      * Get an iterator over the currently registered observers.
      * 
      * @return an iterator object which iterates over all registered observers.
      */
-    Iterator<ConnectionObserver> observerIterator();
+    Iterator<SessionObserver> observerIterator();
 
     /**
      * Notify all registered observers of an SMPP event.
@@ -79,7 +79,7 @@ public interface EventDispatcher {
      * @param event
      *            the SMPP event to notify observers of.
      */
-    void notifyObservers(Connection conn, SMPPEvent event);
+    void notifyObservers(Session conn, SMPPEvent event);
 
     /**
      * Notify all registered observers of a received SMPP packet.
@@ -87,6 +87,6 @@ public interface EventDispatcher {
      * @param packet
      *            the SMPP packet to notify observers of.
      */
-    void notifyObservers(Connection conn, SMPPPacket packet);
+    void notifyObservers(Session conn, SMPPPacket packet);
 }
 

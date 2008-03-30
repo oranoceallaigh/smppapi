@@ -17,10 +17,10 @@ import org.slf4j.LoggerFactory;
 public abstract class AbstractEventDispatcher implements EventDispatcher {
     private static final Logger LOG = LoggerFactory.getLogger(AbstractEventDispatcher.class);
     
-    private List<ConnectionObserver> observers =
-        new ArrayList<ConnectionObserver>();
+    private List<SessionObserver> observers =
+        new ArrayList<SessionObserver>();
 
-    public void addObserver(ConnectionObserver observer) {
+    public void addObserver(SessionObserver observer) {
         synchronized (observers) {
             if (!observers.contains(observer)) {
                 observers.add(observer);
@@ -30,21 +30,21 @@ public abstract class AbstractEventDispatcher implements EventDispatcher {
         }
     }
 
-    public void removeObserver(ConnectionObserver observer) {
+    public void removeObserver(SessionObserver observer) {
         synchronized (observers) {
             observers.remove(observer);
         }
     }
 
-    public Collection<ConnectionObserver> getObservers() {
+    public Collection<SessionObserver> getObservers() {
         return Collections.unmodifiableCollection(observers);
     }
     
-    public Iterator<ConnectionObserver> observerIterator() {
+    public Iterator<SessionObserver> observerIterator() {
         return Collections.unmodifiableList(observers).iterator();
     }
 
-    public boolean contains(ConnectionObserver observer) {
+    public boolean contains(SessionObserver observer) {
         return observers.contains(observer);
     }
 
@@ -56,10 +56,10 @@ public abstract class AbstractEventDispatcher implements EventDispatcher {
      * Get the list of observers as an array.
      * @return An array of all registered observers.
      */
-    protected ConnectionObserver[] getObserverList() {
-        ConnectionObserver[] observerList;
+    protected SessionObserver[] getObserverList() {
+        SessionObserver[] observerList;
         synchronized (observers) {
-            observerList = new ConnectionObserver[observers.size()];
+            observerList = new SessionObserver[observers.size()];
             observers.toArray(observerList);
         }
         return observerList;

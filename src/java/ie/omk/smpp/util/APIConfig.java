@@ -230,7 +230,8 @@ public final class APIConfig extends Properties {
     private static final String PROPS_RESOURCE = "smppapi.properties";
 
     /**
-     * The singleton instance of the API configuration.
+     * The singleton instance of the API configuration. The rest of the API
+     * uses this singleton instance for property lookups.
      */
     private static APIConfig instance;
 
@@ -279,6 +280,7 @@ public final class APIConfig extends Properties {
     public boolean reloadAPIConfig() {
         LOG.debug("Reloading API config properties.");
         try {
+            clear();
             loadAPIProperties();
         } catch (IOException x) {
             LOG.warn("Could not reload API properties.", x);

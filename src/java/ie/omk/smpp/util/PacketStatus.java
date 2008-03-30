@@ -57,6 +57,26 @@ public final class PacketStatus {
     public static final int MISSING_EXPECTED_PARAMETER = 0xc3;
     public static final int INVALID_PARAMETER_VALUE = 0xc4;
     public static final int DELIVERY_FAILED = 0xfe;
+    public static final int UNKNOWN_ERROR = 0xff;
+    public static final int SERVICE_TYPE_NOAUTH = 0x100;
+    public static final int OPERATION_PROHIBITED = 0x101;
+    public static final int SERVICE_TYPE_UNAVAILABLE = 0x102;
+    public static final int SERVICE_TYPE_DENIED = 0x103;
+    public static final int INVALID_DATA_CODING_SCHEME = 0x104;
+    public static final int INVALID_SOURCE_SUB_UNIT = 0x105;
+    public static final int INVALID_DEST_SUB_UNIT = 0x106;
+    public static final int INVALID_BCAST_FREQ_INTERVAL = 0x107;
+    public static final int INVALID_BCAST_ALIAS = 0x108;
+    public static final int INVALID_BCAST_AREA_FORMAT = 0x109;
+    public static final int INVALID_NUM_BCAST_AREAS = 0x10a;
+    public static final int INVALID_BCAST_CONTENT_TYPE = 0x10b;
+    public static final int INVALID_BCAST_MESSAGE_CLASS = 0x10c;
+    public static final int BCAST_SM_FAILED = 0x10d;
+    public static final int BCAST_QUERY_SM_FAILED = 0x10e;
+    public static final int BCAST_CANCEL_SM_FAILED = 0x10f;
+    public static final int INVALID_NUM_REPEATED_BCASTS = 0x110;
+    public static final int INVALID_BCAST_SERVICE_GROUP = 0x111;
+    public static final int INVALID_BCAST_CHANNEL_INDICATOR = 0x112;
     
     private PacketStatus() {
     }
