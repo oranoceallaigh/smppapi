@@ -11,7 +11,7 @@ import java.io.IOException;
  * Query Message details. Get all information about an existing message at the
  * SMSC.
  * 
- * @version $Id: $
+ * @version $Id$
  */
 public class QueryMsgDetails extends SMPPPacket {
     private static final long serialVersionUID = 1L;

@@ -14,7 +14,7 @@ import java.util.Arrays;
  * Replace a message. This message submits a short message to the SMSC replacing
  * a previously submitted message.
  * 
- * @version $Id: $
+ * @version $Id$
  */
 public class ReplaceSM extends SMPPPacket {
     private static final long serialVersionUID = 1L;

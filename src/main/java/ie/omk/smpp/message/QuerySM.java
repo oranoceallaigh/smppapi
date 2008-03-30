@@ -1,39 +1,30 @@
 package ie.omk.smpp.message;
 
-
+import ie.omk.smpp.Address;
 import ie.omk.smpp.util.PacketDecoder;
 import ie.omk.smpp.util.PacketEncoder;
 import ie.omk.smpp.version.SMPPVersion;
 
 import java.io.IOException;
 
-
 /**
- * ESME response to a Deliver message request.
+ * Query the state of a message.
  * 
- * @version $Id: $
+ * @version $Id$
  */
-public class DeliverSMResp extends SMPPPacket {
+public class QuerySM extends SMPPPacket {
     private static final long serialVersionUID = 1L;
-
+    
     private String messageId;
+    private Address source;
     
     /**
-     * Construct a new DeliverSMResp.
+     * Construct a new QuerySM.
      */
-    public DeliverSMResp() {
-        super(CommandId.DELIVER_SM_RESP);
+    public QuerySM() {
+        super(CommandId.QUERY_SM);
     }
-
-    /**
-     * Create a new DeliverSMResp packet in response to a DeliverSM. This
-     * constructor will set the sequence number to it's expected value.
-     * @param request The Request packet the response is to
-     */
-    public DeliverSMResp(SMPPPacket request) {
-        super(request);
-    }
-
+    
     public String getMessageId() {
         return messageId;
     }
@@ -42,12 +33,21 @@ public class DeliverSMResp extends SMPPPacket {
         this.messageId = messageId;
     }
 
+    public Address getSource() {
+        return source;
+    }
+
+    public void setSource(Address source) {
+        this.source = source;
+    }
+
     @Override
     public boolean equals(Object obj) {
         boolean equals = super.equals(obj);
         if (equals) {
-            DeliverSMResp other = (DeliverSMResp) obj;
+            QuerySM other = (QuerySM) obj;
             equals |= safeCompare(messageId, other.messageId);
+            equals |= safeCompare(source, other.source);
         }
         return equals;
     }
@@ -56,31 +56,36 @@ public class DeliverSMResp extends SMPPPacket {
     public int hashCode() {
         int hc = super.hashCode();
         hc += (messageId != null) ? messageId.hashCode() : 0;
+        hc += (source != null) ? source.hashCode() : 0;
         return hc;
     }
 
     @Override
     protected void toString(StringBuffer buffer) {
-        buffer.append("messageId=").append(messageId);
+        buffer.append("messageId=").append(messageId)
+        .append(",source=").append(source);
     }
 
     @Override
     protected void validateMandatory(SMPPVersion smppVersion) {
         smppVersion.validateMessageId(messageId);
-    }
-
-    @Override
-    protected void readMandatory(PacketDecoder decoder) {
-        messageId = decoder.readCString();
+        smppVersion.validateAddress(source);
     }
     
     @Override
+    protected void readMandatory(PacketDecoder decoder) {
+        messageId = decoder.readCString();
+        source = decoder.readAddress();
+    }
+
+    @Override
     protected void writeMandatory(PacketEncoder encoder) throws IOException {
         encoder.writeCString(messageId);
+        encoder.writeAddress(source);
     }
     
     @Override
     protected int getMandatorySize() {
-        return 1 + sizeOf(messageId);
+        return 1 + sizeOf(messageId) + sizeOf(source);
     }
 }

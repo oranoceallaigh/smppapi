@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
  * message using registered delivery that a message has reached it's end point
  * successfully.
  * 
- * @version $Id: $
+ * @version $Id$
  */
 public class DeliverSM extends SubmitSM {
     private static final long serialVersionUID = 1L;

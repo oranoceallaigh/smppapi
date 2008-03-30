@@ -10,7 +10,7 @@ import ie.omk.smpp.util.SMPPDate;
 /**
  * Submit a message to the SMSC for delivery to a single destination.
  * 
- * @version $Id: $
+ * @version $Id$
  */
 public class SubmitSM extends SMPPPacket {
     private static final long serialVersionUID = 1L;

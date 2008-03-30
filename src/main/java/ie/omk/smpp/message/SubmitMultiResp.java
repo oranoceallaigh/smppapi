@@ -14,7 +14,7 @@ import java.util.ListIterator;
 /**
  * Submit to multiple destinations response.
  * 
- * @version $Id: $
+ * @version $Id$
  */
 public class SubmitMultiResp extends SMPPPacket {
     private static final long serialVersionUID = 1L;

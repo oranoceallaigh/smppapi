@@ -32,7 +32,7 @@ import java.util.TimeZone;
  * of SMPP time formats.
  * </p>
  * @see SMPPDateFormat
- * @version $Id: $
+ * @version $Id$
  */
 public abstract class SMPPDate implements java.io.Serializable {
     private static final long serialVersionUID = 2;

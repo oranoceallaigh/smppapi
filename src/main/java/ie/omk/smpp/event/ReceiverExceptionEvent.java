@@ -10,7 +10,7 @@ import ie.omk.smpp.SessionState;
  * caught and the state the connection was in when it was caught are saved in
  * this event.
  * 
- * @version $Id: $
+ * @version $Id$
  */
 public class ReceiverExceptionEvent extends SMPPEvent {
     /**

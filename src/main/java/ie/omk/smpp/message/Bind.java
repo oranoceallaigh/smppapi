@@ -9,7 +9,7 @@ import java.io.IOException;
 
 /**
  * Abstract parent of BindTransmitter, BindReceiver and BindTransceiver.
- * @version $Id: $
+ * @version $Id$
  */
 public abstract class Bind extends SMPPPacket {
     private String systemId;
