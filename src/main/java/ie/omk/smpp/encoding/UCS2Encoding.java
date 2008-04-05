@@ -15,9 +15,4 @@ public class UCS2Encoding extends AlphabetEncoding {
         super(DCS);
         setCharset(ENCODING);
     }
-    
-    @Override
-    public int getCharSize() {
-        return 16;
-    }
 }

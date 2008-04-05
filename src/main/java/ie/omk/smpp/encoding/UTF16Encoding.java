@@ -19,10 +19,4 @@ public class UTF16Encoding extends ie.omk.smpp.encoding.AlphabetEncoding {
             setCharset("UTF-16BE");
         }
     }
-    
-    @Override
-    public int getCharSize() {
-        return 16;
-    }
 }
-

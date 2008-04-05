@@ -27,8 +27,8 @@ public class Latin1EncodingTest {
 
     public void testLatinEncoding() throws Exception {
         Latin1Encoding encoding = new Latin1Encoding();
-        byte[] encoded = encoding.encodeString(STRING);
-        String decoded = encoding.decodeString(encoded);
+        byte[] encoded = encoding.encode(STRING);
+        String decoded = encoding.decode(encoded);
         assertNotNull(encoded);
         assertNotNull(decoded);
         assertEquals(encoded, EXPECTED_BYTES);
@@ -38,8 +38,8 @@ public class Latin1EncodingTest {
     public void testNonLatin1() throws Exception {
         Latin1Encoding encoding = new Latin1Encoding();
         String nonLatin1 = "\u20ac";
-        byte[] encoded = encoding.encodeString(nonLatin1);
-        String decoded = encoding.decodeString(encoded);
+        byte[] encoded = encoding.encode(nonLatin1);
+        String decoded = encoding.decode(encoded);
         assertEquals(encoded.length, nonLatin1.length());
         assertFalse(nonLatin1.equals(decoded));
     }

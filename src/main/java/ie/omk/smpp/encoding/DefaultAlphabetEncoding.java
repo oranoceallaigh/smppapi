@@ -106,7 +106,7 @@ public class DefaultAlphabetEncoding extends AlphabetEncoding {
      * Decode an SMS default alphabet-encoded octet string into a Java String.
      */
     @Override
-    public String decodeString(byte[] data, int offset, int length) {
+    public String decode(byte[] data, int offset, int length) {
         if (data == null) {
             return "";
         }
@@ -132,7 +132,7 @@ public class DefaultAlphabetEncoding extends AlphabetEncoding {
      * Encode a Java String into a byte array using the SMS Default alphabet.
      */
     @Override
-    public byte[] encodeString(String s) {
+    public byte[] encode(String s) {
         if (s == null) {
             return new byte[0];
         }

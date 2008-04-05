@@ -32,8 +32,8 @@ public class HPRoman8EncodingTest {
     
     public void testHPRomanEncoding() {
         HPRoman8Encoding encoding = new HPRoman8Encoding();
-        byte[] encoded = encoding.encodeString(ALPHABET);
-        String decoded = encoding.decodeString(encoded);
+        byte[] encoded = encoding.encode(ALPHABET);
+        String decoded = encoding.decode(encoded);
         assertNotNull(encoded);
         assertNotNull(decoded);
         assertEquals(encoded.length, ALPHABET.length());

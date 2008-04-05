@@ -82,7 +82,8 @@ public final class HPRoman8Encoding extends AlphabetEncoding {
         this.unknownCharReplacement = unknownCharReplacement;
     }
 
-    public String decodeString(byte[] b) {
+    @Override
+    public String decode(byte[] b) {
         if (b == null) {
             return "";
         }
@@ -96,7 +97,8 @@ public final class HPRoman8Encoding extends AlphabetEncoding {
         return buf.toString();
     }
 
-    public byte[] encodeString(String s) {
+    @Override
+    public byte[] encode(String s) {
         if (s == null) {
             return new byte[0];
         }

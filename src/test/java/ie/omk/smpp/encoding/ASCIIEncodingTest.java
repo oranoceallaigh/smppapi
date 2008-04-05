@@ -3,7 +3,6 @@ package ie.omk.smpp.encoding;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
-import ie.omk.smpp.encoding.ASCIIEncoding;
 
 import org.testng.annotations.Test;
 
@@ -18,8 +17,8 @@ public class ASCIIEncodingTest {
 
     public void testEncodeFullAlphabet() throws Exception {
         ASCIIEncoding encoding = new ASCIIEncoding();
-        byte[] encoded = encoding.encodeString(ALPHABET);
-        String decoded = encoding.decodeString(encoded);
+        byte[] encoded = encoding.encode(ALPHABET);
+        String decoded = encoding.decode(encoded);
         assertNotNull(encoded);
         assertNotNull(decoded);
         assertEquals(encoded.length, ALPHABET.length());
@@ -28,11 +27,11 @@ public class ASCIIEncodingTest {
     
     public void testNonASCII() throws Exception {
         ASCIIEncoding encoding = new ASCIIEncoding();
-        byte[] encoded = encoding.encodeString(ALPHABET);
-        String decoded = encoding.decodeString(encoded);
+        byte[] encoded = encoding.encode(ALPHABET);
+        String decoded = encoding.decode(encoded);
         String nonASCII = "\u00e9\u00e8";
-        encoded = encoding.encodeString(nonASCII);
-        decoded = encoding.decodeString(encoded);
+        encoded = encoding.encode(nonASCII);
+        decoded = encoding.decode(encoded);
         assertEquals(encoded.length, nonASCII.length());
         assertFalse(nonASCII.equals(decoded));
     }

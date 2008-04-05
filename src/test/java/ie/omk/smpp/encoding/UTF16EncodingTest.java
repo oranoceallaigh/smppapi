@@ -12,16 +12,16 @@ public class UTF16EncodingTest {
         final String string = "abcdefJKLMN1234567890\u00c0\u00c3\u20ac";
         
         UTF16Encoding encoding = new UTF16Encoding(true);
-        byte[] encoded = encoding.encodeString(string);
-        String decoded = encoding.decodeString(encoded);
+        byte[] encoded = encoding.encode(string);
+        String decoded = encoding.decode(encoded);
         assertNotNull(encoded);
         assertNotNull(decoded);
         assertEquals(encoded.length, string.length() * 2);
         assertEquals(decoded, string);
 
         encoding = new UTF16Encoding(false);
-        encoded = encoding.encodeString(string);
-        decoded = encoding.decodeString(encoded);
+        encoded = encoding.encode(string);
+        decoded = encoding.decode(encoded);
         assertNotNull(encoded);
         assertNotNull(decoded);
         assertEquals(encoded.length, string.length() * 2);

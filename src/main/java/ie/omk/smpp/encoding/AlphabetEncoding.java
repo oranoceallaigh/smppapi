@@ -9,7 +9,7 @@ import java.io.UnsupportedEncodingException;
  * interface convert Java Unicode strings into a series of bytes representing
  * the String in a particular SMS alphabet.
  */
-public class AlphabetEncoding extends MessageEncoding {
+public class AlphabetEncoding extends AbstractMessageEncoding<String> {
     private String charset;
 
     /**
@@ -35,8 +35,8 @@ public class AlphabetEncoding extends MessageEncoding {
      * method <b>must </b> support decoding <code>null</code>. In such cases,
      * the String "" will be returned.
      */
-    public String decodeString(byte[] data) {
-        return decodeString(data, 0, data.length);
+    public String decode(byte[] data) {
+        return decode(data, 0, data.length);
     }
 
     /**
@@ -44,7 +44,7 @@ public class AlphabetEncoding extends MessageEncoding {
      * method <b>must </b> support decoding <code>null</code>. In such cases,
      * the String "" will be returned.
      */
-    public String decodeString(byte[] data, int offset, int length) {
+    public String decode(byte[] data, int offset, int length) {
         try {
             if (data != null) {
                 return new String(data, offset, length, charset);
@@ -61,7 +61,7 @@ public class AlphabetEncoding extends MessageEncoding {
      * method <b>must </b> support encoding a <code>null</code> string. In
      * such cases, a byte array of length 0 will be returned.
      */
-    public byte[] encodeString(String string) {
+    public byte[] encode(String string) {
         try {
             if (string != null) {
                 return string.getBytes(charset);
@@ -73,6 +73,19 @@ public class AlphabetEncoding extends MessageEncoding {
         return new byte[0];
     }
 
+    /**
+     * Get the number of bytes a particular string would encode as on the
+     * wire.
+     * @return The number of bytes <code>string</code> would encode to.
+     */
+    public int getEncodedSize(String string) {
+        if (string != null) {
+            return encode(string).length;
+        } else {
+            return 0;
+        }
+    }
+    
     /**
      * Set the charset of this alphabet encoding. Sub-classes can use this
      * to create new instances of alphabet encoding for character sets that

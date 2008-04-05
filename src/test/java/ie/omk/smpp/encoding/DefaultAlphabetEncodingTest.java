@@ -28,8 +28,8 @@ public class DefaultAlphabetEncodingTest {
             + "\u00dc\u00a7\u00bfabcdefghijklmnopqrstuvwxyz\u00e4\u00f6\u00f1"
             + "\u00fc\u00e0^{}\\[~]|\u20ac";
         
-        byte[] encoded = encoding.encodeString(alphabet);
-        String decoded = encoding.decodeString(encoded);
+        byte[] encoded = encoding.encode(alphabet);
+        String decoded = encoding.decode(encoded);
         
         assertNotNull(encoded);
         assertNotNull(decoded);
