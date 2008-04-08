@@ -22,8 +22,17 @@ import org.slf4j.LoggerFactory;
 /**
  * Abstract base implementation of the {@link ie.omk.smpp.net.SmscLink}
  * interface that operates on java.io streams.
+ * <p>
  * This class implements basic read and write functionality that can be
  * re-used by other implementations.
+ * </p>
+ * <p>
+ * Concrete implementations of this class <b>must</b> call both
+ * {@link #setInputStream(InputStream)} and
+ * {@link #setOutputStream(OutputStream)} during the
+ * {@link SmscLink#connect()} operation in order to set up instances of
+ * this class properly.
+ * </p>
  * @version $Id: $
  */
 public abstract class AbstractStreamLink implements SmscLink {
@@ -62,23 +71,6 @@ public abstract class AbstractStreamLink implements SmscLink {
     }
 
     /**
-     * Open the connection to the SMSC. Calling this method will cause the
-     * network link to the SMSC to be established. Once this method returns an
-     * application may bind to the SMSC to begin it's SMPP session.
-     * 
-     * @throws java.io.IOException
-     *             If an exception occurs while opening the connection.
-     */
-    public final void open() throws IOException {
-        implOpen();
-        buffer = new byte[512];
-        in = getInputStream();
-        out = getOutputStream();
-        encoder = new PacketEncoderImpl(out);
-        decoder = new PacketDecoderImpl(buffer);
-    }
-
-    /**
      * Close the connection to the SMSC. Calling this method will close the
      * network link to the remote SMSC system. Applications should be unbound
      * from the SMPP link (using {@link ie.omk.smpp.Session#unbind}) before
@@ -88,13 +80,12 @@ public abstract class AbstractStreamLink implements SmscLink {
      * @throws java.io.IOException
      *             If an exception occurs while closing the connection.
      */
-    public final void close() throws IOException {
+    public void disconnect() throws IOException {
         out = null;
         in = null;
         buffer = null;
         encoder = null;
         decoder = null;
-        implClose();
         if (isAutoCloseSnoop()) {
             closeQuietly(snoopOut);
             closeQuietly(snoopIn);
@@ -225,54 +216,6 @@ public abstract class AbstractStreamLink implements SmscLink {
     }
 
     /**
-     * Implementation-specific link close. This method is called by the
-     * {@link #close}method after ensuring no further writes or reads can
-     * occur. Note that any threads that are writing, reading or blocked on
-     * either the readLock or writeLock at the moment this method is called will
-     * still execute. Only further reads or writes will be disallowed. An
-     * implementation should completely close the underlying network link to the
-     * remote SMSC system but it should not free any resources that will
-     * preclude the {@link #open}method from reconnecting.
-     * 
-     * @throws java.io.IOException
-     *             if an exception occurs during close.
-     * @see #getInputStream
-     * @see #getOutputStream
-     * @see #close
-     */
-    protected abstract void implClose() throws IOException;
-
-    /**
-     * Implementation-specific link open. This method will be called by the
-     * {@link #open} method. This method is responsible for establishing the
-     * underlying network connection to the remote SMSC system. For example, The
-     * TCP/IP implementation would create and connect a new
-     * <code>java.io.Socket</code> to the SMSC host.
-     * 
-     * @throws java.io.IOException
-     *             If an exception occurs while opening the connection.
-     */
-    protected abstract void implOpen() throws IOException;
-
-    /**
-     * Get the output stream of the virtual circuit.
-     * 
-     * @throws java.io.IOException
-     *             If the output stream cannot be retrieved or the connection is
-     *             not open.
-     */
-    protected abstract OutputStream getOutputStream() throws IOException;
-
-    /**
-     * Get the input stream of the virtual circuit.
-     * 
-     * @throws java.io.IOException
-     *             If the input stream cannot be retrieved or the connection is
-     *             not open.
-     */
-    protected abstract InputStream getInputStream() throws IOException;
-
-    /**
      * Set the snooper streams. The snooper streams will receive every byte that
      * is either received or sent using this class. This functionality is
      * intended as a debugging aid for SMPP developers. It will be up to the
@@ -291,6 +234,17 @@ public abstract class AbstractStreamLink implements SmscLink {
         snoopOutEncoder = new PacketEncoderImpl(snoopOut);
     }
 
+    protected void setInputStream(InputStream inputStream) {
+        this.in = inputStream;
+        buffer = new byte[512];
+        this.decoder = new PacketDecoderImpl(buffer);
+    }
+    
+    protected void setOutputStream(OutputStream outputStream) {
+        this.out = outputStream;
+        this.encoder = new PacketEncoderImpl(this.out);
+    }
+    
     /**
      * Attempt to read the bytes for an SMPP packet from the inbound stream.
      * @param buf The buffer to read bytes in to.

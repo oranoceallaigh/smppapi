@@ -107,6 +107,17 @@ public class TcpLink extends AbstractStreamLink {
             this.port = port;
         }
     }
+
+    /**
+     * Create a new TcpLink object around an existing socket.
+     * @param socket The socket to use for communications.
+     */
+    public TcpLink(Socket socket) throws IOException {
+        this.sock = socket;
+        setInputStream(sock.getInputStream());
+        setOutputStream(sock.getOutputStream());
+    }
+    
     /**
      * Get the address we're connected (or connecting) to.
      * 
@@ -197,17 +208,11 @@ public class TcpLink extends AbstractStreamLink {
         return true;
     }
     
-    /**
-     * Create a new Socket connection to the SMSC. This implementation creates a
-     * new instance of a java.net.Socket with the host name and port supplied to
-     * the constructor an instance of this class was created with.
-     * 
-     * @throws java.io.IOException
-     *             If an error occurs while creating the socket connection to
-     *             the SMSC.
-     * @see java.net.Socket#Socket(java.net.InetAddress, int)
-     */
-    protected void implOpen() throws java.io.IOException {
+    public void connect() throws java.io.IOException {
+        if (sock != null) {
+            LOG.debug("Cannot connect a link wrapped around a socket.");
+            throw new IllegalStateException();
+        }
         LOG.info("Opening TCP socket to {}:{}", addr, port);
         sock = new Socket();
         SocketAddress sockAddr = new InetSocketAddress(addr, port);
@@ -217,14 +222,7 @@ public class TcpLink extends AbstractStreamLink {
         }
     }
 
-    /**
-     * Close the Socket connection to the SMSC.
-     * 
-     * @throws java.io.IOException
-     *             If an I/O error occurs closing the socket connection.
-     * @see java.net.Socket#close
-     */
-    protected void implClose() throws java.io.IOException {
+    public void disconnect() throws java.io.IOException {
         if (isConnected()) {
             LOG.info("Shutting down socket connection");
             sock.close();

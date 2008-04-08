@@ -150,11 +150,11 @@ public class ObjectLink extends AbstractStreamLink {
         }
     }
     
-    protected void implOpen() throws IOException {
+    public void connect() throws IOException {
         this.out = new OLByteArrayOutputStream();
     }
 
-    protected void implClose() throws IOException {
+    public void disconnect() throws IOException {
     }
 
     protected OutputStream getOutputStream() throws IOException {

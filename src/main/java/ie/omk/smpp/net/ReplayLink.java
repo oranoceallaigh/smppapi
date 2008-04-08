@@ -44,12 +44,12 @@ public class ReplayLink implements SmscLink {
         this.outPacketSource = outPacketSource;
     }
     
-    public void open() throws IOException {
+    public void connect() throws IOException {
         connected = true;
         lookahead(10);
     }
 
-    public void close() throws IOException {
+    public void disconnect() throws IOException {
         connected = false;
         packetLookahead.clear();
     }

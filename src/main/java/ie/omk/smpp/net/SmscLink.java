@@ -10,18 +10,18 @@ import java.io.IOException;
  */
 public interface SmscLink {
     /**
-     * Open the underlying link to the SMSC. If this link is already open,
+     * Initiate the connection to the SMSC. If this link is already connected,
      * this method should do nothing.
      * @throws IOException
      */
-    void open() throws IOException;
+    void connect() throws IOException;
     
     /**
-     * Close the underlying link to the SMSC. If this link is already closed,
+     * Disconnect from the SMSC. If this link is already closed,
      * this method should do nothing.
      * @throws IOException
      */
-    void close() throws IOException;
+    void disconnect() throws IOException;
     
     /**
      * Determine if the underlying link is connected to the SMSC.

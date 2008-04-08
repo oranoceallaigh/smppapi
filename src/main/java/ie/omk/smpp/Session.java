@@ -159,7 +159,7 @@ public class Session {
             type = SessionType.TRANSCEIVER;
         }
         if (!smscLink.isConnected()) {
-            smscLink.open();
+            smscLink.connect();
         }
         setLinkTimeout(APIConfig.BIND_TIMEOUT);
         log.debug("Sending bind packet to the SMSC..");
@@ -195,7 +195,7 @@ public class Session {
 
     public void closeLink() throws IOException {
         if (getState() == SessionState.UNBOUND) {
-            smscLink.close();
+            smscLink.disconnect();
         } else {
             throw new IllegalStateException("Cannot close link while connection is bound.");
         }
