@@ -55,7 +55,7 @@ public class ReplayLinkTest {
         ReplayLink link = new ReplayLink(inbound, outbound);
         link.setTimeout(1000);
         assertFalse(link.isConnected());
-        link.open();
+        link.connect();
         assertTrue(link.isConnected());
         link.read();
     }
@@ -63,7 +63,7 @@ public class ReplayLinkTest {
     @Test
     public void testSession() throws Exception {
         ReplayLink link = new ReplayLink(inbound, outbound);
-        link.open();
+        link.connect();
         SMPPPacket packet;
         packet = doRequest(link, BindTransceiver.class, 0);
         link.write(packet, true);
@@ -83,7 +83,7 @@ public class ReplayLinkTest {
     public void testPacketIsNotDiscardedWhenReadTimeoutOccurs() throws Exception {
         ReplayLink link = new ReplayLink(inbound, outbound);
         link.setTimeout(500);
-        link.open();
+        link.connect();
         try {
             link.read();
             fail("Should have thrown ReadTimeoutException.");
