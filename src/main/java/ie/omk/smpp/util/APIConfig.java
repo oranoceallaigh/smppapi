@@ -569,7 +569,7 @@ public final class APIConfig extends Properties {
      */
     private URL getDefaultPropertiesResource() {
         URL url = null;
-        Class c = getClass();
+        Class<? extends APIConfig> c = getClass();
         for (int i = 0; i < SEARCH_PATH.length && url == null; i++) {
             url = c.getResource(SEARCH_PATH[i] + PROPS_RESOURCE);
         }

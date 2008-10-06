@@ -284,8 +284,8 @@ public abstract class SMPPEventAdapter implements SessionObserver {
         HANDLERS.put(clazz, getMethod(methodName, argClass));
     }
     
-    private static Method getMethod(String name, Class argClass) throws NoSuchMethodException {
-        Class[] args = new Class[] {
+    private static Method getMethod(String name, Class<?> argClass) throws NoSuchMethodException {
+        Class<?>[] args = new Class[] {
                 Session.class,
                 argClass,
         };

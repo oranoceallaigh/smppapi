@@ -20,6 +20,7 @@ import java.io.Serializable;
  * @version $Id$
  */
 public abstract class SMPPPacket implements Serializable, Cloneable {
+    private static final long serialVersionUID = 1L;
     /** Command ID. */
     protected int commandId;
 

@@ -38,8 +38,8 @@ public class EncodingFactory {
     
     private static final EncodingFactory INSTANCE = new EncodingFactory();
     
-    private final Map<Integer, MessageEncoding> mappingTable =
-        new HashMap<Integer, MessageEncoding>();
+    private final Map<Integer, MessageEncoding<?>> mappingTable =
+        new HashMap<Integer, MessageEncoding<?>>();
     private final Map<String, AlphabetEncoding> langToAlphabet =
         new HashMap<String, AlphabetEncoding>();
     private AlphabetEncoding defaultAlphabet;
@@ -101,7 +101,7 @@ public class EncodingFactory {
      * <code>dataCoding</code> or <code>null</code> if there is no encoding
      * registered for that value.
      */
-    public MessageEncoding getEncoding(final int dataCoding) {
+    public MessageEncoding<?> getEncoding(final int dataCoding) {
         return mappingTable.get(new Integer(dataCoding));
     }
     
@@ -109,7 +109,7 @@ public class EncodingFactory {
      * Add a message encoding to this factory.
      * @param encoding The encoding to add to the factory.
      */
-    public void addEncoding(final MessageEncoding encoding) {
+    public void addEncoding(final MessageEncoding<?> encoding) {
         mappingTable.put(new Integer(encoding.getDataCoding()), encoding);
     }
 
@@ -124,8 +124,8 @@ public class EncodingFactory {
      * @param encodingClass The class of the <code>MessageEncoding</code> to
      * add.
      */
-    public void addEncoding(final Class<? extends MessageEncoding> encodingClass) {
-        MessageEncoding encoding = instantiateEncoding(encodingClass);
+    public void addEncoding(final Class<? extends MessageEncoding<?>> encodingClass) {
+        MessageEncoding<?> encoding = instantiateEncoding(encodingClass);
         if (encoding != null) {
             addEncoding(encoding);
         }
@@ -135,7 +135,7 @@ public class EncodingFactory {
      * Get an iterator over all known encodings by this factory.
      * @return An iterator over all the encodings known by this factory.
      */
-    public Iterator<MessageEncoding> getAllEncodings() {
+    public Iterator<MessageEncoding<?>> getAllEncodings() {
         return mappingTable.values().iterator();
     }
     
@@ -190,11 +190,11 @@ public class EncodingFactory {
         }
     }
     
-    private MessageEncoding instantiateEncoding(
-            final Class<? extends MessageEncoding> encodingClass) {
-        MessageEncoding encoding = null;
+    private MessageEncoding<?> instantiateEncoding(
+            final Class<? extends MessageEncoding<?>> encodingClass) {
+        MessageEncoding<?> encoding = null;
         try {
-            Constructor<? extends MessageEncoding> c =
+            Constructor<? extends MessageEncoding<?>> c =
                 encodingClass.getConstructor(new Class[0]);
             encoding = c.newInstance(new Object[0]);
         } catch (NoSuchMethodException x) {

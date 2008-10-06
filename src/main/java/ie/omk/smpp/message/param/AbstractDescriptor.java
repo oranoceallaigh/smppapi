@@ -8,6 +8,7 @@ package ie.omk.smpp.message.param;
  * @since 0.4.0
  */
 public abstract class AbstractDescriptor implements ParamDescriptor {
+    private static final long serialVersionUID = 1L;
 
     @Override
     public boolean equals(Object obj) {

@@ -12,6 +12,7 @@ import java.io.IOException;
  * @version $Id$
  */
 public abstract class Bind extends SMPPPacket {
+    private static final long serialVersionUID = 1L;
     private String systemId;
     private String password;
     private String systemType;

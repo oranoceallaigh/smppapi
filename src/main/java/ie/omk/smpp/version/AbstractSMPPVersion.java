@@ -10,6 +10,7 @@ import ie.omk.smpp.Address;
  * @version $Id:$
  */
 public abstract class AbstractSMPPVersion implements SMPPVersion {
+    private static final long serialVersionUID = 1L;
     /**
      * Integer representing this version number. The SMPP specification states
      * integer values that represent protocol revisions. These values are used
