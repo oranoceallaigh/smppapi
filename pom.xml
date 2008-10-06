@@ -1,13 +1,61 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  
   <modelVersion>4.0.0</modelVersion>
   <groupId>ie.omk</groupId>
   <artifactId>smppapi</artifactId>
   <packaging>jar</packaging>
   <version>0.4.0-SNAPSHOT</version>
+  
   <name>smppapi</name>
+  <description>
+    Java Implementation of the Short Message Peer to Peer API.
+  </description>
   <url>http://smppapi.sf.net/</url>
 
+  <organization>
+    <name>smppapi at Sourceforge</name>
+    <url>http://smppapi.sf.net/</url>
+  </organization>
+  
+  <licenses>
+    <license>
+      <name>GNU Lesser General Public License 2.1</name>
+      <url>http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt</url>
+    </license>
+  </licenses>
+  
+  <scm>
+    <connection>scm:svn:https://smppapi.svn.sourceforge.net/svnroot/smppapi/trunk</connection>
+    <developerConnection>scm:svn:https://smppapi.svn.sourceforge.net/svnroot/smppapi/trunk</developerConnection>
+    <url>http://smppapi.svn.sourceforge.net/viewvc/smppapi/</url>
+  </scm>
+  
+  <issueManagement>
+    <system>Sourceforge</system>
+    <url>https://sourceforge.net/tracker/?group_id=26854</url>
+  </issueManagement>
+  
+  <mailingLists>
+    <mailingList>
+      <name>pbm-devel</name>
+      <archive>https://sourceforge.net/mailarchive/forum.php?forum_name=smppapi-devel</archive>
+    </mailingList>
+  </mailingLists>
+  
+  <developers>
+    <developer>
+      <id>orank</id>
+      <name>Oran Kelly</name>
+      <email>https://sourceforge.net/sendmessage.php?touser=211584</email>
+      <timezone>Europe/Dublin</timezone>
+      <roles>
+        <role>admin</role>
+        <role>developer</role>
+      </roles>
+    </developer>
+  </developers>
+  
   <repositories>
     <repository>
       <id>org.codehaus.mojo</id>
@@ -25,16 +73,84 @@
   	</resources>
     <plugins>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
+        <version>2.0.2</version>
         <configuration>
           <source>1.5</source>
           <target>1.5</target>
         </configuration>
       </plugin>
       <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>2.2</version>
+      </plugin>
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.4.3</version>
+      </plugin>
+      <plugin>
+        <artifactId>maven-surefire-report-plugin</artifactId>
+        <version>2.4.3</version>
+      </plugin>
+      <plugin>
+        <artifactId>maven-clean-plugin</artifactId>
+        <version>2.2</version>
+      </plugin>
+      <plugin>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.2</version>
+        <configuration>
+          <archive>
+            <manifest>
+              <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+            </manifest>
+            <manifestEntries>
+              <Specification-Title>smpp</Specification-Title>
+              <Specification-Version>5.0</Specification-Version>
+              <Specification-Vendor>http://www.smsforum.net/</Specification-Vendor>
+            </manifestEntries>
+          </archive>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-install-plugin</artifactId>
+        <version>2.2</version>
+      </plugin>
+      <plugin>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>2.0</version>
+      </plugin>
+      <plugin>
+        <artifactId>maven-site-plugin</artifactId>
+        <version>2.0-beta-7</version>
+      </plugin>
+      <plugin>
+        <artifactId>maven-project-info-reports-plugin</artifactId>
+        <version>2.1</version>
+      </plugin>
+      <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>cobertura-maven-plugin</artifactId>
+        <version>2.2</version>
+        <configuration>
+          <instrumentation>
+            <excludes>
+              <exclude>com/pbm/**/*Exception.class</exclude>
+            </excludes>
+          </instrumentation>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-eclipse-plugin</artifactId>
+        <version>2.5.1</version>
+      </plugin>
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.2</version>
+      </plugin>
+      <plugin>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.5</version>
       </plugin>
     </plugins>
   </build>
@@ -42,10 +158,10 @@
   <reporting>
     <plugins>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>2.2</version>
         <configuration>
-          <configLocation>${basedir}/src/test/resources/omk.xml</configLocation>
+          <configLocation>${basedir}/src/test/resources/checkstyle.xml</configLocation>
         </configuration>
       </plugin>
       <plugin>
@@ -53,8 +169,12 @@
         <artifactId>cobertura-maven-plugin</artifactId>
       </plugin>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-report-plugin</artifactId>
+        <version>2.4.3</version>
+      </plugin>
+      <plugin>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.5</version>
       </plugin>
     </plugins>
   </reporting>
