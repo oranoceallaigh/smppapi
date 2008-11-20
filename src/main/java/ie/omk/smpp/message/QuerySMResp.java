@@ -95,7 +95,7 @@ public class QuerySMResp extends SMPPPacket {
     }
 
     @Override
-    protected void toString(StringBuffer buffer) {
+    protected void toString(StringBuilder buffer) {
         buffer.append("messageId=").append(messageId)
         .append(",finalDate=").append(finalDate)
         .append(",messageState=").append(messageState)

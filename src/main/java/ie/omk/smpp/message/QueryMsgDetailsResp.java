@@ -250,7 +250,7 @@ public class QueryMsgDetailsResp extends SMPPPacket {
     }
 
     @Override
-    protected void toString(StringBuffer buffer) {
+    protected void toString(StringBuilder buffer) {
         buffer.append("serviceType=").append(serviceType)
         .append(",source=").append(source)
         .append(",numberOfDests=").append(destinationTable.size())

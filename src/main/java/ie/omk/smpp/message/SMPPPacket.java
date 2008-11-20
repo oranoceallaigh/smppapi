@@ -281,19 +281,18 @@ public abstract class SMPPPacket implements Serializable, Cloneable {
      * @return A string representation of this packet.
      */
     public String toString() {
-        String packetName = getClass().getName();
-        packetName = packetName.substring(packetName.lastIndexOf(".") + 1);
-        StringBuffer buffer = new StringBuffer();
-        buffer.append('[').append(packetName)
-        .append(" Header:[length=").append(getLength())
-        .append(",id=").append(Integer.toHexString(commandId))
+        String packetName = getClass().getSimpleName();
+        StringBuilder buffer = new StringBuilder();
+        buffer.append(packetName)
+        .append("(Header:(length=").append(getLength())
+        .append(",id=0x").append(Integer.toHexString(commandId))
         .append(",status=").append(commandStatus)
         .append(",sequenceNum=").append(sequenceNum)
-        .append("] Mandatory:[");
+        .append("),Mandatory:(");
         toString(buffer);
-        buffer.append("] Optional:[")
+        buffer.append(") Optional:(")
         .append(tlvTable)
-        .append("]]");
+        .append("))");
         return buffer.toString();
     }
 
@@ -379,7 +378,7 @@ public abstract class SMPPPacket implements Serializable, Cloneable {
      * Get the mandatory parameters in string form (for display purposes only).
      * @param buffer
      */
-    protected void toString(StringBuffer buffer) {
+    protected void toString(StringBuilder buffer) {
     }
 
     /**

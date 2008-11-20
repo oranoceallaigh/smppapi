@@ -91,7 +91,7 @@ public class CancelSM extends SMPPPacket {
     }
     
     @Override
-    protected void toString(StringBuffer buffer) {
+    protected void toString(StringBuilder buffer) {
         buffer.append("serviceType=").append(serviceType)
         .append(",messageId=").append(messageId)
         .append(",source=").append(source)

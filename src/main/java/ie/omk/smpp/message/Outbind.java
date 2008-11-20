@@ -56,7 +56,7 @@ public class Outbind extends SMPPPacket {
     }
 
     @Override
-    protected void toString(StringBuffer buffer) {
+    protected void toString(StringBuilder buffer) {
         buffer.append("systemId=").append(systemId)
         .append(",password=").append(password);
     }

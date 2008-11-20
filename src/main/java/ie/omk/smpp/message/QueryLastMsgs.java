@@ -87,7 +87,7 @@ public class QueryLastMsgs extends SMPPPacket {
     }
 
     @Override
-    protected void toString(StringBuffer buffer) {
+    protected void toString(StringBuilder buffer) {
         buffer.append("source=").append(source)
         .append("msgCount=").append(msgCount);
     }

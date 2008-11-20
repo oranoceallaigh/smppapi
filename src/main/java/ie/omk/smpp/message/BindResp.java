@@ -51,7 +51,7 @@ public abstract class BindResp extends SMPPPacket {
     }
     
     @Override
-    protected void toString(StringBuffer buffer) {
+    protected void toString(StringBuilder buffer) {
         buffer.append("systemId=").append(systemId);
     }
     

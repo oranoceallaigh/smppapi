@@ -115,7 +115,7 @@ public class SubmitMultiResp extends SMPPPacket {
     }
 
     @Override
-    protected void toString(StringBuffer buffer) {
+    protected void toString(StringBuilder buffer) {
         buffer.append("messageId=").append(messageId)
         .append(",unsuccessfulCount=").append(unsuccessfulTable.size())
         .append(",unsuccessful=").append(unsuccessfulTable);

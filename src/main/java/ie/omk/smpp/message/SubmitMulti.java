@@ -229,7 +229,7 @@ public class SubmitMulti extends SMPPPacket {
     }
 
     @Override
-    protected void toString(StringBuffer buffer) {
+    protected void toString(StringBuilder buffer) {
         int length = 0;
         if (message != null) {
             length = message.length;

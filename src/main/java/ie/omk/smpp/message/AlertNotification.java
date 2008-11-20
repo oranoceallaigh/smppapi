@@ -71,7 +71,7 @@ public class AlertNotification extends SMPPPacket implements Cloneable {
     }
     
     @Override
-    protected void toString(StringBuffer buffer) {
+    protected void toString(StringBuilder buffer) {
         buffer.append("source=").append(source)
         .append(",destination=").append(destination);
     }

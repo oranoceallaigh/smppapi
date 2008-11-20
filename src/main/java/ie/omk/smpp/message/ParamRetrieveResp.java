@@ -68,7 +68,7 @@ public class ParamRetrieveResp extends SMPPPacket {
     }
 
     @Override
-    protected void toString(StringBuffer buffer) {
+    protected void toString(StringBuilder buffer) {
         buffer.append("paramValue=").append(paramValue);
     }
     

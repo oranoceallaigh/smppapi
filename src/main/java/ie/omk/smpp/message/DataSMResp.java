@@ -60,7 +60,7 @@ public class DataSMResp extends SMPPPacket {
     }
 
     @Override
-    protected void toString(StringBuffer buffer) {
+    protected void toString(StringBuilder buffer) {
         buffer.append("messageId=").append(messageId);
     }
 
