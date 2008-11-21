@@ -3,14 +3,10 @@ package ie.omk.smpp.encoding;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
+import ie.omk.smpp.SMPPRuntimeException;
 
-import ie.omk.smpp.encoding.ASCIIEncoding;
-import ie.omk.smpp.encoding.BinaryEncoding;
-import ie.omk.smpp.encoding.DefaultAlphabetEncoding;
-import ie.omk.smpp.encoding.EncodingFactory;
-import ie.omk.smpp.encoding.Latin1Encoding;
-import ie.omk.smpp.encoding.UCS2Encoding;
-
+import java.util.Iterator;
 import java.util.Locale;
 
 import org.testng.annotations.Test;
@@ -29,23 +25,60 @@ public class EncodingFactoryTest {
         assertNull(factory.getEncoding(10));
         assertNull(factory.getEncoding(100));
         assertNull(factory.getEncoding(189));
-
         assertEquals(DefaultAlphabetEncoding.class,
                 factory.getAlphabet("en").getClass());
-        assertEquals(DefaultAlphabetEncoding.class,
-                factory.getAlphabet("en").getClass());
-        assertEquals(DefaultAlphabetEncoding.class,
-                factory.getAlphabet("en").getClass());
-        assertEquals(DefaultAlphabetEncoding.class,
-                factory.getAlphabet("en").getClass());
-        assertEquals(DefaultAlphabetEncoding.class,
-                factory.getAlphabet("en").getClass());
-
         Locale chinese = Locale.CHINESE;
         Locale korean = Locale.KOREAN;
         assertEquals(UCS2Encoding.class,
                 factory.getAlphabet(chinese.getLanguage()).getClass());
         assertEquals(UCS2Encoding.class,
                 factory.getAlphabet(korean.getLanguage()).getClass());
+    }
+    
+    public void testAddEncoding() {
+        class TestEncoding1 extends AlphabetEncoding {
+            TestEncoding1() {
+                super(100);
+            }
+        }
+        EncodingFactory factory = new EncodingFactory();
+        factory.addEncoding(new TestEncoding1());
+        assertNotNull(factory.getEncoding(100));
+        assertEquals(factory.getEncoding(100).getClass(), TestEncoding1.class);
+    }
+    
+    @Test(expectedExceptions = {SMPPRuntimeException.class})
+    public void testAddNullEncodingThrowsException() {
+        EncodingFactory factory = new EncodingFactory();
+        factory.addEncoding((Class<AlphabetEncoding>) null);
+    }
+
+    @Test(expectedExceptions = {SMPPRuntimeException.class})
+    public void testExceptionIsThrownWhenEncodingConstructorExceptions() {
+        class TestEncoding2 extends AlphabetEncoding {
+            @SuppressWarnings("unused")
+            TestEncoding2() {
+                super(101);
+                throw new RuntimeException("This exception is expected.");
+            }
+        }
+        EncodingFactory factory = new EncodingFactory();
+        factory.addEncoding(TestEncoding2.class);
+    }
+    
+    public void testGetAllEncodings() {
+        Iterator<MessageEncoding<?>> encodings =
+            EncodingFactory.getInstance().getAllEncodings();
+        assertNotNull(encodings);
+        assertTrue(encodings.hasNext());
+    }
+    
+    public void testDefaultAlphabetFromSystemProperty() {
+        System.setProperty(
+                EncodingFactory.DEFAULT_ALPHABET_PROPNAME,
+                "ie.omk.smpp.encoding.UTF16Encoding");
+        EncodingFactory factory = new EncodingFactory();
+        assertNotNull(factory.getDefaultAlphabet());
+        assertEquals(factory.getDefaultAlphabet().getClass(), UTF16Encoding.class);
     }
 }

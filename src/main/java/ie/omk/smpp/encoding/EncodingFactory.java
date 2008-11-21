@@ -1,8 +1,9 @@
 package ie.omk.smpp.encoding;
 
+import ie.omk.smpp.SMPPRuntimeException;
+
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -32,9 +33,12 @@ import org.slf4j.LoggerFactory;
  * as returned by the static {@link #getInstance()} method of this class.</p>
  */
 public class EncodingFactory {
-
+    /**
+     * Name of the system property that the 'default' alphabet encoding
+     * will be read from.
+     */
+    static final String DEFAULT_ALPHABET_PROPNAME = "smpp.default_alphabet";
     private static final Logger LOG = LoggerFactory.getLogger(EncodingFactory.class);
-    private static final String DEFAULT_ALPHABET_PROPNAME = "smpp.default_alphabet";
     
     private static final EncodingFactory INSTANCE = new EncodingFactory();
     
@@ -46,7 +50,6 @@ public class EncodingFactory {
     
     public EncodingFactory() {
         addEncoding(new BinaryEncoding());
-
         AlphabetEncoding gsmDefault = new DefaultAlphabetEncoding();
         addEncoding(gsmDefault);
         langToAlphabet.put("en", gsmDefault);
@@ -55,32 +58,29 @@ public class EncodingFactory {
         langToAlphabet.put("it", gsmDefault);
         langToAlphabet.put("nl", gsmDefault);
         langToAlphabet.put("es", gsmDefault);
-
-        AlphabetEncoding ucs2 =
-            (AlphabetEncoding) instantiateEncoding(UCS2Encoding.class);
-        AlphabetEncoding latin1 =
-            (AlphabetEncoding) instantiateEncoding(Latin1Encoding.class);
-        AlphabetEncoding ascii =
-            (AlphabetEncoding) instantiateEncoding(ASCIIEncoding.class);
-        if (ucs2 != null) {
-            addEncoding(ucs2);
-            LOG.debug("Using UCS2 as the catch-all language alphabet.");
-            langToAlphabet.put(null, ucs2);
-        }
-        if (latin1 != null) {
-            addEncoding(latin1);
-            if (langToAlphabet.get(null) == null) {
-                LOG.debug("Using Latin-1 as the catch-all language alphabet.");
-                langToAlphabet.put(null, latin1);
-            }
-        }
-        if (ascii != null) {
+        try {
+            ASCIIEncoding ascii = new ASCIIEncoding();
             addEncoding(ascii);
-            if (langToAlphabet.get(null) == null) {
-                LOG.debug("Using ASCII as the catch-all language alphabet.");
-                langToAlphabet.put(null, ascii);
-            }
+            langToAlphabet.put(null, ascii);
+        } catch (UnsupportedEncodingException x) {
+            LOG.debug("UCS2 encoding is not supported.");
         }
+        try {
+            Latin1Encoding latin1 = new Latin1Encoding();
+            addEncoding(latin1);
+            langToAlphabet.put(null, latin1);
+        } catch (UnsupportedEncodingException x) {
+            LOG.debug("UCS2 encoding is not supported.");
+        }
+        try {
+            AlphabetEncoding ucs2 = new UCS2Encoding();
+            addEncoding(ucs2);
+            langToAlphabet.put(null, ucs2);
+        } catch (UnsupportedEncodingException x) {
+            LOG.debug("UCS2 encoding is not supported.");
+        }
+        LOG.debug("Using {} as the catch-all language alphabet.",
+                langToAlphabet.get(null).getClass().getSimpleName());
         initDefaultAlphabet();
     }
     
@@ -102,7 +102,7 @@ public class EncodingFactory {
      * registered for that value.
      */
     public MessageEncoding<?> getEncoding(final int dataCoding) {
-        return mappingTable.get(new Integer(dataCoding));
+        return mappingTable.get(Integer.valueOf(dataCoding));
     }
     
     /**
@@ -110,7 +110,7 @@ public class EncodingFactory {
      * @param encoding The encoding to add to the factory.
      */
     public void addEncoding(final MessageEncoding<?> encoding) {
-        mappingTable.put(new Integer(encoding.getDataCoding()), encoding);
+        mappingTable.put(Integer.valueOf(encoding.getDataCoding()), encoding);
     }
 
     /**
@@ -125,10 +125,7 @@ public class EncodingFactory {
      * add.
      */
     public void addEncoding(final Class<? extends MessageEncoding<?>> encodingClass) {
-        MessageEncoding<?> encoding = instantiateEncoding(encodingClass);
-        if (encoding != null) {
-            addEncoding(encoding);
-        }
+        addEncoding(instantiateEncoding(encodingClass));
     }
     
     /**
@@ -178,8 +175,11 @@ public class EncodingFactory {
         try {
             className = System.getProperty(DEFAULT_ALPHABET_PROPNAME);
             if (className != null) {
-                Class<?> alphaClass = Class.forName(className);
-                defaultAlphabet = (AlphabetEncoding) alphaClass.newInstance();
+                @SuppressWarnings("unchecked")
+                Class<AlphabetEncoding> alphaClass =
+                    (Class<AlphabetEncoding>) Class.forName(className);
+                defaultAlphabet =
+                    (AlphabetEncoding) instantiateEncoding(alphaClass);
             }
         } catch (Exception x) {
             LOG.warn("Couldn't load default alphabet {}: {}",
@@ -197,27 +197,9 @@ public class EncodingFactory {
             Constructor<? extends MessageEncoding<?>> c =
                 encodingClass.getConstructor(new Class[0]);
             encoding = c.newInstance(new Object[0]);
-        } catch (NoSuchMethodException x) {
-            LOG.error("{} does not have a no-argument constructor",
-                    encodingClass.getName());
-        } catch (IllegalAccessException x) {
-            LOG.error("{} does not have a visible no-argument constructor",
-                    encodingClass.getName());
-        } catch (InstantiationException x) {
-            LOG.error("Cannot instantiate an instance of {}: {}",
-                    encodingClass, x.getMessage());
-        } catch (InvocationTargetException x) {
-            Throwable cause = x.getCause();
-            if (cause instanceof UnsupportedEncodingException) {
-                LOG.debug("Encoding for {} is not supported by the JVM",
-                        encodingClass.getName());
-            } else {
-                LOG.error("{} constructor threw an exception",
-                        encodingClass.getName());
-                LOG.error("Stack trace:", x);
-            }
-        } catch (IllegalArgumentException x) {
-            LOG.error("This exception shouldn't happen", x);
+        } catch (Exception x) {
+            LOG.error("Could not instantiate a {}: {}", encodingClass, x);
+            throw new SMPPRuntimeException(x);
         }
         return encoding;
     }
