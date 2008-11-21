@@ -36,24 +36,31 @@ public class AlphabetEncoding extends AbstractMessageEncoding<String> {
      * the String "" will be returned.
      */
     public String decode(byte[] data) {
-        return decode(data, 0, data.length);
+        if (data != null) {
+            return decode(data, 0, data.length);
+        } else {
+            return "";
+        }
     }
 
     /**
-     * Convert SMS message text into a Java String. Implementations of this
-     * method <b>must </b> support decoding <code>null</code>. In such cases,
-     * the String "" will be returned.
+     * Convert SMS message text into a Java String.
+     * @param data The bytes to decode.
+     * @param offset The offset within the data to begin decoding characters.
+     * @param length The number of bytes to decode to characters.
+     * @throws NullPointerException If <tt>data</tt> is <tt>null</tt>.
      */
     public String decode(byte[] data, int offset, int length) {
         try {
             if (data != null) {
                 return new String(data, offset, length, charset);
+            } else {
+                throw new NullPointerException("Data cannot be null");
             }
         } catch (UnsupportedEncodingException x) {
             // Shouldn't happen - setCharset should have detected this.
             throw new RuntimeException();
         }
-        return "";
     }
 
     /**
