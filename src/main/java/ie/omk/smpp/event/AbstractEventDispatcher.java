@@ -57,11 +57,8 @@ public abstract class AbstractEventDispatcher implements EventDispatcher {
      * @return An array of all registered observers.
      */
     protected SessionObserver[] getObserverList() {
-        SessionObserver[] observerList;
-        synchronized (observers) {
-            observerList = new SessionObserver[observers.size()];
-            observers.toArray(observerList);
-        }
+        SessionObserver[] observerList =
+            observers.toArray(new SessionObserver[0]);
         return observerList;
     }
 }

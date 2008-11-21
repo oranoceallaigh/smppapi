@@ -52,11 +52,8 @@ public class SimpleEventDispatcher extends AbstractEventDispatcher {
 
     /**
      * Notify registered observers of an SMPP event.
-     * 
-     * @param conn 
-     *            the Connection with which the event is associated.
-     * @param event
-     *            the SMPP event to notify observers of.
+     * @param conn the Connection with which the event is associated.
+     * @param event the SMPP event to notify observers of.
      */
     public void notifyObservers(Session conn, SMPPEvent event) {
         SessionObserver[] observerList = getObserverList();
@@ -71,11 +68,8 @@ public class SimpleEventDispatcher extends AbstractEventDispatcher {
 
     /**
      * Notify registered observers of an incoming SMPP packet.
-     * 
-     * @param conn 
-     *            the Connection which the packet was received on.
-     * @param packet
-     *            the received packet to notify observers of.
+     * @param conn  the Connection which the packet was received on.
+     * @param packet the received packet to notify observers of.
      */
     public void notifyObservers(Session conn, SMPPPacket packet) {
         SessionObserver[] observerList = getObserverList();
