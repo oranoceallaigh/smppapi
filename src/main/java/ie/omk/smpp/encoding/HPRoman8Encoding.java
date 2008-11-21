@@ -1,7 +1,5 @@
 package ie.omk.smpp.encoding;
 
-import ie.omk.smpp.SMPPRuntimeException;
-
 import java.io.ByteArrayOutputStream;
 
 /**
@@ -76,27 +74,26 @@ public final class HPRoman8Encoding extends AlphabetEncoding {
      */
     public void setUnknownCharReplacement(int unknownCharReplacement) {
         if (unknownCharReplacement < 0 || unknownCharReplacement > 255) {
-            throw new SMPPRuntimeException(
+            throw new IllegalArgumentException(
                     "Replacement code point is out of bounds.");
         }
         this.unknownCharReplacement = unknownCharReplacement;
     }
 
     @Override
-    public String decode(byte[] b) {
-        if (b == null) {
-            return "";
+    public String decode(byte[] data, int offset, int length) {
+        if (data == null) {
+            throw new NullPointerException("Data cannot be null.");
         }
-
-        StringBuffer buf = new StringBuffer();
-
-        for (int i = 0; i < b.length; i++) {
-            int code = (int) b[i] & 0x000000ff;
-            buf.append((code >= CHAR_TABLE.length) ? '?' : CHAR_TABLE[code]);
+        StringBuilder buf = new StringBuilder();
+        int endIndex = offset + length;
+        for (int i = offset; i < endIndex; i++) {
+            int code = (int) data[i] & 0x000000ff;
+            buf.append(CHAR_TABLE[code]);
         }
         return buf.toString();
     }
-
+    
     @Override
     public byte[] encode(String s) {
         if (s == null) {
