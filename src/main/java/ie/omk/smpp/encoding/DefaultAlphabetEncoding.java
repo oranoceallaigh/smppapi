@@ -108,7 +108,7 @@ public class DefaultAlphabetEncoding extends AlphabetEncoding {
     @Override
     public String decode(byte[] data, int offset, int length) {
         if (data == null) {
-            return "";
+            throw new NullPointerException("Data cannot be null");
         }
         char[] table = CHAR_TABLE;
         StringBuffer buf = new StringBuffer();
