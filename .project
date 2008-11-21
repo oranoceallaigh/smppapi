@@ -1,6 +1,6 @@
 <projectDescription>
   <name>smppapi</name>
-  <comment/>
+  <comment>Java Implementation of the Short Message Peer to Peer API.</comment>
   <projects/>
   <buildSpec>
     <buildCommand>
