@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src/java"/>
-	<classpathentry output="build/tests" kind="src" path="src/tests"/>
-	<classpathentry output="build/examples" kind="src" path="src/examples"/>
+	<classpathentry kind="src" output="build/tests" path="src/tests"/>
+	<classpathentry kind="src" output="build/examples" path="src/examples"/>
 	<classpathentry kind="src" path="src/resources"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="lib/commons-logging.jar"/>
 	<classpathentry kind="lib" path="lib/log4j-1.2.5.jar"/>
-	<classpathentry kind="var" path="ANT_HOME/lib/ant.jar"/>
 	<classpathentry kind="lib" path="build.lib/junit.jar"/>
+	<classpathentry kind="lib" path="build.lib/ant.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>
