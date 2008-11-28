@@ -388,9 +388,6 @@ public class Connection implements java.lang.Runnable {
         if (!this.link.isConnected()) {
             LOGGER.info("Opening network link.");
             this.link.open();
-            if (this.seqNumScheme != null) {
-                this.seqNumScheme.reset();
-            }
         } else {
             LOGGER.debug("openLink called, link already open");
         }
@@ -640,8 +637,8 @@ public class Connection implements java.lang.Runnable {
                     if (LOGGER.isDebugEnabled()) {
                         StringBuffer err = new StringBuffer("Expected:")
                         .append(expectedSeq).append(" but got ")
-                        .append(resp.getSequenceNum()).append(" type: ")
-                        .append(resp.getCommandId());
+                        .append(resp.getSequenceNum()).append(" type: 0x")
+                        .append(Integer.toHexString(resp.getCommandId()));
                         LOGGER.debug(err.toString());
                     }
                     packetQueue.add(resp);
@@ -789,7 +786,10 @@ public class Connection implements java.lang.Runnable {
     IllegalArgumentException, AlreadyBoundException, VersionException,
     SMPPProtocolException {
         Bind bindReq = null;
-
+        // Must be reset before newInstance is called.
+        if (this.seqNumScheme != null) {
+            this.seqNumScheme.reset();
+        }
         try {
             switch (type) {
             case TRANSMITTER:
@@ -1149,6 +1149,8 @@ public class Connection implements java.lang.Runnable {
                }
             }
         } catch (UnsupportedOperationException x) {
+            LOGGER.warn("Link does not support read timeouts - bind timeout will not work");
+        } catch (java.lang.UnsupportedOperationException x) {
             LOGGER.warn("Link does not support read timeouts - bind timeout will not work");
         }
         openLink();
