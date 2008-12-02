@@ -1,5 +1,6 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   
   <modelVersion>4.0.0</modelVersion>
   <groupId>ie.omk</groupId>
@@ -48,6 +49,7 @@
       <id>orank</id>
       <name>Oran Kelly</name>
       <email>https://sourceforge.net/sendmessage.php?touser=211584</email>
+      <url>https://sourceforge.net/users/orank/</url>
       <timezone>Europe/Dublin</timezone>
       <roles>
         <role>admin</role>
@@ -56,14 +58,14 @@
     </developer>
   </developers>
   
-  <repositories>
-    <repository>
-      <id>org.codehaus.mojo</id>
-      <name>Codehaus Mojo Repository</name>
-      <url>http://repository.codehaus.org/org/codehaus/mojo/</url>
-    </repository>
-  </repositories>
-
+  <distributionManagement>
+    <site>
+      <id>Sourceforge</id>
+      <name>Sourceforge Site</name>
+      <url>scp://shell.sourceforge.net/home/groups/s/sm/smppapi/htdocs/maven</url>
+    </site>
+  </distributionManagement>
+  
   <build>
   	<resources>
   	  <resource>
@@ -105,7 +107,7 @@
               <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
             </manifest>
             <manifestEntries>
-              <Specification-Title>smpp</Specification-Title>
+              <Specification-Title>SMPP</Specification-Title>
               <Specification-Version>5.0</Specification-Version>
               <Specification-Vendor>http://www.smsforum.net/</Specification-Vendor>
             </manifestEntries>
@@ -123,6 +125,10 @@
       <plugin>
         <artifactId>maven-site-plugin</artifactId>
         <version>2.0-beta-7</version>
+        <configuration>
+          <templateDirectory>src/site</templateDirectory>
+          <template>smppapi-site.vm</template>
+        </configuration>
       </plugin>
       <plugin>
         <artifactId>maven-project-info-reports-plugin</artifactId>
