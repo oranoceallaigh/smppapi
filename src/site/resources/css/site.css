@@ -1,0 +1,248 @@
+html {
+    margin: 0px;
+    padding: 0px;
+}
+
+body {
+    margin: 10px 0px 0px 0px;
+    padding: 0px 75px 0px 75px;
+    font-family: "Bitstream Vera Sans" "Tahoma" sans-serif;
+    font-size: 12pt;
+    background-color: white;
+    color: black;
+}
+
+table {
+	font-size: 12pt;
+}
+
+a {
+    text-decoration: none;
+    font-weight: bold;
+    color: black;
+    border-bottom: dotted 1px black;
+}
+
+a:hover {
+    background-color: black;
+    color: white;
+}
+
+.centre {
+    text-align: center;
+}
+
+.headBox {
+    height: 50px;
+    background-color: lightgreen;
+    border: 4px solid blue;
+    margin: 0px 0px 10px 0px;
+}
+
+.header {
+    position: relative;
+    top: -49px;
+    height: 70px;
+    margin: 0px 75px 0px 75px;
+    border: 4px solid blue;
+    background-color: white;
+    text-align: center;
+    font-size: 10pt;
+    font-weight: normal;
+    z-index: 10;
+}
+
+.header h1 {
+    margin: 0px;
+    padding: 0px;
+    font-family: sans-serif;
+    font-size: 24pt;
+    font-weight: bold;
+}
+
+.header h1 a {
+    text-decoration: none;
+    color: black;
+    border: none;
+}
+
+.header h1 a:hover {
+    background-color: white;
+}
+
+.toolbarOuter {
+    position: absolute;
+    left: 25px;
+    top: 150px;
+    width: 200px;
+    padding: 0px;
+    margin: 0px;
+    z-index: 10;
+}
+
+.toolbar {
+    background-color: white;
+    border: 4px solid blue;
+    padding: 10px;
+}
+
+.toolbar ul {
+    margin: 0px;
+    padding: 0px;
+}
+
+.toolbar li {
+    list-style-type: none;
+    font-size: smaller;
+}
+
+.toolbar li.page_item > ul {
+    font-size: smaller;
+    font-weight: normal;
+    margin-left: 20px;
+}
+
+.toolbar h2 {
+    margin: 15px 0px 15px 0px;
+    font-size: 12pt;
+    border-bottom: double;
+    border-top: double;
+    text-align: center;
+}
+
+.toolbar a {
+    border: none;
+}
+
+.toolbarTop {
+    min-height: 200px;
+    margin-bottom: 10px;
+}
+
+.contentOuter {
+    position: relative;
+    top: -78px;
+    background-color: lightgreen;
+    border: 4px solid blue;
+    padding: 5px;
+    /*padding: 32px 5px 5px 5px;*/
+    margin-bottom: 10px;
+}
+
+.content {
+    background-color: white;
+    border: 2px solid blue;
+}
+
+.mainContent {
+    min-height: 400px;
+    padding: 10px 10px 10px 161px;
+    margin-top: 32px;
+}
+
+.mainContent H1, .mainContent H2, .mainContent H3 {
+	border: 1px solid #454;
+	padding: 0.25em 0.5em;
+}
+
+.mainContent H1 {
+	background-color: #c2ffc2;
+}
+
+.mainContent H2 {
+	background-color: #d2ffd2;
+}
+
+.mainContent H3 {
+	background-color: #e2ffe2;
+}
+
+.latestNews {
+    margin-top: 25px;
+}
+
+.latestNews h1 {
+    font-size: 24pt;
+    text-align: center;
+}
+
+.latestNews .newsItem {
+    border-bottom: dotted 1px black;
+    padding: 10px;
+}
+
+.latestNews .newsItemOdd {
+}
+
+.latestNews h2 {
+    font-size: 12pt;
+    font-weight: bold;
+}
+
+.latestNews span.pubDate {
+    font-size: smaller;
+}
+
+/*
+ * Begin Maven site customisations
+ */
+.toolbar H5 {
+    margin: 15px 0px 15px 0px;
+    font-size: 12pt;
+    border-top: double black;
+    border-bottom: double black;
+    border-left: none;
+    border-right: none;
+    text-align: center;
+    background: none;
+    color: black;
+}
+
+.poweredBy {
+    text-align: center;
+    padding: 10px;
+}
+
+.publishInfo {
+	font-family: monospace;
+	font-size: smaller;
+	font-weight: bold;
+}
+.publishInfo DL {
+	background: none;
+	border: none;
+}
+.publishInfo DT {
+	color: #900;
+}
+.publishInfo DD {
+	margin-left: 0em;
+	padding-left: 1.5em;
+}
+
+.expanded UL LI {
+	margin-left: 20px;
+	font-size: smaller;
+}
+
+
+table.bodyTable th {
+	background-color: #90ee90;
+	text-align: left
+}
+
+table.bodyTable th, table.bodyTable td {
+	padding: 0.25em;
+}
+
+table.bodyTable tr.a {
+	background-color: #e7e7b9;
+}
+
+table.bodyTable tr.b {
+	background-color: #eee;
+}
+
+A IMG {
+	border: none;
+}

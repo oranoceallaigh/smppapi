@@ -1,0 +1,33 @@
+<project name="smppapi">
+	<body>
+		<menu name="smppapi">
+			<item name="Home" href="http://smppapi.sourceforge.net/"/>
+			<item name="Maven Site" href="index.html"/>
+			<item name="Project Summary" href="project-summary.html"/>
+			<item name="Project Information" href="project-info.html"/>
+			<item name="License" href="license.html"/>
+			<item name="Issue Tracking" href="issue-tracking.html"/>
+			<item name="Source Code" href="source-repository.html"/>
+			<item name="Continuous Integration" href="integration.html"/>
+			<item name="Mailing Lists" href="mail-lists.html"/>
+			<item name="Team" href="team-list.html"/>
+			<item name="API Docs" href="apidocs/index.html"/>
+			<item name="Project Reports" href="project-reports.html" collapse="true">
+				<item name="Surefire Report" href="surefire-report.html"/>
+				<item name="Test Coverage Report" href="cobertura/index.html"/>
+				<item name="Checkstyle" href="checkstyle.html"/>
+				<item name="Plugins" href="plugins.html"/>
+				<item name="Dependencies" href="dependencies.html"/>
+				<item name="Plugin Management" href="plugin-management.html"/>
+			</item>
+		</menu>
+		
+		<menu name="Sourceforge">
+			<item name="Forums" href="http://sourceforge.net/forum/?group_id=26854"/>
+			<item name="Download" href="http://sourceforge.net/project/showfiles.php?group_id=26854"/>
+			<item name="Browse SVN" href="http://smppapi.svn.sourceforge.net/viewvc/smppapi/"/>
+		</menu>
+	</body>
+	
+	<publishDate position="right"/>
+</project>

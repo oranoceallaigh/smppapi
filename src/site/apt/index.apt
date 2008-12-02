@@ -1,0 +1,12 @@
+  The smppapi is an implementation of the Short Message Peer to Peer (SMPP)
+  protocol. SMPP is used by applications to communicate with Service Centres
+  to send and receive short messages to & from mobile devices.
+
+  The current implementation (0.3.x) supports versions 3.3 and 3.4 of the
+  specification. Work has begun on implementing version 5.0 of the
+  specification.
+
+  The smppapi supports communication over the TCP/IP protocol but is
+  extensible, allowing other network implementations to be added.
+
+  The smppapi is released under the Lesser GPL.
