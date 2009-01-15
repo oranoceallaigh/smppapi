@@ -1,6 +1,8 @@
 package ie.omk.smpp.encoding;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
 
 import java.io.UnsupportedEncodingException;
 
@@ -142,6 +144,13 @@ public class DefaultAlphabetEncodingTest extends BaseAlphabetEncodingTest<Defaul
         assertEquals(actual, expected);
     }
     
+    public void testPackZeroLengthArray() throws Exception {
+        DefaultAlphabetEncoding encoding = getEncodingToTest();
+        byte[] packed = encoding.pack(new byte[0]);
+        assertNotNull(packed);
+        assertEquals(packed.length, 0);
+    }
+    
     public void testUnpackUnder8ByteBoundary() throws Exception {
         DefaultAlphabetEncoding encoding = getEncodingToTest();
         final byte[] testArray = new byte[] {
@@ -203,5 +212,55 @@ public class DefaultAlphabetEncodingTest extends BaseAlphabetEncodingTest<Defaul
         byte[] actual = encoding.unpack(testArray);
         assertEquals(actual.length, expected.length);
         assertEquals(actual, expected);
+    }
+    
+    public void testUnpackZeroLengthArray() throws Exception {
+        DefaultAlphabetEncoding encoding = getEncodingToTest();
+        byte[] unpacked = encoding.unpack(new byte[0]);
+        assertNotNull(unpacked);
+        assertEquals(unpacked.length, 0);
+    }
+
+    @Test(expectedExceptions = {IllegalArgumentException.class})
+    public void testNegativeReplacementCharIsRejected() throws Exception {
+        DefaultAlphabetEncoding encoding = getEncodingToTest();
+        encoding.setUnknownCharReplacement(-3);
+    }
+
+    @Test(expectedExceptions = {IllegalArgumentException.class})
+    public void testTooLargeReplacementCharIsRejected() throws Exception {
+        DefaultAlphabetEncoding encoding = getEncodingToTest();
+        encoding.setUnknownCharReplacement(134);
+    }
+
+    @Test(expectedExceptions = {IllegalArgumentException.class})
+    public void testEscapeCharAsReplacementCharIsRejected() throws Exception {
+        DefaultAlphabetEncoding encoding = getEncodingToTest();
+        encoding.setUnknownCharReplacement(DefaultAlphabetEncoding.EXTENDED_ESCAPE);
+    }
+    
+    public void testUnsupportedCharsAreReplacedByUnknownCharReplacement() throws Exception {
+        DefaultAlphabetEncoding encoding = getEncodingToTest();
+        encoding.setUnknownCharReplacement(0x2a);
+        byte[] bytes = encoding.encode("a\u00e3");
+        assertFalse(bytes[0] == encoding.getUnknownCharReplacement());
+        assertEquals(bytes[1], encoding.getUnknownCharReplacement());
+    }
+    
+    public void testDecodeReplacesInvalidCharactersWithUnknownCharReplacement() throws Exception {
+        DefaultAlphabetEncoding encoding = getEncodingToTest();
+        encoding.setUnknownCharReplacement(0x2a);
+        String s = encoding.decode(new byte[] {0x41, (byte) 0xfb});
+        assertEquals(s, "A*");
+    }
+    
+    public void testCharacterSize() throws Exception {
+        DefaultAlphabetEncoding encoding = getEncodingToTest();
+        assertEquals(encoding.getCharSize(), 7);
+    }
+    
+    public void testToString() throws Exception {
+        DefaultAlphabetEncoding encoding = getEncodingToTest();
+        System.out.println(encoding.toString());
     }
 }
