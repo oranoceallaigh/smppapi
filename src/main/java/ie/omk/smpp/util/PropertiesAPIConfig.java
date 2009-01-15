@@ -16,14 +16,54 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Base implementation of the {@link APIConfig} which reads its properties
- * from a Java properties file, loaded from a set of known URLs.
+ * from a Java properties file, loaded from a predefined location.
+ * 
  * <p>
  * When initialised, this implementation searches for a file named
- * "smppapi.properties". This file needs to be locatable on the classpath in
- * one of the following locations:<br />
- * <tt>/, /ie, /ie/omk, /ie/omk/smpp</tt> or the default
- * classloader.
+ * "smppapi.properties". This file needs to be on the classpath in
+ * one of the following locations:
+ * </p>
+ * <ol>
+ * <li>smppapi.properties</li>
+ * <li>ie/smppapi.properties</li>
+ * <li>ie/omk/smppapi.properties</li>
+ * <li>ie/omk/smpp/smppapi.properties</li>
+ * <li>ie/omk/smpp/util/smppapi.properties</li>
+ * </ol>
+ * 
  * <p>
+ * <b>Boolean values:</b> Any of the strings "true", "on" or "yes" will
+ * evaluate to a boolean <tt>true</tt>. The strings "false", "off" or "no"
+ * will all evaluate to a boolean <tt>false</tt>. Additionally, booleans
+ * can be numeric, where zero is evaluated as <tt>false</tt> and a non-zero
+ * value is evaluated as <tt>true</tt>.
+ * </p>
+ * 
+ * <p>
+ * <b>Numbers</b>: Numbers can be specified in any of decimal, hexadecimal,
+ * binary or octal notations. Decimal is the default. Prefixing a number
+ * with "0x" causes it to be parsed as hexadecimal. Prefixing a number with
+ * '0' causes it to be parsed as octal. Suffixing the number with a 'b'
+ * causes it to be parsed as binary. For example:
+ * </p>
+ * <ul>
+ * <li><tt>3757</tt> is a decimal number (base 10).</li>
+ * <li><tt>0xa91</tt> is a hexadecimal number (base 16).</li>
+ * <li><tt>0731</tt> is an octal number (base 8).</li>
+ * <li><tt>1001110b</tt> is a binary number (base 2).</li>
+ * </ul>
+ * 
+ * <p>
+ * Decimal numbers may also be modified with a multiplier. Suffixing the
+ * letters 'k' or 'm' at the end of a decimal number multiples it by
+ * 1024 and 1048576 respectively. This is useful for specifying a number or
+ * kilobytes or megabytes. For example
+ * </p>
+ * <ul>
+ * <li><tt>4k</tt> is equivalent to <tt>4096</tt>.</li>
+ * <li><tt>96m</tt> is equivalent to <tt>100663296</tt>.</li>
+ * </ul>
+ * @version $Id:$
  */
 public class PropertiesAPIConfig extends Properties implements APIConfig, Serializable {
     private static final long serialVersionUID = 1L;
@@ -35,11 +75,15 @@ public class PropertiesAPIConfig extends Properties implements APIConfig, Serial
     
     /**
      * Paths to search for the API properties file. These should always end in
-     * the '/' character except for the last entry which should be a blank
-     * string.
+     * the '/' character.
      */
-    private static final String[] SEARCH_PATH = {"/", "/ie/", "/ie/omk/",
-            "/ie/omk/smpp/", "", };
+    private static final String[] SEARCH_PATH = {
+        "",
+        "ie/",
+        "ie/omk/",
+        "ie/omk/smpp/",
+        "ie/omk/smpp/util/",
+    };
 
     /**
      * Name of the resource to load properties from.
@@ -231,9 +275,12 @@ public class PropertiesAPIConfig extends Properties implements APIConfig, Serial
      */
     private URL getDefaultPropertiesResource() {
         URL url = null;
-        Class<? extends APIConfig> c = getClass();
+        ClassLoader loader = Thread.currentThread().getContextClassLoader();
+        if (loader == null) {
+            loader = getClass().getClassLoader();
+        }
         for (int i = 0; i < SEARCH_PATH.length && url == null; i++) {
-            url = c.getResource(SEARCH_PATH[i] + PROPS_RESOURCE);
+            url = loader.getResource(SEARCH_PATH[i] + PROPS_RESOURCE);
         }
         return url;
     }
