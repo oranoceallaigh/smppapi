@@ -1,7 +1,5 @@
 package ie.omk.smpp.encoding;
 
-import ie.omk.smpp.SMPPRuntimeException;
-
 import java.io.ByteArrayOutputStream;
 
 /**
@@ -87,7 +85,7 @@ public class DefaultAlphabetEncoding extends AlphabetEncoding {
     public void setUnknownCharReplacement(int unknownCharReplacement) {
         if (unknownCharReplacement < 0 || unknownCharReplacement > 127
                 || unknownCharReplacement == EXTENDED_ESCAPE) {
-            throw new SMPPRuntimeException(
+            throw new IllegalArgumentException(
                     "Illegal replacement code point " + unknownCharReplacement);
         }
         this.unknownCharReplacement = unknownCharReplacement;
@@ -119,7 +117,10 @@ public class DefaultAlphabetEncoding extends AlphabetEncoding {
                 // take next char from extension table
                 table = EXT_CHAR_TABLE;
             } else {
-                buf.append((code >= table.length) ? '?' : table[code]);
+                if (code >= table.length) {
+                    code = unknownCharReplacement;
+                }
+                buf.append(table[code]);
                 // Go back to the default table.
                 table = CHAR_TABLE;
             }
@@ -244,45 +245,5 @@ public class DefaultAlphabetEncoding extends AlphabetEncoding {
             }
         }
         return unpacked;
-    }
-
-    public String toString() {
-        final char[][] tables = { CHAR_TABLE, EXT_CHAR_TABLE };
-        final String[] names = { "Primary", "Extended" };
-        StringBuffer b = new StringBuffer(256);
-        for (int t = 0; t < tables.length; t++) {
-            char[] table = tables[t];
-            b.append(names[t]).append(" table:\n");
-            for (int i = 0; i < table.length; i++) {
-                if (i < 10) {
-                    b.append(' ');
-                }
-                if (i < 100) {
-                    b.append(' ');
-                }
-                b.append(i);
-                b.append(": ");
-                if (i == EXTENDED_ESCAPE) {
-                    b.append("ESC ");
-                } else if (table[i] == '\r') {
-                    b.append("CR  ");
-                } else if (table[i] == '\n') {
-                    b.append("LF  ");
-                } else if (table[i] == ' ') {
-                    b.append("SP  ");
-                } else if (table[i] == (char) 0) {
-                    b.append("    ");
-                } else {
-                    b.append(table[i]).append("   ");
-                }
-                if ((i % 8) == 7) {
-                    b.append('\n');
-                } else {
-                    b.append(' ');
-                }
-            }
-            b.append('\n');
-        }
-        return b.toString();
     }
 }
