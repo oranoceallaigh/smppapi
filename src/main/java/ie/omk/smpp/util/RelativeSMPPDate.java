@@ -4,7 +4,7 @@ package ie.omk.smpp.util;
  * Implementation of {@link SMPPDate} representing a relative time
  * specification.
  * 
- * @version $Id: $
+ * @version $Id$
  */
 class RelativeSMPPDate extends SMPPDate {
     private static final long serialVersionUID = 1;

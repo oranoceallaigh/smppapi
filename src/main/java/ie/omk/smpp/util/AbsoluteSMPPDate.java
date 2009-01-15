@@ -7,7 +7,7 @@ import java.util.TimeZone;
  * Implementation of {@link ie.omk.smpp.util.SMPPDate} that represents an
  * absolute time specification.
  * 
- * @version $Id: $
+ * @version $Id$
  */
 class AbsoluteSMPPDate extends SMPPDate {
     private static final long serialVersionUID = 1;

@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
 
 /**
  * Parse a String to an SMPPDate object.
- * @version $Id: $
+ * @version $Id$
  */
 public class SMPPDateFormat extends Format {
     private static final long serialVersionUID = 1;

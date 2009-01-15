@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
  * {@link SmscLink#connect()} operation in order to set up instances of
  * this class properly.
  * </p>
- * @version $Id: $
+ * @version $Id$
  */
 public abstract class AbstractStreamLink implements SmscLink {
     private static final String END_OF_STREAM_ERR = "EOS reached. No data available";
