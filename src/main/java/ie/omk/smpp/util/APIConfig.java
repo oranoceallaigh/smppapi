@@ -16,7 +16,9 @@ package ie.omk.smpp.util;
  * tweaking these settings may help.
  * </p>
  * <p>
- * Supported API properties are: <table cols="3" border="1" width="100%">
+ * Supported API properties are:
+ * </p>
+ * <table cols="3" border="1" width="100%">
  * <tr>
  * <th width="25%">Property name</th>
  * <th width="25%">Type</th>
@@ -43,27 +45,21 @@ package ie.omk.smpp.util;
  * <tr>
  * <td><code>smppapi.net.buffersize_in</code></td>
  * <td>Integer</td>
- * <td>Sets the size of the buffer used on the incoming stream connection from
- * the SMSC. A plain value specified the number of bytes. A suffix of 'k' after
- * the number will be interpreted as kilobytes and a suffix of 'm' will be
- * interpreted as megabytes. For example, 4k will allocate a buffer size of 4096
- * bytes.</td>
+ * <td>Sets the size of the buffer, in bytes, used on the incoming
+ * stream connection from the SMSC.</td>
  * </tr>
  * 
  * <tr>
  * <td><code>smppapi.net.buffersize_out</code></td>
  * <td>Integer</td>
- * <td>Sets the size of the buffer used on the outgoing stream connection to
- * the SMSC. A plain value specified the number of bytes. A suffix of 'k' after
- * the number will be interpreted as kilobytes and a suffix of 'm' will be
- * interpreted as megabytes. For example, 4k will allocate a buffer size of 4096
- * bytes.</td>
+ * <td>Sets the size of the buffer, in bytes, used on the outgoing stream
+ * connection to the SMSC.</td>
  * </tr>
  * 
  * <tr>
  * <td><code>smppapi.net.autoflush</code></td>
  * <td>Boolean</td>
- * <td>By default, the {@link ie.omk.smpp.net.SmscLink}class automatically
+ * <td>By default, the {@link ie.omk.smpp.net.SmscLink} class automatically
  * flushes the output stream after every packet written to the output stream. In
  * high-load environments, it may be better to turn this off and manually flush
  * the output stream only when required (after a short period of inactivity, for
@@ -107,8 +103,8 @@ package ie.omk.smpp.util;
  * <tr>
  * <td><code>smppapi.event.dispatcher</code></td>
  * <td>String</td>
- * <td>The name of a class which implements the
- * {@link ie.omk.smpp.event.EventDispatcher}which will be used as the default
+ * <td>The name of a class, which implements
+ * {@link ie.omk.smpp.event.EventDispatcher}, which will be used as the default
  * event dispatcher for <code>Connection</code> objects.</td>
  * </tr>
  * 
@@ -116,14 +112,7 @@ package ie.omk.smpp.util;
  * <td><code>smppapi.event.threaded_dispatcher.pool_size</code></td>
  * <td>Integer</td>
  * <td>The size of the thread pool used by the
- * {@link ie.omk.smpp.event.ThreadedEventDispatcher}class.</td>
- * </tr>
- * 
- * <tr>
- * <td><code>smppapi.event.threaded_dispatcher.queue_size</code></td>
- * <td>Integer</td>
- * <td>The size of the event FIFO queue used in the
- * <code>ie.omk.smpp.event.ThreadedEventDispatcher</code> class.</td>
+ * {@link ie.omk.smpp.event.TaskExecutorEventDispatcher} class.</td>
  * </tr>
  * 
  * <tr>
@@ -133,7 +122,7 @@ package ie.omk.smpp.util;
  * using optional parameters.</td>
  * </tr>
  * </table>
- * @version $Id:$
+ * @version $Id$
  * @see APIConfigFactory
  * @see PropertiesAPIConfig
  */
@@ -188,12 +177,6 @@ public interface APIConfig {
      */
     String EVENT_THREAD_POOL_SIZE =
         "smppapi.event.threaded_dispatcher.pool_size";
-
-    /**
-     * @see APIConfig
-     */
-    String EVENT_THREAD_FIFO_QUEUE_SIZE =
-        "smppapi.event.threaded_dispatcher.queue_size";
 
     /**
      * @see APIConfig

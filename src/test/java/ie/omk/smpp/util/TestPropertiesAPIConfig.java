@@ -230,7 +230,6 @@ public class TestPropertiesAPIConfig {
         assertEquals(config.getInt(APIConfig.TOO_MANY_IO_EXCEPTIONS), 3);
         assertEquals(config.getInt(APIConfig.BIND_TIMEOUT), 180000);
         assertNull(config.getProperty(APIConfig.EVENT_DISPATCHER_CLASS, null));
-        assertNull(config.getProperty(APIConfig.EVENT_THREAD_FIFO_QUEUE_SIZE, null));
         assertNull(config.getProperty(APIConfig.EVENT_THREAD_POOL_SIZE, null));
         assertNull(config.getProperty(APIConfig.LINK_AUTOCLOSE_SNOOP, null));
     }
