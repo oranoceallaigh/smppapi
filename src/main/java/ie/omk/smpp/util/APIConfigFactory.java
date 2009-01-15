@@ -5,10 +5,8 @@ package ie.omk.smpp.util;
  * configurations can be specified by setting the
  * <tt>ie.omk.smpp.configClass</tt> system property to the fully qualified
  * class name of a class that implements the {@link APIConfig} interface.
- * <p>
- * For example, start your application with:<br />
- * <tt>java -Die.omk.smpp.configClass=app.MyAPIConfig app.MainClass</tt>
- * </p>
+ * The default is {@link PropertiesAPIConfig}.
+ * 
  * <p>
  * Normally, the {@link #getConfig()} method will cache the loaded
  * configuration object on first call and return the cached config
@@ -16,7 +14,15 @@ package ie.omk.smpp.util;
  * never cache the loaded configuration object, set the
  * <tt>ie.omk.smpp.cacheConfig</tt> system property to <tt>false</tt>.
  * </p>
- * @version $Id:$
+ * 
+ * <p>
+ * For example, to run your application with a configuration implementation
+ * called <tt>app.MyAPIConfig</tt> and with singleton caching turned off,
+ * execute:<br />
+ * <tt>java -Die.omk.smpp.configClass=app.MyAPIConfig
+ * -Die.omk.smpp.cacheConfig=false app.MainClass</tt>
+ * </p>
+ * @version $Id$
  */
 public final class APIConfigFactory {
     /**
@@ -31,14 +37,28 @@ public final class APIConfigFactory {
      */
     public static final String CACHE_CONFIG_PROP = "ie.omk.smpp.cacheConfig";
     
-    private static boolean cacheConfig = true;
     private static APIConfig cachedConfig;
     
     private APIConfigFactory() {
     }
     
+    /**
+     * Get the API configuration. Returns a cached {@link APIConfig}
+     * instance if the configuration has previously been loaded and
+     * caching is enabled. If no configuration object has been cached,
+     * return the result of calling {@link #loadConfig()} (and cache
+     * that result if caching is enabled).
+     * <p>
+     * The system property to enable and disable caching is read at every
+     * call to this method, so the cache strategy can be affected by
+     * Java code modifying this value.
+     * </p>
+     * @return The API configuration implementation.
+     * @throws InvalidConfigurationException for the same reasons that
+     * <tt>loadConfig</tt> throws this exception.
+     */
     public static final APIConfig getConfig() {
-        initCacheConfig();
+        boolean cacheConfig = readCacheConfig();
         if (cachedConfig != null) {
             return cachedConfig;
         } else {
@@ -104,17 +124,16 @@ public final class APIConfigFactory {
     }
 
     /**
-     * Reset this <tt>APIConfigFactory</tt>. This clears both the
-     * cached configuration object and resets config-caching setting to
-     * <tt>true</tt> so that the next call to {@link #getConfig()} will
-     * cache its loaded configuration.
+     * Reset this <tt>APIConfigFactory</tt>. This clears the
+     * cached configuration object so that the next call to
+     * {@link #getConfig()} will reload the API configuration.
      */
     public static final void reset() {
-        cacheConfig = true;
         cachedConfig = null;
     }
     
-    private static void initCacheConfig() {
+    private static boolean readCacheConfig() {
+        boolean cacheConfig = true;
         String value = System.getProperty(CACHE_CONFIG_PROP);
         if (value != null) {
             value = value.trim().toLowerCase();
@@ -122,10 +141,9 @@ public final class APIConfigFactory {
                     || "no".equals(value)
                     || "off".equals(value)) {
                 cacheConfig = false;
-            } else {
-                cacheConfig = true;
             }
         }
+        return cacheConfig;
     }
     
     private static ClassLoader getClassLoader() {
