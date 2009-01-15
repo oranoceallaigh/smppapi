@@ -171,7 +171,8 @@ public final class PacketFactory {
         Class<? extends SMPPPacket> commandClass = command.getClass();
         commands.put(Integer.valueOf(commandId), commandClass);
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Mapping id {} to class {}", commandId, commandClass.getName());
+            LOG.debug("Mapping id 0x{} to class {}",
+                    Integer.toHexString(commandId), commandClass.getName());
         }
     }
     
