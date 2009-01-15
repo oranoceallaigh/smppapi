@@ -2,6 +2,8 @@ package ie.omk.smpp.event;
 
 import ie.omk.smpp.Session;
 import ie.omk.smpp.message.SMPPPacket;
+import ie.omk.smpp.util.APIConfig;
+import ie.omk.smpp.util.APIConfigFactory;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
@@ -16,13 +18,21 @@ import org.slf4j.LoggerFactory;
  * {@link Executor} framework to dispatch events. If no other executor
  * is supplied, then a {@link ThreadPoolExecutor} will be created
  * at {@link #init} time.
+ * <p>
+ * The number of threads created in the <tt>ThreadPoolExecutor</tt>
+ * is determined from the {@link #setThreadCount(int) threadCount}
+ * property, which by default is set to <tt>0</tt>. If the application
+ * does not override this value, then the {@link APIConfig} will
+ * be consulted for the {@link APIConfig#EVENT_THREAD_POOL_SIZE} property. If
+ * no value is set there, then a default value of <tt>3</tt> will be used.
+ * </p>
  */
 public class TaskExecutorEventDispatcher extends AbstractEventDispatcher {
     private static final Logger LOG =
         LoggerFactory.getLogger(TaskExecutorEventDispatcher.class);
 
     private Executor executor;
-    private int threadCount = 3;
+    private int threadCount = 0;
     
     public void destroy() {
         if (executor instanceof ExecutorService) {
@@ -32,7 +42,11 @@ public class TaskExecutorEventDispatcher extends AbstractEventDispatcher {
 
     public void init() {
         if (executor == null) {
-            executor = Executors.newFixedThreadPool(threadCount);
+            int numThreads = threadCount;
+            if (numThreads < 1) {
+                numThreads = getNumThreadsFromConfig();
+            }
+            executor = Executors.newFixedThreadPool(numThreads);
         }
     }
 
@@ -91,5 +105,10 @@ public class TaskExecutorEventDispatcher extends AbstractEventDispatcher {
                 LOG.error("Observer " + observer + " threw an exception", t);
             }
         }
+    }
+    
+    private int getNumThreadsFromConfig() {
+        APIConfig config = APIConfigFactory.getConfig();
+        return config.getInt(APIConfig.EVENT_THREAD_POOL_SIZE, 3);
     }
 }
