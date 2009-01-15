@@ -1,5 +1,10 @@
 package com.adenki.smpp;
 
+import java.io.IOException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.adenki.smpp.event.ReceiverExitEvent;
 import com.adenki.smpp.event.SMPPEvent;
 import com.adenki.smpp.message.SMPPPacket;
@@ -7,11 +12,6 @@ import com.adenki.smpp.net.ReadTimeoutException;
 import com.adenki.smpp.util.APIConfig;
 import com.adenki.smpp.util.APIConfigFactory;
 import com.adenki.smpp.util.PacketFactory;
-
-import java.io.IOException;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Receiver thread for the connection.
