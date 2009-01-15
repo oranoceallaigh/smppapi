@@ -5,6 +5,7 @@ import ie.omk.smpp.event.SMPPEvent;
 import ie.omk.smpp.message.SMPPPacket;
 import ie.omk.smpp.net.ReadTimeoutException;
 import ie.omk.smpp.util.APIConfig;
+import ie.omk.smpp.util.APIConfigFactory;
 import ie.omk.smpp.util.PacketFactory;
 
 import java.io.IOException;
@@ -88,8 +89,9 @@ public class ReceiverThread implements Receiver, Runnable {
     private ReceiverExitEvent processPackets() throws Exception {
         ReceiverExitEvent exitEvent = null;
         int ioExceptions = 0;
-        final int ioExceptionLimit = APIConfig.getInstance().getInt(
-                APIConfig.TOO_MANY_IO_EXCEPTIONS, 5);
+        APIConfig config = APIConfigFactory.getConfig();
+        final int ioExceptionLimit =
+            config.getInt(APIConfig.TOO_MANY_IO_EXCEPTIONS, 5);
         
         SMPPPacket packet = null;
         while (running && session.getState() != SessionState.UNBOUND) {

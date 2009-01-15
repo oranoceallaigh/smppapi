@@ -61,7 +61,7 @@ public class APIMessages {
     }
 
     private String getBundleName() {
-        APIConfig cfg = APIConfig.getInstance();
+        APIConfig cfg = APIConfigFactory.getConfig();
         return cfg.getProperty(BUNDLE_PROPERTY, DEFAULT_BUNDLE_NAME);
     }
     

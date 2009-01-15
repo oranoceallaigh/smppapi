@@ -16,6 +16,7 @@ import ie.omk.smpp.message.tlv.Tag;
 import ie.omk.smpp.net.SmscLink;
 import ie.omk.smpp.net.TcpLink;
 import ie.omk.smpp.util.APIConfig;
+import ie.omk.smpp.util.APIConfigFactory;
 import ie.omk.smpp.util.DefaultSequenceScheme;
 import ie.omk.smpp.util.PropertyNotFoundException;
 import ie.omk.smpp.util.SequenceNumberScheme;
@@ -243,7 +244,7 @@ public class Session {
     }
 
     private void initFromConfig() {
-        APIConfig config = APIConfig.getInstance();
+        APIConfig config = APIConfigFactory.getConfig();
         String s = config.getProperty(APIConfig.EVENT_DISPATCHER_CLASS, null);
         if (s != null) {
             eventDispatcher =
@@ -385,7 +386,8 @@ public class Session {
     private void setLinkTimeout(String propName) {
         try {
             if (smscLink.isTimeoutSupported()) {
-                int linkTimeout = APIConfig.getInstance().getInt(propName);
+                APIConfig config = APIConfigFactory.getConfig();
+                int linkTimeout = config.getInt(propName);
                 smscLink.setTimeout(linkTimeout);
                 if (log.isDebugEnabled()) {
                     log.debug("Set the link timeout to {}", linkTimeout);

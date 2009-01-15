@@ -297,7 +297,8 @@ public class SyncWrapper implements SessionObserver {
     }
     
     private long getBindTimeout() {
-        return APIConfig.getInstance().getLong(APIConfig.BIND_TIMEOUT, 0L);
+        APIConfig config = APIConfigFactory.getConfig();
+        return config.getLong(APIConfig.BIND_TIMEOUT, 0L);
     }
     
     private SMPPPacket sendAndWait(SMPPPacket packet,

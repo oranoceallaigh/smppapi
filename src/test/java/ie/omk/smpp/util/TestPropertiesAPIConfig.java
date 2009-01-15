@@ -4,7 +4,6 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
@@ -15,17 +14,14 @@ import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 @Test
-public class TestAPIConfig {
+public class TestPropertiesAPIConfig {
 
-    private APIConfig config;
+    private PropertiesAPIConfig config;
     
     @BeforeTest
     public void setUp() throws Exception {
-        config = APIConfig.getInstance();
-    }
-    
-    public void testGetInstance() throws Exception {
-        assertNotNull(APIConfig.getInstance());
+        config = new PropertiesAPIConfig();
+        config.initialise();
     }
     
     public void testConvertToNumber() throws Exception {
@@ -239,13 +235,10 @@ public class TestAPIConfig {
         assertNull(config.getProperty(APIConfig.LINK_AUTOCLOSE_SNOOP, null));
     }
     
-    public void testConfigure() throws Exception {
+    public void testReConfigure() throws Exception {
         URL url = getClass().getClassLoader().getResource("TestAPIConfig.properties");
         assertNotNull(url);
-        APIConfig.configure(url);
-        assertSame(APIConfig.getInstance(), config);
-        config = APIConfig.getInstance();
-        
+        config.reconfigure(url);
         assertEquals(config.getProperty("apiConfig.string"), "Some text");
         assertEquals(config.getLong("apiConfig.hexNumber"), 0x89L);
         assertEquals(config.getInt("apiConfig.octalNumber"), 0164);

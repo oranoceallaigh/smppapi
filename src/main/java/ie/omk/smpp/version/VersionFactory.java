@@ -1,6 +1,7 @@
 package ie.omk.smpp.version;
 
 import ie.omk.smpp.util.APIConfig;
+import ie.omk.smpp.util.APIConfigFactory;
 import ie.omk.smpp.util.PropertyNotFoundException;
 
 /**
@@ -14,7 +15,7 @@ public class VersionFactory {
      * @return The default SMPP version.
      */
     public static SMPPVersion getDefaultVersion() {
-        APIConfig cfg = APIConfig.getInstance();
+        APIConfig cfg = APIConfigFactory.getConfig();
         try {
             int versionNum = cfg.getInt(APIConfig.DEFAULT_VERSION);
             return VersionFactory.getVersion(versionNum);
@@ -38,7 +39,8 @@ public class VersionFactory {
         } else if (id == SMPPVersion.VERSION_5_0.getVersionID()) {
             return SMPPVersion.VERSION_5_0;
         } else {
-            if (APIConfig.getInstance().getBoolean(APIConfig.LAX_VERSIONS, false)) {
+            APIConfig cfg = APIConfigFactory.getConfig();
+            if (cfg.getBoolean(APIConfig.LAX_VERSIONS, false)) {
                 if (id >= 0x00 && id <= 0x32) {
                     return SMPPVersion.VERSION_3_3;
                 }

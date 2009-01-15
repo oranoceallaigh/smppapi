@@ -2,6 +2,7 @@ package ie.omk.smpp.net;
 
 import ie.omk.smpp.message.SMPPPacket;
 import ie.omk.smpp.util.APIConfig;
+import ie.omk.smpp.util.APIConfigFactory;
 import ie.omk.smpp.util.PacketDecoder;
 import ie.omk.smpp.util.PacketDecoderImpl;
 import ie.omk.smpp.util.PacketEncoder;
@@ -61,8 +62,8 @@ public abstract class AbstractStreamLink implements SmscLink {
      */
     public AbstractStreamLink() {
         try {
-            autoFlush = APIConfig.getInstance().getBoolean(
-                    APIConfig.LINK_AUTO_FLUSH);
+            APIConfig config = APIConfigFactory.getConfig();
+            autoFlush = config.getBoolean(APIConfig.LINK_AUTO_FLUSH);
         } catch (PropertyNotFoundException x) {
             autoFlush = true;
         } finally {
@@ -303,8 +304,8 @@ public abstract class AbstractStreamLink implements SmscLink {
     private boolean isAutoCloseSnoop() {
         boolean autoClose = true;
         try {
-            autoClose = APIConfig.getInstance().getBoolean(
-                    APIConfig.LINK_AUTOCLOSE_SNOOP);
+            APIConfig config = APIConfigFactory.getConfig();
+            autoClose = config.getBoolean(APIConfig.LINK_AUTOCLOSE_SNOOP);
         } catch (PropertyNotFoundException x) {
             LOG.debug("{} property not found. Using the default of {}",
                     APIConfig.LINK_AUTOCLOSE_SNOOP, autoClose);
