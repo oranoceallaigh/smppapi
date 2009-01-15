@@ -1,14 +1,14 @@
 package com.adenki.smpp.event;
 
-import com.adenki.smpp.Session;
-import com.adenki.smpp.message.EnquireLink;
-import com.adenki.smpp.message.SMPPPacket;
-
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import org.easymock.EasyMock;
 import org.testng.annotations.Test;
+
+import com.adenki.smpp.Session;
+import com.adenki.smpp.message.EnquireLink;
+import com.adenki.smpp.message.SMPPPacket;
 
 @Test
 public class TaskExecutorEventDispatcherTest {

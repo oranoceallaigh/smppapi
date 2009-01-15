@@ -1,8 +1,8 @@
 package com.adenki.smpp.message;
 
-import com.adenki.smpp.message.tlv.Tag;
-
 import org.testng.annotations.Test;
+
+import com.adenki.smpp.message.tlv.Tag;
 
 @Test
 public class BindTransmitterRespTest extends PacketTests<BindTransmitterResp> {

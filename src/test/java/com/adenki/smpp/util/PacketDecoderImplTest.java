@@ -4,9 +4,10 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.fail;
-import com.adenki.smpp.Address;
 
 import org.testng.annotations.Test;
+
+import com.adenki.smpp.Address;
 
 @Test
 public class PacketDecoderImplTest {

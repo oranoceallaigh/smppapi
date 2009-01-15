@@ -1,10 +1,10 @@
 package com.adenki.smpp.event;
 
-import com.adenki.smpp.Session;
-import com.adenki.smpp.message.SMPPPacket;
-
 import java.util.Collection;
 import java.util.Iterator;
+
+import com.adenki.smpp.Session;
+import com.adenki.smpp.message.SMPPPacket;
 
 /**
  * This interface defines the observable side of the observer pattern for

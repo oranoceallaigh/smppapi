@@ -1,7 +1,5 @@
 package com.adenki.smpp.util;
 
-import com.adenki.smpp.SMPPRuntimeException;
-
 import java.text.FieldPosition;
 import java.text.Format;
 import java.text.MessageFormat;
@@ -9,6 +7,8 @@ import java.text.ParsePosition;
 import java.util.Calendar;
 import java.util.TimeZone;
 import java.util.regex.Pattern;
+
+import com.adenki.smpp.SMPPRuntimeException;
 
 /**
  * Parse a String to an SMPPDate object.

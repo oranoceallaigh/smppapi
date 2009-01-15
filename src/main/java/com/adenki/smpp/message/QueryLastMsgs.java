@@ -1,11 +1,11 @@
 package com.adenki.smpp.message;
 
+import java.io.IOException;
+
 import com.adenki.smpp.Address;
 import com.adenki.smpp.util.PacketDecoder;
 import com.adenki.smpp.util.PacketEncoder;
 import com.adenki.smpp.version.SMPPVersion;
-
-import java.io.IOException;
 
 /**
  * Query the last number of messages sent from a certain ESME. Relevant

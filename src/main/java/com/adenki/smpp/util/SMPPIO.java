@@ -1,10 +1,10 @@
 package com.adenki.smpp.util;
 
-import com.adenki.smpp.SMPPRuntimeException;
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+
+import com.adenki.smpp.SMPPRuntimeException;
 
 /**
  * Class that provides input and output methods for writing Java types encoded

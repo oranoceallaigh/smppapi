@@ -1,10 +1,10 @@
 package com.adenki.smpp.message;
 
+import java.io.IOException;
+
 import com.adenki.smpp.Address;
 import com.adenki.smpp.util.PacketDecoder;
 import com.adenki.smpp.util.PacketEncoder;
-
-import java.io.IOException;
 
 /**
  * Cancel a previously submitted broadcast message.

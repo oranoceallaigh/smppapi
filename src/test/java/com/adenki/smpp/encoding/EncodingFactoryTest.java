@@ -4,12 +4,13 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
-import com.adenki.smpp.SMPPRuntimeException;
 
 import java.util.Iterator;
 import java.util.Locale;
 
 import org.testng.annotations.Test;
+
+import com.adenki.smpp.SMPPRuntimeException;
 
 @Test
 public class EncodingFactoryTest {

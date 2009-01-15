@@ -2,9 +2,9 @@ package com.adenki.smpp.message;
 
 import java.util.Calendar;
 
-import com.adenki.smpp.util.SMPPDate;
-
 import org.testng.annotations.Test;
+
+import com.adenki.smpp.util.SMPPDate;
 
 @Test
 public class QuerySMRespTest extends PacketTests<QuerySMResp> {

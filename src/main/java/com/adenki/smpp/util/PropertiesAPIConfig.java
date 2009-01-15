@@ -1,7 +1,5 @@
 package com.adenki.smpp.util;
 
-import com.adenki.smpp.SMPPRuntimeException;
-
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Serializable;
@@ -13,6 +11,8 @@ import java.util.Properties;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.adenki.smpp.SMPPRuntimeException;
 
 /**
  * Base implementation of the {@link APIConfig} which reads its properties

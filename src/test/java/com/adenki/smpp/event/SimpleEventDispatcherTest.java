@@ -1,12 +1,13 @@
 package com.adenki.smpp.event;
 
 import static org.testng.Assert.assertTrue;
-import com.adenki.smpp.Session;
-import com.adenki.smpp.message.SMPPPacket;
-import com.adenki.smpp.message.SubmitSM;
 
 import org.easymock.EasyMock;
 import org.testng.annotations.Test;
+
+import com.adenki.smpp.Session;
+import com.adenki.smpp.message.SMPPPacket;
+import com.adenki.smpp.message.SubmitSM;
 
 /**
  * @version $Id:$

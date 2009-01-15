@@ -3,12 +3,13 @@ package com.adenki.smpp.util;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
+
+import org.testng.annotations.Test;
+
 import com.adenki.smpp.BadCommandIDException;
 import com.adenki.smpp.SMPPRuntimeException;
 import com.adenki.smpp.message.CommandId;
 import com.adenki.smpp.message.SMPPPacket;
-
-import org.testng.annotations.Test;
 
 @Test
 public class PacketFactoryTest {

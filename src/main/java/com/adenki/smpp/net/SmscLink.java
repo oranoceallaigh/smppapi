@@ -1,8 +1,8 @@
 package com.adenki.smpp.net;
 
-import com.adenki.smpp.message.SMPPPacket;
-
 import java.io.IOException;
+
+import com.adenki.smpp.message.SMPPPacket;
 
 /**
  * Interface for the network link to an SMSC. 

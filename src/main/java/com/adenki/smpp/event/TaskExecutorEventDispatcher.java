@@ -1,10 +1,5 @@
 package com.adenki.smpp.event;
 
-import com.adenki.smpp.Session;
-import com.adenki.smpp.message.SMPPPacket;
-import com.adenki.smpp.util.APIConfig;
-import com.adenki.smpp.util.APIConfigFactory;
-
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -12,6 +7,11 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.adenki.smpp.Session;
+import com.adenki.smpp.message.SMPPPacket;
+import com.adenki.smpp.util.APIConfig;
+import com.adenki.smpp.util.APIConfigFactory;
 
 /**
  * Implementation of the {@link EventDispatcher} that uses Java's

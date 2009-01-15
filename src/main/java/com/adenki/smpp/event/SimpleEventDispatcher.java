@@ -1,10 +1,10 @@
 package com.adenki.smpp.event;
 
-import com.adenki.smpp.Session;
-import com.adenki.smpp.message.SMPPPacket;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.adenki.smpp.Session;
+import com.adenki.smpp.message.SMPPPacket;
 
 /**
  * A simple implementation of the event dispatcher interface. This

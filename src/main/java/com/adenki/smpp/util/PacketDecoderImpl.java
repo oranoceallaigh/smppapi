@@ -1,10 +1,10 @@
 package com.adenki.smpp.util;
 
+import java.text.ParseException;
+
 import com.adenki.smpp.Address;
 import com.adenki.smpp.ErrorAddress;
 import com.adenki.smpp.message.SMPPProtocolException;
-
-import java.text.ParseException;
 
 /**
  * Implementation of the packet decoder.

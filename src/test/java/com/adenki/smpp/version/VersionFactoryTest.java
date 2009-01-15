@@ -2,11 +2,12 @@ package com.adenki.smpp.version;
 
 import static org.testng.Assert.assertSame;
 import static org.testng.Assert.fail;
+
+import org.testng.annotations.Test;
+
 import com.adenki.smpp.util.APIConfig;
 import com.adenki.smpp.util.APIConfigFactory;
 import com.adenki.smpp.util.PropertiesAPIConfig;
-
-import org.testng.annotations.Test;
 
 @Test
 public class VersionFactoryTest {

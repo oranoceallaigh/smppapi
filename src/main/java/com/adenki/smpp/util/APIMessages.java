@@ -1,8 +1,5 @@
 package com.adenki.smpp.util;
 
-import com.adenki.smpp.gsm.GSMError;
-import com.adenki.smpp.message.MessageState;
-
 import java.util.Enumeration;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
@@ -10,6 +7,9 @@ import java.util.Vector;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.adenki.smpp.gsm.GSMError;
+import com.adenki.smpp.message.MessageState;
 
 /**
  * Look up descriptions of various SMPP codes.

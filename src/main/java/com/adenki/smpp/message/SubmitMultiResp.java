@@ -1,15 +1,15 @@
 package com.adenki.smpp.message;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.ListIterator;
+
 import com.adenki.smpp.Address;
 import com.adenki.smpp.ErrorAddress;
 import com.adenki.smpp.util.PacketDecoder;
 import com.adenki.smpp.util.PacketEncoder;
 import com.adenki.smpp.version.SMPPVersion;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.ListIterator;
 
 /**
  * Submit to multiple destinations response.

@@ -1,10 +1,10 @@
 package com.adenki.smpp.encoding;
 
-import com.adenki.smpp.SMPPRuntimeException;
-
 import java.io.UnsupportedEncodingException;
 
 import org.testng.annotations.Test;
+
+import com.adenki.smpp.SMPPRuntimeException;
 
 @Test
 public class AlphabetEncodingSetCharsetTest {

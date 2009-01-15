@@ -1,9 +1,9 @@
 package com.adenki.smpp.message.tlv;
 
-import com.adenki.smpp.message.param.ParamDescriptor;
-
 import java.util.HashMap;
 import java.util.Map;
+
+import com.adenki.smpp.message.param.ParamDescriptor;
 
 /**
  * Enumeration class for optional parameter tag values.

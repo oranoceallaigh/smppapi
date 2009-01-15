@@ -1,9 +1,9 @@
 package com.adenki.smpp.message.param;
 
+import java.io.IOException;
+
 import com.adenki.smpp.util.PacketDecoder;
 import com.adenki.smpp.util.PacketEncoder;
-
-import java.io.IOException;
 
 public class NullParamDescriptor extends AbstractDescriptor {
     private static final long serialVersionUID = 2L;

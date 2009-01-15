@@ -1,10 +1,10 @@
 package com.adenki.smpp.util;
 
-import com.adenki.smpp.Address;
-import com.adenki.smpp.ErrorAddress;
-
 import java.io.IOException;
 import java.io.OutputStream;
+
+import com.adenki.smpp.Address;
+import com.adenki.smpp.ErrorAddress;
 
 /**
  * Interface specification for a packet encoder.

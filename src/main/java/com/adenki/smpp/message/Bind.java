@@ -1,11 +1,11 @@
 package com.adenki.smpp.message;
 
+import java.io.IOException;
+
 import com.adenki.smpp.util.PacketDecoder;
 import com.adenki.smpp.util.PacketEncoder;
 import com.adenki.smpp.version.SMPPVersion;
 import com.adenki.smpp.version.VersionFactory;
-
-import java.io.IOException;
 
 /**
  * Abstract parent of BindTransmitter, BindReceiver and BindTransceiver.

@@ -1,5 +1,8 @@
 package com.adenki.smpp.message;
 
+import java.io.IOException;
+import java.io.Serializable;
+
 import com.adenki.smpp.Address;
 import com.adenki.smpp.SMPPRuntimeException;
 import com.adenki.smpp.message.tlv.TLVTable;
@@ -10,9 +13,6 @@ import com.adenki.smpp.util.PacketEncoder;
 import com.adenki.smpp.util.SMPPDate;
 import com.adenki.smpp.version.SMPPVersion;
 import com.adenki.smpp.version.VersionException;
-
-import java.io.IOException;
-import java.io.Serializable;
 
 /**
  * This is the abstract class that all SMPP messages are inherited from.

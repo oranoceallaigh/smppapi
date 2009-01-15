@@ -1,10 +1,10 @@
 package com.adenki.smpp.message.param;
 
-import com.adenki.smpp.util.PacketDecoder;
-import com.adenki.smpp.util.PacketEncoder;
-
 import java.io.IOException;
 import java.util.BitSet;
+
+import com.adenki.smpp.util.PacketDecoder;
+import com.adenki.smpp.util.PacketEncoder;
 
 /**
  * Encode and decode bit masks. While this descriptor type supports bit masks

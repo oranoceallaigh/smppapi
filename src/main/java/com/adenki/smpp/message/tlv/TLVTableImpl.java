@@ -1,14 +1,14 @@
 package com.adenki.smpp.message.tlv;
 
-import com.adenki.smpp.message.param.ParamDescriptor;
-import com.adenki.smpp.util.PacketDecoder;
-import com.adenki.smpp.util.PacketEncoder;
-
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.BitSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
+
+import com.adenki.smpp.message.param.ParamDescriptor;
+import com.adenki.smpp.util.PacketDecoder;
+import com.adenki.smpp.util.PacketEncoder;
 
 /**
  * Implementation of the TLVTable interface.

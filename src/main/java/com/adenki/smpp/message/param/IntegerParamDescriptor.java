@@ -1,9 +1,9 @@
 package com.adenki.smpp.message.param;
 
+import java.io.IOException;
+
 import com.adenki.smpp.util.PacketDecoder;
 import com.adenki.smpp.util.PacketEncoder;
-
-import java.io.IOException;
 
 /**
  * Mandatory parameter descriptor for an integer.

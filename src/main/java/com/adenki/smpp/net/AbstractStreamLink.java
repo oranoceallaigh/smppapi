@@ -1,5 +1,14 @@
 package com.adenki.smpp.net;
 
+import java.io.EOFException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.SocketTimeoutException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.adenki.smpp.message.SMPPPacket;
 import com.adenki.smpp.util.APIConfig;
 import com.adenki.smpp.util.APIConfigFactory;
@@ -10,15 +19,6 @@ import com.adenki.smpp.util.PacketEncoderImpl;
 import com.adenki.smpp.util.PacketFactory;
 import com.adenki.smpp.util.PropertyNotFoundException;
 import com.adenki.smpp.util.SMPPIO;
-
-import java.io.EOFException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.SocketTimeoutException;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Abstract base implementation of the {@link com.adenki.smpp.net.SmscLink}

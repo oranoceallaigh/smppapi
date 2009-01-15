@@ -1,7 +1,5 @@
 package com.adenki.smpp.encoding;
 
-import com.adenki.smpp.SMPPRuntimeException;
-
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
 import java.util.HashMap;
@@ -10,6 +8,8 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.adenki.smpp.SMPPRuntimeException;
 
 /**
  * Factory class for obtaining message encoding instances.

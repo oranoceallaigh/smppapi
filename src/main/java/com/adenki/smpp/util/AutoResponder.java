@@ -1,8 +1,13 @@
 package com.adenki.smpp.util;
 
+import java.io.IOException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.adenki.smpp.Session;
-import com.adenki.smpp.event.SessionObserver;
 import com.adenki.smpp.event.SMPPEvent;
+import com.adenki.smpp.event.SessionObserver;
 import com.adenki.smpp.message.CommandId;
 import com.adenki.smpp.message.DataSM;
 import com.adenki.smpp.message.DataSMResp;
@@ -13,11 +18,6 @@ import com.adenki.smpp.message.EnquireLinkResp;
 import com.adenki.smpp.message.SMPPPacket;
 import com.adenki.smpp.message.Unbind;
 import com.adenki.smpp.message.UnbindResp;
-
-import java.io.IOException;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * A connection observer that can automatically respond to some of the basic

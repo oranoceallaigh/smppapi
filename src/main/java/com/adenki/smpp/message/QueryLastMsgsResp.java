@@ -1,11 +1,11 @@
 package com.adenki.smpp.message;
 
-import com.adenki.smpp.util.PacketDecoder;
-import com.adenki.smpp.util.PacketEncoder;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.adenki.smpp.util.PacketDecoder;
+import com.adenki.smpp.util.PacketEncoder;
 
 /**
  * SMSC response to a QueryLastMsgs request.

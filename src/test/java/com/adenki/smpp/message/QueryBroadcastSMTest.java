@@ -1,8 +1,8 @@
 package com.adenki.smpp.message;
 
-import com.adenki.smpp.Address;
-
 import org.testng.annotations.Test;
+
+import com.adenki.smpp.Address;
 
 @Test
 public class QueryBroadcastSMTest extends PacketTests<QueryBroadcastSM> {

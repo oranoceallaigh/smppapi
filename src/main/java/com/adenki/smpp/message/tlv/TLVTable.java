@@ -1,11 +1,11 @@
 package com.adenki.smpp.message.tlv;
 
-import com.adenki.smpp.util.PacketDecoder;
-import com.adenki.smpp.util.PacketEncoder;
-
 import java.io.IOException;
 import java.util.BitSet;
 import java.util.Map;
+
+import com.adenki.smpp.util.PacketDecoder;
+import com.adenki.smpp.util.PacketEncoder;
 
 /**
  * Map of tag/length/value (TLV) parameters.

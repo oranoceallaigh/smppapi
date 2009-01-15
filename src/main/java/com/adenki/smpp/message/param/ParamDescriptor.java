@@ -1,11 +1,11 @@
 package com.adenki.smpp.message.param;
 
-import com.adenki.smpp.util.PacketDecoder;
-import com.adenki.smpp.util.PacketEncoder;
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Serializable;
+
+import com.adenki.smpp.util.PacketDecoder;
+import com.adenki.smpp.util.PacketEncoder;
 
 /**
  * Parameter descriptor. The parameter descriptor interface provides a way

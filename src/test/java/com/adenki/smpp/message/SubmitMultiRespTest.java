@@ -1,8 +1,8 @@
 package com.adenki.smpp.message;
 
-import com.adenki.smpp.ErrorAddress;
-
 import org.testng.annotations.Test;
+
+import com.adenki.smpp.ErrorAddress;
 
 @Test
 public class SubmitMultiRespTest extends PacketTests<SubmitMultiResp> {

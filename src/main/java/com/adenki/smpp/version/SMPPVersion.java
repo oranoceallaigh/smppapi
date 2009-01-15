@@ -1,8 +1,8 @@
 package com.adenki.smpp.version;
 
-import com.adenki.smpp.Address;
-
 import java.io.Serializable;
+
+import com.adenki.smpp.Address;
 
 /**
  * Representation of an SMPP version.

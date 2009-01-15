@@ -1,12 +1,13 @@
 package com.adenki.smpp.message.param;
 
 import static org.testng.Assert.assertEquals;
-import com.adenki.smpp.util.PacketDecoderImpl;
-import com.adenki.smpp.util.PacketEncoderImpl;
 
 import java.io.ByteArrayOutputStream;
 
 import org.testng.annotations.Test;
+
+import com.adenki.smpp.util.PacketDecoderImpl;
+import com.adenki.smpp.util.PacketEncoderImpl;
 
 @Test
 public class CStringParamDescriptorTest {

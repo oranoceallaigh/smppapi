@@ -3,13 +3,13 @@ package com.adenki.smpp.message.param;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 
-import com.adenki.smpp.util.PacketDecoderImpl;
-import com.adenki.smpp.util.PacketEncoderImpl;
-import com.adenki.smpp.util.SMPPIO;
-
 import java.io.ByteArrayOutputStream;
 
 import org.testng.annotations.Test;
+
+import com.adenki.smpp.util.PacketDecoderImpl;
+import com.adenki.smpp.util.PacketEncoderImpl;
+import com.adenki.smpp.util.SMPPIO;
 
 @Test
 public class IntegerParamDescriptorTest {

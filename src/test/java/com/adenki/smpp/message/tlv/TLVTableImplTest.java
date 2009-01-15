@@ -5,15 +5,16 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
-import com.adenki.smpp.message.param.BitmaskParamDescriptor;
-import com.adenki.smpp.util.PacketDecoderImpl;
-import com.adenki.smpp.util.PacketEncoderImpl;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.BitSet;
 
 import org.testng.annotations.Test;
+
+import com.adenki.smpp.message.param.BitmaskParamDescriptor;
+import com.adenki.smpp.util.PacketDecoderImpl;
+import com.adenki.smpp.util.PacketEncoderImpl;
 
 @Test
 public class TLVTableImplTest {

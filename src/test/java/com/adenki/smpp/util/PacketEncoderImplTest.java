@@ -2,12 +2,13 @@ package com.adenki.smpp.util;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.fail;
-import com.adenki.smpp.Address;
 
 import java.io.ByteArrayOutputStream;
 import java.util.Calendar;
 
 import org.testng.annotations.Test;
+
+import com.adenki.smpp.Address;
 
 @Test
 public class PacketEncoderImplTest {

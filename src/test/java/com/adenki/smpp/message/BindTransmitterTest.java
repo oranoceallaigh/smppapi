@@ -1,9 +1,9 @@
 package com.adenki.smpp.message;
 
+import org.testng.annotations.Test;
+
 import com.adenki.smpp.Npi;
 import com.adenki.smpp.Ton;
-
-import org.testng.annotations.Test;
 
 @Test
 public class BindTransmitterTest extends PacketTests<BindTransmitter> {

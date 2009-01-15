@@ -1,10 +1,5 @@
 package com.adenki.smpp.net;
 
-import com.adenki.smpp.message.SMPPPacket;
-import com.adenki.smpp.util.PacketDecoderImpl;
-import com.adenki.smpp.util.PacketFactory;
-import com.adenki.smpp.util.SMPPIO;
-
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,6 +7,11 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import com.adenki.smpp.message.SMPPPacket;
+import com.adenki.smpp.util.PacketDecoderImpl;
+import com.adenki.smpp.util.PacketFactory;
+import com.adenki.smpp.util.SMPPIO;
 
 /**
  * An implementation of the SmscLink interface which can be used to replay

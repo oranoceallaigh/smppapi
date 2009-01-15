@@ -1,11 +1,11 @@
 package com.adenki.smpp.message;
 
-import com.adenki.smpp.Address;
-import com.adenki.smpp.util.SMPPDate;
-
 import java.util.Calendar;
 
 import org.testng.annotations.Test;
+
+import com.adenki.smpp.Address;
+import com.adenki.smpp.util.SMPPDate;
 
 @Test
 public class QueryMsgDetailsRespTest extends PacketTests<QueryMsgDetailsResp> {

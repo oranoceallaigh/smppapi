@@ -1,9 +1,5 @@
 package com.adenki.smpp.message;
 
-import com.adenki.smpp.Address;
-import com.adenki.smpp.util.PacketDecoder;
-import com.adenki.smpp.util.PacketEncoder;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -11,6 +7,10 @@ import java.util.Collections;
 import java.util.List;
 
 import org.slf4j.LoggerFactory;
+
+import com.adenki.smpp.Address;
+import com.adenki.smpp.util.PacketDecoder;
+import com.adenki.smpp.util.PacketEncoder;
 
 /**
  * A table of destinations, primarily used in

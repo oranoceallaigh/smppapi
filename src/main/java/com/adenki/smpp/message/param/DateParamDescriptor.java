@@ -1,11 +1,11 @@
 package com.adenki.smpp.message.param;
 
+import java.io.IOException;
+
 import com.adenki.smpp.util.PacketDecoder;
 import com.adenki.smpp.util.PacketEncoder;
 import com.adenki.smpp.util.SMPPDate;
 import com.adenki.smpp.util.SMPPDateFormat;
-
-import java.io.IOException;
 
 public class DateParamDescriptor extends AbstractDescriptor {
     private static final long serialVersionUID = 2L;

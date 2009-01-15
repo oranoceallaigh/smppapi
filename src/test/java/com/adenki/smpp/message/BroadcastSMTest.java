@@ -2,12 +2,12 @@ package com.adenki.smpp.message;
 
 import java.util.Calendar;
 
+import org.testng.annotations.Test;
+
 import com.adenki.smpp.Address;
 import com.adenki.smpp.Npi;
 import com.adenki.smpp.Ton;
 import com.adenki.smpp.util.SMPPDate;
-
-import org.testng.annotations.Test;
 
 @Test
 public class BroadcastSMTest extends PacketTests<BroadcastSM> {

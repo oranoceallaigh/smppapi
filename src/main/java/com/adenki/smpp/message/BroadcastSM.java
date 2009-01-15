@@ -1,5 +1,7 @@
 package com.adenki.smpp.message;
 
+import java.io.IOException;
+
 import com.adenki.smpp.Address;
 import com.adenki.smpp.message.tlv.TLVTable;
 import com.adenki.smpp.message.tlv.Tag;
@@ -7,8 +9,6 @@ import com.adenki.smpp.util.PacketDecoder;
 import com.adenki.smpp.util.PacketEncoder;
 import com.adenki.smpp.util.SMPPDate;
 import com.adenki.smpp.version.SMPPVersion;
-
-import java.io.IOException;
 
 /**
  * Submit a broadcast message to the SMSC.

@@ -3,15 +3,16 @@ package com.adenki.smpp.message;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
-import com.adenki.smpp.message.tlv.Tag;
-import com.adenki.smpp.util.PacketDecoderImpl;
-import com.adenki.smpp.util.PacketEncoderImpl;
 
 import java.io.ByteArrayOutputStream;
 import java.util.Random;
 
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+
+import com.adenki.smpp.message.tlv.Tag;
+import com.adenki.smpp.util.PacketDecoderImpl;
+import com.adenki.smpp.util.PacketEncoderImpl;
 
 /**
  * Test that the value reported by <code>getLength</code> matches the actual

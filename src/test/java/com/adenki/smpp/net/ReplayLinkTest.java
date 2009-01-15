@@ -5,6 +5,16 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+
 import com.adenki.smpp.Address;
 import com.adenki.smpp.message.BindTransceiver;
 import com.adenki.smpp.message.BindTransceiverResp;
@@ -20,15 +30,6 @@ import com.adenki.smpp.message.tlv.Tag;
 import com.adenki.smpp.util.PacketEncoder;
 import com.adenki.smpp.util.PacketEncoderImpl;
 import com.adenki.smpp.version.SMPPVersion;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
 
 public class ReplayLinkTest {
 

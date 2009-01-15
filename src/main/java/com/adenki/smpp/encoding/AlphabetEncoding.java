@@ -1,8 +1,8 @@
 package com.adenki.smpp.encoding;
 
-import com.adenki.smpp.SMPPRuntimeException;
-
 import java.io.UnsupportedEncodingException;
+
+import com.adenki.smpp.SMPPRuntimeException;
 
 /**
  * SMS Alphabet to Java String mapping interface. Implementations of this
