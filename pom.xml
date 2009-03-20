@@ -70,6 +70,13 @@
       <url>scp://web.sourceforge.net/home/groups/s/sm/smppapi/htdocs/maven-repo</url>
       <layout>default</layout>
     </repository>
+    <snapshotRepository>
+      <id>Sourceforge</id>
+      <name>smppapi snapshot repository</name>
+      <url>scp://web.sourceforge.net/home/groups/s/sm/smppapi/htdocs/maven-snapshot-repo</url>
+      <layout>default</layout>
+      <uniqueVersion>true</uniqueVersion>
+    </snapshotRepository>
   </distributionManagement>
 
   <build>
