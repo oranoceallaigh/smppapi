@@ -3,13 +3,13 @@
   - This POM does not build or package the examples. It is provided for
   - convenience - the Ant build is still considered the primary build
   - system for the 0.3.x branch of the smppapi.
-  - $Id:$ 
+  - $Id$ 
  -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   
   <modelVersion>4.0.0</modelVersion>
-  <groupId>ie.omk</groupId>
+  <groupId>com.adenki</groupId>
   <artifactId>smppapi</artifactId>
   <packaging>jar</packaging>
   <version>0.3.9-SNAPSHOT</version>
@@ -63,6 +63,15 @@
     </developer>
   </developers>
   
+  <distributionManagement>
+    <repository>
+      <id>Sourceforge</id>
+      <name>smppapi repository</name>
+      <url>scp://web.sourceforge.net/home/groups/s/sm/smppapi/htdocs/maven-repo</url>
+      <layout>default</layout>
+    </repository>
+  </distributionManagement>
+
   <build>
     <sourceDirectory>src/java</sourceDirectory>
     <testSourceDirectory>src/tests</testSourceDirectory>
