@@ -59,10 +59,16 @@
   </developers>
   
   <distributionManagement>
+    <repository>
+      <id>Sourceforge</id>
+      <name>smppapi repository</name>
+      <url>scp://web.sourceforge.net/home/groups/s/sm/smppapi/htdocs/maven-repo</url>
+      <layout>default</layout>
+    </repository>
     <site>
       <id>Sourceforge</id>
       <name>Sourceforge Site</name>
-      <url>scp://shell.sourceforge.net/home/groups/s/sm/smppapi/htdocs/maven</url>
+      <url>scp://web.sourceforge.net/home/groups/s/sm/smppapi/htdocs/maven</url>
     </site>
   </distributionManagement>
   
