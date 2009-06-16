@@ -33,9 +33,9 @@
   </licenses>
   
   <scm>
-    <connection>scm:svn:https://smppapi.svn.sourceforge.net/svnroot/smppapi/branches/PATCH_0_3</connection>
-    <developerConnection>scm:svn:https://smppapi.svn.sourceforge.net/svnroot/smppapi/branches/PATCH_0_3</developerConnection>
-    <url>http://smppapi.svn.sourceforge.net/viewvc/smppapi/</url>
+    <connection>scm:svn:https://smppapi.svn.sourceforge.net/svnroot/smppapi/smppapi/branches/PATCH_0_3</connection>
+    <developerConnection>scm:svn:https://smppapi.svn.sourceforge.net/svnroot/smppapi/smppapi/branches/PATCH_0_3</developerConnection>
+    <url>http://smppapi.svn.sourceforge.net/viewvc/smppapi/smppapi/branches/PATCH_0_3</url>
   </scm>
   
   <issueManagement>
