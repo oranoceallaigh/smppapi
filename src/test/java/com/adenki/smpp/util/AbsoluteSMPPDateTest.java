@@ -7,6 +7,7 @@ import static org.testng.Assert.assertTrue;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.SimpleTimeZone;
 import java.util.TimeZone;
 
 import org.testng.annotations.Test;
@@ -14,12 +15,13 @@ import org.testng.annotations.Test;
 @Test
 public class AbsoluteSMPPDateTest {
 
-    public void testAbsoluteDate() {
+    private static final TimeZone UTC = TimeZone.getTimeZone("UTC");
+    
+    public void testAbsoluteDateInUTC() {
         Calendar cal = new GregorianCalendar();
-        TimeZone localZone = TimeZone.getDefault();
         Date now = new Date();
         cal.setTime(now);
-        cal.setTimeZone(localZone);
+        cal.setTimeZone(UTC);
         
         SMPPDate d = SMPPDate.getAbsoluteInstance(cal, true);
         assertFalse(d.isRelative());
@@ -32,11 +34,61 @@ public class AbsoluteSMPPDateTest {
         assertEquals(d.getSecond(), cal.get(Calendar.SECOND));
         assertEquals(d.getTenth(), cal.get(Calendar.MILLISECOND) / 100);
         assertEquals(d.getTimeZone(), cal.getTimeZone());
-        if (localZone.getRawOffset() < 0) {
-            assertEquals(d.getSign(), '-');
-        } else {
-            assertEquals(d.getSign(), '+');
-        }
+        assertEquals(d.getSign(), '+');
+    }
+    
+    public void testDaylightSavingsTimeZone() throws Exception {
+        // Create two similar time zones, each one is 1 hour behind
+        // UTC in standard time and one hour ahead of UTC in daylight
+        // savings. One of them will be in daylight savings "now", the
+        // other will not.
+        Calendar dstStart = Calendar.getInstance();
+        dstStart.add(Calendar.MONTH, -2);
+        Calendar dstEnd = Calendar.getInstance();
+        dstEnd.add(Calendar.MONTH, 4);
+        SimpleTimeZone aheadInDst = new SimpleTimeZone(
+                -3600000,
+                "AheadInDst",
+                dstStart.get(Calendar.MONTH),
+                dstStart.get(Calendar.DAY_OF_WEEK),
+                -1,
+                3600000,
+                dstEnd.get(Calendar.MONTH),
+                dstEnd.get(Calendar.DAY_OF_WEEK),
+                -1,
+                3600000,
+                7200000);
+        SimpleTimeZone behindWhenNotInDst = new SimpleTimeZone(
+                -3600000,
+                "BehindNotInDst",
+                dstEnd.get(Calendar.MONTH),
+                dstEnd.get(Calendar.DAY_OF_WEEK),
+                -1,
+                3600000,
+                dstStart.get(Calendar.MONTH),
+                dstStart.get(Calendar.DAY_OF_WEEK),
+                -1,
+                3600000,
+                7200000);
+
+        assertTrue(aheadInDst.inDaylightTime(new Date()));
+        assertFalse(behindWhenNotInDst.inDaylightTime(new Date()));
+        assertTrue(aheadInDst.getRawOffset() < 0);
+        assertTrue(behindWhenNotInDst.getRawOffset() < 0);
+        assertTrue(aheadInDst.getOffset(System.currentTimeMillis()) > 0);
+        assertTrue(behindWhenNotInDst.getOffset(System.currentTimeMillis()) < 0);
+        
+        Calendar now = Calendar.getInstance(aheadInDst);
+        SMPPDate date = SMPPDate.getAbsoluteInstance(now, true);
+        assertTrue(date.hasTimezone());
+        assertEquals(date.getUtcOffset(), 4);
+        assertEquals(date.getSign(), '+');
+        
+        now = Calendar.getInstance(behindWhenNotInDst);
+        date = SMPPDate.getAbsoluteInstance(now, true);
+        assertTrue(date.hasTimezone());
+        assertEquals(date.getUtcOffset(), 4);
+        assertEquals(date.getSign(), '-');
     }
     
     public void testEqualsAndHashCode() {

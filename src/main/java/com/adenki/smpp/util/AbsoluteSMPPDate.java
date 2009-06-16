@@ -73,8 +73,15 @@ class AbsoluteSMPPDate extends SMPPDate {
     }
     
     public int getUtcOffset() {
-        TimeZone tz = calendar.getTimeZone();
-        return (Math.abs(tz.getRawOffset()) / 3600000) * 4;
+        if (hasTimeZone) {
+            TimeZone tz = calendar.getTimeZone();
+            int offset = Math.abs(tz.getOffset(System.currentTimeMillis()));
+            // Divide by 900k to get the number of 15 minute intervals in the
+            // offset.
+            return offset / 900000;
+        } else {
+            return 0;
+        }
     }
     
     public char getSign() {
@@ -82,7 +89,9 @@ class AbsoluteSMPPDate extends SMPPDate {
         if (!hasTimeZone) {
             sign = (char) 0;
         } else {
-            if (calendar.getTimeZone().getRawOffset() >= 0) {
+            TimeZone tz = calendar.getTimeZone();
+            int offset = tz.getOffset(System.currentTimeMillis());
+            if (offset >= 0) {
                 sign = '+';
             } else {
                 sign = '-';

@@ -5,6 +5,7 @@ import java.text.Format;
 import java.text.MessageFormat;
 import java.text.ParsePosition;
 import java.util.Calendar;
+import java.util.SimpleTimeZone;
 import java.util.TimeZone;
 import java.util.regex.Pattern;
 
@@ -243,11 +244,9 @@ public class SMPPDateFormat extends Format {
     }
 
     /**
-     * Get a valid timezone for the specified UTC offset. If multiple
-     * timezones match, the first one will be chosen. If a timezone cannot
-     * be found (using <code>java.util.TimeZone.getAvailableIDs(int)</code>),
-     * the default timezone will be obtained and its UTC offset altered
-     * using <code>TimeZone.setRawOffset(int)</code>.
+     * Get a timezone for the specified UTC offset.
+     * A new {@link SimpleTimeZone} will be created and given the
+     * specified offset from UTC.
      * @param utcOffset The offset, in quarter hours, from UTC.
      * @param sign Whether the offset is ahead ('+') or behind ('-') UTC.
      * @return A timezone object.
@@ -257,14 +256,11 @@ public class SMPPDateFormat extends Format {
         if (sign == '-') {
             rawOffset = -rawOffset;
         }
-        String[] tzs = TimeZone.getAvailableIDs(rawOffset);
-        if (tzs.length > 0) {
-            return TimeZone.getTimeZone(tzs[0]);
-        } else {
-            TimeZone tz = TimeZone.getDefault();
-            tz.setRawOffset(utcOffset);
-            return tz;
-        }
+        int hours = utcOffset / 4;
+        int minutes = (utcOffset - (hours * 4)) * 15;
+        String id = String.format("UTC%c%02d:%02d", sign, hours, minutes);
+        TimeZone tz = new SimpleTimeZone(rawOffset, id);
+        return tz;
     }
     
     /**

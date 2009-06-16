@@ -6,6 +6,7 @@ import static org.testng.Assert.fail;
 import java.text.ParseException;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.SimpleTimeZone;
 import java.util.TimeZone;
 
 import org.testng.annotations.Test;
@@ -73,9 +74,8 @@ public class SMPPDateFormatTest {
     }
 
     public void testFormatAbsolute16() throws Exception {
-        // Get a timezone that is 4 hours behind of UTC
-        TimeZone tz = TimeZone.getTimeZone(
-                TimeZone.getAvailableIDs(-14400000)[0]);
+        // Get a timezone that is 4 hours behind UTC
+        TimeZone tz = new SimpleTimeZone(-14400000, "UTC-04:00");
         Calendar cal = new GregorianCalendar(2005, 3, 22, 14, 32, 12);
         cal.set(Calendar.MILLISECOND, 500);
         cal.setTimeZone(tz);
@@ -84,8 +84,7 @@ public class SMPPDateFormatTest {
         assertEquals(dateFormat.format(date), "050422143212516-");
         
         // Get a timezone 8 hours ahead of UTC
-        tz = TimeZone.getTimeZone(
-                TimeZone.getAvailableIDs(28800000)[0]);
+        tz = new SimpleTimeZone(28800000, "UTC+08:00");
         cal.setTimeZone(tz);
         cal.set(2005, 3, 22, 14, 32, 12);
         date = SMPPDate.getAbsoluteInstance(cal, true);

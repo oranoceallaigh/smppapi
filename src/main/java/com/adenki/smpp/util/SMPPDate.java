@@ -159,8 +159,10 @@ public abstract class SMPPDate implements java.io.Serializable {
     
     /**
      * Get the UTC offset part of this time format. This will always return a
-     * value in the range 0 - 48.
+     * value in the range 0 - 48. The "direction" of the offset should
+     * be determined using {@link #getSign()}.
      * @return The UTC offset part of this time format.
+     * @see #getTimeZone()
      */
     public int getUtcOffset() {
         return 0;
