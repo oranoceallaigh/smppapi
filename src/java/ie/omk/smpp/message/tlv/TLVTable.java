@@ -171,6 +171,9 @@ public class TLVTable implements java.io.Serializable {
      * @return true if the parameter is set, false if not.
      */
     public boolean isSet(Tag tag) {
+        if (opts != null) {
+            parseAllOpts();
+        }
         return map.containsKey(tag);
     }
 
