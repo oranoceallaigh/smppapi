@@ -1170,17 +1170,20 @@ public abstract class SMPPPacket {
      * Set the alphabet encoding for this message with an alternate dcs.
      * <code>enc</code> will be used to encode the message but
      * <code>dcs</code> will be used as the data coding value. This method is
-     * useful when the SMSC uses an alternate value to those build-in to the
+     * useful when the SMSC uses an alternate value to those built-in to the
      * smppapi.
+     * @param enc The alphabet encoding to use to encode messages. If
+     * <tt>null</tt>, the encoding returned by
+     * {@link EncodingFactory#getDefaultAlphabet()} will be used.
+     * @param dcs The data coding value to use.
      */
     public void setAlphabet(AlphabetEncoding enc, int dcs) {
         if (enc == null) {
             this.encoding = EncodingFactory.getInstance().getDefaultAlphabet();
-            this.dataCoding = enc.getDataCoding();
         } else {
             this.encoding = enc;
-            this.dataCoding = dcs;
         }
+        this.dataCoding = dcs;
     }
 
     /**
