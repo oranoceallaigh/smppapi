@@ -27,9 +27,9 @@
   </licenses>
   
   <scm>
-    <connection>scm:svn:https://smppapi.svn.sourceforge.net/svnroot/smppapi/trunk</connection>
-    <developerConnection>scm:svn:https://smppapi.svn.sourceforge.net/svnroot/smppapi/trunk</developerConnection>
-    <url>http://smppapi.svn.sourceforge.net/viewvc/smppapi/</url>
+    <connection>scm:svn:https://smppapi.svn.sourceforge.net/svnroot/smppapi/smppapi/trunk</connection>
+    <developerConnection>scm:svn:https://smppapi.svn.sourceforge.net/svnroot/smppapi/smppapi/trunk</developerConnection>
+    <url>http://smppapi.svn.sourceforge.net/viewvc/smppapi/smppapi/trunk</url>
   </scm>
   
   <issueManagement>
