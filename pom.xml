@@ -5,14 +5,13 @@
   - system for the 0.3.x branch of the smppapi.
   - $Id$ 
  -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.adenki</groupId>
   <artifactId>smppapi</artifactId>
   <packaging>jar</packaging>
-  <version>0.3.9-SNAPSHOT</version>
+  <version>0.3.9</version>
   
   <name>smppapi</name>
   <description>
@@ -33,9 +32,9 @@
   </licenses>
   
   <scm>
-    <connection>scm:svn:https://smppapi.svn.sourceforge.net/svnroot/smppapi/smppapi/branches/PATCH_0_3</connection>
-    <developerConnection>scm:svn:https://smppapi.svn.sourceforge.net/svnroot/smppapi/smppapi/branches/PATCH_0_3</developerConnection>
-    <url>http://smppapi.svn.sourceforge.net/viewvc/smppapi/smppapi/branches/PATCH_0_3</url>
+    <connection>scm:svn:https://smppapi.svn.sourceforge.net/svnroot/smppapi/smppapi/tags/SMPPAPI_0_3_9</connection>
+    <developerConnection>scm:svn:https://smppapi.svn.sourceforge.net/svnroot/smppapi/smppapi/tags/SMPPAPI_0_3_9</developerConnection>
+    <url>http://smppapi.svn.sourceforge.net/viewvc/smppapi/smppapi/tags/SMPPAPI_0_3_9</url>
   </scm>
   
   <issueManagement>
