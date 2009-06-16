@@ -11,7 +11,7 @@
   <groupId>com.adenki</groupId>
   <artifactId>smppapi</artifactId>
   <packaging>jar</packaging>
-  <version>0.3.9</version>
+  <version>0.3.10-SNAPSHOT</version>
   
   <name>smppapi</name>
   <description>
@@ -32,9 +32,9 @@
   </licenses>
   
   <scm>
-    <connection>scm:svn:https://smppapi.svn.sourceforge.net/svnroot/smppapi/smppapi/tags/SMPPAPI_0_3_9</connection>
-    <developerConnection>scm:svn:https://smppapi.svn.sourceforge.net/svnroot/smppapi/smppapi/tags/SMPPAPI_0_3_9</developerConnection>
-    <url>http://smppapi.svn.sourceforge.net/viewvc/smppapi/smppapi/tags/SMPPAPI_0_3_9</url>
+    <connection>scm:svn:https://smppapi.svn.sourceforge.net/svnroot/smppapi/smppapi/branches/PATCH_0_3</connection>
+    <developerConnection>scm:svn:https://smppapi.svn.sourceforge.net/svnroot/smppapi/smppapi/branches/PATCH_0_3</developerConnection>
+    <url>http://smppapi.svn.sourceforge.net/viewvc/smppapi/smppapi/branches/PATCH_0_3</url>
   </scm>
   
   <issueManagement>
