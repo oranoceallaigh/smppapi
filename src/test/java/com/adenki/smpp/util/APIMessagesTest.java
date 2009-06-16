@@ -10,14 +10,17 @@ public class APIMessagesTest {
 
     @Test
     public void testAPIMessagesWorksWithNoBundle() throws Exception {
-        PropertiesAPIConfig cfg = new PropertiesAPIConfig();
-        cfg.initialise();
-        cfg.setProperty(APIMessages.BUNDLE_PROPERTY, "non_existent");
-        APIConfigFactory.setCachedConfig(cfg);
-        APIMessages messages = new APIMessages();
-        assertNotNull(messages.getPacketStatus(8));
-        // Ensure other tests are not affected by this one.
-        APIConfigFactory.reset();
+        try {
+            PropertiesAPIConfig cfg = new PropertiesAPIConfig();
+            cfg.initialise();
+            cfg.setProperty(APIMessages.BUNDLE_PROPERTY, "non_existent");
+            APIConfigFactory.setCachedConfig(cfg);
+            APIMessages messages = new APIMessages();
+            assertNotNull(messages.getPacketStatus(8));
+        } finally {
+            // Ensure other tests are not affected by this one.
+            APIConfigFactory.reset();
+        }
     }
     
     @Test

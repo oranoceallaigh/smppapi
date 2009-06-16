@@ -11,7 +11,6 @@ import org.testng.annotations.Test;
 public class APIConfigFactoryTest {
 
     public void testPropertiesAPIConfigIsTheDefault() {
-        System.clearProperty(APIConfigFactory.CONFIG_CLASS_PROP);
         APIConfigFactory.reset();
         APIConfig config = APIConfigFactory.getConfig();
         assertNotNull(config);
@@ -19,8 +18,6 @@ public class APIConfigFactoryTest {
     }
     
     public void testGetConfigReturnsACachedClass() {
-        System.clearProperty(APIConfigFactory.CONFIG_CLASS_PROP);
-        System.clearProperty(APIConfigFactory.CACHE_CONFIG_PROP);
         APIConfigFactory.reset();
         APIConfig config1 = APIConfigFactory.getConfig();
         APIConfig config2 = APIConfigFactory.getConfig();
@@ -30,32 +27,43 @@ public class APIConfigFactoryTest {
     }
     
     public void testNewInstanceIsInstantiatedWhenCachingIsDisabled() {
-        System.clearProperty(APIConfigFactory.CONFIG_CLASS_PROP);
-        System.setProperty(APIConfigFactory.CACHE_CONFIG_PROP, "false");
-        APIConfigFactory.reset();
-        APIConfig config1 = APIConfigFactory.getConfig();
-        APIConfig config2 = APIConfigFactory.getConfig();
-        assertNotNull(config1);
-        assertNotNull(config2);
-        assertNotSame(config1, config2);
+        try {
+            System.setProperty(APIConfigFactory.CACHE_CONFIG_PROP, "false");
+            APIConfigFactory.reset();
+            APIConfig config1 = APIConfigFactory.getConfig();
+            APIConfig config2 = APIConfigFactory.getConfig();
+            assertNotNull(config1);
+            assertNotNull(config2);
+            assertNotSame(config1, config2);
+        } finally {
+            System.clearProperty(APIConfigFactory.CACHE_CONFIG_PROP);
+        }
     }
     
     public void testLoadConfigLoadsSpecifiedConfigClass() throws Exception {
-        System.setProperty(
-                APIConfigFactory.CONFIG_CLASS_PROP,
-                "com.adenki.smpp.util.NullAPIConfig");
-        APIConfigFactory.reset();
-        APIConfig config = APIConfigFactory.loadConfig();
-        assertNotNull(config);
-        assertEquals(config.getClass(), NullAPIConfig.class);
+        try {
+            System.setProperty(
+                    APIConfigFactory.CONFIG_CLASS_PROP,
+                    "com.adenki.smpp.util.NullAPIConfig");
+            APIConfigFactory.reset();
+            APIConfig config = APIConfigFactory.loadConfig();
+            assertNotNull(config);
+            assertEquals(config.getClass(), NullAPIConfig.class);
+        } finally {
+            System.clearProperty(APIConfigFactory.CONFIG_CLASS_PROP);
+        }
     }
 
     @Test(expectedExceptions = {InvalidConfigurationException.class})
     public void testLoadConfigThrowsExceptionWhenConfigClassDoesNotExist() {
-        System.setProperty(
-                APIConfigFactory.CONFIG_CLASS_PROP,
-                "com.adenki.smpp.util.NonExistentAPIConfig");
-        APIConfigFactory.reset();
-        APIConfigFactory.loadConfig();
+        try {
+            System.setProperty(
+                    APIConfigFactory.CONFIG_CLASS_PROP,
+                    "com.adenki.smpp.util.NonExistentAPIConfig");
+            APIConfigFactory.reset();
+            APIConfigFactory.loadConfig();
+        } finally {
+            System.clearProperty(APIConfigFactory.CONFIG_CLASS_PROP);
+        }
     }
 }
