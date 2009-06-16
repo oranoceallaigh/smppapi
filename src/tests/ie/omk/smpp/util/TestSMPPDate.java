@@ -3,6 +3,7 @@ package ie.omk.smpp.util;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.SimpleTimeZone;
 import java.util.TimeZone;
 
 import junit.framework.TestCase;
@@ -13,6 +14,9 @@ public class TestSMPPDate extends TestCase {
 
     public void testDefaultConstructor() {
         SMPPDate d = new SMPPDate();
+        TimeZone tz = TimeZone.getDefault();
+        int offset = tz.getOffset(System.currentTimeMillis());
+        offset /= 900000;
 
         assertFalse(d.isRelative());
         assertEquals(0, d.getYear());
@@ -22,7 +26,7 @@ public class TestSMPPDate extends TestCase {
         assertEquals(0, d.getMinute());
         assertEquals(0, d.getSecond());
         assertEquals(0, d.getTenth());
-        assertEquals(0, d.getUtcOffset());
+        assertEquals(offset, d.getUtcOffset());
         assertEquals('+', d.getSign());
     }
 
@@ -131,8 +135,13 @@ public class TestSMPPDate extends TestCase {
             final String absolute3 = "061218111623";
             final String relative = "000000040559000R";
             
+            final SimpleTimeZone twoHoursAhead =
+                new SimpleTimeZone(7200000, "UTC+02:00");
+            final SimpleTimeZone threeHoursBehind =
+                new SimpleTimeZone(-10800000, "UTC-03:00");
+            
             final Calendar absCalendar1 = Calendar.getInstance();
-            absCalendar1.setTimeZone(TimeZone.getTimeZone("Asia/Beirut"));
+            absCalendar1.setTimeZone(twoHoursAhead);
             absCalendar1.set(Calendar.YEAR, 2005);
             absCalendar1.set(Calendar.MONTH, 4);
             absCalendar1.set(Calendar.DAY_OF_MONTH, 4);
@@ -142,7 +151,7 @@ public class TestSMPPDate extends TestCase {
             absCalendar1.set(Calendar.MILLISECOND, 800);
 
             final Calendar absCalendar2 = Calendar.getInstance();
-            absCalendar2.setTimeZone(TimeZone.getTimeZone("America/Argentina/Buenos_Aires"));
+            absCalendar2.setTimeZone(threeHoursBehind);
             absCalendar2.set(Calendar.YEAR, 2005);
             absCalendar2.set(Calendar.MONTH, 4);
             absCalendar2.set(Calendar.DAY_OF_MONTH, 4);

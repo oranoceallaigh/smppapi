@@ -3,6 +3,7 @@ package ie.omk.smpp.util;
 import java.text.MessageFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.SimpleTimeZone;
 import java.util.TimeZone;
 
 /**
@@ -43,7 +44,6 @@ public class SMPPDate implements java.io.Serializable {
     private int minute;
     private int second;
     private int tenth;
-    private int utcOffset;
     private char sign = '+';
     private int hashCode;
 
@@ -103,7 +103,6 @@ public class SMPPDate implements java.io.Serializable {
         this.minute = minutes;
         this.second = seconds;
         this.tenth = 0;
-        this.utcOffset = 0;
         this.sign = 'R';
         this.savedTimeZone = null;
 
@@ -122,13 +121,10 @@ public class SMPPDate implements java.io.Serializable {
 
         // Time zone calculation
         sign = '+';
-        long off = savedTimeZone.getRawOffset();
+        int off = savedTimeZone.getOffset(System.currentTimeMillis());
         if (off < 0) {
             sign = '-';
         }
-
-        // Calculate the difference in quarter hours.
-        utcOffset = (int) (Math.abs(off) / 900000L);
 
         // Cache the hashCode
         hashCode = toString().hashCode();
@@ -216,11 +212,17 @@ public class SMPPDate implements java.io.Serializable {
 
     /**
      * Get the number of quarter-hours from UTC the time spec is offset by. This
-     * value is always positive. Use {@link #getSign}to determine if the time
+     * value is always positive. Use {@link #getSign} to determine if the time
      * is ahead of or behind UTC. utcOffset is in the range [0..48]
      */
     public int getUtcOffset() {
-        return utcOffset;
+        int offset = 0;
+        if (savedTimeZone != null) {
+            offset = savedTimeZone.getOffset(System.currentTimeMillis());
+        }
+        // Calculate the difference in quarter hours.
+        return Math.abs(offset) / 900000;
+
     }
 
     /**
@@ -326,15 +328,21 @@ public class SMPPDate implements java.io.Serializable {
                 d.sign = s.charAt(15);
                 if (d.sign != 'R') {
                     d.tenth = Integer.parseInt(s.substring(12, 13));
-                    d.utcOffset = Integer.parseInt(s.substring(13, 15));
-                    int rawOffset = d.utcOffset * 900000;
+                    int utcOffset = Integer.parseInt(s.substring(13, 15));
+                    int rawOffset = utcOffset * 900000;
                     if (d.sign == '-') {
                         rawOffset = -rawOffset;
                     }
-                    String[] tzs = TimeZone.getAvailableIDs(rawOffset);
-                    if (tzs.length > 0) {
-                        d.savedTimeZone = TimeZone.getTimeZone(tzs[0]);
-                    }
+                    int hours = utcOffset / 4;
+                    int minutes = (utcOffset - (hours * 4)) * 15;
+                    Object[] args = new Object[] {
+                            new Character(d.sign),
+                            Integer.valueOf(hours),
+                            Integer.valueOf(minutes),
+                    };
+                    String id = MessageFormat.format(
+                            "UTC{0}{1,number,00}:{1,number,00}", args);
+                    d.savedTimeZone = new SimpleTimeZone(rawOffset, id);
                 } else {
                     d.savedTimeZone = null;
                 }
@@ -355,6 +363,7 @@ public class SMPPDate implements java.io.Serializable {
      * @return The string representation as defined by the SMPP protocol.
      */
     public String toString() {
+        int utcOffset = getUtcOffset();
         Object[] args = {new Integer(year), new Integer(month),
                 new Integer(day), new Integer(hour), new Integer(minute),
                 new Integer(second), new Integer(tenth),
