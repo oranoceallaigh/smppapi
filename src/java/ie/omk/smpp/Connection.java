@@ -463,12 +463,18 @@ public class Connection implements java.lang.Runnable {
      * (only valid in <b>asynchronous </b> mode). By default, the listener
      * thread will automatically ack an enquire_link message from the Smsc so as
      * not to lose the connection. This can be turned off with this method.
+     * <p>
+     * Any attempt to enable this setting in synchronous mode will
+     * be silently ignored.
+     * </p>
      * 
      * @param b
      *            true to activate automatic acknowledgment, false to disable
      */
     public void autoAckLink(boolean b) {
-        this.ackQryLinks = b;
+        if (asyncComms) {
+            this.ackQryLinks = b;
+        }
     }
 
     /**
@@ -477,12 +483,18 @@ public class Connection implements java.lang.Runnable {
      * will <b>not </b> acknowledge a message. Applications which are using the
      * synchronous mode of communication will always have to handle enquire link
      * requests themselves.
+     * <p>
+     * Any attempt to enable this setting in synchronous mode will
+     * be silently ignored.
+     * </p>
      * 
      * @param b
      *            true to activate this function, false to deactivate.
      */
     public void autoAckMessages(boolean b) {
-        this.ackDeliverSm = b;
+        if (asyncComms) {
+            this.ackDeliverSm = b;
+        }
     }
 
     /**
@@ -789,6 +801,11 @@ public class Connection implements java.lang.Runnable {
         // Must be reset before newInstance is called.
         if (this.seqNumScheme != null) {
             this.seqNumScheme.reset();
+        }
+        if (!asyncComms) {
+            // Ensure neither of the automatic reply settings are enabled.
+            ackQryLinks = false;
+            ackDeliverSm = false;
         }
         try {
             switch (type) {
