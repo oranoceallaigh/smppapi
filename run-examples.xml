@@ -38,7 +38,7 @@
     </path>
     
     <target name="init">
-        <available classname="ie.omk.smpp.examples.AsyncReceiver" property="examplesAvailable"/>
+        <available classname="ie.omk.smpp.examples.AsyncReceiver" property="examplesAvailable" classpathref="examples-classpath"/>
         <fail unless="examplesAvailable">Example classes are not available. Have you built everything yet?</fail>
     </target>
     
