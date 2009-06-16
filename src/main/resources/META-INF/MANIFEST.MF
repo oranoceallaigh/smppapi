@@ -1,6 +1,0 @@
-Manifest-Version: 1.0
-Specification-Title: SMPP
-Specification-Version: 3.4
-Implementation-Title: ${project.name}
-Implementation-Version: ${project.version}
-Implementation-Vendor: http://smppapi.sf.net/
