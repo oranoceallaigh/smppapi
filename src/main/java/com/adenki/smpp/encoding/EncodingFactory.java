@@ -1,7 +1,6 @@
 package com.adenki.smpp.encoding;
 
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -10,6 +9,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.adenki.smpp.SMPPRuntimeException;
+import com.adenki.smpp.util.APIConfig;
+import com.adenki.smpp.util.APIConfigFactory;
 
 /**
  * Factory class for obtaining message encoding instances.
@@ -175,11 +176,14 @@ public class EncodingFactory {
         try {
             className = System.getProperty(DEFAULT_ALPHABET_PROPNAME);
             if (className != null) {
-                @SuppressWarnings("unchecked")
-                Class<AlphabetEncoding> alphaClass =
-                    (Class<AlphabetEncoding>) Class.forName(className);
-                defaultAlphabet =
-                    (AlphabetEncoding) instantiateEncoding(alphaClass);
+                Class<?> alphaClass = Class.forName(className);
+                defaultAlphabet = instantiateEncoding(alphaClass);
+            } else {
+                APIConfig cfg = APIConfigFactory.getConfig();
+                defaultAlphabet = cfg.getClassInstance(
+                        APIConfig.DEFAULT_ALPHABET,
+                        AlphabetEncoding.class,
+                        null);
             }
         } catch (Exception x) {
             LOG.warn("Couldn't load default alphabet {}: {}",
@@ -190,17 +194,12 @@ public class EncodingFactory {
         }
     }
     
-    private MessageEncoding<?> instantiateEncoding(
-            final Class<? extends MessageEncoding<?>> encodingClass) {
-        MessageEncoding<?> encoding = null;
+    private AlphabetEncoding instantiateEncoding(final Class<?> encodingClass) {
         try {
-            Constructor<? extends MessageEncoding<?>> c =
-                encodingClass.getConstructor(new Class[0]);
-            encoding = c.newInstance(new Object[0]);
+            return (AlphabetEncoding) encodingClass.newInstance();
         } catch (Exception x) {
             LOG.error("Could not instantiate a {}: {}", encodingClass, x);
             throw new SMPPRuntimeException(x);
         }
-        return encoding;
     }
 }

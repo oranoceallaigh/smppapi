@@ -345,6 +345,21 @@ public interface APIConfig {
     <T> T getClassInstance(String property, Class<T> type);
     
     /**
+     * Instantiate a new instance of a class whose class name is specified
+     * in <tt>property</tt>, returning a default value if the property
+     * is not set.
+     * @param <T> The expected type of the instantiated class.
+     * @param property The name of a property whose value is the fully
+     * qualified name of a class to instantiate.
+     * @param type The expected type of the instantiated class. This may
+     * specify a super-class or interface of the actually instantiated
+     * class.
+     * @return The new object instance, or <tt>defaultValue</tt> if
+     * <tt>property</tt> is not set.
+     */
+    <T> T getClassInstance(String property, Class<T> type, T defaultValue);
+    
+    /**
      * Determine if a property is set in the configuration.
      * @param property The name of the property to test.
      * @return <tt>true</tt> if the property is set, <tt>false</tt> if not.

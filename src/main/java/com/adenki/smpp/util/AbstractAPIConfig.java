@@ -156,6 +156,14 @@ public abstract class AbstractAPIConfig implements APIConfig {
         }
     }
     
+    public <T> T getClassInstance(String property, Class<T> type, T defaultValue) {
+        try {
+            return getClassInstance(property, type);
+        } catch (PropertyNotFoundException x) {
+            return defaultValue;
+        }
+    }
+    
     /**
      * Convert a string value to a boolean.
      * @param value The value to determine a boolean value for.
