@@ -245,15 +245,16 @@ public class Session {
 
     private void initFromConfig() {
         APIConfig config = APIConfigFactory.getConfig();
-        String s = config.getProperty(APIConfig.EVENT_DISPATCHER_CLASS, null);
-        if (s != null) {
-            eventDispatcher =
-                (EventDispatcher) getClassInstance(s, EventDispatcher.class);
+        EventDispatcher dispatcher;
+        try {
+            dispatcher = config.getClassInstance(
+                    APIConfig.EVENT_DISPATCHER_CLASS, EventDispatcher.class);
+        } catch (PropertyNotFoundException x) {
+            log.debug("Config does not specify an event dispatcher. Using {}",
+                    SimpleEventDispatcher.class);
+            dispatcher = new SimpleEventDispatcher();
         }
-        if (eventDispatcher == null) {
-            eventDispatcher = new SimpleEventDispatcher();
-        }
-        initNewDispatcher(null, eventDispatcher);
+        setEventDispatcher(dispatcher);
     }
 
     private void initReceiver() {
@@ -270,26 +271,6 @@ public class Session {
                 newDispatcher.addObserver(observer);
             }
         }
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T> T getClassInstance(String className, Class<T> type) {
-        T obj = null;
-        try {
-            log.debug("Attempting to instantiate a class of type {}",
-                    className);
-            Class<?> clazz = Class.forName(className);
-            if (!clazz.isAssignableFrom(type)) {
-                log.error("{} is not of type {}", className, type.getClass());
-            } else {
-                obj = ((Class<T>) clazz).newInstance();
-            }
-        } catch (Exception x) {
-            log.error("Could not instantiate a class of type {}: {}",
-                    className, x.getMessage());
-            log.debug("Stack trace", x);
-        }
-        return obj;
     }
     
     private void sendPacketInternal(SMPPPacket packet) throws IOException {
