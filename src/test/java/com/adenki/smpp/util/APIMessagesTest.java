@@ -6,9 +6,9 @@ import java.util.MissingResourceException;
 
 import org.testng.annotations.Test;
 
+@Test
 public class APIMessagesTest {
 
-    @Test
     public void testAPIMessagesWorksWithNoBundle() throws Exception {
         try {
             PropertiesAPIConfig cfg = new PropertiesAPIConfig();
@@ -23,7 +23,6 @@ public class APIMessagesTest {
         }
     }
     
-    @Test
     public void testGetPacketStatusReturnsValidValue() throws Exception {
         APIMessages messages = new APIMessages();
         assertNotNull(messages.getPacketStatus(2));

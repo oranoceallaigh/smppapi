@@ -32,6 +32,13 @@ package com.adenki.smpp.util;
  * </tr>
  * 
  * <tr>
+ * <td><code>smppapi.default_alphabet</code></td>
+ * <td>String</td>
+ * <td>The class name of the default alphabet encoding to use. Must be
+ * an implementation of <tt>com.adenki.smpp.util.AlphabetEncoding</tt></td>
+ * </tr>
+ * 
+ * <tr>
  * <td><code>smppapi.lax_versions</code></td>
  * <td>Boolean</td>
  * <td>
@@ -131,6 +138,11 @@ public interface APIConfig {
      * @see APIConfig
      */
     String DEFAULT_VERSION = "smppapi.default_version";
+    
+    /**
+     * @see APIConfig
+     */
+    String DEFAULT_ALPHABET = "smppapi.default_alphabet";
     
     /**
      * @see APIConfig
@@ -316,4 +328,26 @@ public interface APIConfig {
      * that cannot be parsed or interpreted as boolean.
      */
     boolean getBoolean(String property) throws InvalidConfigurationException, PropertyNotFoundException;
+
+    /**
+     * Instantiate a new instance of a class whose class name is specified
+     * in <tt>property</tt>.
+     * @param <T> The expected type of the instantiated class.
+     * @param property The name of a property whose value is the fully
+     * qualified name of a class to instantiate.
+     * @param type The expected type of the instantiated class. This may
+     * specify a super-class or interface of the actually instantiated
+     * class.
+     * @return The new object instance.
+     * @throws PropertyNotFoundException If <tt>property</tt> is not
+     * found in the configuration.
+     */
+    <T> T getClassInstance(String property, Class<T> type);
+    
+    /**
+     * Determine if a property is set in the configuration.
+     * @param property The name of the property to test.
+     * @return <tt>true</tt> if the property is set, <tt>false</tt> if not.
+     */
+    boolean isSet(String property);
 }
