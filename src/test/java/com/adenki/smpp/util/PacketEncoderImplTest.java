@@ -1,231 +1,260 @@
 package com.adenki.smpp.util;
 
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.fail;
 
-import java.io.ByteArrayOutputStream;
+import java.nio.ByteBuffer;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.TimeZone;
 
 import org.testng.annotations.Test;
 
 import com.adenki.smpp.Address;
+import com.adenki.smpp.ErrorAddress;
 
 @Test
 public class PacketEncoderImplTest {
-
-    public void testWriteCStringWritesNulByte() throws Exception {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        PacketEncoderImpl encoder = new PacketEncoderImpl(out);
-        encoder.writeCString(null);
-        assertEquals(out.toByteArray()[0], (byte) 0);
-    }
-    
-    public void testWriteCStringWritesAsciiAndNul() throws Exception {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        PacketEncoderImpl encoder = new PacketEncoderImpl(out);
-        encoder.writeCString("ABC");
-        byte[] array = out.toByteArray();
-        assertEquals(array.length, 4);
-        assertEquals(array[0], (byte) 0x41);
-        assertEquals(array[1], (byte) 0x42);
-        assertEquals(array[2], (byte) 0x43);
-        assertEquals(array[3], (byte) 0);
-    }
-    
-    public void testWriteStringWritesNothingOnEmptyString() throws Exception {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        PacketEncoderImpl encoder = new PacketEncoderImpl(out);
-        encoder.writeString("", 0);
-        assertEquals(out.toByteArray().length, 0);
-    }
-    
-    public void testWriteStringWritesAscii() throws Exception {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        PacketEncoderImpl encoder = new PacketEncoderImpl(out);
-        encoder.writeString("CD!", 3);
-        byte[] array = out.toByteArray();
-        assertEquals(array.length, 3);
-        assertEquals(array[0], (byte) 0x43);
-        assertEquals(array[1], (byte) 0x44);
-        assertEquals(array[2], (byte) 0x21);
+    public void testWriteUInt1OutputsCorrectBytes() throws Exception {
+        ByteBuffer buffer = ByteBuffer.allocate(16);
+        new PacketEncoderImpl(buffer).writeUInt1(0xf9);
+        buffer.flip();
+        assertEquals(buffer.remaining(), 1);
+        assertEquals(buffer.get(), (byte) 0xf9);
     }
 
-    public void testWriteStringWritesSubstring() throws Exception {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        PacketEncoderImpl encoder = new PacketEncoderImpl(out);
-        encoder.writeString("EFGHIJ", 4);
-        byte[] array = out.toByteArray();
-        assertEquals(array.length, 4);
-        assertEquals(array[0], (byte) 0x45);
-        assertEquals(array[1], (byte) 0x46);
-        assertEquals(array[2], (byte) 0x47);
-        assertEquals(array[3], (byte) 0x48);
+    public void testWriteUInt2OutputsCorrectBytes() throws Exception {
+        ByteBuffer buffer = ByteBuffer.allocate(16);
+        new PacketEncoderImpl(buffer).writeUInt2(0xe592);
+        buffer.flip();
+        assertEquals(buffer.remaining(), 2);
+        assertEquals(buffer.get(), (byte) 0xe5);
+        assertEquals(buffer.get(), (byte) 0x92);
+    }
+
+    public void testWriteUInt4OutputsCorrectBytes() throws Exception {
+        ByteBuffer buffer = ByteBuffer.allocate(16);
+        new PacketEncoderImpl(buffer).writeUInt4(0xddefe592L);
+        buffer.flip();
+        assertEquals(buffer.remaining(), 4);
+        assertEquals(buffer.get(), (byte) 0xdd);
+        assertEquals(buffer.get(), (byte) 0xef);
+        assertEquals(buffer.get(), (byte) 0xe5);
+        assertEquals(buffer.get(), (byte) 0x92);
+    }
+
+    public void testWriteInt8OutputsCorrectBytes() throws Exception {
+        ByteBuffer buffer = ByteBuffer.allocate(16);
+        new PacketEncoderImpl(buffer).writeInt8(0x6821beefddefe592L);
+        buffer.flip();
+        assertEquals(buffer.remaining(), 8);
+        assertEquals(buffer.get(), (byte) 0x68);
+        assertEquals(buffer.get(), (byte) 0x21);
+        assertEquals(buffer.get(), (byte) 0xbe);
+        assertEquals(buffer.get(), (byte) 0xef);
+        assertEquals(buffer.get(), (byte) 0xdd);
+        assertEquals(buffer.get(), (byte) 0xef);
+        assertEquals(buffer.get(), (byte) 0xe5);
+        assertEquals(buffer.get(), (byte) 0x92);
+    }
+
+    public void testWriteCStringOutputsCorrectBytes() throws Exception {
+        ByteBuffer buffer = ByteBuffer.allocate(16);
+        new PacketEncoderImpl(buffer).writeCString("ABCDE");
+        buffer.flip();
+        assertEquals(buffer.remaining(), 6);
+        assertEquals(buffer.get(), (byte) 0x41);
+        assertEquals(buffer.get(), (byte) 0x42);
+        assertEquals(buffer.get(), (byte) 0x43);
+        assertEquals(buffer.get(), (byte) 0x44);
+        assertEquals(buffer.get(), (byte) 0x45);
+        assertEquals(buffer.get(), (byte) 0);
     }
     
-    public void testWriteStringExceptionsWhenLengthIsInvalid() throws Exception {
-        try {
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            PacketEncoderImpl encoder = new PacketEncoderImpl(out);
-            encoder.writeString("Three", 6);
-            fail("should have thrown StringIndexOutOfBoundsException");
-        } catch (IndexOutOfBoundsException x) {
-            // success
+    public void testWriteNullCStringOutputsCorrectBytes() throws Exception {
+        ByteBuffer buffer = ByteBuffer.allocate(32);
+        new PacketEncoderImpl(buffer).writeCString(null);
+        buffer.flip();
+        assertEquals(buffer.remaining(), 1);
+        assertEquals(buffer.get(), (byte) 0);
+    }
+
+    public void testWriteStringOutputsCorrectBytes() throws Exception {
+        ByteBuffer buffer = ByteBuffer.allocate(16);
+        new PacketEncoderImpl(buffer).writeString("ABCDEFGH", 6);
+        buffer.flip();
+        assertEquals(buffer.remaining(), 6);
+        assertEquals(buffer.get(), (byte) 0x41);
+        assertEquals(buffer.get(), (byte) 0x42);
+        assertEquals(buffer.get(), (byte) 0x43);
+        assertEquals(buffer.get(), (byte) 0x44);
+        assertEquals(buffer.get(), (byte) 0x45);
+        assertEquals(buffer.get(), (byte) 0x46);
+    }
+    
+    public void testWriteNullStringWithZeroLengthSpecifiedWorks() throws Exception {
+        ByteBuffer buffer = ByteBuffer.allocate(16);
+        new PacketEncoderImpl(buffer).writeString(null, 0);
+        buffer.flip();
+        assertEquals(buffer.remaining(), 0);
+    }
+
+    @Test(expectedExceptions = {IndexOutOfBoundsException.class})
+    public void testWriteNullStringWithNonZeroLengthSpecifiedThrowsException() throws Exception {
+        ByteBuffer buffer = ByteBuffer.allocate(16);
+        new PacketEncoderImpl(buffer).writeString(null, 4);
+    }
+    
+    @Test(expectedExceptions = {IndexOutOfBoundsException.class})
+    public void testWriteStringWithLengthArgumentGreaterThanStringLengthThrowsException() throws Exception {
+        ByteBuffer buffer = ByteBuffer.allocate(16);
+        new PacketEncoderImpl(buffer).writeString("ABCDEFGH", 9);
+    }
+    
+    public void testWriteDateOutputsCorrectBytes() throws Exception {
+        TimeZone tz = TimeZone.getTimeZone("Europe/Berlin");
+        Calendar cal = new GregorianCalendar(tz);
+        cal.set(Calendar.YEAR, 2009);
+        cal.set(Calendar.MONTH, 6);
+        cal.set(Calendar.DAY_OF_MONTH, 14);
+        cal.set(Calendar.HOUR_OF_DAY, 16);
+        cal.set(Calendar.MINUTE, 1);
+        cal.set(Calendar.SECOND, 19);
+        cal.set(Calendar.MILLISECOND, 400);
+        ByteBuffer buffer = ByteBuffer.allocate(32);
+        new PacketEncoderImpl(buffer).writeDate(new AbsoluteSMPPDate(cal));
+        buffer.flip();
+        assertEquals(buffer.remaining(), 17);
+        byte[] bytes = new byte[16];
+        buffer.get(bytes);
+        if (tz.inDaylightTime(new Date())) {
+            assertEquals(new String(bytes, "US-ASCII"), "090714160119408+");
+        } else {
+            assertEquals(new String(bytes, "US-ASCII"), "090714160119404+");
         }
     }
     
-    public void testWriteUInt1Succeeds() throws Exception {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        PacketEncoderImpl encoder = new PacketEncoderImpl(out);
-        encoder.writeUInt1(34);
-        byte[] array = out.toByteArray();
-        assertEquals(array.length, 1);
-        assertEquals(array[0], (byte) 34);
+    public void testWriteNullDateOutputsCorrectBytes() throws Exception {
+        ByteBuffer buffer = ByteBuffer.allocate(32);
+        new PacketEncoderImpl(buffer).writeDate(null);
+        buffer.flip();
+        assertEquals(buffer.remaining(), 1);
+        assertEquals(buffer.get(), (byte) 0);
     }
     
-    public void testWriteUInt2Succeeds() throws Exception {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        PacketEncoderImpl encoder = new PacketEncoderImpl(out);
-        encoder.writeUInt2(0xfabe);
-        byte[] array = out.toByteArray();
-        assertEquals(array.length, 2);
-        assertEquals(array[0], (byte) 0xfa);
-        assertEquals(array[1], (byte) 0xbe);
+    public void testWriteAddressOutputsCorrectBytes() throws Exception {
+        Address address = new Address(4, 9, "1234567");
+        ByteBuffer buffer = ByteBuffer.allocate(32);
+        new PacketEncoderImpl(buffer).writeAddress(address);
+        buffer.flip();
+        assertEquals(buffer.remaining(), 10);
+        assertEquals(buffer.get(), (byte) 0x04);
+        assertEquals(buffer.get(), (byte) 0x09);
+        assertEquals(buffer.get(), (byte) 0x31);
+        assertEquals(buffer.get(), (byte) 0x32);
+        assertEquals(buffer.get(), (byte) 0x33);
+        assertEquals(buffer.get(), (byte) 0x34);
+        assertEquals(buffer.get(), (byte) 0x35);
+        assertEquals(buffer.get(), (byte) 0x36);
+        assertEquals(buffer.get(), (byte) 0x37);
+        assertEquals(buffer.get(), (byte) 0);
+    }
+    
+    public void testWriteNullAddressOutputsCorrectBytes() throws Exception {
+        ByteBuffer buffer = ByteBuffer.allocate(32);
+        new PacketEncoderImpl(buffer).writeAddress(null);
+        buffer.flip();
+        assertEquals(buffer.remaining(), 3);
+        assertEquals(buffer.get(), (byte) 0);
+        assertEquals(buffer.get(), (byte) 0);
+        assertEquals(buffer.get(), (byte) 0);
+    }
+    
+    public void testWriteErrorAddressOutputsCorrectBytes() throws Exception {
+        ErrorAddress address = new ErrorAddress(4, 9, "1234567");
+        address.setError(0x8723);
+        ByteBuffer buffer = ByteBuffer.allocate(32);
+        new PacketEncoderImpl(buffer).writeAddress(address);
+        buffer.flip();
+        assertEquals(buffer.remaining(), 14);
+        assertEquals(buffer.get(), (byte) 0x04);
+        assertEquals(buffer.get(), (byte) 0x09);
+        assertEquals(buffer.get(), (byte) 0x31);
+        assertEquals(buffer.get(), (byte) 0x32);
+        assertEquals(buffer.get(), (byte) 0x33);
+        assertEquals(buffer.get(), (byte) 0x34);
+        assertEquals(buffer.get(), (byte) 0x35);
+        assertEquals(buffer.get(), (byte) 0x36);
+        assertEquals(buffer.get(), (byte) 0x37);
+        assertEquals(buffer.get(), (byte) 0);
+        assertEquals(buffer.get(), (byte) 0);
+        assertEquals(buffer.get(), (byte) 0);
+        assertEquals(buffer.get(), (byte) 0x87);
+        assertEquals(buffer.get(), (byte) 0x23);
+    }
+    
+    public void testWriteNullErrorAddressOutputsCorrectBytes() throws Exception {
+        ByteBuffer buffer = ByteBuffer.allocate(32);
+        new PacketEncoderImpl(buffer).writeErrorAddress(null);
+        buffer.flip();
+        assertEquals(buffer.remaining(), 7);
+        assertEquals(buffer.get(), (byte) 0);
+        assertEquals(buffer.get(), (byte) 0);
+        assertEquals(buffer.get(), (byte) 0);
+        assertEquals(buffer.get(), (byte) 0);
+        assertEquals(buffer.get(), (byte) 0);
+        assertEquals(buffer.get(), (byte) 0);
+        assertEquals(buffer.get(), (byte) 0);
+    }
+    
+    public void testWriteFullByteArrayWritesAllBytes() throws Exception {
+        byte[] bytes = new byte[] { 1, 2, 3, 4, 5 };
+        ByteBuffer buffer = ByteBuffer.allocate(32);
+        new PacketEncoderImpl(buffer).writeBytes(bytes);
+        buffer.flip();
+        assertEquals(buffer.remaining(), 5);
+        assertEquals(buffer.get(), (byte) 1);
+        assertEquals(buffer.get(), (byte) 2);
+        assertEquals(buffer.get(), (byte) 3);
+        assertEquals(buffer.get(), (byte) 4);
+        assertEquals(buffer.get(), (byte) 5);
+    }
+    
+    public void testWriteNullByteArrayWorks() throws Exception {
+        ByteBuffer buffer = ByteBuffer.allocate(32);
+        new PacketEncoderImpl(buffer).writeBytes(null);
+        buffer.flip();
+        assertEquals(buffer.remaining(), 0);
+    }
+    
+    public void testWriteBytesWithOffsetAndLengthOnlyWritesSpecifiedBytes() throws Exception {
+        byte[] bytes = new byte[] { 1, 2, 3, 4, 5 };
+        ByteBuffer buffer = ByteBuffer.allocate(32);
+        new PacketEncoderImpl(buffer).writeBytes(bytes, 1, 3);
+        buffer.flip();
+        assertEquals(buffer.remaining(), 3);
+        assertEquals(buffer.get(), (byte) 2);
+        assertEquals(buffer.get(), (byte) 3);
+        assertEquals(buffer.get(), (byte) 4);
+    }
+    
+    @Test(expectedExceptions = {IndexOutOfBoundsException.class})
+    public void testWriteByteArrayWithLengthArgumentLongerThanByteArrayLengthThrowsException() throws Exception {
+        byte[] bytes = new byte[] { 1, 2, 3, 4, 5 };
+        ByteBuffer buffer = ByteBuffer.allocate(32);
+        new PacketEncoderImpl(buffer).writeBytes(bytes, 1, 6);
+    }
+    
+    public void testWriteNullByteArrayWithZeroLengthSpecifiedWorks() throws Exception {
+        ByteBuffer buffer = ByteBuffer.allocate(32);
+        new PacketEncoderImpl(buffer).writeBytes(null, 0, 0);
+        buffer.flip();
+        assertEquals(buffer.remaining(), 0);
     }
 
-    public void testWriteUInt4Succeeds() throws Exception {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        PacketEncoderImpl encoder = new PacketEncoderImpl(out);
-        encoder.writeUInt4(0xffeffabeL);
-        byte[] array = out.toByteArray();
-        assertEquals(array.length, 4);
-        assertEquals(array[0], (byte) 0xff);
-        assertEquals(array[1], (byte) 0xef);
-        assertEquals(array[2], (byte) 0xfa);
-        assertEquals(array[3], (byte) 0xbe);
-    }
-    
-    public void testWriteInt4Succeeds() throws Exception {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        PacketEncoderImpl encoder = new PacketEncoderImpl(out);
-        encoder.writeInt4((int) 0xddccbbaa);
-        byte[] array = out.toByteArray();
-        assertEquals(array.length, 4);
-        assertEquals(array[0], (byte) 0xdd);
-        assertEquals(array[1], (byte) 0xcc);
-        assertEquals(array[2], (byte) 0xbb);
-        assertEquals(array[3], (byte) 0xaa);
-    }
-    
-    public void testWriteInt8Succeeds() throws Exception {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        PacketEncoderImpl encoder = new PacketEncoderImpl(out);
-        encoder.writeInt8(0xeeddccbbaa998877L);
-        byte[] array = out.toByteArray();
-        assertEquals(array.length, 8);
-        assertEquals(array[0], (byte) 0xee);
-        assertEquals(array[1], (byte) 0xdd);
-        assertEquals(array[2], (byte) 0xcc);
-        assertEquals(array[3], (byte) 0xbb);
-        assertEquals(array[4], (byte) 0xaa);
-        assertEquals(array[5], (byte) 0x99);
-        assertEquals(array[6], (byte) 0x88);
-        assertEquals(array[7], (byte) 0x77);
-    }
-    
-    public void testWriteAddressSucceeds() throws Exception {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        PacketEncoderImpl encoder = new PacketEncoderImpl(out);
-        Address address = new Address(2, 3, "123");
-        encoder.writeAddress(address);
-        byte[] array = out.toByteArray();
-        assertEquals(array.length, 6);
-        assertEquals(array[0], (byte) 2);
-        assertEquals(array[1], (byte) 3);
-        assertEquals(array[2], (byte) 0x31);
-        assertEquals(array[3], (byte) 0x32);
-        assertEquals(array[4], (byte) 0x33);
-        assertEquals(array[5], (byte) 0);
-    }
-
-    public void testWriteNullAddressSucceeds() throws Exception {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        PacketEncoderImpl encoder = new PacketEncoderImpl(out);
-        encoder.writeAddress(null);
-        byte[] array = out.toByteArray();
-        assertEquals(array.length, 3);
-        assertEquals(array[0], (byte) 0);
-        assertEquals(array[1], (byte) 0);
-        assertEquals(array[2], (byte) 0);
-    }
-    
-    public void testWriteDateSucceeds() throws Exception {
-        Calendar calendar = Calendar.getInstance();
-        SMPPDate date = SMPPDate.getAbsoluteInstance(calendar);
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        PacketEncoderImpl encoder = new PacketEncoderImpl(out);
-        encoder.writeDate(date);
-        byte[] array = out.toByteArray();
-        assertEquals(array.length, 17);
-        // Not worried about the actual characters encoded - date tests
-        // will cover that.
-        assertEquals(array[16], (byte) 0);
-    }
-    
-    public void testWriteNullDateSucceeds() throws Exception {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        PacketEncoderImpl encoder = new PacketEncoderImpl(out);
-        encoder.writeDate(null);
-        byte[] array = out.toByteArray();
-        assertEquals(array.length, 1);
-        assertEquals(array[0], (byte) 0);
-    }
-    
-    public void testWriteByteArraySucceeds() throws Exception {
-        byte[] bytes = new byte[] { 0, 1, 2, 3, (byte) 0xef, (byte) 0x9a };
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        PacketEncoderImpl encoder = new PacketEncoderImpl(out);
-        encoder.writeBytes(bytes, 0, bytes.length);
-        byte[] array = out.toByteArray();
-        assertEquals(array.length, bytes.length);
-        for (int i = 0; i < bytes.length; i++) {
-            assertEquals(array[i], bytes[i]);
-        }
-    }
-    
-    public void testWriteByteSubArraySucceeds() throws Exception {
-        byte[] bytes = new byte[] { 0, 1, 2, 3, (byte) 0xef, (byte) 0x9a };
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        PacketEncoderImpl encoder = new PacketEncoderImpl(out);
-        encoder.writeBytes(bytes, 3, 3);
-        byte[] array = out.toByteArray();
-        assertEquals(array.length, 3);
-        for (int i = 0; i < 3; i++) {
-            assertEquals(array[i], bytes[3 + i]);
-        }
-    }
-
-    public void testWriteZeroLengthByteArraySucceeds() throws Exception {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        PacketEncoderImpl encoder = new PacketEncoderImpl(out);
-        encoder.writeBytes(new byte[0], 0, 0);
-        assertEquals(out.toByteArray().length, 0);
-    }
-    
-    public void testWriteNullByteArraySucceeds() throws Exception {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        PacketEncoderImpl encoder = new PacketEncoderImpl(out);
-        encoder.writeBytes(null, 0, 0);
-        assertEquals(out.toByteArray().length, 0);
-    }
-    
-    public void testWriteBytesExceptionsWhenNotEnoughBytes() throws Exception {
-        try {
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            PacketEncoderImpl encoder = new PacketEncoderImpl(out);
-            encoder.writeBytes(new byte[] { 1, 2, 3 }, 1, 3);
-            fail("should have thrown ArrayIndexOutOfBoundsException");
-        } catch (IndexOutOfBoundsException x) {
-            // success
-        }
+    @Test(expectedExceptions = {IndexOutOfBoundsException.class})
+    public void testWriteNullByteArrayWithNonZeroLengthSpecifiedThrowsException() throws Exception {
+        ByteBuffer buffer = ByteBuffer.allocate(32);
+        new PacketEncoderImpl(buffer).writeBytes(null, 0, 3);
     }
 }

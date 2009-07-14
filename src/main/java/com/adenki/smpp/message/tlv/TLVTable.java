@@ -57,7 +57,7 @@ import com.adenki.smpp.util.PacketEncoder;
  */
 public interface TLVTable extends Map<Tag, Object> {
     // TODO docs
-    void readFrom(PacketDecoder decoder, int length);
+    void readFrom(PacketDecoder decoder, int length) throws IOException;
     void writeTo(PacketEncoder encoder) throws IOException;
 
     /**

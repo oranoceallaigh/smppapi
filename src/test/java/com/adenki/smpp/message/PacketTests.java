@@ -4,7 +4,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 
-import java.io.ByteArrayOutputStream;
+import java.nio.ByteBuffer;
 import java.util.Random;
 
 import org.testng.annotations.BeforeClass;
@@ -72,11 +72,12 @@ public abstract class PacketTests<T extends SMPPPacket> {
     public void testDeserializedFieldsMatchOriginalPacket() throws Exception {
         T original = getInitialisedPacket();
         setCommonFields(original);
-        T decodedPacket = getPacketType().newInstance();
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        PacketEncoderImpl encoder = new PacketEncoderImpl(out);
+        ByteBuffer encodeBuffer = ByteBuffer.allocate(1024);
+        PacketEncoderImpl encoder = new PacketEncoderImpl(encodeBuffer);
         original.writeTo(encoder);
-        PacketDecoderImpl decoder = new PacketDecoderImpl(out.toByteArray());
+        encodeBuffer.flip();
+        PacketDecoderImpl decoder = new PacketDecoderImpl(encodeBuffer);
+        T decodedPacket = getPacketType().newInstance();
         decodedPacket.readFrom(decoder);
         assertEquals(decodedPacket, original);
     }
@@ -85,12 +86,12 @@ public abstract class PacketTests<T extends SMPPPacket> {
     public void testPacketWithNonZeroStatusIsOnlyAHeader() throws Exception {
         T original = getInitialisedPacket();
         setCommonFields(original);
-        T decodedPacket = getPacketType().newInstance();
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        PacketEncoderImpl encoder = new PacketEncoderImpl(out);
+        ByteBuffer encodeBuffer = ByteBuffer.allocate(1024);
+        PacketEncoderImpl encoder = new PacketEncoderImpl(encodeBuffer);
         original.writeTo(encoder);
-        PacketDecoderImpl decoder = new PacketDecoderImpl(
-                out.toByteArray());
+        encodeBuffer.flip();
+        PacketDecoderImpl decoder = new PacketDecoderImpl(encodeBuffer);
+        T decodedPacket = getPacketType().newInstance();
         decodedPacket.readFrom(decoder);
         assertEquals(original, decodedPacket);
     }
@@ -121,15 +122,16 @@ public abstract class PacketTests<T extends SMPPPacket> {
      * packet.
      */
     private void testGetLengthMatchesReality(SMPPPacket packet) throws Exception {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        PacketEncoderImpl encoder = new PacketEncoderImpl(out);
+        ByteBuffer encodeBuffer = ByteBuffer.allocate(1024);
+        PacketEncoderImpl encoder = new PacketEncoderImpl(encodeBuffer);
         packet.writeTo(encoder);
-        byte[] array = out.toByteArray();
-        assertEquals(array.length, packet.getLength());
+        ByteBuffer decodeBuffer = encodeBuffer.duplicate();
+        decodeBuffer.flip();
+        int encodedSize = decodeBuffer.remaining();
+        assertEquals(encodedSize, packet.getLength());
         SMPPPacket deserialized = getPacketType().newInstance();
-        PacketDecoderImpl decoder = new PacketDecoderImpl(array);
+        PacketDecoderImpl decoder = new PacketDecoderImpl(decodeBuffer);
         deserialized.readFrom(decoder);
-        assertEquals(packet.getLength(), array.length, packet.getClass().getName());
-        assertEquals(array.length, deserialized.getLength(), packet.getClass().getName());
+        assertEquals(deserialized.getLength(), encodedSize, packet.getClass().getName());
     }
 }

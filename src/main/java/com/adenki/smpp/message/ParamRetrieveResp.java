@@ -78,7 +78,7 @@ public class ParamRetrieveResp extends SMPPPacket {
     }
     
     @Override
-    protected void readMandatory(PacketDecoder decoder) {
+    protected void readMandatory(PacketDecoder decoder) throws IOException {
         paramValue = decoder.readCString();
     }
     

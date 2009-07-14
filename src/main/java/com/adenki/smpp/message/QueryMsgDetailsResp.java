@@ -290,7 +290,7 @@ public class QueryMsgDetailsResp extends SMPPPacket {
     }
 
     @Override
-    protected void readMandatory(PacketDecoder decoder) {
+    protected void readMandatory(PacketDecoder decoder) throws IOException {
         serviceType = decoder.readCString();
         source = decoder.readAddress();
         int tableSize = decoder.readUInt1();

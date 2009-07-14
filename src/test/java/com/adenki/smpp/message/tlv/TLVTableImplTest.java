@@ -6,8 +6,7 @@ import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.BitSet;
 
 import org.testng.annotations.Test;
@@ -203,7 +202,7 @@ public class TLVTableImplTest {
         }
     }
     
-    public void testTLVTableSerialize() {
+    public void testTLVTableSerialize() throws Exception {
         // If testTLVTableAddParams fails, this will fail too...make sure it's
         // working first!
         // First, create a table with at least one parameter in it for
@@ -221,31 +220,21 @@ public class TLVTableImplTest {
         origTable.put(Tag.CALLBACK_NUM_ATAG, b);
         origTable.put(Tag.MS_MSG_WAIT_FACILITIES, bitSet);
 
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        PacketEncoderImpl encoder = new PacketEncoderImpl(out);
-        try {
-            origTable.writeTo(encoder);
-        } catch (IOException x) {
-            fail("I/O Exception while writing to output stream.");
-        }
-        byte[] serialized = out.toByteArray();
+        ByteBuffer encodeBuffer = ByteBuffer.allocate(1024);
+        PacketEncoderImpl encoder = new PacketEncoderImpl(encodeBuffer);
+        origTable.writeTo(encoder);
 
+        ByteBuffer decodeBuffer = encodeBuffer.duplicate();
+        decodeBuffer.flip();
         // The table must report the same length as it actually serializes to..
-        if (origTable.getLength() != serialized.length) {
-            fail("Table getLength is different to actual encoded length");
-        }
+        assertEquals(decodeBuffer.remaining(), origTable.getLength());
 
-        PacketDecoderImpl decoder = new PacketDecoderImpl(serialized);
+        PacketDecoderImpl decoder = new PacketDecoderImpl(decodeBuffer);
         TLVTableImpl newTable = new TLVTableImpl();
-        newTable.readFrom(decoder, serialized.length);
+        newTable.readFrom(decoder, decodeBuffer.remaining());
+        // Ensure all the bytes were re-consumed from the decodeBuffer..
+        assertEquals(decodeBuffer.position(), decodeBuffer.limit());
         doTableAssertions(origTable, newTable);
-        assertEquals(decoder.getParsePosition(), serialized.length);
-
-        decoder.setParsePosition(0);
-        newTable = new TLVTableImpl();
-        newTable.readFrom(decoder, serialized.length);
-        doTableAssertions(origTable, newTable);
-        assertEquals(decoder.getParsePosition(), serialized.length);
     }
 
     /**
@@ -260,14 +249,14 @@ public class TLVTableImplTest {
         // followed by 2 unknowns.
         final Integer testIntValue = new Integer(0xbcad);
         final String testStringValue = "smppapi tlv tests";
-        TLVTableImpl table = new TLVTableImpl();
-        table.put(Tag.DEST_TELEMATICS_ID, testIntValue);
-        table.put(Tag.ADDITIONAL_STATUS_INFO_TEXT, testStringValue);
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        PacketEncoderImpl encoder = new PacketEncoderImpl(out);
-        table.writeTo(encoder);
+        TLVTableImpl originalTable = new TLVTableImpl();
+        originalTable.put(Tag.DEST_TELEMATICS_ID, testIntValue);
+        originalTable.put(Tag.ADDITIONAL_STATUS_INFO_TEXT, testStringValue);
+        ByteBuffer encodeBuffer = ByteBuffer.allocate(128);
+        PacketEncoderImpl encoder = new PacketEncoderImpl(encodeBuffer);
+        originalTable.writeTo(encoder);
         // Tag '0xcafe', length 2.
-        encoder.writeBytes(new byte[] {
+        encodeBuffer.put(new byte[] {
                 (byte) 0xca,
                 (byte) 0xfe,
                 (byte) 0x00,
@@ -276,7 +265,7 @@ public class TLVTableImplTest {
                 (byte) 0xed,
         });
         // Tag '0xbeef', length 5
-        encoder.writeBytes(new byte[] {
+        encodeBuffer.put(new byte[] {
                 (byte) 0xbe,
                 (byte) 0xef,
                 (byte) 0x00,
@@ -288,31 +277,24 @@ public class TLVTableImplTest {
                 (byte) 0x99,
         });
 
-        byte[] b = out.toByteArray();
-        try {
-            // Run the test - attempt to deserialize the table.
-            PacketDecoderImpl decoder = new PacketDecoderImpl(out.toByteArray());
-            TLVTableImpl tab = new TLVTableImpl();
-            tab.readFrom(decoder, b.length);
-            assertEquals(decoder.getParsePosition(), b.length);
-            assertEquals(tab.get(Tag.DEST_TELEMATICS_ID), testIntValue);
-            assertEquals(tab.get(Tag.ADDITIONAL_STATUS_INFO_TEXT), testStringValue);
+        // Run the test - attempt to deserialize the table.
+        ByteBuffer decodeBuffer = encodeBuffer.duplicate();
+        decodeBuffer.flip();
+        PacketDecoderImpl decoder = new PacketDecoderImpl(decodeBuffer);
+        TLVTableImpl decodedTable = new TLVTableImpl();
+        decodedTable.readFrom(decoder, decodeBuffer.remaining());
+        assertEquals(decodedTable.get(Tag.DEST_TELEMATICS_ID), testIntValue);
+        assertEquals(decodedTable.get(Tag.ADDITIONAL_STATUS_INFO_TEXT), testStringValue);
 
-            b = (byte[]) tab.get(0xcafe);
-            byte[] expectedValue = {(byte) 0xfe, (byte) 0xed};
+        // Check for the presence of the "unknown" TLVs
+        byte[] b = (byte[]) decodedTable.get(0xcafe);
+        byte[] expectedValue = {(byte) 0xfe, (byte) 0xed};
+        assertEquals(b, expectedValue);
 
-            assertEquals(b, expectedValue);
-
-            b = (byte[]) tab.get(0xbeef);
-            expectedValue = new byte[] {(byte) 0xba, (byte) 0xbe, (byte) 0xde,
-                    (byte) 0xad, (byte) 0x99, };
-
-            assertEquals(b, expectedValue);
-
-        } catch (Exception x) {
-            x.printStackTrace(System.err);
-            fail("Deserialize failed. " + x.getMessage());
-        }
+        b = (byte[]) decodedTable.get(0xbeef);
+        expectedValue = new byte[] {(byte) 0xba, (byte) 0xbe, (byte) 0xde,
+                (byte) 0xad, (byte) 0x99, };
+        assertEquals(b, expectedValue);
     }
     
     private void doTableAssertions(TLVTableImpl origTable, TLVTableImpl newTable) {

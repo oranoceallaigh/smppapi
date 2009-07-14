@@ -48,7 +48,7 @@ public class QueryBroadcastSMResp extends SMPPPacket {
     }
 
     @Override
-    protected void readMandatory(PacketDecoder decoder) {
+    protected void readMandatory(PacketDecoder decoder) throws IOException {
         messageId = decoder.readCString();
     }
     

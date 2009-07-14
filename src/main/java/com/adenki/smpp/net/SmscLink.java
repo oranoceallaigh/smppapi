@@ -32,12 +32,11 @@ public interface SmscLink {
     /**
      * Send an SMPP packet to the SMSC.
      * @param packet The packet to send.
-     * @param withOptionalParams <code>true</code> to send the packet&apos;s
-     * optional parameters during the write, <code>false</code> to omit the
-     * optional parameters.
+     * @param withTlvs <code>true</code> to send the packet&apos;s
+     * TLVs during the write, <code>false</code> to omit them.
      * @throws IOException
      */
-    void write(SMPPPacket packet, boolean withOptionalParams) throws IOException;
+    void write(SMPPPacket packet, boolean withTlvs) throws IOException;
     
     /**
      * If the underlying link implements some form of output buffering, then

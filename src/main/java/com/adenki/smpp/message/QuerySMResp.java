@@ -109,7 +109,7 @@ public class QuerySMResp extends SMPPPacket {
     }
     
     @Override
-    protected void readMandatory(PacketDecoder decoder) {
+    protected void readMandatory(PacketDecoder decoder) throws IOException {
         messageId = decoder.readCString();
         finalDate = decoder.readDate();
         messageState = MessageState.getMessageState(decoder.readUInt1());

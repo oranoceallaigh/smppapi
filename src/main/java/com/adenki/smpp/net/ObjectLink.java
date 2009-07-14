@@ -1,16 +1,15 @@
 package com.adenki.smpp.net;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.SocketTimeoutException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.adenki.smpp.SMPPRuntimeException;
 import com.adenki.smpp.message.SMPPPacket;
 
 /**
@@ -41,20 +40,13 @@ import com.adenki.smpp.message.SMPPPacket;
  * 
  * @version $Id$
  */
-public class ObjectLink extends AbstractStreamLink {
+public class ObjectLink implements SmscLink {
 
     private static final Logger LOG = LoggerFactory.getLogger(ObjectLink.class);
     
     private List<Object> packets = new ArrayList<Object>();
-
-    private ByteArrayInputStream in;
-
-    private OLByteArrayOutputStream out;
-
     private boolean connected;
-
-    private int requestSent;
-
+    private AtomicInteger requestSent = new AtomicInteger(0);
     private int timeout;
 
     /**
@@ -80,58 +72,46 @@ public class ObjectLink extends AbstractStreamLink {
     }
 
     public void write(SMPPPacket pak, boolean withOptional) throws IOException {
-        super.write(pak, withOptional);
         if (pak.isResponse()) {
             synchronized (this) {
-                requestSent++;
+                requestSent.incrementAndGet();
                 // Possible a thread is sleeping waiting on a packet..
                 this.notify();
             }
         }
     }
 
-    public byte[] read(byte[] buf) throws IOException {
-
-        Object next = (Object) packets.remove(0);
-        while (!(next instanceof SMPPPacket)) {
-            if (next instanceof Long) {
-                long delay = ((Number) next).longValue();
-                try {
-                    Thread.sleep(delay);
-               } catch (InterruptedException x) {
-                   LOG.debug("Thread was interrupted while delaying "
-                           + " packet reception.");
-               }
-            }
-            next = (Object) packets.remove(0);
-        }
-
-        SMPPPacket pak = (SMPPPacket) next;
-        if (pak.isResponse()) {
-            synchronized (this) {
-                try {
-                    if (requestSent < 1) {
-                        this.wait((long) timeout);
+    public SMPPPacket read() throws IOException {
+        try {
+            SMPPPacket packet = null;
+            for (Iterator<Object> iter = packets.iterator(); iter.hasNext(); ) {
+                Object next = iter.next();
+                iter.remove();
+                if (next instanceof SMPPPacket) {
+                    packet = (SMPPPacket) next;
+                    if (packet.isResponse()) {
+                        synchronized (this) {
+                            if (requestSent.get() < 1) {
+                                wait((long) timeout);
+                            }
+                            if (requestSent.get() < 1) {
+                                throw new ReadTimeoutException();
+                            } else {
+                                requestSent.decrementAndGet();
+                            }
+                        }
                     }
-               } catch (InterruptedException x) {
-                    throw new IOException("No packets available.");
-               }
+                    break;
+                } else {
+                    handleNonPacketAction(next);
+                }
             }
-
-            // Simulate a timeout..
-            if (requestSent < 1) {
-                throw new SocketTimeoutException("Timed out waiting on packet");
-            }
+            return packet;
+        } catch (InterruptedException x) {
+            throw new SMPPRuntimeException("Thread interrupted", x);
         }
-
-        int l = pak.getLength();
-        out.setBuf(buf, l);
-        // TODO
-//        pak.writeTo(out);
-
-        return out.getBuf();
     }
-
+    
     public void add(SMPPPacket pak) {
         this.packets.add(pak);
     }
@@ -151,63 +131,19 @@ public class ObjectLink extends AbstractStreamLink {
     }
     
     public void connect() throws IOException {
-        this.out = new OLByteArrayOutputStream();
     }
 
     public void disconnect() throws IOException {
     }
-
-    protected OutputStream getOutputStream() throws IOException {
-        return out;
+    
+    public void flush() throws IOException {
     }
-
-    protected InputStream getInputStream() throws IOException {
-        return in;
-    }
-
-    private class OLByteArrayOutputStream extends OutputStream {
-        private byte[] buf;
-        private int pos = -1;
-
-        public OLByteArrayOutputStream() {
-        }
-        
-        public void setBuf(byte[] buf, int minCapacity) {
-            if (buf.length < minCapacity) {
-                this.buf = new byte[minCapacity];
-                this.pos = 0;
-            } else {
-                this.buf = buf;
-                this.pos = 0;
-            }
-        }
-
-        public byte[] getBuf() {
-            return this.buf;
-        }
-
-        public void close() throws IOException {
-            super.close();
-            this.buf = null;
-        }
-
-        public void flush() throws IOException {
-            super.flush();
-        }
-
-        public void write(byte[] src, int start, int length) throws IOException {
-            System.arraycopy(src, start, buf, pos, length);
-            pos += length;
-        }
-
-        public void write(byte[] src) throws IOException {
-            System.arraycopy(src, 0, buf, pos, src.length);
-        }
-
-        public void write(int num) throws IOException {
-            // TODO
-//            SMPPIO.intToBytes(num, 4, buf, pos);
-            pos += 4;
+    
+    private void handleNonPacketAction(Object obj) throws InterruptedException {
+        if (obj instanceof Long) {
+            long delay = ((Long) obj).longValue();
+            LOG.debug("Delaying for {}ms", delay);
+            Thread.sleep(delay);
         }
     }
 }

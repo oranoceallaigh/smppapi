@@ -3,13 +3,12 @@ package com.adenki.smpp.message.param;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 
-import java.io.ByteArrayOutputStream;
+import java.nio.ByteBuffer;
 
 import org.testng.annotations.Test;
 
 import com.adenki.smpp.util.PacketDecoderImpl;
 import com.adenki.smpp.util.PacketEncoderImpl;
-import com.adenki.smpp.util.SMPPIO;
 
 @Test
 public class IntegerParamDescriptorTest {
@@ -67,48 +66,49 @@ public class IntegerParamDescriptorTest {
     }
     
     private void doWriteObject(IntegerParamDescriptor descriptor, long value) throws Exception {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        PacketEncoderImpl encoder = new PacketEncoderImpl(out);
+        ByteBuffer buffer = ByteBuffer.allocate(16);
+        PacketEncoderImpl encoder = new PacketEncoderImpl(buffer);
         descriptor.writeObject(value, encoder);
-        byte[] array = out.toByteArray();
-        assertEquals(array.length, descriptor.sizeOf(value));
+        buffer.flip();
+        assertEquals(buffer.remaining(), descriptor.sizeOf(value));
         switch (descriptor.sizeOf(value)) {
         case 8:
-            assertEquals(SMPPIO.readInt8(array, 0), value);
+            assertEquals(buffer.getLong(), value);
             break;
         case 4:
-            assertEquals(SMPPIO.readUInt4(array, 0), value);
+            assertEquals(buffer.getInt(), (int) value);
             break;
         case 2:
-            assertEquals(SMPPIO.readUInt2(array, 0), (int) value);
+            assertEquals(buffer.getShort(), (short) value);
             break;
         default:
-            assertEquals((int) array[0] & 0xff, (int) value);
+            assertEquals(buffer.get(), (byte) value);
             break;
         }
     }
     
     private void doReadObject(IntegerParamDescriptor descriptor, long value) throws Exception {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        switch (descriptor.sizeOf(value)) {
+        ByteBuffer buffer = ByteBuffer.allocate(16);
+        int intSize = descriptor.sizeOf(value);
+        switch (intSize) {
         case 8:
-            SMPPIO.writeLong(value, out);
+            buffer.putLong(value);
             break;
         case 4:
-            SMPPIO.writeLongInt(value, out);
+            buffer.putInt((int) value);
             break;
         case 2:
-            SMPPIO.writeShort((int) value, out);
+            buffer.putShort((short) value);
             break;
         default:
-            SMPPIO.writeByte((int) value, out);
+            buffer.put((byte) value);
             break;
         }
-        byte[] array = out.toByteArray();
-        PacketDecoderImpl decoder = new PacketDecoderImpl(array);
-        Number number = (Number) descriptor.readObject(decoder, -1);
+        buffer.flip();
+        PacketDecoderImpl decoder = new PacketDecoderImpl(buffer);
+        Number number = (Number) descriptor.readObject(decoder, intSize);
         assertNotNull(number);
         assertEquals(number.longValue(), value);
-        assertEquals(decoder.getParsePosition(), descriptor.sizeOf(value));
+        assertEquals(buffer.remaining(), 0);
     }
 }

@@ -1,7 +1,7 @@
 package com.adenki.smpp;
 
 import java.io.IOException;
-import java.net.UnknownHostException;
+import java.net.InetAddress;
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -23,7 +23,7 @@ import com.adenki.smpp.message.Unbind;
 import com.adenki.smpp.message.UnbindResp;
 import com.adenki.smpp.message.tlv.Tag;
 import com.adenki.smpp.net.SmscLink;
-import com.adenki.smpp.net.TcpLink;
+import com.adenki.smpp.net.SocketSmscLink;
 import com.adenki.smpp.util.APIConfig;
 import com.adenki.smpp.util.APIConfigFactory;
 import com.adenki.smpp.util.DefaultSequenceScheme;
@@ -57,8 +57,8 @@ public class Session {
         initFromConfig();
     }
     
-    public Session(String host, int port) throws UnknownHostException {
-        this(new TcpLink(host, port));
+    public Session(InetAddress host, int port) {
+        this(new SocketSmscLink(host, port));
     }
 
     public String getSessionId() {

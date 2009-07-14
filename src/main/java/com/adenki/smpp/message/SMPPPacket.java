@@ -229,6 +229,7 @@ public abstract class SMPPPacket implements Serializable, Cloneable {
      * @param offset
      *            the offset into <code>b</code> to begin reading the packet
      *            fields from.
+     * @throws IOException If a problem occurs during reading.
      * @throws com.adenki.smpp.message.SMPPProtocolException
      *             if there is an error parsing the packet fields.
      * @throws SMPPRuntimeException If an attempt is made to parse a different
@@ -236,13 +237,12 @@ public abstract class SMPPPacket implements Serializable, Cloneable {
      * a <code>BindTransmitter</code> object to parse data that contains a
      * <code>BindTransceiver</code> packet).
      */
-    public void readFrom(PacketDecoder decoder) throws SMPPProtocolException {
+    public void readFrom(PacketDecoder decoder) throws IOException, SMPPProtocolException {
         tlvTable.clear();
-        int startPos = decoder.getParsePosition();
         int commandLen = readHeader(decoder);
         if (commandStatus == 0) {
             readMandatory(decoder);
-            int tlvLength = commandLen - (decoder.getParsePosition() - startPos);
+            int tlvLength = commandLen - (16 + getMandatorySize());
             if (tlvLength > 0) {
                 tlvTable.readFrom(decoder, tlvLength);
             }
@@ -409,8 +409,9 @@ public abstract class SMPPPacket implements Serializable, Cloneable {
      * implementation is empty, parsing no mandatory parameters. Sub-classes
      * may override this as they wish.
      * @param decoder The decoder to read fields from.
+     * @throws IOException If a problem occurs during reading.
      */
-    protected void readMandatory(PacketDecoder decoder) {
+    protected void readMandatory(PacketDecoder decoder) throws IOException {
     }
     
     /**
@@ -433,6 +434,7 @@ public abstract class SMPPPacket implements Serializable, Cloneable {
      * Parse the header parameters for an SMPP packet.
      * @param decoder The decoder to read fields from.
      * @return The value of the "command length" header parameter.
+     * @throws IOException If a problem occurs during reading.
      * @throws SMPPProtocolException If the header information is invalid.
      * This exception might be thrown if there are not enough bytes to parse
      * a header or if the command length specifies a number of bytes that are
@@ -440,11 +442,7 @@ public abstract class SMPPPacket implements Serializable, Cloneable {
      * @throws SMPPRuntimeException If the command ID in the data does not
      * match the command ID of the implementing class.
      */
-    private int readHeader(PacketDecoder decoder) {
-        if (decoder.getAvailableBytes() < 16) {
-            throw new SMPPProtocolException("Not enough bytes for a header: "
-                    + decoder.getAvailableBytes());
-        }
+    private int readHeader(PacketDecoder decoder) throws IOException {
         int commandLen = (int) decoder.readUInt4();
         if (commandLen < 0) {
             throw new SMPPProtocolException("Packet is too large for smppapi!");

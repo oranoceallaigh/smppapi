@@ -1,5 +1,7 @@
 package com.adenki.smpp;
 
+import java.io.IOException;
+
 import com.adenki.smpp.util.PacketDecoder;
 import com.adenki.smpp.util.PacketEncoder;
 
@@ -78,7 +80,7 @@ public class ErrorAddress extends Address {
         encoder.writeUInt4(error);
     }
 
-    public void readFrom(PacketDecoder decoder) {
+    public void readFrom(PacketDecoder decoder) throws IOException {
         super.readFrom(decoder);
         error = decoder.readUInt4();
     }

@@ -89,7 +89,7 @@ public class AlertNotification extends SMPPPacket implements Cloneable {
     }
 
     @Override
-    protected void readMandatory(PacketDecoder decoder) {
+    protected void readMandatory(PacketDecoder decoder) throws IOException {
         source = decoder.readAddress();
         destination = decoder.readAddress();
     }

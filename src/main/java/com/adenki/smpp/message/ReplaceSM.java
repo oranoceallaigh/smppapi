@@ -156,7 +156,7 @@ public class ReplaceSM extends SMPPPacket {
     }
     
     @Override
-    protected void readMandatory(PacketDecoder decoder) {
+    protected void readMandatory(PacketDecoder decoder) throws IOException {
         messageId = decoder.readCString();
         source = decoder.readAddress();
         deliveryTime = decoder.readDate();

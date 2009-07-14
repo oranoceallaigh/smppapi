@@ -2,208 +2,315 @@ package com.adenki.smpp.util;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.fail;
+
+import java.io.EOFException;
+import java.nio.ByteBuffer;
 
 import org.testng.annotations.Test;
 
 import com.adenki.smpp.Address;
+import com.adenki.smpp.ErrorAddress;
 
 @Test
 public class PacketDecoderImplTest {
-    /**
-     * ASCII string containing "ABCD!~<nul>E".
-     */
-    private static final byte[] asciiBytes = {
-            0x41, 0x42, 0x43, 0x44, 0x21, 0x7e, 0, 0x45,
-    };
 
-    public void testReadCStringSucceedsAtZero() throws Exception {
-        PacketDecoderImpl decoder = new PacketDecoderImpl(asciiBytes, 0);
-        String s = decoder.readCString();
-        assertEquals(s, "ABCD!~");
-        assertEquals(decoder.getParsePosition(), 7);
+    @Test(expectedExceptions = {EOFException.class})
+    public void testReadUInt1ThrowsExceptionWhenInsufficientBytesAvailable() throws Exception {
+        ByteBuffer buffer = ByteBuffer.allocate(16);
+        buffer.flip();
+        new PacketDecoderImpl(buffer).readUInt1();
     }
     
-    public void testReadCStringSucceedsAtNonZero() throws Exception {
-        PacketDecoderImpl decoder = new PacketDecoderImpl(asciiBytes, 4);
-        String s = decoder.readCString();
-        assertEquals(s, "!~");
-        assertEquals(decoder.getParsePosition(), 7);
+    public void testReadUInt1RetrievesCorrectNumberInsideSignedByteRange() throws Exception {
+        ByteBuffer buffer = ByteBuffer.allocate(16);
+        buffer.put((byte) 0x6e);
+        buffer.flip();
+        assertEquals(new PacketDecoderImpl(buffer).readUInt1(), 0x6e);
+    }
+
+    public void testReadUInt1RetrievesCorrectNumberOutsideSignedByteRange() throws Exception {
+        ByteBuffer buffer = ByteBuffer.allocate(16);
+        buffer.put((byte) 0xf4);
+        buffer.flip();
+        assertEquals(new PacketDecoderImpl(buffer).readUInt1(), 0xf4);
+    }
+
+    @Test(expectedExceptions = {EOFException.class})
+    public void testReadUInt2ThrowsExceptionWhenInsufficientBytesAvailable() throws Exception {
+        ByteBuffer buffer = ByteBuffer.allocate(16);
+        buffer.put((byte) 0x1);
+        buffer.flip();
+        new PacketDecoderImpl(buffer).readUInt2();
     }
     
-    public void testReadCStringParsesAZeroLengthString() throws Exception {
-        PacketDecoderImpl decoder = new PacketDecoderImpl(asciiBytes, 6);
-        String s = decoder.readCString();
-        assertEquals(s, "");
-        assertEquals(decoder.getParsePosition(), 7);
+    public void testReadUInt2RetrievesCorrectNumberInsideSignedShortRange() throws Exception {
+        ByteBuffer buffer = ByteBuffer.allocate(16);
+        buffer.put((byte) 0x13);
+        buffer.put((byte) 0xff);
+        buffer.flip();
+        assertEquals(new PacketDecoderImpl(buffer).readUInt2(), 0x13ff);
+    }
+
+    public void testReadUInt2RetrievesCorrectNumberOutsideSignedShortRange() throws Exception {
+        ByteBuffer buffer = ByteBuffer.allocate(16);
+        buffer.put((byte) 0xfe);
+        buffer.put((byte) 0x11);
+        buffer.flip();
+        assertEquals(new PacketDecoderImpl(buffer).readUInt2(), 0xfe11);
+    }
+
+    @Test(expectedExceptions = {EOFException.class})
+    public void testReadUInt4ThrowsExceptionWhenInsufficientBytesAvailable() throws Exception {
+        ByteBuffer buffer = ByteBuffer.allocate(16);
+        buffer.put((byte) 0x1);
+        buffer.put((byte) 0x2);
+        buffer.put((byte) 0x3);
+        buffer.flip();
+        new PacketDecoderImpl(buffer).readUInt4();
+    }
+
+    public void testReadUInt4RetrievesCorrectNumberInsideSignedIntRange() throws Exception {
+        ByteBuffer buffer = ByteBuffer.allocate(16);
+        buffer.put((byte) 0x33);
+        buffer.put((byte) 0xff);
+        buffer.put((byte) 0xab);
+        buffer.put((byte) 0xb6);
+        buffer.flip();
+        assertEquals(new PacketDecoderImpl(buffer).readUInt4(), 0x33ffabb6L);
+    }
+
+    public void testReadUInt4RetrievesCorrectNumberOutsideSignedIntRange() throws Exception {
+        ByteBuffer buffer = ByteBuffer.allocate(16);
+        buffer.put((byte) 0xe9);
+        buffer.put((byte) 0x25);
+        buffer.put((byte) 0xc9);
+        buffer.put((byte) 0xd4);
+        buffer.flip();
+        assertEquals(new PacketDecoderImpl(buffer).readUInt4(), 0xe925c9d4L);
+    }
+
+    @Test(expectedExceptions = {EOFException.class})
+    public void testReadInt8ThrowsExceptionWhenInsufficientBytesAvailable() throws Exception {
+        ByteBuffer buffer = ByteBuffer.allocate(16);
+        buffer.put((byte) 0x1);
+        buffer.put((byte) 0x2);
+        buffer.put((byte) 0x3);
+        buffer.put((byte) 0x4);
+        buffer.put((byte) 0x5);
+        buffer.put((byte) 0x6);
+        buffer.put((byte) 0x7);
+        buffer.flip();
+        new PacketDecoderImpl(buffer).readInt8();
     }
     
-    public void testReadCStringExceptionsWhenNoNullByte() throws Exception {
-        PacketDecoderImpl decoder = new PacketDecoderImpl(asciiBytes, 7);
-        try {
-            decoder.readCString();
-            fail("should have failed with ArrayIndexOutOfBounds");
-        } catch (ArrayIndexOutOfBoundsException x) {
-            // success!
-        }
+    public void testReadInt8RetrievesCorrectLongNumber() throws Exception {
+        ByteBuffer buffer = ByteBuffer.allocate(16);
+        buffer.put((byte) 0x54);
+        buffer.put((byte) 0x31);
+        buffer.put((byte) 0x10);
+        buffer.put((byte) 0xfe);
+        buffer.put((byte) 0xdc);
+        buffer.put((byte) 0xba);
+        buffer.put((byte) 0x98);
+        buffer.put((byte) 0x76);
+        buffer.flip();
+        assertEquals(new PacketDecoderImpl(buffer).readInt8(), 0x543110fedcba9876L);
+    }
+
+    @Test(expectedExceptions = {EOFException.class})
+    public void testReadBytesThrowsExceptionWhenInsufficientBytesAvailable() throws Exception {
+        ByteBuffer buffer = ByteBuffer.allocate(16);
+        buffer.put((byte) 0x1);
+        buffer.put((byte) 0x2);
+        buffer.put((byte) 0x3);
+        buffer.put((byte) 0x4);
+        buffer.put((byte) 0x5);
+        buffer.put((byte) 0x6);
+        buffer.put((byte) 0x7);
+        buffer.flip();
+        new PacketDecoderImpl(buffer).readBytes(9);
     }
     
-    public void testReadStringSucceedsAtZero() throws Exception {
-        PacketDecoderImpl decoder = new PacketDecoderImpl(asciiBytes, 0);
-        String s = decoder.readString(3);
+    public void testReadBytesReturnsSpecifiedNumberOfBytes() throws Exception {
+        ByteBuffer buffer = ByteBuffer.allocate(16);
+        buffer.put((byte) 0x10);
+        buffer.put((byte) 0x20);
+        buffer.put((byte) 0x30);
+        buffer.put((byte) 0x40);
+        buffer.put((byte) 0x50);
+        buffer.put((byte) 0x60);
+        buffer.put((byte) 0x70);
+        buffer.flip();
+        byte[] bytes = new PacketDecoderImpl(buffer).readBytes(4);
+        assertNotNull(bytes);
+        assertEquals(bytes.length, 4);
+        assertEquals(bytes[0], 0x10);
+        assertEquals(bytes[1], 0x20);
+        assertEquals(bytes[2], 0x30);
+        assertEquals(bytes[3], 0x40);
+        assertEquals(buffer.remaining(), 3);
+    }
+
+    @Test(expectedExceptions = {EOFException.class})
+    public void testReadByteThrowsExceptionWhenInsufficientBytesAvailable() throws Exception {
+        ByteBuffer buffer = ByteBuffer.allocate(16);
+        buffer.flip();
+        new PacketDecoderImpl(buffer).readByte();
+    }
+    
+    public void testReadSingleByte() throws Exception {
+        ByteBuffer buffer = ByteBuffer.allocate(16);
+        buffer.put((byte) 0x10);
+        buffer.put((byte) 0x20);
+        buffer.flip();
+        byte aByte = new PacketDecoderImpl(buffer).readByte();
+        assertEquals(aByte, 0x10);
+        assertEquals(buffer.remaining(), 1);
+    }
+
+    @Test(expectedExceptions = {EOFException.class})
+    public void testReadCStringThrowsExceptionWhenNullByteNotPresent() throws Exception {
+        ByteBuffer buffer = ByteBuffer.allocate(16);
+        buffer.put((byte) 0x41);
+        buffer.put((byte) 0x42);
+        buffer.put((byte) 0x43);
+        buffer.flip();
+        new PacketDecoderImpl(buffer).readCString();
+    }
+    
+    public void testReadCStringReturnsParsedString() throws Exception {
+        ByteBuffer buffer = ByteBuffer.allocate(16);
+        buffer.put((byte) 0x41);
+        buffer.put((byte) 0x42);
+        buffer.put((byte) 0x43);
+        buffer.put((byte) 0);
+        buffer.flip();
+        String s = new PacketDecoderImpl(buffer).readCString();
         assertEquals(s, "ABC");
-        assertEquals(decoder.getParsePosition(), 3);
-    }
-    
-    public void testReadStringSucceedsAtNonZero() throws Exception {
-        PacketDecoderImpl decoder = new PacketDecoderImpl(asciiBytes, 3);
-        String s = decoder.readString(3);
-        assertEquals(s, "D!~");
-        assertEquals(decoder.getParsePosition(), 6);
-    }
-    
-    public void testReadStringParsesNulByte() throws Exception {
-        PacketDecoderImpl decoder = new PacketDecoderImpl(asciiBytes, 2);
-        String s = decoder.readString(6);
-        String expected = "CD!~" + new Character((char) 0).toString() + "E";
-        assertEquals(s, expected);
-        assertEquals(s.charAt(4), '\u0000');
-        assertEquals(decoder.getParsePosition(), 8);
-    }
-    
-    public void testReadStringParsesZeroLength() throws Exception {
-        PacketDecoderImpl decoder = new PacketDecoderImpl(asciiBytes, 3);
-        String s = decoder.readString(0);
-        assertEquals(s, "");
-        assertEquals(decoder.getParsePosition(), 3);
-    }
-    
-    public void testReadStringExceptionsWhenNotEnoughBytes() throws Exception {
-        PacketDecoderImpl decoder = new PacketDecoderImpl(asciiBytes, 1);
-        try {
-            decoder.readString(9);
-            fail("should have thrown ArrayIndexOutOfBoundsException");
-        } catch (ArrayIndexOutOfBoundsException x) {
-            // success
-        }
-    }
-    
-    public void testReadUInt1Succeeds() throws Exception {
-        byte[] integer = new byte[] { 56 };
-        PacketDecoderImpl decoder = new PacketDecoderImpl(integer);
-        int value = decoder.readUInt1();
-        assertEquals(value, 56);
-        assertEquals(decoder.getParsePosition(), 1);
+        assertEquals(buffer.remaining(), 0);
     }
 
-    public void testReadUInt1ParsesHighIntegerCorrectly() throws Exception {
-        byte[] integer = new byte[] { (byte) 0xa2 };
-        PacketDecoderImpl decoder = new PacketDecoderImpl(integer);
-        int value = decoder.readUInt1();
-        assertEquals(value, 0xa2);
-        assertEquals(decoder.getParsePosition(), 1);
+    @Test(expectedExceptions = {EOFException.class})
+    public void testReadStringThrowsExceptionWhenInsufficientBytesAvailable() throws Exception {
+        ByteBuffer buffer = ByteBuffer.allocate(16);
+        buffer.put((byte) 0x41);
+        buffer.put((byte) 0x42);
+        buffer.put((byte) 0x43);
+        buffer.put((byte) 0x44);
+        buffer.put((byte) 0x45);
+        buffer.flip();
+        new PacketDecoderImpl(buffer).readString(6);
+    }
+
+    public void testReadStringReturnsParsedString() throws Exception {
+        ByteBuffer buffer = ByteBuffer.allocate(16);
+        buffer.put((byte) 0x41);
+        buffer.put((byte) 0x42);
+        buffer.put((byte) 0x43);
+        buffer.put((byte) 0x44);
+        buffer.put((byte) 0x45);
+        buffer.flip();
+        String s = new PacketDecoderImpl(buffer).readString(5);
+        assertEquals(s, "ABCDE");
+        assertEquals(buffer.remaining(), 0);
     }
     
-    public void testReadUInt1ThrowsExceptionOnInsufficientBytes() throws Exception {
-        try {
-            byte[] integer = new byte[] { 56 };
-            PacketDecoderImpl decoder = new PacketDecoderImpl(integer, 1);
-            decoder.readUInt1();
-            fail("should have thrown ArrayIndexOutOfBoundsException");
-        } catch (ArrayIndexOutOfBoundsException x) {
-            // success
-        }
+    @Test(expectedExceptions = {EOFException.class})
+    public void testReadAddressThrowsExceptionWhenAddressNotAvailable() throws Exception {
+        ByteBuffer buffer = ByteBuffer.allocate(16);
+        // There's no nul-terminator for the address so parsing should fail.
+        buffer.put((byte) 0x41);
+        buffer.put((byte) 0x42);
+        buffer.put((byte) 0x43);
+        buffer.flip();
+        new PacketDecoderImpl(buffer).readAddress();
     }
     
-    public void testReadUInt2Succeeds() throws Exception {
-        byte[] integer = new byte[] { 0, 0, 0, (byte) 0xa2, (byte) 0x94, 1, 2 };
-        PacketDecoderImpl decoder = new PacketDecoderImpl(integer, 3);
-        int value = decoder.readUInt2();
-        assertEquals(value, 0xa294);
-        assertEquals(decoder.getParsePosition(), 5);
+    public void testReadAddressReturnsParsedAddress() throws Exception {
+        ByteBuffer buffer = ByteBuffer.allocate(16);
+        buffer.put((byte) 0x01);
+        buffer.put((byte) 0x02);
+        buffer.put((byte) 0x31);
+        buffer.put((byte) 0x32);
+        buffer.put((byte) 0x33);
+        buffer.put((byte) 0x34);
+        buffer.put((byte) 0x35);
+        buffer.put((byte) 0);
+        buffer.flip();
+        Address address = new PacketDecoderImpl(buffer).readAddress();
+        assertNotNull(address);
+        assertEquals(address.getTON(), 1);
+        assertEquals(address.getNPI(), 2);
+        assertEquals(address.getAddress(), "12345");
+        assertEquals(buffer.remaining(), 0);
     }
     
-    public void testReadUInt2ThrowsExceptionOnInsufficientBytes() throws Exception {
-        try {
-            byte[] integer = new byte[] { 0, 0, 0x73 };
-            PacketDecoderImpl decoder = new PacketDecoderImpl(integer, 2);
-            decoder.readUInt2();
-            fail("should have thrown ArrayIndexOutOfBoundsException");
-        } catch (ArrayIndexOutOfBoundsException x) {
-            // success
-        }
+    @Test(expectedExceptions = {EOFException.class})
+    public void testReadErrorAddressThrowsExceptionWhenInsufficientBytesAvailable() throws Exception {
+        ByteBuffer buffer = ByteBuffer.allocate(16);
+        // The following is missing a complete error code
+        buffer.put((byte) 0x01);
+        buffer.put((byte) 0x02);
+        buffer.put((byte) 0x31);
+        buffer.put((byte) 0x32);
+        buffer.put((byte) 0x33);
+        buffer.put((byte) 0x34);
+        buffer.put((byte) 0x35);
+        buffer.put((byte) 0);
+        buffer.put((byte) 0x0a);
+        buffer.put((byte) 0x0b);
+        buffer.put((byte) 0x0c);
+        buffer.flip();
+        new PacketDecoderImpl(buffer).readErrorAddress();
     }
     
-    public void testReadUInt4Succeeds() throws Exception {
-        byte[] integer = new byte[] { 0, 0, (byte) 0xff, 0x23, 0x1a, (byte) 0x8a };
-        PacketDecoderImpl decoder = new PacketDecoderImpl(integer, 2);
-        long value = decoder.readUInt4();
-        assertEquals(value, 0xff231a8aL);
-        assertEquals(decoder.getParsePosition(), 6);
+    public void testReadErrorAddressReturnsParsedErrorAddress() throws Exception {
+        ByteBuffer buffer = ByteBuffer.allocate(16);
+        buffer.put((byte) 0x01);
+        buffer.put((byte) 0x02);
+        buffer.put((byte) 0x31);
+        buffer.put((byte) 0x32);
+        buffer.put((byte) 0x33);
+        buffer.put((byte) 0x34);
+        buffer.put((byte) 0x35);
+        buffer.put((byte) 0);
+        buffer.put((byte) 0x0a);
+        buffer.put((byte) 0x0b);
+        buffer.put((byte) 0x0c);
+        buffer.put((byte) 0x0d);
+        buffer.flip();
+        ErrorAddress errorAddr = new PacketDecoderImpl(buffer).readErrorAddress();
+        assertNotNull(errorAddr);
+        assertEquals(errorAddr.getTON(), 1);
+        assertEquals(errorAddr.getNPI(), 2);
+        assertEquals(errorAddr.getAddress(), "12345");
+        assertEquals(errorAddr.getError(), 0xa0b0c0dL);
     }
     
-    public void testReadUInt4ThrowsExceptionOnInsufficientBytes() throws Exception {
-        try {
-            byte[] integer = new byte[] { 0, 0, 0x73, 0x1a, 0x2b };
-            PacketDecoderImpl decoder = new PacketDecoderImpl(integer, 2);
-            decoder.readUInt4();
-            fail("should have thrown ArrayIndexOutOfBoundsException");
-        } catch (ArrayIndexOutOfBoundsException x) {
-            // success
-        }
+    @Test(expectedExceptions = {EOFException.class})
+    public void testReadDateThrowsExceptionWhenCStringIsNotParsable() throws Exception {
+        ByteBuffer buffer = ByteBuffer.allocate(32);
+        // Missing the nul-terminator so parsing should fail.
+        buffer.put("090714152133400+".getBytes("US-ASCII"));
+        buffer.flip();
+        new PacketDecoderImpl(buffer).readDate();
     }
     
-    public void testReadAddressSucceeds() throws Exception {
-        byte[] bytes = new byte[] { 1, 2, 0x31, 0x32, 0x33, 0 };
-        PacketDecoderImpl decoder = new PacketDecoderImpl(bytes);
-        Address address = decoder.readAddress();
-        assertEquals(address, new Address(1, 2, "123"));
-        assertEquals(decoder.getParsePosition(), 6);
-    }
-    
-    public void testReadNullAddressSucceeds() throws Exception {
-        byte[] bytes = new byte[] { 1, 2, 3, 4, 0, 0, 0 };
-        PacketDecoderImpl decoder = new PacketDecoderImpl(bytes, 4);
-        Address address = decoder.readAddress();
-        assertEquals(address, new Address());
-        assertEquals(decoder.getParsePosition(), 7);
-    }
-    
-    public void testReadDateSucceeds() throws Exception {
-        byte[] bytes = new byte[17];
-        bytes[16] = 0;
-        System.arraycopy("080118161504000+".getBytes("US-ASCII"), 0, bytes, 0, 16);
-        PacketDecoderImpl decoder = new PacketDecoderImpl(bytes);
-        SMPPDate date = decoder.readDate();
+    public void testReadDateReturnsCorrectlyParsedDate() throws Exception {
+        ByteBuffer buffer = ByteBuffer.allocate(32);
+        buffer.put("090714152133400+".getBytes("US-ASCII"));
+        buffer.put((byte) 0);
+        buffer.flip();
+        SMPPDate date = new PacketDecoderImpl(buffer).readDate();
         assertNotNull(date);
-        assertEquals(decoder.getParsePosition(), 17);
-    }
-    
-    public void testReadNullDateSucceeds() throws Exception {
-        byte[] bytes = new byte[] { 1, 2, 3, 0 };
-        PacketDecoderImpl decoder = new PacketDecoderImpl(bytes, 3);
-        SMPPDate date = decoder.readDate();
-        assertNull(date);
-    }
-    
-    public void testReadBytesSucceeds() throws Exception {
-        byte[] bytes = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 0 };
-        PacketDecoderImpl decoder = new PacketDecoderImpl(bytes, 4);
-        byte[] parsedArray = decoder.readBytes(4);
-        assertEquals(parsedArray.length, 4);
-        assertEquals(parsedArray[0], bytes[4]);
-        assertEquals(parsedArray[1], bytes[5]);
-        assertEquals(parsedArray[2], bytes[6]);
-        assertEquals(parsedArray[3], bytes[7]);
-        assertEquals(decoder.getParsePosition(), 8);
-    }
-    
-    public void testReadZeroBytesSucceeds() throws Exception {
-        byte[] bytes = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 0 };
-        PacketDecoderImpl decoder = new PacketDecoderImpl(bytes, 6);
-        byte[] parsedArray = decoder.readBytes(0);
-        assertNotNull(parsedArray);
-        assertEquals(parsedArray.length, 0);
+        assertEquals(date.getYear(), 2009);
+        assertEquals(date.getMonth(), 7);
+        assertEquals(date.getDay(), 14);
+        assertEquals(date.getHour(), 15);
+        assertEquals(date.getMinute(), 21);
+        assertEquals(date.getSecond(), 33);
+        assertEquals(date.getTenth(), 4);
+        assertEquals(date.getUtcOffset(), 0);
+        assertEquals(date.getSign(), '+');
     }
 }

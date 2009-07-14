@@ -98,7 +98,7 @@ public class QueryLastMsgs extends SMPPPacket {
     }
     
     @Override
-    protected void readMandatory(PacketDecoder decoder) {
+    protected void readMandatory(PacketDecoder decoder) throws IOException {
         source = decoder.readAddress();
         msgCount = decoder.readUInt1();
     }

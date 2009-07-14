@@ -1,129 +1,79 @@
 package com.adenki.smpp.util;
 
-import java.text.ParseException;
-
-import com.adenki.smpp.Address;
-import com.adenki.smpp.ErrorAddress;
-import com.adenki.smpp.message.SMPPProtocolException;
+import java.io.EOFException;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.ByteChannel;
 
 /**
- * Implementation of the packet decoder.
+ * A {@link PacketDecoder} which uses NIO {@link ByteByffer ByteByffers}
+ * and {@link ByteChannel ByteChannels}.
  * @version $Id$
  */
-public class PacketDecoderImpl implements PacketDecoder {
-
-    private static final SMPPDateFormat DATE_FORMAT = new SMPPDateFormat();
-    private byte[] bytes;
-    private int pos;
+public class PacketDecoderImpl extends AbstractPacketDecoder {
+    private ByteBuffer buffer;
     
-    public PacketDecoderImpl() {
-    }
-
-    public PacketDecoderImpl(byte[] bytes) {
-        this.bytes = bytes;
-    }
-
-    public PacketDecoderImpl(byte[] bytes, int parsePosition) {
-        this.bytes = bytes;
-        this.pos = parsePosition;
+    public PacketDecoderImpl(ByteBuffer buffer) {
+        this.buffer = buffer;
     }
     
-    public byte[] getBytes() {
+    public byte readByte() throws IOException {
+        require(1);
+        return buffer.get();
+    }
+
+    public byte[] readBytes(int length) throws IOException {
+        require(length);
+        byte[] bytes = new byte[length];
+        buffer.get(bytes);
         return bytes;
     }
 
-    public void setBytes(byte[] bytes) {
-        this.bytes = bytes;
-    }
-
-    public int getParsePosition() {
-        return pos;
-    }
-
-    public void setParsePosition(int pos) {
-        this.pos = pos;
-    }
-
-    public int getAvailableBytes() {
-        return bytes.length - pos;
-    }
-    
-    public byte readByte() {
-        int index = pos;
-        pos++;
-        return bytes[index];
-    }
-
-    public String readCString() {
-        String str = SMPPIO.readCString(bytes, pos);
-        pos += str.length() + 1;
-        return str;
-    }
-
-    public String readString(int length) {
-        String str = SMPPIO.readString(bytes, pos, length);
-        pos += str.length();
-        return str;
-    }
-
-    public int readUInt1() {
-        int value = SMPPIO.readUInt1(bytes, pos);
-        pos++;
-        return value;
-    }
-
-    public int readUInt2() {
-        int value = SMPPIO.readUInt2(bytes, pos);
-        pos += 2;
-        return value;
-    }
-
-    public long readUInt4() {
-        long value = SMPPIO.readUInt4(bytes, pos);
-        pos += 4;
-        return value;
-    }
-
-    public long readInt8() {
-        long value = SMPPIO.readInt8(bytes, pos);
-        pos += 8;
-        return value;
-    }
-    
-    public Address readAddress() {
-        Address address = new Address();
-        address.readFrom(this);
-        return address;
-    }
-    
-    public ErrorAddress readErrorAddress() {
-        ErrorAddress errorAddress = new ErrorAddress();
-        errorAddress.readFrom(this);
-        return errorAddress;
-    }
-    
-    public SMPPDate readDate() {
-        SMPPDate date = null;
-        String str = null;
+    public String readCString() throws IOException {
         try {
-            str = readCString();
-            if (str.length() > 0) {
-                date = (SMPPDate) DATE_FORMAT.parseObject(str);
-            }
-        } catch (ParseException x) {
-            throw new SMPPProtocolException("Cannot parse date value: " + str, x);
+            int start = buffer.position();
+            int end = start;
+            for (; buffer.get(end) != (byte) 0; end++);
+            byte[] bytes = new byte[end - start];
+            buffer.get(bytes, 0, bytes.length);
+            buffer.get();
+            return new String(bytes, "US-ASCII");
+        } catch (IndexOutOfBoundsException x) {
+            throw new EOFException("Buffer does not contain the nul terminator");
         }
-        return date;
+    }
+
+    public long readInt8() throws IOException {
+        require(8);
+        return buffer.getLong();
+    }
+
+    public String readString(int length) throws IOException {
+        require(length);
+        byte[] bytes = new byte[length];
+        buffer.get(bytes);
+        return new String(bytes, "US-ASCII");
+    }
+
+    public int readUInt1() throws IOException {
+        require(1);
+        return ((int) buffer.get()) & 0xff;
+    }
+
+    public int readUInt2() throws IOException {
+        require(2);
+        return ((int) buffer.getShort()) & 0xffff;
+    }
+
+    public long readUInt4() throws IOException {
+        require(4);
+        return ((long) buffer.getInt()) & 0xffffffffL;
     }
     
-    public byte[] readBytes(int length) {
-        int startIndex = pos;
-        if (startIndex + length > bytes.length) {
-            throw new ArrayIndexOutOfBoundsException(startIndex + length);
+    private void require(int numBytes) throws EOFException {
+        if (buffer.remaining() < numBytes) {
+            throw new EOFException(
+                    "Not enough bytes in buffer, need " + numBytes);
         }
-        byte[] copy = new byte[length];
-        System.arraycopy(bytes, startIndex, copy, 0, length);
-        pos += length;
-        return copy;
     }
 }

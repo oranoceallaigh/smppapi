@@ -2,7 +2,7 @@ package com.adenki.smpp.message.param;
 
 import static org.testng.Assert.assertEquals;
 
-import java.io.ByteArrayOutputStream;
+import java.nio.ByteBuffer;
 
 import org.testng.annotations.Test;
 
@@ -22,46 +22,51 @@ public class CStringParamDescriptorTest {
     }
     
     public void testWriteNullString() throws Exception {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        PacketEncoderImpl encoder = new PacketEncoderImpl(out);
+        ByteBuffer buffer = ByteBuffer.allocate(64);
+        PacketEncoderImpl encoder = new PacketEncoderImpl(buffer);
         descriptor.writeObject(null, encoder);
-        byte[] array = out.toByteArray();
-        assertEquals(array.length, 1);
-        assertEquals(array[0], (byte) 0);
+        buffer.flip();
+        assertEquals(buffer.remaining(), 1);
+        assertEquals(buffer.get(), (byte) 0);
     }
     
     public void testWriteEmptyString() throws Exception {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        PacketEncoderImpl encoder = new PacketEncoderImpl(out);
+        ByteBuffer buffer = ByteBuffer.allocate(64);
+        PacketEncoderImpl encoder = new PacketEncoderImpl(buffer);
         descriptor.writeObject("", encoder);
-        byte[] array = out.toByteArray();
-        assertEquals(array.length, 1);
-        assertEquals(array[0], (byte) 0);
+        buffer.flip();
+        assertEquals(buffer.remaining(), 1);
+        assertEquals(buffer.get(), (byte) 0);
     }
 
     public void testWriteString() throws Exception {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        PacketEncoderImpl encoder = new PacketEncoderImpl(out);
+        ByteBuffer buffer = ByteBuffer.allocate(64);
+        PacketEncoderImpl encoder = new PacketEncoderImpl(buffer);
         descriptor.writeObject(testString, encoder);
-        byte[] array = out.toByteArray();
-        assertEquals(array.length, testString.length() + 1);
-        assertEquals(array[array.length - 1], (byte) 0);
-        assertEquals(new String(array, 0, array.length - 1, "US-ASCII"), testString);
+        buffer.flip();
+        assertEquals(buffer.remaining(), testString.length() + 1);
+        assertEquals(buffer.get(buffer.remaining() - 1), (byte) 0);
+        byte[] bytes = new byte[buffer.remaining() - 1];
+        buffer.get(bytes);
+        assertEquals(new String(bytes, "US-ASCII"), testString);
     }
 
     public void testReadEmptyString() throws Exception {
-        PacketDecoderImpl decoder = new PacketDecoderImpl(new byte[] {0});
+        ByteBuffer buffer = ByteBuffer.allocate(64);
+        buffer.put((byte) 0);
+        buffer.flip();
+        PacketDecoderImpl decoder = new PacketDecoderImpl(buffer);
         String string = (String) descriptor.readObject(decoder, 0);
         assertEquals(string, "");
     }
 
     public void testReadString() throws Exception {
-        byte[] array = new byte[testString.length() + 1];
-        System.arraycopy(testString.getBytes("US-ASCII"), 0, array, 0, testString.length());
-        array[array.length - 1] = (byte) 0;
-        PacketDecoderImpl decoder = new PacketDecoderImpl(array);
+        ByteBuffer buffer = ByteBuffer.allocate(64);
+        buffer.put(testString.getBytes("US-ASCII"));
+        buffer.put((byte) 0);
+        buffer.flip();
+        PacketDecoderImpl decoder = new PacketDecoderImpl(buffer);
         String string = (String) descriptor.readObject(decoder, 0);
         assertEquals(string, testString);
-        assertEquals(decoder.getParsePosition(), testString.length() + 1);
     }
 }

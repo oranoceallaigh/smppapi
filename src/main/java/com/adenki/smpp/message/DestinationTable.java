@@ -1,5 +1,6 @@
 package com.adenki.smpp.message;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -84,7 +85,7 @@ public class DestinationTable implements Serializable {
         }
     }
 
-    public void readFrom(PacketDecoder decoder, int count) {
+    public void readFrom(PacketDecoder decoder, int count) throws IOException {
         for (int i = 0; i < count; i++) {
             int type = decoder.readUInt1();
             if (type == 1) {

@@ -1,11 +1,9 @@
 package com.adenki.smpp;
 
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.fail;
+import static org.testng.Assert.assertFalse;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+import java.nio.ByteBuffer;
 
 import org.testng.annotations.Test;
 
@@ -14,28 +12,36 @@ import com.adenki.smpp.util.PacketEncoderImpl;
 
 @Test
 public class AddressTest {
-    private void testSize(Address addr) {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        PacketEncoderImpl encoder = new PacketEncoderImpl(out);
-        try {
-            addr.writeTo(encoder);
-        } catch (IOException x) {
-            fail("Serializing address caused I/O Exception:\n" + x.toString());
-            return;
-        }
-        byte[] array = out.toByteArray();
-        PacketDecoderImpl decoder = new PacketDecoderImpl(array);
-        Address deserialized = decoder.readAddress();
-        assertEquals(decoder.getParsePosition(), array.length);
-        assertEquals(addr.getLength(), array.length, "serialized. ");
-        assertEquals(array.length, deserialized.getLength(), "deserialized.");
+    /**
+     * Encode and then decode <tt>addr</tt>. Ensure that:
+     * <ol>
+     * <li><tt>addr.getLength() == encodedLength</tt></li>
+     * <li><tt>decodedAddr.getLength() == encodedLength</tt></li>
+     * </ol>
+     * @param addr
+     * @throws Exception
+     */
+    private void testSize(Address addr) throws Exception {
+        ByteBuffer encodeBuffer = ByteBuffer.allocate(128);
+        PacketEncoderImpl encoder = new PacketEncoderImpl(encodeBuffer);
+        addr.writeTo(encoder);
+        
+        ByteBuffer decodeBuffer = encodeBuffer.duplicate();
+        decodeBuffer.flip();
+        PacketDecoderImpl decoder = new PacketDecoderImpl(decodeBuffer);
+        Address decodedAddr = new Address();
+        decodedAddr.readFrom(decoder);
+        
+        encodeBuffer.flip();
+        assertEquals(encodeBuffer.remaining(), addr.getLength());
+        assertEquals(decodedAddr.getLength(), encodeBuffer.remaining());
     }
 
-    public void testEmptyFieldSize() {
+    public void testEmptyFieldSize() throws Exception {
         testSize(new Address());
     }
 
-    public void testFilledFieldSize() {
+    public void testFilledFieldSize() throws Exception {
         Address addr = new Address();
         addr.setTON(Ton.INTERNATIONAL);
         addr.setNPI(Npi.ISDN);
@@ -52,7 +58,8 @@ public class AddressTest {
                 Npi.NATIONAL, "441237654321");
 
         assertEquals(a2, a1);
-        assertTrue(!(a1.equals(a3)));
+        assertEquals(a1, a2);
+        assertFalse(a1.equals(a3));
     }
 }
 

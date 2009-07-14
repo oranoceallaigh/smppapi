@@ -1,5 +1,7 @@
 package com.adenki.smpp;
 
+import java.io.IOException;
+
 import com.adenki.smpp.util.PacketDecoder;
 import com.adenki.smpp.util.PacketEncoder;
 
@@ -133,7 +135,7 @@ public class Address implements java.io.Serializable {
     /**
      * TODO: doc
      */
-    public void readFrom(PacketDecoder decoder) {
+    public void readFrom(PacketDecoder decoder) throws IOException {
         ton = decoder.readUInt1();
         npi = decoder.readUInt1();
         address = decoder.readCString();

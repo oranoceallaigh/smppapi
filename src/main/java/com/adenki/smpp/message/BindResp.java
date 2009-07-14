@@ -61,7 +61,7 @@ public abstract class BindResp extends SMPPPacket {
     }
 
     @Override
-    protected void readMandatory(PacketDecoder decoder) {
+    protected void readMandatory(PacketDecoder decoder) throws IOException {
         systemId = decoder.readCString();
     }
     

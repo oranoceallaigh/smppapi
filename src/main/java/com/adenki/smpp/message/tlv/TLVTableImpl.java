@@ -22,16 +22,19 @@ public class TLVTableImpl extends LinkedHashMap<Tag, Object> implements TLVTable
     }
     
     /**
-     * Decode a full set of optional parameters from a byte array.
+     * Decode the TLV parameters from a decoder.
      */
-    public void readFrom(PacketDecoder decoder, int length) {
-        int endIndex = (decoder.getParsePosition() + length) - 1;
-        while (decoder.getParsePosition() < endIndex) {
+    public void readFrom(PacketDecoder decoder, int length) throws IOException {
+        int read = 0;
+        while (read < length) {
             Object val = null;
             Tag tag = Tag.getTag(decoder.readUInt2());
+            read += 2;
             int valueLen = decoder.readUInt2();
+            read += 2;
             ParamDescriptor descriptor = tag.getParamDescriptor();
             val = descriptor.readObject(decoder, valueLen);
+            read += valueLen;
             put(tag, val);
         }
     }
