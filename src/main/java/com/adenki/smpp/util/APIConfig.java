@@ -128,6 +128,13 @@ package com.adenki.smpp.util;
  * <td>The default segment size to use for concatenated short messages
  * using optional parameters.</td>
  * </tr>
+ * 
+ * <tr>
+ * <td><code>smppapi.io.use_direct_buffers</code></td>
+ * <td>Boolean</td>
+ * <td>When using NIO, set this to true to allocate direct byte buffers,
+ * false to allocate non-direct buffers.</td>
+ * </tr>
  * </table>
  * @version $Id$
  * @see APIConfigFactory
@@ -199,6 +206,11 @@ public interface APIConfig {
      * @see APIConfig
      */
     String SEGMENT_SIZE = "smppapi.message.segment_size";
+    
+    /**
+     * @see APIConfig
+     */
+    String IO_USE_DIRECT_BUFFERS = "smppapi.io.use_direct_buffers";
     
     /**
      * Initialise this properties instance. The {@link APIConfigFactory}
