@@ -69,21 +69,14 @@ public abstract class AbstractByteChannelSmscLink extends AbstractSmscLink {
         }
         try {
             if (!isFullPacketAvailable(inBuffer)) {
-                clearBuffer(inBuffer);
-                int byteCount = inBuffer.limit() - inBuffer.remaining();
-                while (byteCount < 4) {
-                    byteCount += inChannel.read(inBuffer);
-                }
-                int commandLen = inBuffer.getInt(0);
-                if (inBuffer.capacity() < commandLen) {
-                    allocateIn(commandLen, true);
-                }
-                while (byteCount < commandLen) {
-                    byteCount += inChannel.read(inBuffer);
-                }
+                fillBuffer(inBuffer);
                 inBuffer.flip();
             }
-            return decodePacket(inBuffer);
+            if (isFullPacketAvailable(inBuffer)) {
+                return decodePacket(inBuffer);
+            } else {
+                return null;
+            }
         } catch (SocketTimeoutException x) {
             throw new ReadTimeoutException(x);
         }
@@ -184,6 +177,20 @@ public abstract class AbstractByteChannelSmscLink extends AbstractSmscLink {
         }
         buf.order(ByteOrder.BIG_ENDIAN);
         return buf;
+    }
+    
+    private int fillBuffer(ByteBuffer buffer) throws IOException {
+        clearBuffer(buffer);
+        int byteCount = buffer.limit() - buffer.remaining();
+        byteCount += inChannel.read(buffer);
+        if (byteCount > 3) {
+            int commandLen = buffer.getInt(0);
+            if (buffer.capacity() < commandLen) {
+                allocateIn(commandLen, true);
+            }
+            byteCount += inChannel.read(buffer);
+        }
+        return byteCount;
     }
     
     private void clearBuffer(ByteBuffer buffer) {
