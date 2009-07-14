@@ -8,10 +8,6 @@ import com.adenki.smpp.util.PacketEncoder;
 public class CStringParamDescriptor extends AbstractDescriptor {
     private static final long serialVersionUID = 2L;
 
-    public int getLengthSpecifier() {
-        return -1;
-    }
-    
     public int sizeOf(Object obj) {
         if (obj != null) {
             return ((String) obj).length() + 1;
@@ -28,7 +24,7 @@ public class CStringParamDescriptor extends AbstractDescriptor {
         }
     }
 
-    public Object readObject(PacketDecoder decoder, int length) {
+    public Object readObject(PacketDecoder decoder, int length) throws IOException {
         return decoder.readCString();
     }
 }

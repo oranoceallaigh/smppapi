@@ -2,6 +2,7 @@ package com.adenki.smpp.message.param;
 
 import java.io.IOException;
 
+import com.adenki.smpp.SMPPRuntimeException;
 import com.adenki.smpp.util.PacketDecoder;
 import com.adenki.smpp.util.PacketEncoder;
 
@@ -19,10 +20,6 @@ public class IntegerParamDescriptor extends AbstractDescriptor {
     
     public IntegerParamDescriptor(int length) {
         this.length = length;
-    }
-    
-    public int getLengthSpecifier() {
-        return -1;
     }
     
     public int sizeOf(Object obj) {
@@ -50,9 +47,9 @@ public class IntegerParamDescriptor extends AbstractDescriptor {
         }
     }
 
-    public Object readObject(PacketDecoder decoder, int length) {
+    public Object readObject(PacketDecoder decoder, int length) throws IOException {
         Number value;
-        switch (this.length) {
+        switch (length) {
         case 8:
             value = new Long(decoder.readInt8());
             break;
@@ -62,9 +59,11 @@ public class IntegerParamDescriptor extends AbstractDescriptor {
         case 2:
             value = new Integer(decoder.readUInt2());
             break;
-        default:
+        case 1:
             value = new Integer(decoder.readUInt1());
             break;
+        default:
+            throw new SMPPRuntimeException("Invalid integer length");
         }
         return value;
     }

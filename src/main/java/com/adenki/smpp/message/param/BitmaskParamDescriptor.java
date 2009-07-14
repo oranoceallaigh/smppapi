@@ -7,11 +7,15 @@ import com.adenki.smpp.util.PacketDecoder;
 import com.adenki.smpp.util.PacketEncoder;
 
 /**
- * Encode and decode bit masks. While this descriptor type supports bit masks
- * that are longer than a single octet, the SMPP specification does not define
- * how a multi-byte bit mask should be encoded on the wire. Since the rest
- * of SMPP is big-endian, this implementation assumes big-endian for bit masks
- * too.
+ * Encode and decode bit masks.
+ * <p>
+ * The SMPP specification only defines single-octet bit masks. However,
+ * this descriptor supports <strong>reading</strong> bit masks that are
+ * longer than a single octet. It assumes big-endian ordering of the octets.
+ * </p>
+ * <p>
+ * Writing bit masks that contain more than one octet is not supported.
+ * </p>
  * @version $Id$
  */
 public class BitmaskParamDescriptor extends AbstractDescriptor {
@@ -20,10 +24,6 @@ public class BitmaskParamDescriptor extends AbstractDescriptor {
     public BitmaskParamDescriptor() {
     }
     
-    public int getLengthSpecifier() {
-        return -1;
-    }
-
     public int sizeOf(Object obj) {
         return 1;
     }
@@ -32,12 +32,15 @@ public class BitmaskParamDescriptor extends AbstractDescriptor {
         encoder.writeUInt1(bitsetToInt((BitSet) obj));
     }
 
-    public Object readObject(PacketDecoder decoder, int length) {
-        int bits = decoder.readUInt1();
+    public Object readObject(PacketDecoder decoder, int length) throws IOException {
         BitSet bitset = new BitSet();
-        for (int i = 0; i < 8; i++) {
-            if ((bits & (1 << i)) != 0) {
-                bitset.set(i);
+        for (int i = 0; i < length; i++) {
+            final int lowBit = ((length - 1) - i) * 8;
+            final int currentBits = decoder.readUInt1();
+            for (int j = 0; j < 8; j++) {
+                if ((currentBits & (1 << j)) != 0) {
+                    bitset.set(lowBit + j);
+                }
             }
         }
         return bitset;

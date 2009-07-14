@@ -11,10 +11,6 @@ public class DateParamDescriptor extends AbstractDescriptor {
     private static final long serialVersionUID = 2L;
     private static final SMPPDateFormat DATE_FORMAT = new SMPPDateFormat();
     
-    public int getLengthSpecifier() {
-        return -1;
-    }
-    
     public int sizeOf(Object obj) {
         if (obj != null) {
             String str = DATE_FORMAT.format((SMPPDate) obj);
@@ -28,7 +24,7 @@ public class DateParamDescriptor extends AbstractDescriptor {
         encoder.writeDate((SMPPDate) obj);
     }
 
-    public Object readObject(PacketDecoder decoder, int length) {
+    public Object readObject(PacketDecoder decoder, int length) throws IOException {
         return decoder.readDate();
     }
 }

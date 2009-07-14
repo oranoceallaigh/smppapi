@@ -15,30 +15,6 @@ import com.adenki.smpp.util.PacketEncoder;
  */
 public interface ParamDescriptor extends Serializable {
     /**
-     * Get the index of another numerical mandatory parameter which specifies
-     * the length of the parameter this descriptor represents. For example,
-     * in a submit_sm packet, the length of the short_message parameter is
-     * specified by the sm_length parameter, a 1-byte integer immediately
-     * preceding short_message in the mandatory parameter section of the packet.
-     * Therefore, the parameter descriptor that will be used to decode the
-     * short_message would return the index of the sm_length parameter in the
-     * body. This specified length can then be used to decode the correct
-     * number of bytes for the short message.
-     * <p>
-     * As another example, take the submit_multi packet. It has a mandatory
-     * parameter called dest_address(es) which specify all the destinations
-     * the message should be submitted to. The number of destinations in the
-     * destination table is specified by the number_of_dests mandatory
-     * parameter. In this case, the descriptor used to read the dest_addresses
-     * would return the index of number_of_dests from this method.
-     * </p>
-     * @return The index in the mandatory parameters of where to find the length
-     * specifier for this descriptor. If this descriptor does not need or
-     * support a length specifier, <code>-1</code> must be returned.
-     */
-    int getLengthSpecifier();
-
-    /**
      * Get the encoded byte-size of <code>obj</code>.
      * @param obj The object to calculate the encoded size for.
      * @return The number of bytes the specified object would be encoded
@@ -67,5 +43,5 @@ public interface ParamDescriptor extends Serializable {
      * @return The decoded object.
      */
     // TODO this should throw something - a runtime exception
-    Object readObject(PacketDecoder decoder, int length);
+    Object readObject(PacketDecoder decoder, int length) throws IOException;
 }

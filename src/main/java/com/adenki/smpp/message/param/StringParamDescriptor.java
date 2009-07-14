@@ -7,15 +7,6 @@ import com.adenki.smpp.util.PacketEncoder;
 
 public class StringParamDescriptor extends AbstractDescriptor {
     private static final long serialVersionUID = 2L;
-    private int linkIndex;
-    
-    public StringParamDescriptor(int linkIndex) {
-        this.linkIndex = linkIndex;
-    }
-    
-    public int getLengthSpecifier() {
-        return linkIndex;
-    }
     
     public int sizeOf(Object obj) {
         if (obj != null) {
@@ -32,7 +23,7 @@ public class StringParamDescriptor extends AbstractDescriptor {
         }
     }
 
-    public Object readObject(PacketDecoder decoder, int length) {
+    public Object readObject(PacketDecoder decoder, int length) throws IOException {
         return decoder.readString(length);
     }
 }

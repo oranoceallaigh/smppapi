@@ -8,18 +8,7 @@ import com.adenki.smpp.util.PacketEncoder;
 public class BytesParamDescriptor extends AbstractDescriptor {
     private static final long serialVersionUID = 2L;
     
-    private int linkIndex;
-    
     public BytesParamDescriptor() {
-        linkIndex = -1;
-    }
-    
-    public BytesParamDescriptor(int linkIndex) {
-        this.linkIndex = linkIndex;
-    }
-    
-    public int getLengthSpecifier() {
-        return linkIndex;
     }
     
     public int sizeOf(Object obj) {
@@ -37,7 +26,7 @@ public class BytesParamDescriptor extends AbstractDescriptor {
         }
     }
 
-    public Object readObject(PacketDecoder decoder, int length) {
+    public Object readObject(PacketDecoder decoder, int length) throws IOException {
         return decoder.readBytes(length);
     }
 }
