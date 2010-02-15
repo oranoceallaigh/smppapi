@@ -79,7 +79,7 @@ public class UserDataImpl implements UserData {
             dataBuffer = ByteBuffer.wrap(new byte[0]);
         }
         boolean needMoreSegments = true;
-        boolean needUdhl = headerElements.size() > 0;
+        boolean needUdhl = elements.size() > 0;
         int segmentNum = 0;
         while (needMoreSegments) {
             segmentNum++;
