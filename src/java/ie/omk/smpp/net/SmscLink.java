@@ -318,7 +318,7 @@ public abstract class SmscLink {
                     buf = newbuf;
                 }
                 int remaining = cmdLen - count;
-                readBytes(buf, count, remaining, remaining);
+                count += readBytes(buf, count, remaining, remaining);
             } finally {
                 dump(snoopIn, array, 0, count);
             }
