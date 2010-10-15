@@ -125,6 +125,17 @@ import org.apache.commons.logging.LogFactory;
  * <code>ie.omk.smpp.event.ThreadedEventDispatcher</code> class.</td>
  * </tr>
  * 
+ * <tr>
+ * <td><code>smppapi.tlv.mblox_hack</code></td>
+ * <td>Boolean</td>
+ * <td>True to enable the MBlox hack for TLVs that have the "String" type.
+ * MBlox does not encode the nul-byte terminator for C-Octet Strings as
+ * per the specification. Enabling this option causes the
+ * {@link ie.omk.smpp.message.tlv.StringEncoder} class to skip encoding
+ * the nul-terminator on write and to assume there is no nul-terminator
+ * on read.</td>
+ * </tr>
+ * 
  * </table>
  *  
  */
@@ -195,6 +206,11 @@ public final class APIConfig extends Properties {
      */
     public static final String BIND_TIMEOUT = "smppapi.connection.bind_timeout";
 
+    /**
+     * See class description for documentation on the properties.
+     */
+    public static final String MBLOX_HACK = "smppapi.tlv.mblox_hack";
+    
     private static final Log LOGGER = LogFactory.getLog(APIConfig.class);
 
     /**
