@@ -358,7 +358,7 @@ public abstract class SMPPPacket {
      * @return the number of bytes this packet would encode as.
      */
     public final int getLength() {
-        return 16 + getBodyLength() + tlvTable.getLength();
+        return getLength(true);
     }
 
     /**
@@ -1259,7 +1259,7 @@ public abstract class SMPPPacket {
      */
     public final void writeTo(OutputStream out, boolean withOptional)
             throws java.io.IOException {
-        int commandLen = getLength();
+        int commandLen = getLength(withOptional);
 
         SMPPIO.writeInt(commandLen, 4, out);
         SMPPIO.writeInt(commandId, 4, out);
@@ -1351,5 +1351,20 @@ public abstract class SMPPPacket {
      */
     protected abstract void readBodyFrom(byte[] b, int offset)
             throws SMPPProtocolException;
+    
+    /**
+     * Get the number of bytes this packet would encode as on the wire.
+     * @param includeTlv <tt>true</tt> to include the size of the TLV table
+     * in the returned length, <tt>false</tt> to only include the headers
+     * and mandatory paramters.
+     * @return The number of bytes this packet would encode as.
+     */
+    private int getLength(boolean includeTlv) {
+        int len = 16 + getBodyLength();
+        if (includeTlv) {
+            len += tlvTable.getLength();
+        }
+        return len;
+    }
 }
 
