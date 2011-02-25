@@ -12,7 +12,10 @@
 
     <!-- Any libraries needed to build the base API go in here. -->
     <path id="build.classpath">
-        <pathelement location="${lib}/commons-logging.jar" />
+      <fileset dir="${lib}">
+        <include name="jcl-over-slf4j-*.jar"/>
+        <include name="slf4j-api-*.jar"/>
+      </fileset>
     </path>
 
     <!-- Path for the Emma code coverage utility. -->
@@ -29,7 +32,7 @@
         <pathelement location="${resources}" />
         <path refid="build.classpath" />
         <pathelement location="${build.lib}/junit.jar" />
-        <pathelement location="${lib}/log4j-1.2.5.jar" />
+    	<fileset dir="${lib}" includes="log4j-*.jar"/>
     </path>
         
     <!-- Classpath for running the test suite -->
@@ -50,8 +53,9 @@
             <include name="antlr.jar"/>
         </fileset>
         <fileset dir="${lib}">
-            <include name="commons-logging.jar"/>
-            <include name="log4j-1.2.5.jar"/>
+            <include name="jcl-over-slf4j-*.jar"/>
+            <include name="slf4j-api-*.jar"/>
+            <include name="log4j-*.jar"/>
         </fileset>
         <pathelement location="${resources}"/>
     </path>
