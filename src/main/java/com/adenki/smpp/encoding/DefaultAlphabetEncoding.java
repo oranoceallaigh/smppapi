@@ -194,23 +194,30 @@ public class DefaultAlphabetEncoding extends AlphabetEncoding {
      * @param unpacked The unpacked byte array. 
      * @return A new byte array containing the bytes in their packed form.
      */
-    public byte[] pack(byte[] unpacked) {
-        int packedLen = unpacked.length - (unpacked.length / 8);
-        byte[] packed = new byte[packedLen];
+    public byte[] pack(final byte[] unpacked) {
+        final int packedLen = unpacked.length - (unpacked.length / 8);
+        final byte[] packed = new byte[packedLen];
         if (unpacked.length == 0) {
             return packed;
         }
-        for (int i = 0, j = -1; i < packed.length; i++, j++) {
-            int shiftRight = i % 7;
-            int shiftLeft = 8 - (shiftRight + 1);
-            if (shiftRight == 0) {
-                j++;
+        // Index into the unpacked array
+        int unpIndex = 0;
+        // Index into the packed array
+        int pIndex = 0;
+        int shiftRight = 0;
+        for (; pIndex < packed.length; unpIndex++, pIndex++) {
+            int shiftLeft = 7 - shiftRight;
+            int b = ((int) unpacked[unpIndex] & 0xff) >>> shiftRight;
+            if (unpIndex + 1 < unpacked.length) {
+                b |= (((int) unpacked[unpIndex + 1]) & 0xff) << shiftLeft;
             }
-            int b = ((int) unpacked[j] & 0xff) >>> shiftRight;
-            if (j + 1 < unpacked.length) {
-                b |= (((int) unpacked[j + 1]) & 0xff) << shiftLeft;
+            packed[pIndex] = (byte) b;
+            shiftRight++;
+            if (shiftRight > 6) {
+                // We've saved a byte
+                unpIndex++;
+                shiftRight = 0;
             }
-            packed[i] = (byte) b;
         }
         return packed;
     }
@@ -223,25 +230,31 @@ public class DefaultAlphabetEncoding extends AlphabetEncoding {
      * @param packed The packed byte array.
      * @return A new byte array containing the unpacked bytes.
      */
-    public byte[] unpack(byte[] packed) {
-        int unpackedLen = (packed.length * 8) / 7;
-        byte[] unpacked = new byte[unpackedLen];
+    public byte[] unpack(final byte[] packed) {
+        final int unpackedLen = (packed.length * 8) / 7;
+        final byte[] unpacked = new byte[unpackedLen];
         if (packed.length == 0) {
             return unpacked;
         }
-        for (int i = 0, j = 0; i < packed.length; i++, j++) {
-            int shiftLeft = i % 7;
-            int shiftRight = 8 - shiftLeft;
-            if (shiftLeft == 0) {
-                unpacked[j] = (byte) ((int) packed[i] & 0x7f);
-            } else {
-                int b = ((int) packed[i - 1] & 0xff) >>> shiftRight;
-                b |= ((int) packed[i] << shiftLeft) & 0x7f;
-                unpacked[j] = (byte) b;
-                if (shiftLeft == 6) {
-                    j++;
-                    unpacked[j] = (byte) (((int) packed[i] & 0xff) >>> 1);
-                }
+        int shiftLeft = 0;
+        int unpIndex = 0;
+        int pIndex = 0;
+        // Now iterate the remaining bytes, shifting as necessary
+        for (; pIndex < packed.length; pIndex++, unpIndex++) {
+            final int shiftRight = 8 - shiftLeft;
+            int b = (((int) packed[pIndex]) << shiftLeft) & 0x7f;
+            if (shiftLeft > 0) {
+                b |= ((int) (packed[pIndex - 1] & 0xff)) >>> shiftRight;
+            }
+            unpacked[unpIndex] = (byte) b;
+            shiftLeft++;
+            if (shiftLeft > 6) {
+                // We have a full extra character packed in to the upper 7
+                // bits of the current octet.
+                shiftLeft = 0;
+                unpIndex++;
+                b = ((int) packed[pIndex] & 0xff) >>> 1;
+                unpacked[unpIndex] = (byte) b;
             }
         }
         return unpacked;
