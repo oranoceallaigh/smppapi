@@ -9,6 +9,7 @@ import ie.omk.smpp.message.SMPPPacket;
  * handled by the relevant ThreadedEventDispatcher methods.
  */
 class FIFOQueue {
+    private static final int FULL = -1;
     private int head;
     private int tail;
     private NotificationDetails[] queue;
@@ -24,30 +25,21 @@ class FIFOQueue {
     }
 
     public void put(Connection c, SMPPPacket p) throws QueueFullException {
-        if (isFull()) {
-            throw new QueueFullException();
-        }
-        queue[tail++].setDetails(c, null, p);
-        if (tail >= queue.length) {
-            tail = 0;
-        }
+        put(c, null, p);
     }
 
     public void put(Connection c, SMPPEvent e) throws QueueFullException {
-        if (isFull()) {
-            throw new QueueFullException();
-        }
-        queue[tail++].setDetails(c, e, null);
-        if (tail >= queue.length) {
-            tail = 0;
-        }
+        put(c, e, null);
     }
 
     public NotificationDetails get() {
         NotificationDetails nd = null;
         if (!isEmpty()) {
+            if (tail == FULL) {
+                tail = head;
+            }
             nd = queue[head++];
-            if (head >= queue.length) {
+            if (head == queue.length) {
                 head = 0;
             }
         }
@@ -59,10 +51,33 @@ class FIFOQueue {
     }
 
     public boolean isFull() {
-        if (tail > head) {
-            return (tail == queue.length - 1) && head == 0;
+        return tail == FULL;
+    }
+    
+    public int capacity() {
+        return queue.length;
+    }
+    
+    public int size() {
+        if (tail == FULL) {
+            return capacity();
+        } else if (tail >= head) {
+            return tail - head;
         } else {
-            return tail == (head - 1);
+            return capacity() - (head - tail);
+        }
+    }
+
+    private void put(Connection c, SMPPEvent e, SMPPPacket p) throws QueueFullException {
+        if (isFull()) {
+            throw new QueueFullException();
+        }
+        queue[tail++].setDetails(c, e, p);
+        if (tail == queue.length) {
+            tail = 0;
+        }
+        if (tail == head) {
+            tail = FULL;
         }
     }
 }
