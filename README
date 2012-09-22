@@ -4,11 +4,5 @@ Java SMPP API
 
 http://smppapi.sf.net/
 
-
-To get help on running the examples provided with the API, execute:
-ant -projecthelp -f run-examples.xml
-
 There is a simple user's guide document in the "docs" sub-directory
 names "UserGuide.html".
-
-API documentation is in docs/apiDocs.

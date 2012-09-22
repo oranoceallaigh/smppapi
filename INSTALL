@@ -2,17 +2,19 @@
 How to build
 ------------
 
-To build you'll need a version of Apache Maven 2.0.9 or better installed,
+To build you'll need a version of Apache Maven 3.0 or better installed,
 or use Eclipse. J2SE 1.5 or better is required.
 
 You can get Maven from http://maven.apache.org/
 Eclipse can be obtained from http://www.eclipse.org/
 
-Build the API by issuing the command
+Build the API by issuing the commands
 mvn install
+mvn site
 
 This will build the Jar files, javadoc documentation and build and run the
 test suite. All files will be built to the "target" sub-directory.
 
 The smppapi is developed using the Eclipse IDE and the source tree contains
-all of the relevant project control files.
+all of the relevant project control files. However, these can be regenerated
+using Maven: mvn eclipse:clean eclipse:eclipse
