@@ -39,6 +39,7 @@ public final class UserDataUtil {
             p.setDestination(to);
             p.setEsmClass(0x40);
             p.setMessage(segment);
+            packets.add(p);
         }
         return packets.toArray(new SubmitSM[packets.size()]);
     }
@@ -64,6 +65,7 @@ public final class UserDataUtil {
             p.setDestination(to);
             p.setEsmClass(0x40);
             p.setMessage(segment);
+            packets.add(p);
         }
         return packets.toArray(new DeliverSM[packets.size()]);
     }
@@ -89,6 +91,7 @@ public final class UserDataUtil {
             p.setDestination(to);
             p.setEsmClass(0x40);
             p.setTLV(Tag.MESSAGE_PAYLOAD, segment);
+            packets.add(p);
         }
         return packets.toArray(new DataSM[packets.size()]);
     }
