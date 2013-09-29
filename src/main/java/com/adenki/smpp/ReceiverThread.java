@@ -22,7 +22,7 @@ public class ReceiverThread implements Receiver, Runnable {
 
     private Thread thread;
     private boolean running;
-    private Session session;
+    private SessionImpl session;
     private PacketFactory packetFactory = new PacketFactory();
 
     public ReceiverThread() {
@@ -30,7 +30,7 @@ public class ReceiverThread implements Receiver, Runnable {
         thread.setDaemon(true);
     }
     
-    public ReceiverThread(Session session) {
+    public ReceiverThread(SessionImpl session) {
         this();
         this.session = session;
     }
@@ -45,10 +45,6 @@ public class ReceiverThread implements Receiver, Runnable {
 
     public Session getSession() {
         return session;
-    }
-    
-    public void setSession(Session session) {
-        this.session = session;
     }
     
     public String getName() {
@@ -93,7 +89,7 @@ public class ReceiverThread implements Receiver, Runnable {
         final int ioExceptionLimit =
             config.getInt(APIConfig.TOO_MANY_IO_EXCEPTIONS, 5);
         
-        SMPPPacket packet = null;
+        SMPPPacket packet;
         while (running && session.getState() != SessionState.UNBOUND) {
             try {
                 packet = readNextPacket();

@@ -24,13 +24,7 @@ public interface Receiver {
      * @return The SMPP session this receiver is using.
      */
     Session getSession();
-    
-    /**
-     * Se the session that this receiver is using.
-     * @param session The SMPP session this receiver is using.
-     */
-    void setSession(Session session);
-    
+
     /**
      * Test if this receiver is currently started.
      * @return <code>true</code> if this receiver is running, <code>false</code>

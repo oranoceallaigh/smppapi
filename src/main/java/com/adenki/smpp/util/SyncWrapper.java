@@ -1,28 +1,16 @@
 package com.adenki.smpp.util;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.adenki.smpp.Session;
 import com.adenki.smpp.SessionType;
 import com.adenki.smpp.event.SMPPEvent;
 import com.adenki.smpp.event.SessionObserver;
-import com.adenki.smpp.message.Bind;
-import com.adenki.smpp.message.BindReceiver;
-import com.adenki.smpp.message.BindResp;
-import com.adenki.smpp.message.BindTransceiver;
-import com.adenki.smpp.message.BindTransmitter;
-import com.adenki.smpp.message.SMPPPacket;
-import com.adenki.smpp.message.Unbind;
-import com.adenki.smpp.message.UnbindResp;
+import com.adenki.smpp.message.*;
 import com.adenki.smpp.net.ReadTimeoutException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.*;
 
 /**
  * Connection observer which mimics synchronous communications. This observer
@@ -34,8 +22,8 @@ public class SyncWrapper implements SessionObserver {
     private static final Logger LOG = LoggerFactory.getLogger(SyncWrapper.class);
     
     private Session connection;
-    private Map<Number, SMPPPacket> blockers = new HashMap<Number, SMPPPacket>();
-    private List<SMPPPacket> packetQueue = new ArrayList<SMPPPacket>();
+    private final Map<Number, SMPPPacket> responses = new LinkedHashMap<Number, SMPPPacket>();
+    private final List<SMPPPacket> packetQueue = new ArrayList<SMPPPacket>();
     private long packetTimeout;
     
     private ConnectionCaller bindCaller = new ConnectionCaller() {
@@ -45,7 +33,7 @@ public class SyncWrapper implements SessionObserver {
     };
     private ConnectionCaller packetCaller = new ConnectionCaller() {
         public void execute(Session connection, SMPPPacket packet) throws IOException {
-            connection.sendPacket(packet);
+            connection.send(packet);
         }
     };
 
@@ -163,7 +151,7 @@ public class SyncWrapper implements SessionObserver {
      * @throws ReadTimeoutException If the <code>packetTimeout</code>
      * expires before the response is received from the SMSC.
      */
-    public SMPPPacket sendPacket(SMPPPacket packet) throws IOException {
+    public SMPPPacket send(SMPPPacket packet) throws IOException {
         SMPPPacket response = sendAndWait(packet, packetCaller, packetTimeout);
         if (response == null) {
             throw new ReadTimeoutException();
@@ -175,22 +163,11 @@ public class SyncWrapper implements SessionObserver {
     public void packetReceived(Session source, SMPPPacket packet) {
         if (packet.isResponse()) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Response received: there are {} threads blocked.",
-                        blockers.size());
+                LOG.debug("Response received: {}", packet);
             }
-            Number seq = null;
-            synchronized (blockers) {
-                seq = new Long(packet.getSequenceNum());
-                seq = getKeyObject(seq);
-                if (seq != null) {
-                    blockers.put(seq, packet);
-                    synchronized (seq) {
-                        seq.notify();
-                    }
-                } else {
-                    LOG.debug("No blocker thread waiting on packet {}", seq);
-                    addToQueue(packet);
-                }
+            synchronized (responses) {
+                responses.put(packet.getSequenceNum(), packet);
+                responses.notifyAll();
             }
         } else {
             addToQueue(packet);
@@ -258,37 +235,12 @@ public class SyncWrapper implements SessionObserver {
     /**
      * Set the timeout, in milliseconds, to block waiting for a packet. The
      * default is <code>0</code>, meaning wait forever for the packet.
-     * @param packetTimeout
+     * @param packetTimeout The number of milliseconds to wait on the packet.
      */
     public void setPacketTimeout(long packetTimeout) {
         this.packetTimeout = packetTimeout;
     }
 
-    /**
-     * Notify any threads that are currently blocked waiting on a response
-     * packet to give up waiting on the response and return. 
-     */
-    public void interruptAllBlocked() {
-        synchronized (blockers) {
-            for (Iterator<Number> iter = blockers.keySet().iterator(); iter.hasNext();) {
-                Number seq = iter.next();
-                synchronized (seq) {
-                    seq.notify();
-                }
-            }
-        }
-    }
-    
-    private Number getKeyObject(Number seq) {
-        for (Iterator<Number> iter = blockers.keySet().iterator(); iter.hasNext();) {
-            Number value = iter.next();
-            if (value.equals(seq)) {
-                return value;
-            }
-        }
-        return null;
-    }
-    
     private void addToQueue(SMPPPacket packet) {
         synchronized (packetQueue) {
             packetQueue.add(packet);
@@ -301,39 +253,31 @@ public class SyncWrapper implements SessionObserver {
         return config.getLong(APIConfig.BIND_TIMEOUT, 0L);
     }
     
-    private SMPPPacket sendAndWait(SMPPPacket packet,
+    private SMPPPacket sendAndWait(
+            SMPPPacket packet,
             ConnectionCaller caller,
             long timeout) throws IOException {
-        Long seq;
-        if (packet.getSequenceNum() < 0L) {
-            long nextSeq = connection.getSequenceNumberScheme().nextNumber();
-            seq = new Long(nextSeq);
-        } else {
-            seq = new Long(packet.getSequenceNum());
-        }
-        synchronized (blockers) {
-            if (blockers.containsKey(seq)) {
-                throw new com.adenki.smpp.IllegalStateException(
-                        "Got a duplicate sequence number!");
-            }
-            blockers.put(seq, null);
-        }
-        packet.setSequenceNum(seq.longValue());
+        caller.execute(connection, packet);
         SMPPPacket response = null;
         try {
-            synchronized (seq) {
-                caller.execute(connection, packet);
-                seq.wait(timeout);
+            long waitFinish = System.currentTimeMillis() + timeout;
+            synchronized (responses) {
+                response = responses.get(packet.getSequenceNum());
+                while (response == null) {
+                    if (System.currentTimeMillis() > waitFinish) {
+                        throw new ReadTimeoutException(
+                                packet.getClass().getSimpleName()
+                                        + " response with sequence "
+                                        + packet.getSequenceNum()
+                                        + " not received within timeout.");
+                    }
+                    responses.wait(timeout);
+                    response = responses.get(packet.getSequenceNum());
+                }
             }
         } catch (InterruptedException x) {
             LOG.debug("Thread interrupted while waiting on response packet {}.",
-                    seq);
-        } finally {
-            // Done in finally because the sequence number should be removed
-            // from the map whether or not a response was received.
-            synchronized (blockers) {
-                response = blockers.remove(seq);
-            }
+                    packet.getSequenceNum());
         }
         return response;
     }

@@ -126,7 +126,7 @@ public class AutoResponder implements SessionObserver {
     
     private void respond(Session connection, SMPPPacket response) {
         try {
-            connection.sendPacket(response);
+            connection.send(response);
         } catch (IOException x) {
             LOG.error("IOException while trying to send packet {}: {}",
                     response, x.getMessage());
