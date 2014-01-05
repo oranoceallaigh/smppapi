@@ -6,9 +6,6 @@ import java.util.Collection;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.adenki.smpp.event.EventDispatcher;
 import com.adenki.smpp.event.SessionObserver;
 import com.adenki.smpp.event.SimpleEventDispatcher;
@@ -32,6 +29,8 @@ import com.adenki.smpp.util.SequenceNumberScheme;
 import com.adenki.smpp.version.SMPPVersion;
 import com.adenki.smpp.version.VersionException;
 import com.adenki.smpp.version.VersionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 // TODO documentation!
 public class SessionImpl implements Session {

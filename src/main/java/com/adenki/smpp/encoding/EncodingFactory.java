@@ -5,12 +5,11 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.adenki.smpp.SMPPRuntimeException;
 import com.adenki.smpp.util.APIConfig;
 import com.adenki.smpp.util.APIConfigFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Factory class for obtaining message encoding instances.

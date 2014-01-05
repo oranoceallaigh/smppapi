@@ -1,8 +1,7 @@
 package com.adenki.smpp.message;
 
-import org.slf4j.LoggerFactory;
-
 import com.adenki.smpp.util.SMPPDate;
+import org.slf4j.LoggerFactory;
 
 /**
  * Deliver message. This message is sent from the SMSC to a Receiver ESME to

@@ -3,21 +3,19 @@ package com.adenki.smpp.event;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.adenki.smpp.Session;
 import com.adenki.smpp.message.SMPPPacket;
 import com.adenki.smpp.util.APIConfig;
 import com.adenki.smpp.util.APIConfigFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Implementation of the {@link EventDispatcher} that uses Java's
  * {@link Executor} framework to dispatch events. If no other executor
- * is supplied, then a {@link ThreadPoolExecutor} will be created
- * at {@link #init} time.
+ * is supplied, then a {@link java.util.concurrent.ThreadPoolExecutor}
+ * will be created at {@link #init} time.
  * <p>
  * The number of threads created in the <tt>ThreadPoolExecutor</tt>
  * is determined from the {@link #setThreadCount(int) threadCount}
@@ -32,7 +30,7 @@ public class TaskExecutorEventDispatcher extends AbstractEventDispatcher {
         LoggerFactory.getLogger(TaskExecutorEventDispatcher.class);
 
     private Executor executor;
-    private int threadCount = 0;
+    private int threadCount;
     
     public void destroy() {
         if (executor instanceof ExecutorService) {

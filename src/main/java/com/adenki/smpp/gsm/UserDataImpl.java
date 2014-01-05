@@ -17,7 +17,7 @@ import java.util.List;
  */
 public class UserDataImpl implements UserData {
 
-    private LinkedList<HeaderElement> headerElements = new LinkedList<HeaderElement>();
+    private List<HeaderElement> headerElements = new LinkedList<HeaderElement>();
     private byte[] data;
     private boolean useConcat16;
     

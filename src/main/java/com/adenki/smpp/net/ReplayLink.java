@@ -30,7 +30,7 @@ public class ReplayLink implements SmscLink {
 
     private InputStream inPacketSource;
     private InputStream outPacketSource;
-    private int timeout = 0;
+    private int timeout;
     private boolean connected;
     private PacketFactory packetFactory = new PacketFactory();
     private Set<Long> outboundSeqNums = new HashSet<Long>();

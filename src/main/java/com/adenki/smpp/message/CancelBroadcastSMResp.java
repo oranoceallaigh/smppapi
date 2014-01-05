@@ -9,7 +9,7 @@ public class CancelBroadcastSMResp extends SMPPPacket {
     private static final long serialVersionUID = 2L;
 
     public CancelBroadcastSMResp() {
-        super (CommandId.CANCEL_BROADCAST_SM_RESP);
+        super(CommandId.CANCEL_BROADCAST_SM_RESP);
     }
     
     @Override

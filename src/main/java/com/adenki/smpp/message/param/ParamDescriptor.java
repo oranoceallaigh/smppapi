@@ -1,7 +1,6 @@
 package com.adenki.smpp.message.param;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.Serializable;
 
 import com.adenki.smpp.util.PacketDecoder;

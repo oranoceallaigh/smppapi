@@ -5,11 +5,10 @@ import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 import java.util.Vector;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.adenki.smpp.gsm.GSMError;
 import com.adenki.smpp.message.MessageState;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Look up descriptions of various SMPP codes.

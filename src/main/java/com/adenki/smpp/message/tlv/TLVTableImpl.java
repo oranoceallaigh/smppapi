@@ -121,7 +121,7 @@ public class TLVTableImpl extends LinkedHashMap<Tag, Object> implements TLVTable
      * a bit mask.
      */
     public BitSet getBitmask(Tag tag) {
-        return ((BitSet) get(tag));
+        return (BitSet) get(tag);
     }
     
     /**
@@ -133,7 +133,7 @@ public class TLVTableImpl extends LinkedHashMap<Tag, Object> implements TLVTable
      * a byte array.
      */
     public byte[] getBytes(Tag tag) {
-        return ((byte[]) get(tag));
+        return (byte[]) get(tag);
     }
     
     /**

@@ -5,7 +5,7 @@ package com.adenki.smpp.message;
  * @version $Id$
  * @since 0.4.0
  */
-public class ESMClass {
+public final class ESMClass {
     /** Mobile Terminated; Normal delivery, no address swapping */
     public static final int SMC_MT = 1;
 
@@ -50,4 +50,7 @@ public class ESMClass {
 
     /** Memory capacity error */
     public static final int SMC_MCE = 2048;
+
+    private ESMClass() {
+    }
 }

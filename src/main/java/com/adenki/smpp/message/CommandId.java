@@ -13,7 +13,7 @@ package com.adenki.smpp.message;
  * @version $Id$
  * @since 0.4.0
  */
-public class CommandId {
+public final class CommandId {
     public static final int GENERIC_NACK = 0x80000000;
     public static final int BIND_RECEIVER = 0x00000001;
     public static final int BIND_RECEIVER_RESP = 0x80000001;
@@ -53,4 +53,7 @@ public class CommandId {
     public static final int QUERY_BROADCAST_SM_RESP = 0x80000112;
     public static final int CANCEL_BROADCAST_SM = 0x00000113;
     public static final int CANCEL_BROADCAST_SM_RESP = 0x80000113;
+
+    private CommandId() {
+    }
 }

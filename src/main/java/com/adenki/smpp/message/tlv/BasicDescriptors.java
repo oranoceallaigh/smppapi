@@ -14,7 +14,7 @@ import com.adenki.smpp.message.param.ParamDescriptor;
  * @version $Id$
  * @since 0.4.0
  */
-public class BasicDescriptors {
+public final class BasicDescriptors {
     public static final ParamDescriptor INTEGER1 = new IntegerParamDescriptor(1);
     public static final ParamDescriptor INTEGER2 = new IntegerParamDescriptor(2);
     public static final ParamDescriptor INTEGER4 = new IntegerParamDescriptor(4);
@@ -24,4 +24,7 @@ public class BasicDescriptors {
     public static final ParamDescriptor BITMASK = new BitmaskParamDescriptor();
     public static final ParamDescriptor DATE = new DateParamDescriptor();
     public static final ParamDescriptor NULL = new NullParamDescriptor();
+
+    private BasicDescriptors() {
+    }
 }

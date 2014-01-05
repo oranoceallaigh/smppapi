@@ -19,7 +19,7 @@ public class QueryBroadcastSMResp extends SMPPPacket {
     private String messageId;
     
     public QueryBroadcastSMResp() {
-        super (CommandId.QUERY_BROADCAST_SM_RESP);
+        super(CommandId.QUERY_BROADCAST_SM_RESP);
     }
 
     public String getMessageId() {

@@ -29,7 +29,7 @@ public class BroadcastSM extends SMPPPacket {
     private int defaultMsg;
     
     public BroadcastSM() {
-        super (CommandId.BROADCAST_SM);
+        super(CommandId.BROADCAST_SM);
     }
 
     public int getDataCoding() {

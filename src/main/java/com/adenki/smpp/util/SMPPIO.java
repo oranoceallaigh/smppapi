@@ -32,7 +32,7 @@ public final class SMPPIO {
         try {
             int endIndex = offset;
             for (; bytes[endIndex] != (byte) 0; endIndex++);
-            return new String(bytes, offset, (endIndex - offset), "US-ASCII");
+            return new String(bytes, offset, endIndex - offset, "US-ASCII");
         } catch (UnsupportedEncodingException x) {
             throw new SMPPRuntimeException("JVM does not support ASCII!", x);
         }

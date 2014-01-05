@@ -112,7 +112,7 @@ public class QueryLastMsgsResp extends SMPPPacket {
     protected int getMandatorySize() {
         int length = 1;
         for (String s : messageTable) {
-            length += (1 + sizeOf(s));
+            length += 1 + sizeOf(s);
         }
         return length;
     }

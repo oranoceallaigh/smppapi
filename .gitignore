@@ -1,2 +1,5 @@
 build
+target
 dist
+.idea
+smppapi.iml

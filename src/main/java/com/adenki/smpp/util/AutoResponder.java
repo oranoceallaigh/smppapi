@@ -2,9 +2,6 @@ package com.adenki.smpp.util;
 
 import java.io.IOException;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.adenki.smpp.Session;
 import com.adenki.smpp.event.SMPPEvent;
 import com.adenki.smpp.event.SessionObserver;
@@ -18,6 +15,8 @@ import com.adenki.smpp.message.EnquireLinkResp;
 import com.adenki.smpp.message.SMPPPacket;
 import com.adenki.smpp.message.Unbind;
 import com.adenki.smpp.message.UnbindResp;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A connection observer that can automatically respond to some of the basic
@@ -61,7 +60,10 @@ public class AutoResponder implements SessionObserver {
      * @param respond The value to assign to all of this class' ack properties.
      */
     public AutoResponder(boolean respond) {
-        ackUnbind = ackDeliverSm = ackDataSm = ackEnquireLink = respond;
+        ackUnbind = respond;
+        ackDeliverSm = respond;
+        ackDataSm = respond;
+        ackEnquireLink = respond;
     }
     
     public boolean isAckDataSm() {

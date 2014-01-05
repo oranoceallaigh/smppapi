@@ -6,11 +6,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import org.slf4j.LoggerFactory;
-
 import com.adenki.smpp.Address;
 import com.adenki.smpp.util.PacketDecoder;
 import com.adenki.smpp.util.PacketEncoder;
+import org.slf4j.LoggerFactory;
 
 /**
  * A table of destinations, primarily used in

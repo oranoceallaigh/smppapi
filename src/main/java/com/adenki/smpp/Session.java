@@ -1,12 +1,12 @@
 package com.adenki.smpp;
 
+import java.io.IOException;
+
 import com.adenki.smpp.event.SessionObserver;
 import com.adenki.smpp.message.Bind;
 import com.adenki.smpp.message.SMPPPacket;
 import com.adenki.smpp.net.SmscLink;
 import com.adenki.smpp.version.SMPPVersion;
-
-import java.io.IOException;
 
 /**
  */

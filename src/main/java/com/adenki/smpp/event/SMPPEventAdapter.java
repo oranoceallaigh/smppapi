@@ -4,8 +4,6 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.slf4j.LoggerFactory;
-
 import com.adenki.smpp.SMPPRuntimeException;
 import com.adenki.smpp.Session;
 import com.adenki.smpp.message.BindResp;
@@ -24,6 +22,7 @@ import com.adenki.smpp.message.SubmitMultiResp;
 import com.adenki.smpp.message.SubmitSMResp;
 import com.adenki.smpp.message.Unbind;
 import com.adenki.smpp.message.UnbindResp;
+import org.slf4j.LoggerFactory;
 
 /**
  * Base class for applications to extend for SMPP event handling. This class

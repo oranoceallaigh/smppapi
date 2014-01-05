@@ -8,7 +8,11 @@ import com.adenki.smpp.util.PropertyNotFoundException;
  * Factory class for SMPP versions.
  * @version $Id$
  */
-public class VersionFactory {
+public final class VersionFactory {
+
+    private VersionFactory() {
+    }
+
     /**
      * Get the default SMPP version implemented by this API. This APIs
      * default is currently version 3.4.

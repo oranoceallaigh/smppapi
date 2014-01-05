@@ -24,6 +24,11 @@ public abstract class AbstractHeaderElement implements HeaderElement {
         return getClass().equals(obj.getClass());
     }
 
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
+
     public void reset() {
     }
     

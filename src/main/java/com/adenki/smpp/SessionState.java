@@ -22,7 +22,7 @@ public enum SessionState {
     
     public static final SessionState valueOf(int value) {
         SessionState[] states = SessionState.values();
-        if (value >=0 && value < states.length) {
+        if (value >= 0 && value < states.length) {
             return states[value];
         } else {
             return null;

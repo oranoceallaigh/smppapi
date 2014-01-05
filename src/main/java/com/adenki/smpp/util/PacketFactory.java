@@ -4,9 +4,6 @@ import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.adenki.smpp.BadCommandIDException;
 import com.adenki.smpp.SMPPRuntimeException;
 import com.adenki.smpp.message.AlertNotification;
@@ -49,6 +46,8 @@ import com.adenki.smpp.message.SubmitSM;
 import com.adenki.smpp.message.SubmitSMResp;
 import com.adenki.smpp.message.Unbind;
 import com.adenki.smpp.message.UnbindResp;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Factory class for SMPP packets.

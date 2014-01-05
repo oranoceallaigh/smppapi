@@ -7,10 +7,9 @@ import java.io.StringWriter;
 import java.net.URL;
 import java.util.Properties;
 
+import com.adenki.smpp.SMPPRuntimeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.adenki.smpp.SMPPRuntimeException;
 
 /**
  * Base implementation of the {@link APIConfig} which reads its properties

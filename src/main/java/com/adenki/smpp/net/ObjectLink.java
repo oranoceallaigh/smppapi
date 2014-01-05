@@ -8,10 +8,9 @@ import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.adenki.smpp.message.SMPPPacket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.adenki.smpp.message.SMPPPacket;
 
 /**
  * Link implementation which returns packets which have previously been added to

@@ -16,7 +16,7 @@ public class DefaultAlphabetEncoding extends AlphabetEncoding {
     /** Page break (extended table). */
     public static final int PAGE_BREAK = 0x0a;
 
-    protected final char[] CHAR_TABLE = {
+    protected static final char[] CHAR_TABLE = {
         '@',      '\u00a3', '$',      '\u00a5', '\u00e8', '\u00e9', '\u00f9', '\u00ec',
         '\u00f2', '\u00c7', '\n',     '\u00d8', '\u00f8', '\r',     '\u00c5', '\u00e5',
         '\u0394', '_',      '\u03a6', '\u0393', '\u039b', '\u03a9', '\u03a0', '\u03a8',
@@ -42,7 +42,7 @@ public class DefaultAlphabetEncoding extends AlphabetEncoding {
      * character as this breaks the encoding loop.
      * @see #EXTENDED_ESCAPE
      */
-    protected final char[] EXT_CHAR_TABLE = {
+    protected static final char[] EXT_CHAR_TABLE = {
             0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, '^', 0, 0, 0,

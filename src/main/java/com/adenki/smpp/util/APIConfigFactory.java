@@ -57,7 +57,7 @@ public final class APIConfigFactory {
      * @throws InvalidConfigurationException for the same reasons that
      * <tt>loadConfig</tt> throws this exception.
      */
-    public static final APIConfig getConfig() {
+    public static APIConfig getConfig() {
         boolean cacheConfig = readCacheConfig();
         if (cachedConfig != null) {
             return cachedConfig;
@@ -79,7 +79,7 @@ public final class APIConfigFactory {
      * cannot be found, it does not implement {@link APIConfig} or its
      * constructor is not visible or throws an exception.
      */
-    public static final APIConfig loadConfig() {
+    public static APIConfig loadConfig() {
         String className = null;
         try {
             ClassLoader loader = getClassLoader();
@@ -119,7 +119,7 @@ public final class APIConfigFactory {
      * @param apiConfig The <tt>APIConfig</tt> instance to cache and 
      * return from subsequent calls to <tt>getConfig()</tt>.
      */
-    public static final void setCachedConfig(APIConfig apiConfig) {
+    public static void setCachedConfig(APIConfig apiConfig) {
         cachedConfig = apiConfig;
     }
 
@@ -128,7 +128,7 @@ public final class APIConfigFactory {
      * cached configuration object so that the next call to
      * {@link #getConfig()} will reload the API configuration.
      */
-    public static final void reset() {
+    public static void reset() {
         cachedConfig = null;
     }
     

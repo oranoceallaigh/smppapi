@@ -5,7 +5,7 @@ package com.adenki.smpp;
  * @version $Id$
  * @since 0.4.0
  */
-public class Npi {
+public final class Npi {
     public static final int UNKNOWN = 0;
     public static final int E164 = 1;
     public static final int ISDN = E164;
@@ -18,4 +18,7 @@ public class Npi {
     public static final int IP = 13;
     public static final int RESERVED_EXTN = 15;
     public static final int WAP_CLIENT_ID = 18;
+
+    private Npi() {
+    }
 }

@@ -18,7 +18,7 @@ public class QueryBroadcastSM extends SMPPPacket {
     private Address source;
     
     public QueryBroadcastSM() {
-        super (CommandId.QUERY_BROADCAST_SM);
+        super(CommandId.QUERY_BROADCAST_SM);
     }
 
     public String getMessageId() {

@@ -19,7 +19,7 @@ public class CancelBroadcastSM extends SMPPPacket {
     private Address source;
     
     public CancelBroadcastSM() {
-        super (CommandId.CANCEL_BROADCAST_SM);
+        super(CommandId.CANCEL_BROADCAST_SM);
     }
 
     public String getMessageId() {

@@ -193,7 +193,7 @@ public interface APIConfig {
     /**
      * @see APIConfig
      */
-    String BIND_TIMEOUT ="smppapi.connection.bind_timeout";
+    String BIND_TIMEOUT = "smppapi.connection.bind_timeout";
 
     /**
      * @see APIConfig
