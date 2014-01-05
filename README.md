@@ -20,6 +20,7 @@ details, then we attempt to allow that access.
 
 ## Getting Started
 The basic procedure for communicating with an SMSC is
+
 1. Establish a network-level connection (TCP) to the SMSC.
 2. Bind to the SMSC as a receiver, transmitter or transceiver.
 3. Do SMPP operations.
