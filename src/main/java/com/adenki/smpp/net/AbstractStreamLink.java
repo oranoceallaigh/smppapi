@@ -49,7 +49,7 @@ public abstract class AbstractStreamLink implements SmscLink {
     private PacketEncoder encoder;
     private PacketDecoder decoder;
     private PacketEncoder snoopOutEncoder;
-    private PacketFactory packetFactory;
+    private PacketFactory packetFactory = new PacketFactory();
 
     /**
      * Set to automatically flush the output stream after every packet. Default

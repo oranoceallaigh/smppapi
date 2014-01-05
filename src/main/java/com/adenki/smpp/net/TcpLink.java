@@ -220,6 +220,8 @@ public class TcpLink extends AbstractStreamLink {
         if (sockTimeout > 0) {
             sock.setSoTimeout(sockTimeout);
         }
+        setInputStream(sock.getInputStream());
+        setOutputStream(sock.getOutputStream());
     }
 
     public void disconnect() throws java.io.IOException {
