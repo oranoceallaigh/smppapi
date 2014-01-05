@@ -1,11 +1,14 @@
 package com.adenki.smpp.message;
 
+import com.adenki.smpp.Address;
+import com.adenki.smpp.util.PacketDecoder;
+import com.adenki.smpp.util.PacketEncoder;
+import com.adenki.smpp.util.SMPPDate;
+import com.adenki.smpp.util.StringUtil;
+import com.adenki.smpp.version.SMPPVersion;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
-
-import com.adenki.smpp.Address;
-import com.adenki.smpp.util.SMPPDate;
-
 
 /**
  * Submit a message to the SMSC for delivery to a single destination.
@@ -188,5 +191,88 @@ public class SubmitSM extends SMPPPacket {
         }
         return hc;
     }
-}
 
+    @Override
+    protected void validateMandatory(SMPPVersion smppVersion) {
+        smppVersion.validateServiceType(this.serviceType);
+        smppVersion.validateAddress(this.source);
+        smppVersion.validateAddress(this.destination);
+        smppVersion.validateEsmClass(this.esmClass);
+        smppVersion.validateProtocolID(this.protocolID);
+        smppVersion.validatePriorityFlag(this.priority);
+        smppVersion.validateRegisteredDelivery(this.registered);
+        smppVersion.validateReplaceIfPresent(this.replaceIfPresent);
+        smppVersion.validateDataCoding(this.dataCoding);
+        smppVersion.validateDefaultMsg(this.defaultMsg);
+        smppVersion.validateMessage(this.message, 0, sizeOf(this.message));
+    }
+  
+    @Override
+    protected void readMandatory(PacketDecoder decoder) {
+        serviceType = decoder.readCString();
+        source = decoder.readAddress();
+        destination = decoder.readAddress();
+        esmClass = decoder.readUInt1();
+        protocolID = decoder.readUInt1();
+        priority = decoder.readUInt1();
+        deliveryTime = decoder.readDate();
+        expiryTime = decoder.readDate();
+        registered = decoder.readUInt1();
+        replaceIfPresent = decoder.readUInt1();
+        dataCoding = decoder.readUInt1();
+        defaultMsg = decoder.readUInt1();
+        int len = decoder.readUInt1();
+        message = decoder.readBytes(len);
+    }
+  
+    @Override
+    protected void writeMandatory(PacketEncoder encoder) throws IOException {
+        encoder.writeCString(serviceType);
+        encoder.writeAddress(source);
+        encoder.writeAddress(destination);
+        encoder.writeUInt1(esmClass);
+        encoder.writeUInt1(protocolID);
+        encoder.writeUInt1(priority);
+        encoder.writeDate(deliveryTime);
+        encoder.writeDate(expiryTime);
+        encoder.writeUInt1(registered);
+        encoder.writeUInt1(replaceIfPresent);
+        encoder.writeUInt1(dataCoding);
+        encoder.writeUInt1(defaultMsg);
+        if (message != null) {
+            encoder.writeUInt1(message.length);
+            encoder.writeBytes(message, 0, message.length);
+        } else {
+            encoder.writeUInt1(0);
+        }
+    }
+
+    @Override
+    protected int getMandatorySize() {
+        int length = 9;
+        length += sizeOf(this.serviceType);
+        length += sizeOf(this.source);
+        length += sizeOf(this.destination);
+        length += sizeOf(this.deliveryTime);
+        length += sizeOf(this.expiryTime);
+        length += sizeOf(this.message);
+        return length;
+    }
+  
+    @Override
+    protected void toString(StringBuilder buffer) {
+        buffer.append("source=").append(source)
+        .append(",destination=").append(destination)
+        .append(",registered=").append(registered)
+        .append(",esmClass=").append(esmClass)
+        .append(",dataCoding=").append(dataCoding)
+        .append(",message=");
+        if (message != null) {
+            buffer.append('"')
+            .append(StringUtil.escapeJava(message))
+            .append('"');
+        } else {
+            buffer.append("null");
+        }
+    }
+}
