@@ -4,6 +4,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import org.easymock.EasyMock;
+import org.junit.Assert;
 import org.testng.annotations.Test;
 
 import com.adenki.smpp.Session;
@@ -24,10 +25,10 @@ public class TaskExecutorEventDispatcherTest {
         EasyMock.replay(observer1);
         dispatcher.addObserver(observer1);
         dispatcher.notifyObservers(null, new ReceiverExitEvent(null));
-        ExecutorService executorService =
-            (ExecutorService) dispatcher.getExecutor();
-        executorService.shutdown();
+        dispatcher.destroy();
+        ExecutorService executorService = (ExecutorService) dispatcher.getExecutor();
         executorService.awaitTermination(10, TimeUnit.SECONDS);
+        Assert.assertTrue(executorService.isTerminated());
         EasyMock.verify(observer1);
     }
     
@@ -42,10 +43,20 @@ public class TaskExecutorEventDispatcherTest {
         EasyMock.replay(observer1);
         dispatcher.addObserver(observer1);
         dispatcher.notifyObservers(null, new EnquireLink());
-        ExecutorService executorService =
-            (ExecutorService) dispatcher.getExecutor();
-        executorService.shutdown();
-        executorService.awaitTermination(10, TimeUnit.SECONDS);
+        dispatcher.destroy();
+        ExecutorService executor = (ExecutorService) dispatcher.getExecutor();
+        executor.awaitTermination(10, TimeUnit.SECONDS);
+        Assert.assertTrue(executor.isTerminated());
         EasyMock.verify(observer1);
+    }
+
+    public void testExecutorIsNotShutDownOnDestroyWhenSuppliedByCallingCode() throws Exception {
+        ExecutorService executorService = EasyMock.createMock(ExecutorService.class);
+        EasyMock.replay(executorService);
+        TaskExecutorEventDispatcher dispatcher = new TaskExecutorEventDispatcher();
+        dispatcher.setExecutor(executorService);
+        dispatcher.init();
+        dispatcher.destroy();
+        EasyMock.verify(executorService);
     }
 }

@@ -31,9 +31,15 @@ public class TaskExecutorEventDispatcher extends AbstractEventDispatcher {
 
     private Executor executor;
     private int threadCount;
+    /**
+     * Flag whether we created the executor being used or if it
+     * was supplied to us.
+     */
+    private boolean internalExecutor;
+
     
     public void destroy() {
-        if (executor instanceof ExecutorService) {
+        if (internalExecutor && executor instanceof ExecutorService) {
             ((ExecutorService) executor).shutdownNow();
         }
     }
@@ -45,6 +51,7 @@ public class TaskExecutorEventDispatcher extends AbstractEventDispatcher {
                 numThreads = getNumThreadsFromConfig();
             }
             executor = Executors.newFixedThreadPool(numThreads);
+            internalExecutor = true;
         }
     }
 
@@ -82,6 +89,7 @@ public class TaskExecutorEventDispatcher extends AbstractEventDispatcher {
 
     public void setExecutor(Executor executor) {
         this.executor = executor;
+        internalExecutor = false;
     }
     
     private void doUpdate(SessionObserver[] observers, Session session, SMPPEvent event) {
